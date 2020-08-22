@@ -8,21 +8,13 @@ minimum it seems it can be run on is on a 386 - not a 8086. So if I am
 building an OS that uses some features of a 386, why run in Real Mode, when the
 processor has so much more to offer.
 
+|            Reason               |  Minimum Architecture    |
 |---------------------------------|--------------------------|
-|            Reason                  |  Minimum Architecture    |
-|---------------------------------|--------------------------|
-|  PUSHA, POPA                       |         80186             |
-|---------------------------------|--------------------------|
-|  IMUL with immediate value      |            80186             |
-|---------------------------------|--------------------------|
-|  Use of GS, FS registers        |                          |
-|  by Applications and in Kernel  |         80386             |
-|---------------------------------|--------------------------|
-|  Application can use 32 bit     |                             |
-|  registers.                      |            80386             |
-|---------------------------------|--------------------------|
-|  ENTER, LEAVE                   |            80186             |
-|---------------------------------|--------------------------|
+|  PUSHA, POPA                    |         80186             |
+|  IMUL with immediate value      |         80186             |
+|  Use of GS, FS registers by Applications and in Kernel.  |  80386  | 
+|  Application can use 32 bit registers. |  80386  |
+|  ENTER, LEAVE instructions      |            80186             |
 
 Note: FS, GS and 32 bit registers is not used by the Kernel, but the
 applicaiton programs that will be written in C and compiled most likely with
