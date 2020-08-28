@@ -1,4 +1,4 @@
-# MEGHA OPERATING SYSTEM V2
+# MEGHA OPERATING SYSTEM V2 - x86
 
 Well let me keep things straigt here. I am moving Megha from being a Real Mode
 Operating System to a full 32 bit Protected Mode OS. Why you ask?
@@ -59,3 +59,7 @@ The end product will be ready for a programmer but not for general use.
    the kernel. As and when needed, any modules can be replaced or disabled.
 6. Will target x86 Protected Mode.
 7. VFS, DEVFS and ROM DISKS (Not priority now)
+
+## Kernel design goals
+1. Megha is not to use too much x86 specific features, because that will make
+   porting difficult. 
