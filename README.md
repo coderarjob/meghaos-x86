@@ -63,3 +63,27 @@ The end product will be ready for a programmer but not for general use.
 ## Kernel design goals
 1. Megha is not to use too much x86 specific features, because that will make
    porting difficult. 
+
+## Git Branches
+* Master  - Current Release. With Release tags, that mark the different commits.
+* Develop - Current Develop branch, where all the feature branches will be
+            created and merged into.
+* Feature - Lives temporarily and named like `feature-bootloader`.
+* Hotfix  - Lives temporarily and named like `hotfix-ls-segfault`.
+```
+            *HotFix   Master   Develop     *Feature
+               |        |           |           |
+               |        |           |           |
+               |        |<--------->|           |
+               |<------>|           |<--------->|
+```
+
+## Releases and Versioning:
+1. Every commit in the Master branch must have a tag, and this will be the
+   release version.
+   * If there is _merge from a hotfix branch_, then we increment the 
+     _right most digit_ of the version.
+   * If there is _merge from the develop branch_, then we increment the
+     _middle_ digit of the version.
+2. Every merge on the develop branch from a feature branch then must have a 
+   tag, and this will be the bulid version
