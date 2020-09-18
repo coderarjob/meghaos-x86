@@ -79,6 +79,8 @@ The end product will be ready for a programmer but not for general use.
 ```
 
 ## Releases and Versioning:
+We are going to follow Semantic Versioning Scheme (https://semver.org/).
+
 1. Every commit in the Master branch must have a tag, and this will be the
    release version.
    * If there is _merge from a hotfix branch_, then we increment the 
@@ -86,4 +88,20 @@ The end product will be ready for a programmer but not for general use.
    * If there is _merge from the develop branch_, then we increment the
      _middle_ digit of the version.
 2. Every merge on the develop branch from a feature branch then must have a 
-   tag, and this will be the bulid version
+   tag, and this will be the bulid version. 
+
+### Semantic Versioning Scheme:
+1. Version will be structured:   `major.minor.patch-build.buildminor`.
+   
+   Example: `1.2.19-20200909.1`
+  
+2. Build is in the format: `<year><month><day>.<build_minor>`.
+3. |Version| Reason for change|
+   |-------|------------------|
+   |Major| Increments when backward compatibility is broken.|
+   |Minor| Increments when backward compatibility is maintained.|
+   |Patch| Bug fixes, that does not break backward compatibility.|
+4. Whenever the left or middle digit changes, we reset the digits to the right.
+   * 1.2.14  -->  1.3.0  --> 2.0.0
+5. If a feature or bug fix breaks backward compatibility we should wait and
+   collect some more of such fixes and then do a *Major* release.
