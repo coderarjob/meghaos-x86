@@ -68,13 +68,12 @@ rm -f $LISTDIR/*
 # Build the bootloaders
 bash bootloader/x86/build.sh || exit
 
+# Build kernel
+bash kernel/x86/build.sh || exit
+
 # Build the floppy image
 echo "    [ Creating disk image ]    "
 mkdosfs -C $IMAGEDIR/mos.flp 1440 || exit
-
-# Wrtie the bootloader
-echo "    [ Writing bootloader to floppy image ]    "
-dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
 
 # mount the Disk image
 echo "    [ Mounting Disk image ]    "
@@ -83,10 +82,15 @@ runas mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
 # Copy the files needed to the floppy
 echo "    [ Copy files to floppy ]    "
 runas cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
+runas cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
 
 # Unmount the image
 echo "    [ Copy of files done. Unmounting image ]    "
 runas umount $DISKTEMPDIR || exit
+
+# Wrtie the bootloader
+echo "    [ Writing bootloader to floppy image ]    "
+dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
 
 echo "    [ Storage Utilization ]"
 wc -c $OBJDIR/*
