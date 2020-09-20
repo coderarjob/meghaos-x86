@@ -90,6 +90,7 @@ _start:
     printString msg_PMODE
     printString msg_success
 
+    ; Say goodbye to 16 bits
     mov eax, cr0
     or eax, 1
     mov cr0, eax
@@ -100,11 +101,15 @@ _start:
     nop
 .clear_prefetch_queue:
 
+    ; Disable Interrupts as IVT is not yet present
+    cli
+
     mov ax, 0x10
     mov ds, eax
     mov es, eax
 
     ; -------- [ Jumping to Kernel ] -----------
+
     db  0x66
     db  0xea
     dd  0x18000
