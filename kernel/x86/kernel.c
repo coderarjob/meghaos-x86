@@ -6,7 +6,6 @@ void printhex(u16 num);
 void __main()
 {
     prints("Kernel ready..");
-    printhex(0xbabe);
     while(1);
 }
 
