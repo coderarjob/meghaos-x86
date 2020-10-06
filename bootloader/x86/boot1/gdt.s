@@ -12,9 +12,6 @@
 ; ---------------------------------------------------------------------------
 ;  Change Log
 ; ---------------------------------------------------------------------------
-;  Build - 20200919
-;  - Initial version. GDT at location 0x0000:0x0800
-;
 ;  Build - 20201006
 ;  - GDT will reside in the DATA Section of the boot1 program instead of 
 ;    0x000:0x800. 
@@ -25,6 +22,11 @@
 ;
 ;      Having one copy, and it being in the local address space will be the 
 ;      standard in the whole kernel.
+;    * Having a local GDT means that KENREL will have a separate GDT, separate
+;      from the one here in boot1 program. And thats good!!
+; ---------------------------------------------------------------------------
+;  Build - 20200919
+;  - Initial version. GDT at location 0x0000:0x0800
 ; ---------------------------------------------------------------------------
 
 ; ---------------------------------------------------------------------------
@@ -65,17 +67,15 @@ gdt_meta:
 
 ; ---------------------------------------------------------------------------
 ; Load the initial Global Descriptor Table into the GDTR register.
-; ---------------------------------------------------------------------------
 ; Input:
 ;   None
-; ---------------------------------------------------------------------------
 ; Output:
 ;   None
-; ---------------------------------------------------------------------------
 load_gdt:
     ; Load gdt
     cli
     lgdt [gdt_meta]
     sti
     ret
+; ---------------------------------------------------------------------------
 
