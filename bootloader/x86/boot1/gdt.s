@@ -13,7 +13,18 @@
 ;  Change Log
 ; ---------------------------------------------------------------------------
 ;  Build - 20200919
-;  - Initial version
+;  - Initial version. GDT at location 0x0000:0x0800
+;
+;  Build - 20201006
+;  - GDT will reside in the DATA Section of the boot1 program instead of 
+;    0x000:0x800. 
+;    * This is done to prevent having two copies of GDT around, one
+;      at local address space and another at 0:0x800. 
+;    * Also it cannot be a great way of working, as any change in the 
+;      local GDT, will result in copy to the global GDT. 
+;
+;      Having one copy, and it being in the local address space will be the 
+;      standard in the whole kernel.
 ; ---------------------------------------------------------------------------
 
 ; ---------------------------------------------------------------------------
@@ -46,16 +57,14 @@ gdt:
 
 gdt_meta:
     .size: dw  gdt.length-1        ; Size of GDT -1
-    .loc:  dd  GDT_OFF             ; GDT is stored at 0x0000:0x0800
+    .loc:  dd  gdt
 
 ; ---------------------------------------------------------------------------
 ;  Code Segment
 ; ---------------------------------------------------------------------------
 
 ; ---------------------------------------------------------------------------
-; Load the initial Global Descriptor Table into 0x000:0x800 location, and loads
-; the GDTR register.
-; The 0x800 location is chosen because that is where the IDT ends.
+; Load the initial Global Descriptor Table into the GDTR register.
 ; ---------------------------------------------------------------------------
 ; Input:
 ;   None
@@ -64,19 +73,9 @@ gdt_meta:
 ;   None
 ; ---------------------------------------------------------------------------
 load_gdt:
-    pusha 
-    ; Copy the GDT table from boot1 memory to 0x000:0x800
-    xor ax, ax
-    mov es, ax
-    mov di, 0x800
-    mov si, gdt
-
-    mov cx, gdt.length
-    rep movsb
-
     ; Load gdt
+    cli
     lgdt [gdt_meta]
-
-    popa
+    sti
     ret
 
