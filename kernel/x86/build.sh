@@ -15,5 +15,15 @@ echo "    [ Compilling Kernel ]    "
 $GCC32 -c kernel/x86/kernel.c -o $OBJDIR/kernel.o
 $GCC32 -S kernel/x86/kernel.c -o $LISTDIR/kernel.lst
 
-$LD_KERNEL $OBJDIR/kernel.o -o $OBJDIR/kernel.elf
+$GCC32 -c kernel/x86/screen.c -o $OBJDIR/screen.o
+$GCC32 -S kernel/x86/screen.c -o $LISTDIR/screen.lst
+
+$GCC32 -c kernel/x86/gdt.c -o $OBJDIR/gdt.o
+$GCC32 -S kernel/x86/gdt.c -o $LISTDIR/gdt.lst
+
+$LD_KERNEL $OBJDIR/kernel.o \
+           $OBJDIR/screen.o \
+           $OBJDIR/gdt.o \
+           -o $OBJDIR/kernel.elf
+
 objcopy -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt
