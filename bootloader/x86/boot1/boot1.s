@@ -12,9 +12,21 @@
 ; ---------------------------------------------------------------------------
 ; Change Log
 ; ---------------------------------------------------------------------------
+; Bulid 20201019
+; - GDT will always reside at location 0x0800. It is no longer at
+;   Kernel's/boot1's local address.
+; - Expand down kernel stack segment of 128 KB.
+; - FS is also set to the Data Segment index.
+; ---------------------------------------------------------------------------
+; Bulid 20201008
+; - Jump to kernel code, is done using
+;       jmp <gdt seg>:dword <kernel_memory>
+;   instead of the machine code.
+; ---------------------------------------------------------------------------
 ; Version 20201006
 ; - GDT is local, not at 0x0000:0x0800. Kernel will have a separate GDT in its
-;   local address space, and the one here will be deprecated.
+;   local address space, and the one here will be deprecated, when kernel
+;   loads.
 ; ---------------------------------------------------------------------------
 ; Version 20200917
 ; - Welcome message
@@ -111,23 +123,18 @@ _start:
     ; Disable Interrupts as IVT is not yet present
     cli
 
-    mov ax, 0x10
+    mov eax, 0x10    ; GDT index 2
     mov ds, eax
     mov es, eax
-    mov ss, eax
+    mov gs, eax
+    mov fs, eax
 
-    ; Kernel is at 0x18000, stack at 0x30000 -> 60K
-    ; TODO: Find a better place for the kernel stack. 
-    ; NOTE: Should we have LDT to prevent stack crashing into kernel data ?
-    mov esp, 0x30000    
-    
+    mov ax, 0x18    ; GDT index 3
+    mov ss, eax
+    mov esp, 0x1FFFF
 
     ; -------- [ Jumping to Kernel ] -----------
-    xchg bx, bx
-    db  0x66
-    db  0xea
-    dd  0x18000
-    dw  0x0008
+    jmp 0x8:dword (KERNEL_SEG * 0x10 + KERNEL_OFF)
 
 .end:
     jmp $
