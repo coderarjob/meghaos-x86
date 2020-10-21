@@ -11,31 +11,85 @@
 */
 
 #include <kernel.h>
-/*
- * Displays a 16 bit number in Hexadecimal representation on the screen.
- * */
-void kprinthex(u16 num)
+#include <stdarg.h>
+
+static u8 *vgabuff = (u8 *)0xb8000;
+static int foo = 1043;
+
+static void __phex(u32 num);
+static void __kvprintf(const char *fmt, va_list list);
+
+__attribute__((format (printf,1,2)))
+void kprintf(const char *fmt, ...)
 {
-    char *hexchars = "0123456789ABCDEF";
-    char output[5] = {0};
+    va_list list;               
+    va_start (list, fmt);
+    kbochs_breakpoint();
+    foo = va_arg(list,u32);
+    kbochs_breakpoint();
 
-    for(int i = 3; i >= 0; i--, num >>= 4)
-        output[i] = hexchars[num & 0xF];
+    //__kvprintf(fmt, list);
+    va_end(list);
+}
 
-    prints("0x");
-    prints(output);
+static void __kvprintf(const char *fmt, va_list list)
+{
+    u32 d;
+    const char *s;
+
+    for (const char *c = fmt;*c ; c++)
+    {
+        if (*c == '%') {
+            switch (*++c) {
+                case '%':
+                    kputc('%', VGA_TEXT_GREY);
+                    break;
+                case 'x':
+                    d = va_arg(list,u32);
+                    __phex(d);
+                    break;
+                case 's':
+                    s = va_arg(list,char *);
+                    kputs(s,VGA_TEXT_GREY);
+                    break;
+            }
+            continue;
+        }
+        kputc(*c, VGA_TEXT_GREY);
+    }
 }
 
 /*
- * Prints a ASCIZ string on the VGA text mode frame buffer.
+ * Displays a 32 bit number in Hexadecimal representation on the screen.
  * */
-void prints(char *s)
+static void __phex(u32 num)
 {
-    static u8 *vgabuff = (u8 *)0xb8000;
+    char *hexchars = "0123456789ABCDEF";
+    char output[9] = {0};
 
-    for(; *s; s++, vgabuff+=2) {
-        *vgabuff = *s;
-        *(vgabuff+1) = 0xF;
-    }
+    for(int i = 7; i >= 0; i--, num >>= 4)
+        output[i] = hexchars[num & 0xF];
+
+    kputs(output, VGA_TEXT_WHITE);
+}
+
+/*
+ * Prints an ASCII character on the VGA text mode frame buffer
+ * and increments the pointer to it.
+ * */
+void kputc(char c, u8 attribute)
+{
+    *vgabuff++ = c;
+    *(vgabuff++) = attribute;
+}
+
+/*
+ * Prints a ASCIZ string on the VGA text mode frame buffer
+ * and increments the pointer to it.
+ * */
+void kputs(char *s, u8 attribute)
+{
+    for (;*s;s++)
+        kputc(*s,attribute);
 }
 
