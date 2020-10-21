@@ -7,23 +7,25 @@
 
 # Build the Kernel
 echo "    [ Compilling Kernel ]    "
-#nasm -f bin kernel/x86/kernel.s \
-#   -I kernel/x86 $NASM_INCPATH \
-#   -O0 -o $OBJDIR/kernel.flt \
-#   -l $LISTDIR/kernel.lst || exit
+#nasm -f elf32 kernel/x86/gdt_write.s \
+#    -I kernel/x86 $NASM_INCPATH \
+#    -O0 -o $OBJDIR/gdt_write.o \
+#    -l $LISTDIR/gdt_write.lst || exit
 
-$GCC32 -c kernel/x86/kernel.c -o $OBJDIR/kernel.o
-$GCC32 -S kernel/x86/kernel.c -o $LISTDIR/kernel.lst
+i686_GCC="$GCC32" 
 
-$GCC32 -c kernel/x86/screen.c -o $OBJDIR/screen.o
-$GCC32 -S kernel/x86/screen.c -o $LISTDIR/screen.lst
+$i686_GCC -c kernel/x86/kernel.c -o $OBJDIR/kernel.o 
+$i686_GCC -S kernel/x86/kernel.c -o $LISTDIR/kernel.lst 
 
-$GCC32 -c kernel/x86/gdt.c -o $OBJDIR/gdt.o
-$GCC32 -S kernel/x86/gdt.c -o $LISTDIR/gdt.lst
+$i686_GCC -c kernel/x86/screen.c -o $OBJDIR/screen.o 
+$i686_GCC -S kernel/x86/screen.c -o $LISTDIR/screen.lst
+
+$i686_GCC -c kernel/x86/gdt.c -o $OBJDIR/gdt.o 
+$i686_GCC -S kernel/x86/gdt.c -o $LISTDIR/gdt.lst
 
 $LD_KERNEL $OBJDIR/kernel.o \
            $OBJDIR/screen.o \
            $OBJDIR/gdt.o \
            -o $OBJDIR/kernel.elf
 
-objcopy -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt
+$OBJCOPY -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt

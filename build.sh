@@ -18,8 +18,8 @@ export GCC_INCPATH="-I include -I include/x86"
 # -fno-toplevel-reorder prevents reordering of top level functions
 # -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
 
-export GCC32="gcc -std=c99 \
-                  -nostartfiles \
+export GCC32="i686-elf-gcc -std=gnu99\
+                  -nostdlib \
                   -c \
                   -g \
                   -ffreestanding \
@@ -28,13 +28,16 @@ export GCC32="gcc -std=c99 \
                   -fno-asynchronous-unwind-tables \
                   -m32 \
                   -march=i386 \
+                  -masm=intel \
                   -Wpedantic \
                   -Wextra \
                   -Wall \
                   $GCC_INCPATH \
                   -O0 "
 
-export LD_KERNEL="ld -m elf_i386 --nmagic --script=build/kernel.ld"
+export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
+export OBJCOPY="i686-elf-objcopy"
+
 # export LD_LOADER="ld -m elf_i386 --oformat binary --script=build/loader.ld"
 
 # Create folders
