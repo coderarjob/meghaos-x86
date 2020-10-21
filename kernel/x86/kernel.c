@@ -1,21 +1,26 @@
-#include <ints.h>
+/*
+* ---------------------------------------------------------------------------
+* Megha Operating System V2 - x86 Kernel 
+*
+* This is a test kernel to demostrate that the 'boot1' loader can actually load
+* the kernel and jump to it.
+* On successful execution, 'Kernel ready..' will be displayed on the top of the
+* screen.
+* ---------------------------------------------------------------------------
+*
+* Dated: 20th September 2020
+*/
 
-void prints(char *s);
-void printhex(u16 num);
+#include <kernel.h>
 
+__attribute__((noreturn)) 
 void __main()
 {
-    prints("Kernel ready..");
+    kprintf("Hex: %x", 0xabcd);
+
+    //kprintf("Note: %s Hex: 0x%x","Kernel Loaded",0xDABC);
+
+    //kputs("Kernel ready..",VGA_TEXT_GREY);
+    //kprinthex(0xFFAB);
     while(1);
 }
-
-void prints(char *s)
-{
-    u8 *vgabuff = (u8 *)0xb8000;
-
-    for(; *s; s++, vgabuff+=2) {
-        *vgabuff = *s;
-        *(vgabuff+1) = 0xF;
-    }
-}
-
