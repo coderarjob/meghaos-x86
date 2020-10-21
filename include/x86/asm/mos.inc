@@ -8,7 +8,7 @@
 
 	; Version informations
 	%define     BOOT0_BUILD 	"20200919"
-	%define     BOOT1_BUILD 	"20200909"
+	%define     BOOT1_BUILD 	"20201019"
 	%define 	OS_NAME 	    "MEGHA OPERATING SYSTEM V2 - x86"
 
 	; Error Codes in the OS Kernel and Drivers/Modules.
@@ -17,8 +17,10 @@
 	; MOS Fixed Memory Locations
 	LOADER_SEG		EQU		0x0000
 	LOADER_OFF:		EQU		0x8000          ; 7C00h + 512 + 512 = 8000h
-	KERNEL_SEG:		EQU		0x1800          ; 0000:8000h + 65KB = 18000 
-	KERNEL_OFF:		EQU		0x0000          ; 18000 = 0x1800:0x0000
+
+	KERNEL_SEG:		EQU		0x2800          ; 0000:8000h + 128KB = 28000
+	KERNEL_OFF:		EQU		0x0000          ; 28000 = 0x2800:0x0000
+
 	GDT_SEG:		EQU		0x0000
 	GDT_OFF:		EQU		0x0800          ; 256 interupts *8 = 0x800
 
