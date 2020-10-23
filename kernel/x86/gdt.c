@@ -43,13 +43,11 @@ static struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
 /* -------------------------------------------------------------------------*/
 
 /* -------------------------------------------------------------------------*/
-/* Function declarations */
-static void __gdt_write();
-/* -------------------------------------------------------------------------*/
-
-/* -------------------------------------------------------------------------*/
 /* Function definations */
-static void __gdt_write()
+
+
+/* Writes the GDT structure address and length to the GDTR register.  */
+void kgdt_write()
 {
     struct gdt_size s = {.size = (u16)(sizeof(gdt)-1), 
                          .location = (u32)&gdt};
@@ -61,17 +59,12 @@ static void __gdt_write()
              :"a" (&s));
 }
 
-/*
- * Writes a new GDT descriptor to the GDT.
- */
-void kgdt_add(u8 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
+/* Edits a GDT descriptor in the GDT table.
+ * Note: If gdt_index < 3 then an exception is generated.  */
+void kgdt_edit(u8 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
 {
-    if (gdt_index == 0)
-    {
-        kputs("Invalid gdt index (", VGA_TEXT_RED);
-        /*kprinthex(gdt_index);
-        kprints(") : ",VGA_TEXT_RED);
-        kprints(__FILE__, VGA_TEXT_WHITE);*/
+    if ( gdt_index < GDT_MIN_INDEX || 
+         gdt_index >= GDT_COUNT) {
         khalt();
     }
 

@@ -16,11 +16,5 @@
 __attribute__((noreturn)) 
 void __main()
 {
-    kprintf("Hex: %x", 0xabcd);
-
-    //kprintf("Note: %s Hex: 0x%x","Kernel Loaded",0xDABC);
-
-    //kputs("Kernel ready..",VGA_TEXT_GREY);
-    //kprinthex(0xFFAB);
     while(1);
 }
