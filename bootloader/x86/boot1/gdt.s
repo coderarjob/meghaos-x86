@@ -12,6 +12,12 @@
 ; ---------------------------------------------------------------------------
 ;  Change Log
 ; ---------------------------------------------------------------------------
+;  Build - 202010231
+;  - Going to revert to 20201006 buld.
+;  - The idea is that the setup of the final GDT should be done by the Kernel.
+;    This prevents unnecessory dependency on the bootloader. And the OS is free
+;    to use as much or as little segmentation it wants.
+;
 ;  Build - 20201019
 ;  - Going to add a new GDT segment for a 128 KB kernel stack.
 ;  - The Stack will be placed at location 0x08000 offset.
@@ -53,6 +59,12 @@ gdt:
                             ; Flags: 32Bit address, data, 4GB limit.
         db      0x00        ; Base
 
+; Kernel stack and data
+; Stack is from 0x27FFF to 0x08000 -> size of 128 KB. But alas there would be
+; no checks that can be enforced if stack and data remains in the same segment.
+; NOTE: GCC assumes DS == CS, so produces wrong code when DS =/= SS. Strange!
+;       So until we have paging setup there will be no protection!
+
 .data:  dw      0xFFFF      ; Limit
         dw      0x0000      ; Base
         db      0x00        ; Base
@@ -61,30 +73,11 @@ gdt:
                             ; Flags: 32Bit address, data, 4GB limit.
         db      0x00        ; Base
 
-; Stack segment: 
-; NOTE: We have to use Expand down segment for Stack if we want processor to
-;       check the lower bound, and stack overflow.
-; NOTE: 0x08000 to 0x27FFF    ->  128 KB
-.stack: dw      0xFFFF      ; Limit
-        dw      0x8000      ; Base
-        db      0x00        ; Base
-        db      0x92        ; Access: Data, 0 DPL, Expand up
-        db      0x41        ; Limit: 0x01
-                            ; Flags: 32Bit address, data, G = 1
-        db      0x00        ; Base
-
-;.stack: dw      0x8000      ; Limit
-        ;dw      0x7FFF      ; Base
-        ;db      0x01        ; Base
-        ;db      0x96        ; Access: Data, 0 DPL, Expand down
-        ;db      0x40        ; Limit: 0x01
-                           ; Flags: 32Bit address, data, G = 0
-        ;db      0x00        ; Base
-.length equ $-gdt
+.length:equ     $-gdt
 
 gdt_meta:
     .size: dw  gdt.length-1                 ; Size of GDT -1
-    .loc:  dd  (GDT_SEG * 0x10 + GDT_OFF)   ; 0x0000: 0x0800 = 0x0800
+    .loc:  dd  gdt
 
 ; ---------------------------------------------------------------------------
 ;  Code Segment
@@ -92,7 +85,6 @@ gdt_meta:
 
 ; ---------------------------------------------------------------------------
 ; Load the initial Global Descriptor Table into the GDTR register.
-; The local GDT will be copied to a global location [ 0x0000: 0x0800 ]
 ; Input:
 ;   None
 ; Output:
@@ -100,15 +92,6 @@ gdt_meta:
 load_gdt:
     push cx
     cli
-
-    ; Copy GDT to globa location
-    mov cx, GDT_SEG
-    mov es, cx
-
-    mov di, GDT_OFF
-    mov cx, gdt.length
-    mov si, gdt
-    rep movsb
     
     ; Load gdtr
     lgdt [gdt_meta]

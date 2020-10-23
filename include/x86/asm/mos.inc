@@ -21,8 +21,7 @@
 	KERNEL_SEG:		EQU		0x2800          ; 0000:8000h + 128KB = 28000
 	KERNEL_OFF:		EQU		0x0000          ; 28000 = 0x2800:0x0000
 
-	GDT_SEG:		EQU		0x0000
-	GDT_OFF:		EQU		0x0800          ; 256 interupts *8 = 0x800
+    KSTACK_TOP:     EQU     0x27FFF         ; Stack is 128 KB in size.
 
     ; Filenames
     %define BOOT1_FILE      "BOOT1   FLT"

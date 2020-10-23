@@ -128,10 +128,8 @@ _start:
     mov es, eax
     mov gs, eax
     mov fs, eax
-
-    mov ax, 0x18    ; GDT index 3
     mov ss, eax
-    mov esp, 0x1FFFF
+    mov esp, KSTACK_TOP
 
     ; -------- [ Jumping to Kernel ] -----------
     jmp 0x8:dword (KERNEL_SEG * 0x10 + KERNEL_OFF)
