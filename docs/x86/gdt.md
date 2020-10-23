@@ -1,6 +1,43 @@
 ## Megha Operating System V2 - x86
 ## GDT entries
 ------------------------------------------------------------------------------
+_23st October 2020_
+
+Where to keep the GDT? Two possible options:
+
+1. At a fixed physical location, say `0x00800`
+2. Keep two separate GDTs on in `boot1` and another in `kernel`. Why two?
+   Because the stack area overlaps the memory where `boot` is loaded.
+
+I thought I will go with option 2. Because it decouples `boot1` and `kernel`.
+So I thought, but you see they are anyways linked. Let me explain.
+
+Kernel is loaded at physical location 0x28000. So all the offsets and addresses
+(.text and .rodata) are assigned addresses 0x28000 and above at the time of
+linking (static linking). So while the kernel is running, changing the GDT to a
+value is never going to be viable.
+
+kernel is staticly given addresses, so effective addresses must be preserved. 
+
+**EA = Base of SReg + Offset**
+
+We want EA and Offset to be the same. So there is no way we can ever going to
+change the Base as well. 
+
+So in the end I am going with option 1. We will keep the GDT at a fixed global
+location **0x00800** with storage for 512 entries. Thus the memory looks like
+below (With just two segments, however). 
+
+### Memory Layout after boot1
+* 0x00000  - 0x007FF    -   IDT               2   KB (256 IDT entries)
+* 0x00800  - 0x017FF    -   GDT               4   KB (512 GDT entries)
+* 0x01800  - 0x07BFF    -   Free             25   KB
+* 0x07c00  - 0x07FFF    -   boot0             1   KB 
+* 0x08000  - 0x17FFF    -   boot1            64   KB (Maximum boot1 size)
+*    -     - 0x27FFF    -   kernel stack    128   KB (boo1 space reused)
+* 0x28000  -            -   kernel          ---
+
+------------------------------------------------------------------------------
 _21st October 2020_
 
 The below idea of separate segment for stack is not working becuase the GCC
