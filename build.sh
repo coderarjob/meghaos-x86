@@ -79,7 +79,7 @@ bash bootloader/x86/build.sh || exit
 
 # Build kernel
 bash kernel/x86/build.sh || exit
-# bash kernel/build.sh || exit
+bash kernel/build.sh || exit
 
 # Build the floppy image
 echo "    [ Creating disk image ]    "

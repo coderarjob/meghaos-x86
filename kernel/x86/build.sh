@@ -5,27 +5,25 @@
 # all the other supported architecture, minor changes are required, then this
 # same script will build all the others. 
 
-# Build the Kernel
-echo "    [ Compilling Kernel ]    "
-#nasm -f elf32 kernel/x86/gdt_write.s \
-#    -I kernel/x86 $NASM_INCPATH \
-#    -O0 -o $OBJDIR/gdt_write.o \
-#    -l $LISTDIR/gdt_write.lst || exit
+# Build the x86 part Kernel
+# Later on kernel_x86.o will be linked with the common part into a elf binary.
+echo "    [ Compilling x86 Kernel ]    "
 
 i686_GCC="$GCC32" 
 
-$i686_GCC -c kernel/x86/kernel.c -o $OBJDIR/kernel.o 
-$i686_GCC -S kernel/x86/kernel.c -o $LISTDIR/kernel.lst 
+$i686_GCC -c kernel/x86/kernel.c -o $OBJDIR/kernel.o  || exit
+$i686_GCC -S kernel/x86/kernel.c -o $LISTDIR/kernel.lst  || exit
 
-$i686_GCC -c kernel/x86/screen.c -o $OBJDIR/screen.o 
-$i686_GCC -S kernel/x86/screen.c -o $LISTDIR/screen.lst
+$i686_GCC -c kernel/x86/vgadisp.c -o $OBJDIR/screen.o  || exit
+$i686_GCC -S kernel/x86/vgadisp.c -o $LISTDIR/screen.lst || exit
 
-$i686_GCC -c kernel/x86/gdt.c -o $OBJDIR/gdt.o 
-$i686_GCC -S kernel/x86/gdt.c -o $LISTDIR/gdt.lst
+$i686_GCC -c kernel/x86/gdt.c -o $OBJDIR/gdt.o  || exit
+$i686_GCC -S kernel/x86/gdt.c -o $LISTDIR/gdt.lst || exit
 
-$LD_KERNEL $OBJDIR/kernel.o \
+
+$LD_KERNEL -relocatable \
+           $OBJDIR/kernel.o \
            $OBJDIR/screen.o \
            $OBJDIR/gdt.o \
-           -o $OBJDIR/kernel.elf
+           -o $OBJDIR/kernel_x86.o
 
-$OBJCOPY -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt
