@@ -20,6 +20,9 @@
 
 #include <kernel.h>
 
+#define GDT_MIN_INDEX   3     // Minimum index that can be editted in Kernel.
+#define GDT_COUNT       512   // Number of GDT entries in memory
+
 struct gdt_des
 {
     u16 limit_low;
@@ -61,9 +64,9 @@ void kgdt_write()
 
 /* Edits a GDT descriptor in the GDT table.
  * Note: If gdt_index < 3 then an exception is generated.  */
-void kgdt_edit(u8 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
+void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
 {
-    if ( gdt_index < GDT_MIN_INDEX || 
+    if (gdt_index < GDT_MIN_INDEX || 
          gdt_index >= GDT_COUNT) {
         khalt();
     }
