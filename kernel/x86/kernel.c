@@ -19,7 +19,8 @@ void __main()
 {
     kdisp_init();
     printk(PK_ONSCREEN,"\r\nKernel starting..");
-    
-    kgdt_edit(0,0,0,0,0);
+   
+    for (int i = 5; i > 0; i--)
+        printk(PK_ONSCREEN, "\r\n%x - Line",i);
     while(1);
 }
