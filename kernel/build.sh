@@ -17,8 +17,16 @@ i686_GCC="$GCC32"
 $i686_GCC -c kernel/printk.c -o $OBJDIR/printk.o  || exit
 $i686_GCC -S kernel/printk.c -o $LISTDIR/printk.lst || exit
 
+$i686_GCC -c kernel/mem.c -o $OBJDIR/mem.o  || exit
+$i686_GCC -S kernel/mem.c -o $LISTDIR/mem.lst || exit
+
+$i686_GCC -c kernel/kernel.c -o $OBJDIR/kernel.o  || exit
+$i686_GCC -S kernel/kernel.c -o $LISTDIR/kernel.lst || exit
+
 $LD_KERNEL $OBJDIR/kernel_x86.o \
            $OBJDIR/printk.o \
+           $OBJDIR/mem.o \
+           $OBJDIR/kernel.o \
            -o $OBJDIR/kernel.elf
 
 $OBJCOPY -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt

@@ -1,4 +1,14 @@
-
+/*
+* ---------------------------------------------------------------------------
+* Megha Operating System V2 - Cross Platform Kernel - Kernel Header
+*
+* Note:
+* Remember that these header files are for building OS and its utilitites, it
+* is not a SDK.
+* ---------------------------------------------------------------------------
+*
+* Dated: 1st November 2020
+*/
 #ifndef __KERNEL_H__
 #define __KERNEL_H__
 
@@ -13,6 +23,7 @@
 #include <types.h>
 #include <stdarg.h>
 #include <disp.h>
+#include <mem.h>
 
 #ifdef __i386__
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
@@ -25,5 +36,8 @@ void printk(u8 type, const char *fmt, ...);
 
 /* Prints formatted on screen at the cursor location.*/
 void vprintk(const char *fmt, va_list list);
+
+/* Displays an error message on the screen and Halts */
+void kpanic(const char *s,...);
 
 #endif
