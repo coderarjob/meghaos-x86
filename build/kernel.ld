@@ -12,8 +12,8 @@ SECTIONS
         *.o (.bss);
         *.o (.rodata);
     }
-    /*/DISCARD/ : 
+    /DISCARD/ : 
     {
         *(.eh_frame)
-    }*/
+    }
 }

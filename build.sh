@@ -18,6 +18,12 @@ export GCC_INCPATH="-I include -I include/x86"
 # -fno-toplevel-reorder prevents reordering of top level functions
 # -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
 
+# IMPORTAINT NOTE:
+# __main must not be reordered. It must reside at the entry address.
+# Without this flag, boot1 may jump to a wrong function not __main.
+# -fno-unit-at-a-time implies 
+# -fno-toplevel-reorder and -fno-section-anchors. 
+
 export GCC32="i686-elf-gcc -std=gnu99\
                   -nostdlib \
                   -c \
@@ -33,9 +39,9 @@ export GCC32="i686-elf-gcc -std=gnu99\
                   -Wextra \
                   -Wall \
                   $GCC_INCPATH \
-                  -O0 "
+                  -O2 -fno-unit-at-a-time "
 
-export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
+                  export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
 export OBJCOPY="i686-elf-objcopy"
 
 # export LD_LOADER="ld -m elf_i386 --oformat binary --script=build/loader.ld"
@@ -73,6 +79,7 @@ bash bootloader/x86/build.sh || exit
 
 # Build kernel
 bash kernel/x86/build.sh || exit
+bash kernel/build.sh || exit
 
 # Build the floppy image
 echo "    [ Creating disk image ]    "
