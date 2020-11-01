@@ -60,7 +60,7 @@ kernel_file: db     KERNEL_FILE
 
 msg_welcome: db     13,10,OS_NAME,13,10
              db     "  boot0 : ",BOOT0_BUILD,","
-             db     "  boot1 : ",BOOT1_BUILD,
+             db     "  boot1 : ",BOOT1_BUILD,0
 
 msg_A20    : db 13,10,"A20 GATE","... ",0
 msg_GDT    : db 13,10,"GDT","... ",0
