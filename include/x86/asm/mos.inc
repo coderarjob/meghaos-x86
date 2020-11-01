@@ -12,7 +12,7 @@
 	%define 	OS_NAME 	    "MEGHA OPERATING SYSTEM V2 - x86"
 
 	; Error Codes in the OS Kernel and Drivers/Modules.
-	%include "errno.inc"
+	; %include "errno.inc"
 
 	; MOS Fixed Memory Locations
 	LOADER_SEG		EQU		0x0000
