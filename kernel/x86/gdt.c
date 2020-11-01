@@ -48,7 +48,6 @@ static struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
 /* -------------------------------------------------------------------------*/
 /* Function definations */
 
-
 /* Writes the GDT structure address and length to the GDTR register.  */
 void kgdt_write()
 {
@@ -67,8 +66,10 @@ void kgdt_write()
 void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
 {
     if (gdt_index < GDT_MIN_INDEX || 
-         gdt_index >= GDT_COUNT) {
-        khalt();
+        gdt_index >= GDT_COUNT) {
+        kpanic("Invalid gdt_index. GDT_MIN_INDEX: %x, gdt_index: %x, "
+                "GDT_COUNT: %x @ %s", 
+                GDT_MIN_INDEX,gdt_index,GDT_COUNT,__FILE__);
     }
 
     gdt[gdt_index].limit_low = (u16)limit;
