@@ -1,0 +1,441 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ALT	.original/src/devices/keyboard.s	/^		ALT: EQU 0x10$/;"	d
+ATTRIBUTE	.original/src/devices/vga.s	/^ATTRIBUTE:$/;"	l
+BLACK	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+BLUE	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+BROWN	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+BytesPerSector	.original/src/bootloader/boot.s	/^	BytesPerSector		dw 512		; Bytes per sector$/;"	d
+BytesPerSector	bootloader/x86/boot0/boot.s	/^	BytesPerSector		dw 512		    ; Bytes per sector$/;"	d
+CAPS	.original/src/devices/keyboard.s	/^		CAPS: EQU 0x2$/;"	d
+CAPS_LED	.original/src/devices/keyboard.s	/^		CAPS_LED: EQU 0x4$/;"	d
+CRTC_BLINK_ENABLED	kernel/x86/vgadisp.c	20;"	d	file:
+CRTC_IOAS_SET	kernel/x86/vgadisp.c	21;"	d	file:
+CTRL	.original/src/devices/keyboard.s	/^		CTRL: EQU 0x8$/;"	d
+CURSOR	.original/src/devices/vga.s	/^CURSOR:$/;"	l
+CYAN	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+DARK_GRAY	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+DISP_COORDS_MAX	include/disp.h	/^                 DISP_COORDS_MAX,$/;"	e	enum:disp_ioctl
+DISP_GETATTR	include/disp.h	/^                 DISP_GETATTR};$/;"	e	enum:disp_ioctl
+DISP_GETCOORDS	include/disp.h	/^enum disp_ioctl {DISP_GETCOORDS, $/;"	e	enum:disp_ioctl
+DISP_SETATTR	include/disp.h	/^                 DISP_SETATTR, $/;"	e	enum:disp_ioctl
+DISP_SETCOORDS	include/disp.h	/^                 DISP_SETCOORDS, $/;"	e	enum:disp_ioctl
+DriveNo	.original/src/bootloader/boot.s	/^	DriveNo			dw 0		; Drive No: 0$/;"	d
+DriveNo	bootloader/x86/boot0/boot.s	/^	DriveNo		        dw 0		    ; Drive No: 0$/;"	d
+EXTENDED	.original/src/devices/keyboard.s	/^		EXTENDED: EQU 0x40$/;"	d
+FileSystem	.original/src/bootloader/boot.s	/^	FileSystem		db "FAT12   "	; File system type: don't change!$/;"	d
+FileSystem	bootloader/x86/boot0/boot.s	/^	FileSystem	        db "FAT12   "	; File system type: don't change!$/;"	d
+GDT_COUNT	kernel/x86/gdt.c	24;"	d	file:
+GDT_MIN_INDEX	kernel/x86/gdt.c	23;"	d	file:
+GREEN	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+HeadCount	.original/src/bootloader/boot.s	/^	HeadCount		dw 2		; Number of sides\/heads$/;"	d
+HeadCount	bootloader/x86/boot0/boot.s	/^	HeadCount		    dw 2		    ; Number of sides\/heads$/;"	d
+HiddenSectors	.original/src/bootloader/boot.s	/^	HiddenSectors		dd 0		; Number of hidden sectors$/;"	d
+HiddenSectors	bootloader/x86/boot0/boot.s	/^	HiddenSectors		dd 0		    ; Number of hidden sectors$/;"	d
+INTEL_32_GDT_LOCATION	include/x86/memloc.h	15;"	d
+IN_CONFIG	.original/src/kernel/terminal.s	/^IN_CONFIG: 	db 1$/;"	d
+IN_QUEUE	.original/src/kernel/terminal.s	/^IN_QUEUE:$/;"	l
+LIGHT_BLUE	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LIGHT_CYAN	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LIGHT_GRAY	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+LIGHT_GREEN	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LIGHT_RED	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LargeSectors	.original/src/bootloader/boot.s	/^	LargeSectors		dd 0		; Number of LBA sectors$/;"	d
+LargeSectors	bootloader/x86/boot0/boot.s	/^	LargeSectors		dd 0		    ; Number of LBA sectors$/;"	d
+LogicalSectors	.original/src/bootloader/boot.s	/^	LogicalSectors		dw 2880		; Number of logical sectors$/;"	d
+LogicalSectors	bootloader/x86/boot0/boot.s	/^	LogicalSectors		dw 2880		    ; Number of logical sectors$/;"	d
+MAGENTA	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+MEM	.original/src/devices/vga.s	/^MEM: $/;"	l
+M_CAPS	.original/src/devices/keyboard.s	/^	M_CAPS:		EQU 3	; Keys that change behaviour depending on CAPS LOCK.$/;"	d
+M_NUM	.original/src/devices/keyboard.s	/^	M_NUM:		EQU 4	; Keys that change behaviour depending on NUMS LOCK.$/;"	d
+M_SCAPS	.original/src/devices/keyboard.s	/^	M_SCAPS:	EQU 2	; Keys that change behaviour depending on both SHIFT and CAPS LOCK.$/;"	d
+M_SHIFT	.original/src/devices/keyboard.s	/^	M_SHIFT:	EQU 1	; Keys that change behaviour when SHIFT is pressed.$/;"	d
+MediumByte	.original/src/bootloader/boot.s	/^	MediumByte		db 0F0h		; Medium descriptor byte$/;"	d
+MediumByte	bootloader/x86/boot0/boot.s	/^	MediumByte		    db 0F0h		    ; Medium descriptor byte$/;"	d
+NONE	.original/src/devices/keyboard.s	/^	NONE:	 	EQU 0	; Keys that never change its meaning or function.$/;"	d
+NUM	.original/src/devices/keyboard.s	/^		NUM: EQU 0x1$/;"	d
+NUM_LED	.original/src/devices/keyboard.s	/^		NUM_LED: EQU 0x2$/;"	d
+NumberOfFats	.original/src/bootloader/boot.s	/^	NumberOfFats		db 2		; Number of copies of the FAT$/;"	d
+NumberOfFats	bootloader/x86/boot0/boot.s	/^	NumberOfFats		db 2		    ; Number of copies of the FAT$/;"	d
+OEMLabel	.original/src/bootloader/boot.s	/^	OEMLabel		db "ARJOBOOT"	; Disk label$/;"	d
+OEMLabel	bootloader/x86/boot0/boot.s	/^	OEMLabel		    db "MEGHAOS2"	; Disk label$/;"	d
+OUT_CONFIG	.original/src/kernel/terminal.s	/^OUT_CONFIG: db 1$/;"	d
+OUT_QUEUE	.original/src/kernel/terminal.s	/^OUT_QUEUE:$/;"	l
+PINK	include/x86/vgacolors.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+PK_ONSCREEN	include/kernel.h	/^enum printk_types { PK_ONSCREEN };$/;"	e	enum:printk_types
+POSITION	.original/src/kernel/terminal.s	/^POSITION:						; -- INVARIANTS --$/;"	l
+PRESSED	.original/src/devices/keyboard.s	/^		PRESSED: EQU 0x80$/;"	d
+RED	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+ReservedSector	.original/src/bootloader/boot.s	/^	ReservedSector		dw 1		; Reserved sectors for boot record$/;"	d
+ReservedSector	bootloader/x86/boot0/boot.s	/^	ReservedSector		dw 1		    ; Reserved sectors for boot record$/;"	d
+RootDirSectors	.original/src/bootloader/loadFile.s	/^RootDirSectors:	equ 	14$/;"	d
+RootDirSectors	bootloader/x86/boot0/loadFile.s	/^RootDirSectors:	equ 	14$/;"	d
+RootEntries	.original/src/bootloader/boot.s	/^	RootEntries		dw 224		; Number of entries in root dir$/;"	d
+RootEntries	bootloader/x86/boot0/boot.s	/^	RootEntries		    dw 224		    ; Number of entries in root dir$/;"	d
+SCROLL_LED	.original/src/devices/keyboard.s	/^		SCROLL_LED: EQU 0x1$/;"	d
+SCROLL_LOCK	.original/src/devices/keyboard.s	/^		SCROLL_LOCK: EQU 0x20$/;"	d
+SHIFT	.original/src/devices/keyboard.s	/^		SHIFT: EQU 0x4$/;"	d
+SectorsPerCluster	.original/src/bootloader/boot.s	/^	SectorsPerCluster	db 1		; Sectors per cluster$/;"	d
+SectorsPerCluster	bootloader/x86/boot0/boot.s	/^	SectorsPerCluster	db 1		    ; Sectors per cluster$/;"	d
+SectorsPerFat	.original/src/bootloader/boot.s	/^	SectorsPerFat		dw 9		; Sectors per FAT$/;"	d
+SectorsPerFat	bootloader/x86/boot0/boot.s	/^	SectorsPerFat		dw 9		    ; Sectors per FAT$/;"	d
+SectorsPerTrack	.original/src/bootloader/boot.s	/^	SectorsPerTrack		dw 18		; Sectors per track (36\/cylinder)$/;"	d
+SectorsPerTrack	bootloader/x86/boot0/boot.s	/^	SectorsPerTrack		dw 18		    ; Sectors per track (36\/cylinder)$/;"	d
+Signature	.original/src/bootloader/boot.s	/^	Signature		db 41		; Drive signature: 41 for floppy$/;"	d
+Signature	bootloader/x86/boot0/boot.s	/^	Signature	        db 41		    ; Drive signature: 41 for floppy$/;"	d
+VGA_COLUMNS	kernel/x86/vgadisp.c	16;"	d	file:
+VGA_MAX_INDEX	kernel/x86/vgadisp.c	18;"	d	file:
+VGA_ROWS	kernel/x86/vgadisp.c	17;"	d	file:
+VolumeID	.original/src/bootloader/boot.s	/^	VolumeID		dd 00000000h	; Volume ID: any number$/;"	d
+VolumeID	bootloader/x86/boot0/boot.s	/^	VolumeID	        dd 00000000h	; Volume ID: any number$/;"	d
+VolumeLabel	.original/src/bootloader/boot.s	/^	VolumeLabel		db "ARJOBOS    "; Volume Label: any 11 chars$/;"	d
+VolumeLabel	bootloader/x86/boot0/boot.s	/^	VolumeLabel	        db "MEGHAOS    "; Volume Label: any 11 chars$/;"	d
+WHITE	include/x86/vgacolors.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+YELLOW	include/x86/vgacolors.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+__DISPTEXT_H__	include/disp.h	13;"	d
+__IO_H__	include/x86/io.h	14;"	d
+__KERNEL_H__	include/kernel.h	13;"	d
+__KERNEL_H_x86__	include/x86/kernel.h	17;"	d
+__MEM_H__	include/mem.h	17;"	d
+__MEM_LOC_H__	include/x86/memloc.h	13;"	d
+__PORTABLE_TYPES__	include/types.h	14;"	d
+__VGA_COLORS_H__	include/x86/vgacolors.h	13;"	d
+__add_module_to_process_list	.original/src/kernel/loader.s	/^__add_module_to_process_list:$/;"	l
+__enable_a20_fast	bootloader/x86/boot1/a20gate.s	/^__enable_a20_fast:$/;"	l
+__enable_a20gate_bios	bootloader/x86/boot1/a20gate.s	/^__enable_a20gate_bios:$/;"	l
+__init	.original/src/kernel/kernel.s	/^__init:$/;"	l
+__io_add_notification	.original/src/kernel/io.s	/^__io_add_notification:$/;"	l
+__is_a20gate_enabled	bootloader/x86/boot1/a20gate.s	/^__is_a20gate_enabled:$/;"	l
+__k_alloc	.original/src/kernel/mem.s	/^__k_alloc:$/;"	l
+__k_free	.original/src/kernel/mem.s	/^__k_free:$/;"	l
+__k_io_init	.original/src/kernel/io.s	/^__k_io_init:$/;"	l
+__k_process_create	.original/src/kernel/process.s	/^__k_process_create:$/;"	l
+__k_process_create	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_create:$/;"	l
+__k_process_init	.original/src/kernel/process.s	/^__k_process_init:$/;"	l
+__k_process_init	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_init:$/;"	l
+__k_process_restore	.original/src/kernel/process.s	/^__k_process_restore:$/;"	l
+__k_process_restore	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_restore:$/;"	l
+__k_process_save	.original/src/kernel/process.s	/^__k_process_save:$/;"	l
+__k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_save:$/;"	l
+__k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
+__k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
+__k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
+__main	kernel/x86/kernel.c	/^void __main()$/;"	f
+__set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
+__sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
+__term_write_vga	.original/src/kernel/terminal.s	/^__term_write_vga:$/;"	l
+_cr	.original/src/kernel/guru.s	/^_cr:$/;"	l
+_despatcher	.original/src/kernel/guru.s	/^_despatcher:$/;"	l
+_get_free_file_location	.original/src/kernel/vfs/vfs_main.s	/^_get_free_file_location:$/;"	l
+_get_mount_point_from_drive	.original/src/kernel/vfs/vfs_base.s	/^_get_mount_point_from_drive:$/;"	l
+_init	.original/src/devices/8254.s	/^_init:$/;"	l
+_init	.original/src/devices/keyboard.s	/^_init:$/;"	l
+_init	.original/src/kernel/despatcher.s	/^_init:$/;"	l
+_init	.original/src/kernel/guru.s	/^_init:$/;"	l
+_init	.original/src/kernel/loader.s	/^_init:$/;"	l
+_init	.original/src/kernel/vfs/vfs_main.s	/^_init:$/;"	l
+_init_addr	.original/src/kernel/loader.s	/^_init_addr: dw 	 MODULE0_OFF$/;"	d
+_lf	.original/src/kernel/guru.s	/^_lf:$/;"	l
+_printhex	.original/src/kernel/guru.s	/^_printhex:$/;"	l
+_putchar	.original/src/kernel/guru.s	/^_putchar:$/;"	l
+_start	bootloader/x86/boot1/boot1.s	/^_start:$/;"	l
+_str_indexof	.original/src/kernel/vfs/vfs_main.s	/^_str_indexof:		$/;"	l
+_str_is_equal	.original/src/kernel/vfs/vfs_base.s	/^_str_is_equal:$/;"	l
+_strlen	.original/src/kernel/vfs/vfs_base.s	/^_strlen:$/;"	l
+_vfs_fs_open	.original/src/kernel/vfs/vfs_fs.s	/^_vfs_fs_open:$/;"	l
+access	kernel/x86/gdt.c	/^    u8 access;$/;"	m	struct:gdt_des	file:
+base_high	kernel/x86/gdt.c	/^    u8 base_high;$/;"	m	struct:gdt_des	file:
+base_low	kernel/x86/gdt.c	/^    u16 base_low;$/;"	m	struct:gdt_des	file:
+base_middle	kernel/x86/gdt.c	/^    u8 base_middle;$/;"	m	struct:gdt_des	file:
+boot_main	.original/src/bootloader/boot.s	/^boot_main:	$/;"	l
+boot_main	bootloader/x86/boot0/boot.s	/^boot_main:	$/;"	l
+bootfile	.original/src/bootloader/boot.s	/^bootfile: db 'LOADER     '$/;"	d
+bootfile	bootloader/x86/boot0/boot.s	/^bootfile:        db  BOOT1_FILE$/;"	d
+bootfilename	.original/src/bootloader/loadFile.s	/^bootfilename:	resb	11$/;"	l
+bootfilename	bootloader/x86/boot0/loadFile.s	/^bootfilename:	resb	11$/;"	l
+buffer	.original/src/bootloader/boot.s	/^buffer:$/;"	l
+buffer	bootloader/x86/boot0/boot.s	/^buffer:$/;"	l
+callvector	.original/src/kernel/guru.s	/^callvector: dw printhex,copy_to_screen,clear,hexdump$/;"	d
+clear	.original/src/kernel/guru.s	/^clear:$/;"	l
+column	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
+copy_to_screen	.original/src/kernel/guru.s	/^copy_to_screen:$/;"	l
+crt_addr_port	kernel/x86/vgadisp.c	23;"	d	file:
+crt_data_port	kernel/x86/vgadisp.c	24;"	d	file:
+crt_read	kernel/x86/vgadisp.c	25;"	d	file:
+crtc_flags	kernel/x86/vgadisp.c	/^          crtc_flags, text_attr;$/;"	v	file:
+csh	.original/src/common/readsector.s	/^csh:$/;"	l
+csh	include/asm/csh.s	/^    csh:$/;"	l
+db	.original/src/devices/keyboard.s	/^db		M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM	; 0x17$/;"	l
+db	.original/src/devices/keyboard.s	/^db		M_SCAPS,M_SCAPS,M_SCAPS, NONE, NONE, NONE, NONE, NONE			; 0x5F$/;"	l
+db	.original/src/devices/keyboard.s	/^db		M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS ; 0x4F$/;"	l
+db	.original/src/devices/keyboard.s	/^db		M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS ; 0x57$/;"	l
+db	.original/src/devices/keyboard.s	/^db		M_SHIFT,M_SHIFT,M_SHIFT,M_SHIFT,M_SHIFT,NONE, NONE, NONE		; 0x2F$/;"	l
+db	.original/src/devices/keyboard.s	/^db		M_SHIFT,M_SHIFT,M_SHIFT,M_SHIFT,NONE, NONE, M_NUM,  M_NUM		; 0xF$/;"	l
+db	.original/src/devices/keyboard.s	/^db		M_SHIFT,M_SHIFT,M_SHIFT,NONE, NONE, NONE, NONE, M_SHIFT			; 0x27$/;"	l
+db	.original/src/devices/keyboard.s	/^db		NONE, NONE, M_SHIFT,M_SHIFT,M_SHIFT,M_SHIFT,M_SHIFT,M_SHIFT		; 0x7$/;"	l
+db	.original/src/devices/keyboard.s	/^db		NONE, NONE, NONE, NONE, NONE, NONE								; 0x65$/;"	l
+db	.original/src/devices/keyboard.s	/^db		NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE					; 0x37$/;"	l
+db	.original/src/devices/keyboard.s	/^db		NONE, NONE, NONE, NONE, NONE, NONE, NONE, NONE					; 0x3F $/;"	l
+db	.original/src/devices/keyboard.s	/^db		NONE, NONE, NONE,M_SHIFT, NONE, M_SHIFT,NONE, NONE				; 0x1F$/;"	l
+db	.original/src/devices/keyboard.s	/^db		NONE,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS,M_SCAPS	; 0x47$/;"	l
+dec	.original/src/kernel/guru.s	/^		dec dx$/;"	d
+dec	.original/src/kernel/process.s	/^	dec di						; Process ID Starts from 1, $/;"	d
+dec	.original/src/kernel/process.s	/^	dec di$/;"	d
+dec	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	dec di						; Process ID Starts from 1, $/;"	d
+dec	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	dec di$/;"	d
+disp_attr	include/x86/vgacolors.h	19;"	d
+disp_ioctl	include/disp.h	/^enum disp_ioctl {DISP_GETCOORDS, $/;"	g
+drivefailedstr	.original/src/bootloader/boot.s	/^drivefailedstr:  db	 'FL',0$/;"	d
+drivefailedstr	bootloader/x86/boot0/boot.s	/^drivefailedstr:  db	 'D',0$/;"	d
+enable_a20	bootloader/x86/boot1/a20gate.s	/^enable_a20:$/;"	l
+endstruc	.original/src/common/queue.s	/^endstruc$/;"	l
+endstruc	.original/src/kernel/guru.s	/^endstruc$/;"	l
+endstruc	.original/src/kernel/process.s	/^endstruc$/;"	l
+endstruc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^endstruc$/;"	l
+endstruc	.original/src/kernel/vfs/vfs_base.s	/^endstruc$/;"	l
+exit	.original/src/bootloader/boot.s	/^exit:	$/;"	l
+exit	.original/src/kernel/loader.s	/^exit:$/;"	l
+exit	bootloader/x86/boot0/boot.s	/^exit:	$/;"	l
+failed_drive_error	.original/src/bootloader/boot.s	/^failed_drive_error:$/;"	l
+failed_drive_error	bootloader/x86/boot0/boot.s	/^failed_drive_error:$/;"	l
+failed_file_not_found	.original/src/bootloader/boot.s	/^failed_file_not_found:$/;"	l
+failed_file_not_found	.original/src/kernel/loader.s	/^failed_file_not_found:$/;"	l
+failed_file_not_found	bootloader/x86/boot0/boot.s	/^failed_file_not_found:$/;"	l
+fat_files	.original/src/kernel/loader.s	/^fat_files:   $/;"	l
+fatal_error	.original/src/kernel/loader.s	/^fatal_error:	    db "Cannot continue. Fatal error.",0$/;"	d
+filenotfoundstr	.original/src/bootloader/boot.s	/^filenotfoundstr: db      'LD',0$/;"	d
+filenotfoundstr	bootloader/x86/boot0/boot.s	/^filenotfoundstr: db  'F',0$/;"	d
+fileremsize	.original/src/bootloader/loadFile.s	/^fileremsize	resw 	1 ; even though the file size in FAT12 is 32 bits, we$/;"	l
+fileremsize	bootloader/x86/boot0/loadFile.s	/^fileremsize	resw 	1 ; even though the file size in FAT12 is 32 bits, we$/;"	l
+filesector	.original/src/bootloader/loadFile.s	/^filesector:	resw 	1$/;"	l
+filesector	bootloader/x86/boot0/loadFile.s	/^filesector:	resw 	1$/;"	l
+fileslist	.original/src/kernel/vfs/vfs.s	/^fileslist: times MAX_OPEN_FILES_COUNT * file_size db 0$/;"	l
+flags	kernel/x86/gdt.c	/^    u8 flags     :4;$/;"	m	struct:gdt_des	file:
+friendly_filenames	.original/src/kernel/loader.s	/^friendly_filenames: db 10,13," guru.mod   ",0$/;"	d
+fslist	.original/src/kernel/vfs/vfs.s	/^fslist: times MAX_REGISTERED_FILESYSTEM * filesystem_size db 0$/;"	l
+fslist_count	.original/src/kernel/vfs/vfs.s	/^fslist_count: dw 0$/;"	d
+gdt	bootloader/x86/boot1/gdt.s	/^gdt:    $/;"	l
+gdt	kernel/x86/gdt.c	/^static struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;$/;"	v	typeref:struct:gdt_des	file:
+gdt_des	kernel/x86/gdt.c	/^struct gdt_des$/;"	s	file:
+gdt_meta	bootloader/x86/boot1/gdt.s	/^gdt_meta:$/;"	l
+gdt_size	kernel/x86/gdt.c	/^struct gdt_size$/;"	s	file:
+get_filesystem_from_name	.original/src/kernel/vfs/vfs_base.s	/^get_filesystem_from_name:$/;"	l
+get_mount_point_from_drive	.original/src/kernel/vfs/vfs_base.s	/^get_mount_point_from_drive:$/;"	l
+hello	.original/src/kernel/loader.s	/^hello: db "Showing this message using a debug.mod routine.",13,10$/;"	d
+hexdump	.original/src/kernel/guru.s	/^hexdump:$/;"	l
+inb	include/x86/io.h	17;"	d
+inc	.original/src/devices/vga.s	/^		inc di$/;"	d
+inc	.original/src/kernel/guru.s	/^		inc di$/;"	d
+inc	.original/src/kernel/vfs/vfs_base.s	/^	inc di$/;"	d
+invalid_routine_number_msg	.original/src/kernel/despatcher.s	/^invalid_routine_number_msg: db ";( addRoutine (despatcher). Routine number is "$/;"	d
+iret	.original/src/kernel/interrupt.s	/^iret$/;"	l
+iret	bootloader/x86/boot0/boot.s	/^iret$/;"	l
+irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
+jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
+jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
+kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
+kbochs_breakpoint	include/x86/kernel.h	27;"	d
+kdisp_init	kernel/x86/vgadisp.c	/^void kdisp_init()$/;"	f
+kdisp_ioctl	kernel/x86/vgadisp.c	/^void kdisp_ioctl(u8 request, ...)$/;"	f
+kdisp_putc	kernel/x86/vgadisp.c	/^void kdisp_putc(char c)$/;"	f
+kdisp_scrolldown	kernel/x86/vgadisp.c	/^void kdisp_scrolldown()$/;"	f
+kernel_file	bootloader/x86/boot1/boot1.s	/^kernel_file: db     KERNEL_FILE$/;"	d
+key	.original/src/devices/keyboard.s	/^key:$/;"	l
+key_codes	.original/src/devices/keyboard.s	/^key_codes:$/;"	l
+kgdt_edit	kernel/x86/gdt.c	/^void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)$/;"	f
+kgdt_write	kernel/x86/gdt.c	/^void kgdt_write()$/;"	f
+khalt	include/x86/kernel.h	24;"	d
+kpanic	kernel/kernel.c	/^void kpanic(const char *s,...)$/;"	f
+limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
+limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
+loadFile	.original/src/bootloader/loadFile.s	/^loadFile:$/;"	l
+loadFile	bootloader/x86/boot0/loadFile.s	/^loadFile:$/;"	l
+load_gdt	bootloader/x86/boot1/gdt.s	/^load_gdt:$/;"	l
+location	kernel/x86/gdt.c	/^    u32 location;$/;"	m	struct:gdt_size	file:
+memcpy	kernel/mem.c	/^void *memcpy(void *dest, const void *src, size_t n)$/;"	f
+memset	kernel/mem.c	/^void *memset(void *s, int c, size_t n)$/;"	f
+modifier_maps	.original/src/devices/keyboard.s	/^modifier_maps:$/;"	l
+mountlist	.original/src/kernel/vfs/vfs.s	/^mountlist: times MAX_MOUNT_POINT_COUNT * mount_point_size db 0$/;"	l
+mountlist_count	.original/src/kernel/vfs/vfs.s	/^mountlist_count: dw 0$/;"	d
+msg_A20	bootloader/x86/boot1/boot1.s	/^msg_A20    : db 13,10,"A20 GATE","... ",0$/;"	l
+msg_GDT	bootloader/x86/boot1/boot1.s	/^msg_GDT    : db 13,10,"GDT","... ",0$/;"	l
+msg_LD_KRNL	bootloader/x86/boot1/boot1.s	/^msg_LD_KRNL: db 13,10,"Loading kernel image","... ",0$/;"	d
+msg_PMODE	bootloader/x86/boot1/boot1.s	/^msg_PMODE  : db 13,10,"Protected Mode","... ",0$/;"	l
+msg_ST_KRNL	bootloader/x86/boot1/boot1.s	/^msg_ST_KRNL: db 13,10,"Starting kernel","... ",0$/;"	d
+msg_failed	bootloader/x86/boot1/boot1.s	/^msg_failed :  db "!",0$/;"	l
+msg_file_loaded	.original/src/kernel/loader.s	/^msg_file_loaded:    db "   Done",0$/;"	d
+msg_file_not_found	.original/src/kernel/loader.s	/^msg_file_not_found: db "   Not found",0$/;"	d
+msg_loader_welcome	.original/src/kernel/loader.s	/^msg_loader_welcome: db 10,13,10,13$/;"	d
+msg_success	bootloader/x86/boot1/boot1.s	/^msg_success:  db "OK",0$/;"	d
+msg_welcome	bootloader/x86/boot1/boot1.s	/^msg_welcome: db     13,10,OS_NAME,13,10$/;"	d
+osegment	.original/src/bootloader/loadFile.s	/^osegment	resw	1$/;"	l
+osegment	bootloader/x86/boot0/loadFile.s	/^osegment	resw	1$/;"	l
+osegoffset	.original/src/bootloader/loadFile.s	/^osegoffset	resw	1$/;"	l
+osegoffset	bootloader/x86/boot0/loadFile.s	/^osegoffset	resw	1$/;"	l
+outb	include/x86/io.h	16;"	d
+panic	.original/src/kernel/guru.s	/^panic:$/;"	l
+phex	kernel/printk.c	/^static void phex(u32 num)$/;"	f	file:
+pop	.original/src/bootloader/loadFile.s	/^	pop ds$/;"	d
+pop	.original/src/common/queue.s	/^	pop di$/;"	d
+pop	.original/src/common/queue.s	/^	pop ds$/;"	d
+pop	.original/src/common/queue.s	/^	pop dx$/;"	d
+pop	.original/src/devices/8254.s	/^	pop dx$/;"	d
+pop	.original/src/devices/keyboard.s	/^		pop ds$/;"	d
+pop	.original/src/devices/keyboard.s	/^	pop ds$/;"	d
+pop	.original/src/devices/vga.s	/^	pop di$/;"	d
+pop	.original/src/devices/vga.s	/^	pop ds$/;"	d
+pop	.original/src/devices/vga.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/despatcher.s	/^		pop ds$/;"	d
+pop	.original/src/kernel/despatcher.s	/^	pop di$/;"	d
+pop	.original/src/kernel/despatcher.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/despatcher.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/guru.s	/^		pop di$/;"	d
+pop	.original/src/kernel/guru.s	/^	    pop di$/;"	d
+pop	.original/src/kernel/guru.s	/^	pop di$/;"	d
+pop	.original/src/kernel/guru.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/guru.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/interrupt.s	/^		pop ds$/;"	d
+pop	.original/src/kernel/interrupt.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/io.s	/^	pop di$/;"	d
+pop	.original/src/kernel/io.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/loader.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/mem.s	/^	pop di$/;"	d
+pop	.original/src/kernel/process.s	/^	pop di$/;"	d
+pop	.original/src/kernel/process.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/process.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	pop di$/;"	d
+pop	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/terminal.s	/^		pop ds$/;"	d
+pop	.original/src/kernel/terminal.s	/^	pop di$/;"	d
+pop	.original/src/kernel/terminal.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/terminal.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/vfs/vfs_base.s	/^			pop ds$/;"	d
+pop	.original/src/kernel/vfs/vfs_base.s	/^		pop ds$/;"	d
+pop	.original/src/kernel/vfs/vfs_base.s	/^	pop di$/;"	d
+pop	.original/src/kernel/vfs/vfs_base.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/vfs/vfs_base.s	/^	pop dx$/;"	d
+pop	.original/src/kernel/vfs/vfs_main.s	/^	pop di$/;"	d
+pop	.original/src/kernel/vfs/vfs_main.s	/^	pop ds$/;"	d
+pop	.original/src/kernel/vfs/vfs_main.s	/^	pop dx$/;"	d
+pop	bootloader/x86/boot0/loadFile.s	/^	pop ds$/;"	d
+printString	.original/src/kernel/loader.s	/^	printString di$/;"	d
+printhex	.original/src/kernel/guru.s	/^printhex:$/;"	l
+printk	kernel/printk.c	/^void printk(u8 type, const char *fmt, ...)$/;"	f
+printk_types	include/kernel.h	/^enum printk_types { PK_ONSCREEN };$/;"	g
+printstr	.original/src/bootloader/printstr.s	/^printstr:$/;"	l
+printstr	bootloader/x86/boot0/boot.s	/^printstr:$/;"	l
+pstring	kernel/printk.c	/^static void pstring(const char *s)$/;"	f	file:
+push	.original/src/bootloader/loadFile.s	/^	push ds$/;"	d
+push	.original/src/common/queue.s	/^	push di$/;"	d
+push	.original/src/common/queue.s	/^	push ds$/;"	d
+push	.original/src/common/queue.s	/^	push dx$/;"	d
+push	.original/src/devices/8254.s	/^	push dx$/;"	d
+push	.original/src/devices/keyboard.s	/^	push ds$/;"	d
+push	.original/src/devices/vga.s	/^	push di$/;"	d
+push	.original/src/devices/vga.s	/^	push ds$/;"	d
+push	.original/src/devices/vga.s	/^	push dx$/;"	d
+push	.original/src/kernel/despatcher.s	/^	push di$/;"	d
+push	.original/src/kernel/despatcher.s	/^	push ds$/;"	d
+push	.original/src/kernel/despatcher.s	/^	push dx$/;"	d
+push	.original/src/kernel/guru.s	/^		push di$/;"	d
+push	.original/src/kernel/guru.s	/^	    push di$/;"	d
+push	.original/src/kernel/guru.s	/^	push di$/;"	d
+push	.original/src/kernel/guru.s	/^	push ds$/;"	d
+push	.original/src/kernel/guru.s	/^	push dx$/;"	d
+push	.original/src/kernel/interrupt.s	/^	push ds$/;"	d
+push	.original/src/kernel/io.s	/^	push di$/;"	d
+push	.original/src/kernel/io.s	/^	push dx$/;"	d
+push	.original/src/kernel/loader.s	/^		push ds		$/;"	d
+push	.original/src/kernel/loader.s	/^	push ds$/;"	d
+push	.original/src/kernel/mem.s	/^	push di$/;"	d
+push	.original/src/kernel/process.s	/^	push di$/;"	d
+push	.original/src/kernel/process.s	/^	push ds$/;"	d
+push	.original/src/kernel/process.s	/^	push dx$/;"	d
+push	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	push di$/;"	d
+push	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	push ds$/;"	d
+push	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	push dx$/;"	d
+push	.original/src/kernel/terminal.s	/^	push di$/;"	d
+push	.original/src/kernel/terminal.s	/^	push ds$/;"	d
+push	.original/src/kernel/terminal.s	/^	push dx$/;"	d
+push	.original/src/kernel/vfs/vfs_base.s	/^		push ds$/;"	d
+push	.original/src/kernel/vfs/vfs_base.s	/^	push di$/;"	d
+push	.original/src/kernel/vfs/vfs_base.s	/^	push ds$/;"	d
+push	.original/src/kernel/vfs/vfs_base.s	/^	push dx$/;"	d
+push	.original/src/kernel/vfs/vfs_main.s	/^	push di$/;"	d
+push	.original/src/kernel/vfs/vfs_main.s	/^	push ds$/;"	d
+push	.original/src/kernel/vfs/vfs_main.s	/^	push dx$/;"	d
+push	bootloader/x86/boot0/loadFile.s	/^	push ds$/;"	d
+queue_get	.original/src/common/queue.s	/^queue_get:$/;"	l
+queue_put	.original/src/common/queue.s	/^queue_put:$/;"	l
+ret	.original/src/kernel/io.s	/^ret$/;"	l
+ret	.original/src/kernel/kernel.s	/^ret$/;"	l
+ret	.original/src/kernel/loader.s	/^ret$/;"	l
+ret	.original/src/kernel/mem.s	/^ret$/;"	l
+ret	.original/src/kernel/process.s	/^ret$/;"	l
+ret	.original/src/kernel/process_registers_in_stack-incomplete.s	/^ret$/;"	l
+retf	.original/src/devices/8254.s	/^retf$/;"	l
+retf	.original/src/kernel/despatcher.s	/^retf$/;"	l
+retf	.original/src/kernel/io.s	/^retf$/;"	l
+retf	.original/src/kernel/kernel.s	/^retf$/;"	l
+retf	.original/src/kernel/process.s	/^retf$/;"	l
+retf	.original/src/kernel/process_registers_in_stack-incomplete.s	/^retf$/;"	l
+row	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
+scroll_down_one_row	.original/src/kernel/terminal.s	/^scroll_down_one_row:$/;"	l
+scroll_up_one_row	.original/src/kernel/terminal.s	/^scroll_up_one_row:$/;"	l
+size	kernel/x86/gdt.c	/^    u16 size;$/;"	m	struct:gdt_size	file:
+size_t	include/types.h	23;"	d
+struc	.original/src/common/queue.s	/^struc Q$/;"	l
+struc	.original/src/kernel/guru.s	/^struc params,2$/;"	l
+struc	.original/src/kernel/guru.s	/^struc reg,2$/;"	l
+struc	.original/src/kernel/process.s	/^struc CREATE_PROCESS_LVARS$/;"	l
+struc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^struc CREATE_PROCESS_LVARS$/;"	l
+struc	.original/src/kernel/vfs/vfs_base.s	/^struc mount_args$/;"	l
+sys_addRoutine	.original/src/kernel/despatcher.s	/^sys_addRoutine:$/;"	l
+sys_despatcher	.original/src/kernel/despatcher.s	/^sys_despatcher:$/;"	l
+sys_io_add_message	.original/src/kernel/io.s	/^sys_io_add_message:$/;"	l
+sys_io_add_notification	.original/src/kernel/io.s	/^sys_io_add_notification:$/;"	l
+sys_io_get_message	.original/src/kernel/io.s	/^sys_io_get_message:$/;"	l
+sys_k_getlasterror	.original/src/kernel/kernel.s	/^sys_k_getlasterror:$/;"	l
+sys_k_process_create	.original/src/kernel/process.s	/^sys_k_process_create:$/;"	l
+sys_k_process_create	.original/src/kernel/process_registers_in_stack-incomplete.s	/^sys_k_process_create:$/;"	l
+sys_k_process_exit	.original/src/kernel/process.s	/^sys_k_process_exit:$/;"	l
+sys_k_process_exit	.original/src/kernel/process_registers_in_stack-incomplete.s	/^sys_k_process_exit:$/;"	l
+sys_k_process_switch	.original/src/kernel/process.s	/^sys_k_process_switch:$/;"	l
+sys_k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^sys_k_process_switch:$/;"	l
+sys_k_takeover	.original/src/kernel/kernel.s	/^sys_k_takeover:$/;"	l
+sys_set_counter	.original/src/devices/8254.s	/^sys_set_counter:$/;"	l
+sys_set_gate_state	.original/src/devices/8254.s	/^sys_set_gate_state:$/;"	l
+sys_term_keyboard_hook	.original/src/kernel/terminal.s	/^sys_term_keyboard_hook:$/;"	l
+sys_term_output_flush	.original/src/kernel/terminal.s	/^sys_term_output_flush:$/;"	l
+sys_term_read	.original/src/kernel/terminal.s	/^sys_term_read:$/;"	l
+sys_term_write	.original/src/kernel/terminal.s	/^sys_term_write:$/;"	l
+sys_vga_scroll_down	.original/src/devices/vga.s	/^sys_vga_scroll_down:$/;"	l
+sys_vga_scroll_up	.original/src/devices/vga.s	/^sys_vga_scroll_up:$/;"	l
+sys_vga_set_attribute	.original/src/devices/vga.s	/^sys_vga_set_attribute:$/;"	l
+sys_vga_set_cursor_attribute	.original/src/devices/vga.s	/^sys_vga_set_cursor_attribute:$/;"	l
+sys_vga_set_cursor_location	.original/src/devices/vga.s	/^sys_vga_set_cursor_location:$/;"	l
+sys_vga_write	.original/src/devices/vga.s	/^sys_vga_write:$/;"	l
+text_attr	kernel/x86/vgadisp.c	/^          crtc_flags, text_attr;$/;"	v	file:
+times	.original/src/kernel/loader.s	/^times 768 - ($-$$) db 0$/;"	l
+u128	include/types.h	21;"	d
+u16	include/types.h	18;"	d
+u32	include/types.h	19;"	d
+u64	include/types.h	20;"	d
+u8	include/types.h	17;"	d
+update_cursor	kernel/x86/vgadisp.c	/^static void update_cursor()$/;"	f	file:
+vfs_close	.original/src/kernel/vfs/vfs_main.s	/^vfs_close:$/;"	l
+vfs_mount	.original/src/kernel/vfs/vfs_base.s	/^vfs_mount:$/;"	l
+vfs_open	.original/src/kernel/vfs/vfs_main.s	/^vfs_open:$/;"	l
+vfs_register_fs	.original/src/kernel/vfs/vfs_base.s	/^vfs_register_fs:$/;"	l
+vfs_umount	.original/src/kernel/vfs/vfs_base.s	/^vfs_umount:$/;"	l
+vga_colors	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	g
+vga_offset	.original/src/kernel/guru.s	/^vga_offset: dw  0$/;"	d
+vga_set_origin	.original/src/devices/vga.s	/^vga_set_origin:$/;"	l
+vgab	kernel/x86/vgadisp.c	/^static u16 *vgab = (u16 *)0xB8000;$/;"	v	file:
+vprintk	kernel/printk.c	/^void vprintk(const char *fmt, va_list list)$/;"	f
+wait_kbd	.original/src/devices/keyboard.s	/^wait_kbd:$/;"	l
