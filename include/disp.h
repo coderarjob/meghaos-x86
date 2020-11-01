@@ -1,13 +1,17 @@
-
+/*
+* ---------------------------------------------------------------------------
+* Megha Operating System V2 - Cross Platform Kernel - Printing on Screen.
+*
+* Note:
+* Remember that these header files are for building OS and its utilitites, it
+* is not a SDK.
+* ---------------------------------------------------------------------------
+*
+* Dated: 1st November 2020
+*/
 #ifndef __DISPTEXT_H__
 #define __DISPTEXT_H__
 
-/* Text mode display Colors
- * Include different header files/enums for different display systems. 
- */
-#ifdef __i386__
-    #include <x86/vgacolors.h>
-#endif
 
 enum disp_ioctl {DISP_GETCOORDS, 
                  DISP_SETCOORDS, 

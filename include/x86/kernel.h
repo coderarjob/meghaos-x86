@@ -1,17 +1,24 @@
 /*
- * External Kernel routines, used by the kernel. These routines are not system
- * calls and may not be accessible by user mode programs.
- *
- * Note:
- * Remember that these header files are for building OS and its utilitites, it
- * is not a SDK.
- * */
+* ---------------------------------------------------------------------------
+* Megha Operating System V2 - x86 Kernel - Contains function
+* declerations and includes header files necessory for building x86 Kernel.
+* These routines are not system calls and may not be accessible by user mode 
+* programs.
+*
+* Note:
+* Remember that these header files are for building OS and its utilitites, it
+* is not a SDK.
+* ---------------------------------------------------------------------------
+*
+* Dated: 1st November 2020
+*/
 
 #ifndef __KERNEL_H_x86__
 #define __KERNEL_H_x86__
 
-#include <x86/mem.h>
+#include <x86/memloc.h>
 #include <x86/io.h>
+#include <x86/vgacolors.h>
 
 /* Halts the processor by going into infinite loop */
 #define khalt() __asm__ volatile ("jmp $;");
