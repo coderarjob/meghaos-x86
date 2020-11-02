@@ -24,12 +24,16 @@
 #include <stdarg.h>
 #include <disp.h>
 #include <mem.h>
+#include <io.h>
 
 #ifdef __i386__
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
 #endif
 
 enum printk_types { PK_ONSCREEN };
+
+/* Magic break point used by bochs emulator*/
+#define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
 /* Printf like function, that prints depending on type*/
 void printk(u8 type, const char *fmt, ...);
@@ -38,6 +42,7 @@ void printk(u8 type, const char *fmt, ...);
 void vprintk(const char *fmt, va_list list);
 
 /* Displays an error message on the screen and Halts */
-void kpanic(const char *s,...);
+#define kpanic(s,...) _kpanic(__FILE__,__LINE__,s,__VA_ARGS__)
+void _kpanic(const char *file, int lineno, const char *s,...);
 
 #endif
