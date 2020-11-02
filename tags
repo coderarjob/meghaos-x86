@@ -6,9 +6,9 @@
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 ALT	.original/src/devices/keyboard.s	/^		ALT: EQU 0x10$/;"	d
 ATTRIBUTE	.original/src/devices/vga.s	/^ATTRIBUTE:$/;"	l
-BLACK	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
-BLUE	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
-BROWN	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+BLACK	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+BLUE	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+BROWN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 BytesPerSector	.original/src/bootloader/boot.s	/^	BytesPerSector		dw 512		; Bytes per sector$/;"	d
 BytesPerSector	bootloader/x86/boot0/boot.s	/^	BytesPerSector		dw 512		    ; Bytes per sector$/;"	d
 CAPS	.original/src/devices/keyboard.s	/^		CAPS: EQU 0x2$/;"	d
@@ -17,8 +17,8 @@ CRTC_BLINK_ENABLED	kernel/x86/vgadisp.c	20;"	d	file:
 CRTC_IOAS_SET	kernel/x86/vgadisp.c	21;"	d	file:
 CTRL	.original/src/devices/keyboard.s	/^		CTRL: EQU 0x8$/;"	d
 CURSOR	.original/src/devices/vga.s	/^CURSOR:$/;"	l
-CYAN	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
-DARK_GRAY	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+CYAN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+DARK_GRAY	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
 DISP_COORDS_MAX	include/disp.h	/^                 DISP_COORDS_MAX,$/;"	e	enum:disp_ioctl
 DISP_GETATTR	include/disp.h	/^                 DISP_GETATTR};$/;"	e	enum:disp_ioctl
 DISP_GETCOORDS	include/disp.h	/^enum disp_ioctl {DISP_GETCOORDS, $/;"	e	enum:disp_ioctl
@@ -31,7 +31,7 @@ FileSystem	.original/src/bootloader/boot.s	/^	FileSystem		db "FAT12   "	; File s
 FileSystem	bootloader/x86/boot0/boot.s	/^	FileSystem	        db "FAT12   "	; File system type: don't change!$/;"	d
 GDT_COUNT	kernel/x86/gdt.c	24;"	d	file:
 GDT_MIN_INDEX	kernel/x86/gdt.c	23;"	d	file:
-GREEN	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+GREEN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 HeadCount	.original/src/bootloader/boot.s	/^	HeadCount		dw 2		; Number of sides\/heads$/;"	d
 HeadCount	bootloader/x86/boot0/boot.s	/^	HeadCount		    dw 2		    ; Number of sides\/heads$/;"	d
 HiddenSectors	.original/src/bootloader/boot.s	/^	HiddenSectors		dd 0		; Number of hidden sectors$/;"	d
@@ -39,16 +39,16 @@ HiddenSectors	bootloader/x86/boot0/boot.s	/^	HiddenSectors		dd 0		    ; Number o
 INTEL_32_GDT_LOCATION	include/x86/memloc.h	15;"	d
 IN_CONFIG	.original/src/kernel/terminal.s	/^IN_CONFIG: 	db 1$/;"	d
 IN_QUEUE	.original/src/kernel/terminal.s	/^IN_QUEUE:$/;"	l
-LIGHT_BLUE	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
-LIGHT_CYAN	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
-LIGHT_GRAY	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
-LIGHT_GREEN	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
-LIGHT_RED	include/x86/vgacolors.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LIGHT_BLUE	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LIGHT_CYAN	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LIGHT_GRAY	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+LIGHT_GREEN	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
+LIGHT_RED	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
 LargeSectors	.original/src/bootloader/boot.s	/^	LargeSectors		dd 0		; Number of LBA sectors$/;"	d
 LargeSectors	bootloader/x86/boot0/boot.s	/^	LargeSectors		dd 0		    ; Number of LBA sectors$/;"	d
 LogicalSectors	.original/src/bootloader/boot.s	/^	LogicalSectors		dw 2880		; Number of logical sectors$/;"	d
 LogicalSectors	bootloader/x86/boot0/boot.s	/^	LogicalSectors		dw 2880		    ; Number of logical sectors$/;"	d
-MAGENTA	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+MAGENTA	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 MEM	.original/src/devices/vga.s	/^MEM: $/;"	l
 M_CAPS	.original/src/devices/keyboard.s	/^	M_CAPS:		EQU 3	; Keys that change behaviour depending on CAPS LOCK.$/;"	d
 M_NUM	.original/src/devices/keyboard.s	/^	M_NUM:		EQU 4	; Keys that change behaviour depending on NUMS LOCK.$/;"	d
@@ -65,11 +65,11 @@ OEMLabel	.original/src/bootloader/boot.s	/^	OEMLabel		db "ARJOBOOT"	; Disk label
 OEMLabel	bootloader/x86/boot0/boot.s	/^	OEMLabel		    db "MEGHAOS2"	; Disk label$/;"	d
 OUT_CONFIG	.original/src/kernel/terminal.s	/^OUT_CONFIG: db 1$/;"	d
 OUT_QUEUE	.original/src/kernel/terminal.s	/^OUT_QUEUE:$/;"	l
-PINK	include/x86/vgacolors.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+PINK	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 PK_ONSCREEN	include/kernel.h	/^enum printk_types { PK_ONSCREEN };$/;"	e	enum:printk_types
 POSITION	.original/src/kernel/terminal.s	/^POSITION:						; -- INVARIANTS --$/;"	l
 PRESSED	.original/src/devices/keyboard.s	/^		PRESSED: EQU 0x80$/;"	d
-RED	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+RED	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 ReservedSector	.original/src/bootloader/boot.s	/^	ReservedSector		dw 1		; Reserved sectors for boot record$/;"	d
 ReservedSector	bootloader/x86/boot0/boot.s	/^	ReservedSector		dw 1		    ; Reserved sectors for boot record$/;"	d
 RootDirSectors	.original/src/bootloader/loadFile.s	/^RootDirSectors:	equ 	14$/;"	d
@@ -94,16 +94,16 @@ VolumeID	.original/src/bootloader/boot.s	/^	VolumeID		dd 00000000h	; Volume ID: 
 VolumeID	bootloader/x86/boot0/boot.s	/^	VolumeID	        dd 00000000h	; Volume ID: any number$/;"	d
 VolumeLabel	.original/src/bootloader/boot.s	/^	VolumeLabel		db "ARJOBOS    "; Volume Label: any 11 chars$/;"	d
 VolumeLabel	bootloader/x86/boot0/boot.s	/^	VolumeLabel	        db "MEGHAOS    "; Volume Label: any 11 chars$/;"	d
-WHITE	include/x86/vgacolors.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
-YELLOW	include/x86/vgacolors.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+WHITE	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+YELLOW	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 __DISPTEXT_H__	include/disp.h	13;"	d
-__IO_H__	include/x86/io.h	14;"	d
+__IO_H__	include/io.h	14;"	d
 __KERNEL_H__	include/kernel.h	13;"	d
 __KERNEL_H_x86__	include/x86/kernel.h	17;"	d
 __MEM_H__	include/mem.h	17;"	d
 __MEM_LOC_H__	include/x86/memloc.h	13;"	d
 __PORTABLE_TYPES__	include/types.h	14;"	d
-__VGA_COLORS_H__	include/x86/vgacolors.h	13;"	d
+__VGA_TEXT_H__	include/x86/vgatext.h	13;"	d
 __add_module_to_process_list	.original/src/kernel/loader.s	/^__add_module_to_process_list:$/;"	l
 __enable_a20_fast	bootloader/x86/boot1/a20gate.s	/^__enable_a20_fast:$/;"	l
 __enable_a20gate_bios	bootloader/x86/boot1/a20gate.s	/^__enable_a20gate_bios:$/;"	l
@@ -128,6 +128,8 @@ __main	kernel/x86/kernel.c	/^void __main()$/;"	f
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
 __sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
 __term_write_vga	.original/src/kernel/terminal.s	/^__term_write_vga:$/;"	l
+__x86_IO_H__	include/x86/io.h	14;"	d
+__x86_TYPES__	include/x86/types.h	14;"	d
 _cr	.original/src/kernel/guru.s	/^_cr:$/;"	l
 _despatcher	.original/src/kernel/guru.s	/^_despatcher:$/;"	l
 _get_free_file_location	.original/src/kernel/vfs/vfs_main.s	/^_get_free_file_location:$/;"	l
@@ -139,6 +141,7 @@ _init	.original/src/kernel/guru.s	/^_init:$/;"	l
 _init	.original/src/kernel/loader.s	/^_init:$/;"	l
 _init	.original/src/kernel/vfs/vfs_main.s	/^_init:$/;"	l
 _init_addr	.original/src/kernel/loader.s	/^_init_addr: dw 	 MODULE0_OFF$/;"	d
+_kpanic	kernel/kernel.c	/^void _kpanic(const char *file, int lineno, const char *s,...)$/;"	f
 _lf	.original/src/kernel/guru.s	/^_lf:$/;"	l
 _printhex	.original/src/kernel/guru.s	/^_printhex:$/;"	l
 _putchar	.original/src/kernel/guru.s	/^_putchar:$/;"	l
@@ -187,7 +190,7 @@ dec	.original/src/kernel/process.s	/^	dec di						; Process ID Starts from 1, $/
 dec	.original/src/kernel/process.s	/^	dec di$/;"	d
 dec	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	dec di						; Process ID Starts from 1, $/;"	d
 dec	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	dec di$/;"	d
-disp_attr	include/x86/vgacolors.h	19;"	d
+disp_attr	include/x86/vgatext.h	19;"	d
 disp_ioctl	include/disp.h	/^enum disp_ioctl {DISP_GETCOORDS, $/;"	g
 drivefailedstr	.original/src/bootloader/boot.s	/^drivefailedstr:  db	 'FL',0$/;"	d
 drivefailedstr	bootloader/x86/boot0/boot.s	/^drivefailedstr:  db	 'D',0$/;"	d
@@ -238,7 +241,7 @@ irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
 kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
-kbochs_breakpoint	include/x86/kernel.h	27;"	d
+kbochs_breakpoint	include/kernel.h	36;"	d
 kdisp_init	kernel/x86/vgadisp.c	/^void kdisp_init()$/;"	f
 kdisp_ioctl	kernel/x86/vgadisp.c	/^void kdisp_ioctl(u8 request, ...)$/;"	f
 kdisp_putc	kernel/x86/vgadisp.c	/^void kdisp_putc(char c)$/;"	f
@@ -248,8 +251,8 @@ key	.original/src/devices/keyboard.s	/^key:$/;"	l
 key_codes	.original/src/devices/keyboard.s	/^key_codes:$/;"	l
 kgdt_edit	kernel/x86/gdt.c	/^void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)$/;"	f
 kgdt_write	kernel/x86/gdt.c	/^void kgdt_write()$/;"	f
-khalt	include/x86/kernel.h	24;"	d
-kpanic	kernel/kernel.c	/^void kpanic(const char *s,...)$/;"	f
+khalt	include/x86/kernel.h	20;"	d
+kpanic	include/kernel.h	45;"	d
 limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
 limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
 loadFile	.original/src/bootloader/loadFile.s	/^loadFile:$/;"	l
@@ -388,7 +391,7 @@ row	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 scroll_down_one_row	.original/src/kernel/terminal.s	/^scroll_down_one_row:$/;"	l
 scroll_up_one_row	.original/src/kernel/terminal.s	/^scroll_up_one_row:$/;"	l
 size	kernel/x86/gdt.c	/^    u16 size;$/;"	m	struct:gdt_size	file:
-size_t	include/types.h	23;"	d
+size_t	include/x86/types.h	22;"	d
 struc	.original/src/common/queue.s	/^struc Q$/;"	l
 struc	.original/src/kernel/guru.s	/^struc params,2$/;"	l
 struc	.original/src/kernel/guru.s	/^struc reg,2$/;"	l
@@ -422,18 +425,18 @@ sys_vga_set_cursor_location	.original/src/devices/vga.s	/^sys_vga_set_cursor_loc
 sys_vga_write	.original/src/devices/vga.s	/^sys_vga_write:$/;"	l
 text_attr	kernel/x86/vgadisp.c	/^          crtc_flags, text_attr;$/;"	v	file:
 times	.original/src/kernel/loader.s	/^times 768 - ($-$$) db 0$/;"	l
-u128	include/types.h	21;"	d
-u16	include/types.h	18;"	d
-u32	include/types.h	19;"	d
-u64	include/types.h	20;"	d
-u8	include/types.h	17;"	d
+u128	include/x86/types.h	20;"	d
+u16	include/x86/types.h	17;"	d
+u32	include/x86/types.h	18;"	d
+u64	include/x86/types.h	19;"	d
+u8	include/x86/types.h	16;"	d
 update_cursor	kernel/x86/vgadisp.c	/^static void update_cursor()$/;"	f	file:
 vfs_close	.original/src/kernel/vfs/vfs_main.s	/^vfs_close:$/;"	l
 vfs_mount	.original/src/kernel/vfs/vfs_base.s	/^vfs_mount:$/;"	l
 vfs_open	.original/src/kernel/vfs/vfs_main.s	/^vfs_open:$/;"	l
 vfs_register_fs	.original/src/kernel/vfs/vfs_base.s	/^vfs_register_fs:$/;"	l
 vfs_umount	.original/src/kernel/vfs/vfs_base.s	/^vfs_umount:$/;"	l
-vga_colors	include/x86/vgacolors.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	g
+vga_colors	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	g
 vga_offset	.original/src/kernel/guru.s	/^vga_offset: dw  0$/;"	d
 vga_set_origin	.original/src/devices/vga.s	/^vga_set_origin:$/;"	l
 vgab	kernel/x86/vgadisp.c	/^static u16 *vgab = (u16 *)0xB8000;$/;"	v	file:
