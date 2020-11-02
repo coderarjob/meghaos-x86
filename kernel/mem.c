@@ -1,6 +1,6 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Common Kernel - Memory handling functions
+* Megha Operating System V2 - Cross platform Kernel - Memory handling functions
 * ---------------------------------------------------------------------------
 *
 * Dated: 1st November 2020

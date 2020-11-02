@@ -1,7 +1,7 @@
 /*
 * -----------------------------------------------------------------------------
-* Megha Operating System V2 - Common Kernel - Platform independent printk type
-* of functions.
+* Megha Operating System V2 - Cross platform Kernel - Platform independent 
+* printk type of functions.
 *
 * This is not and never going to be a full featured VGA text mode driver.
 * Functions here will be limited to prints or printf like functions.
