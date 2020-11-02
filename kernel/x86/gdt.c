@@ -67,9 +67,8 @@ void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
 {
     if (gdt_index < GDT_MIN_INDEX || 
         gdt_index >= GDT_COUNT) {
-        kpanic("Invalid gdt_index. GDT_MIN_INDEX: %x, gdt_index: %x, "
-                "GDT_COUNT: %x @ %s", 
-                GDT_MIN_INDEX,gdt_index,GDT_COUNT,__FILE__);
+        kpanic("Invalid gdt_index. GDT_MIN_INDEX: %xH, gdt_index: %xH, "
+                "GDT_COUNT: %xH", GDT_MIN_INDEX,gdt_index,GDT_COUNT);
     }
 
     gdt[gdt_index].limit_low = (u16)limit;
