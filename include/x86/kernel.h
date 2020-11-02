@@ -16,15 +16,8 @@
 #ifndef __KERNEL_H_x86__
 #define __KERNEL_H_x86__
 
-#include <x86/memloc.h>
-#include <x86/io.h>
-#include <x86/vgacolors.h>
-
 /* Halts the processor by going into infinite loop */
 #define khalt() __asm__ volatile ("jmp $;");
-
-/* Magic break point used by bochs emulator*/
-#define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
 /* Edits a GDT descriptor in the GDT table.
  * Note: If gdt_index < 3 then an exception is generated.  */

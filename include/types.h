@@ -14,14 +14,7 @@
 #define __PORTABLE_TYPES__
 
 #ifdef __i386__
-    #define u8   unsigned char
-    #define u16  unsigned short
-    #define u32  unsigned int
-    #define u64  unsigned long
-    #define u128 unsigned long long 
-    
-    #define size_t u32      // Type that can hold the largest number in an 
-                            // architecture.
+    #include <x86/types.h>
 #endif
 
 #endif // __PORTABLE_TYPES__
