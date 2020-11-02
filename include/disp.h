@@ -13,6 +13,10 @@
 #define __DISPTEXT_H__
 
 
+#ifdef __i386__
+    #include <x86/vgatext.h>
+#endif
+
 enum disp_ioctl {DISP_GETCOORDS, 
                  DISP_SETCOORDS, 
                  DISP_COORDS_MAX,

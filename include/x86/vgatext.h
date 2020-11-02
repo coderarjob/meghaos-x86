@@ -9,8 +9,8 @@
 *
 * Dated: 1st November 2020
 */
-#ifndef __VGA_COLORS_H__
-#define __VGA_COLORS_H__
+#ifndef __VGA_TEXT_H__
+#define __VGA_TEXT_H__
 
 enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, 
                   DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, 
@@ -18,4 +18,4 @@ enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY,
 
 #define disp_attr(bg,fg,b) ((b)<<7|(bg)<<4|(fg))
 
-#endif // __VGA_COLORS_H__
+#endif // __VGA_TEXT_H__
