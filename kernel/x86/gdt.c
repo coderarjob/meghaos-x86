@@ -20,9 +20,6 @@
 
 #include <kernel.h>
 
-#define GDT_MIN_INDEX   3     // Minimum index that can be editted in Kernel.
-#define GDT_COUNT       512   // Number of GDT entries in memory
-
 struct gdt_des
 {
     u16 limit_low;
@@ -42,7 +39,9 @@ struct gdt_size
 
 /* -------------------------------------------------------------------------*/
 /* Variables */
-static struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
+static volatile struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
+static u16 gdt_count = GDT_MIN_INDEX;
+
 /* -------------------------------------------------------------------------*/
 
 /* -------------------------------------------------------------------------*/
@@ -51,8 +50,10 @@ static struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
 /* Writes the GDT structure address and length to the GDTR register.  */
 void kgdt_write()
 {
-    struct gdt_size s = {.size = (u16)(sizeof(gdt)-1), 
-                         .location = (u32)&gdt};
+    volatile struct gdt_size s = {
+        .size = sizeof(struct gdt_des) * gdt_count -1,
+        .location = (u32)gdt
+    };
 
     // NOTE: No need to load the SS, DS, ES or CS registers, as it already
     // contains the values needs (from boo1)
@@ -62,13 +63,20 @@ void kgdt_write()
 }
 
 /* Edits a GDT descriptor in the GDT table.
- * Note: If gdt_index < 3 then an exception is generated.  */
+ * Note: If gdt_index < 3 or > gdt_count or > GDT_MAX_COUNT then an exception 
+ * is generated.  */
 void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
 {
+    // Valid range is MIN_INDEX < index < gdt_count < GDT_MAX_COUNT
     if (gdt_index < GDT_MIN_INDEX || 
-        gdt_index >= GDT_COUNT) {
-        kpanic("Invalid gdt_index. GDT_MIN_INDEX: %xH, gdt_index: %xH, "
-                "GDT_COUNT: %xH", GDT_MIN_INDEX,gdt_index,GDT_COUNT);
+        gdt_index > gdt_count || 
+        gdt_index > GDT_MAX_COUNT) {
+        kpanic("Invalid gdt_index. MIN_INDEX: %xH, index: %xH, "
+                "gdt_count: %xH, GDT_COUNT: %xH", 
+                GDT_MIN_INDEX,
+                gdt_index,
+                gdt_count,
+                GDT_MAX_COUNT);
     }
 
     gdt[gdt_index].limit_low = (u16)limit;
@@ -78,5 +86,10 @@ void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
     gdt[gdt_index].limit_high = (limit>>16);
     gdt[gdt_index].flags = flags;
     gdt[gdt_index].base_high = (base >> 24);
+
+    // Check is a new GDT has been added or an old one is editted.
+    // Increment gdt_count and gdtr.size accordingly
+    if (gdt_index == gdt_count)
+        gdt_count++;
 }
 /* -------------------------------------------------------------------------*/
