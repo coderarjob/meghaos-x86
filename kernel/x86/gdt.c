@@ -7,6 +7,9 @@
 * ---------------------------------------------------------------------------
 * Dated: 6th October 2020
 ; ---------------------------------------------------------------------------
+; Bulid 20201104
+; - panic is caused if gdt_index < MIN_INDEX or > gdt_count or > MAX_COUNT
+; - gdt_count local var, tracks the current number of gdt entries.
 ; Bulid 20201019
 ; - DT now resides at a static location set by boot1
 ; - boot1 program sets up the kernel GDT and is fully ready. No longer do the 
