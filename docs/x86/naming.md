@@ -101,8 +101,10 @@ function and userland functions are different.
   2. `kmalloc()` instead of `malloc()` in kernel implementation.
 
 * Static functions are also named normally with no indication of scope.
+* Variables and function with `__` in front are for reserved for special
+  purposes.
 * Global helper functions (functions that exist to be called from another
-  macro) should have `_` in front. For example: `_kpanic()` function is the
+  macro) should have `__` in front. For example: `__kpanic()` function is the
   helper function, being called from the `kpanic()` macro.
 
 ### Variables

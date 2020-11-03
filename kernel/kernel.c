@@ -11,7 +11,7 @@
 
 /* Hook function called from kpanic macro. 
  * Displays an error message on the screen and Halts */
-void _kpanic(const char *file, int lineno, const char *s,...)
+void __kpanic(const char *file, int lineno, const char *s,...)
 {
     va_list l;
     va_start(l,s);

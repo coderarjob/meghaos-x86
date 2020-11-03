@@ -42,7 +42,7 @@ void printk(u8 type, const char *fmt, ...);
 void vprintk(const char *fmt, va_list list);
 
 /* Displays an error message on the screen and Halts */
-#define kpanic(s,...) _kpanic(__FILE__,__LINE__,s,__VA_ARGS__)
-void _kpanic(const char *file, int lineno, const char *s,...);
+#define kpanic(s,...) __kpanic(__FILE__,__LINE__,s,__VA_ARGS__)
+void __kpanic(const char *file, int lineno, const char *s,...);
 
 #endif
