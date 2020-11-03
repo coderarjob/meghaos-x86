@@ -39,7 +39,7 @@ export GCC32="i686-elf-gcc -std=gnu99\
                   -Wextra \
                   -Wall \
                   $GCC_INCPATH \
-                  -O2 -fno-unit-at-a-time "
+                  -O1 -fno-unit-at-a-time "
 
                   export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
 export OBJCOPY="i686-elf-objcopy"
@@ -107,5 +107,8 @@ wc -c $OBJDIR/*
 
 echo "    [ Cleaning up ]"
 rm -f -r $DISKTEMPDIR || exit
+
+echo "    [ Generating tags file ]"
+ctags -R . || exit
 
 echo "    [ Done ]"

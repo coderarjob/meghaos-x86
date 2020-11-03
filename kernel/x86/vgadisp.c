@@ -108,7 +108,6 @@ void kdisp_init()
 void kdisp_scrolldown()
 {
     //Copy 2nd line to the 1st line and so on until 24th line
-    //TODO: Implement using memcpy
 
     u16 *p = vgab,                         // Word copied to
         *n = &vgab[VGA_COLUMNS],           // Word copied from

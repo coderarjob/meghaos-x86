@@ -4,7 +4,7 @@ SECTIONS
     . = 0x28000;                 /* Kernel is loaded at 0x1800:0x0000 */
     .text :AT(0x0)
     {
-        *.o (.text);
+        *.o (.text);             /* TODO: find way to place __main at top */
     }
     .data :
     {

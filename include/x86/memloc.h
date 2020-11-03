@@ -9,9 +9,9 @@
 ; ---------------------------------------------------------------------------
 */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#ifndef __MEM_LOC_H__
+#define __MEM_LOC_H__
 
     #define INTEL_32_GDT_LOCATION   0x0800
 
-#endif //__MEM_H__
+#endif //__MEM_LOC_H__

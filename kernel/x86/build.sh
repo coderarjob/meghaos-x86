@@ -11,19 +11,18 @@ echo "    [ Compilling x86 Kernel ]    "
 
 i686_GCC="$GCC32" 
 
-$i686_GCC -c kernel/x86/kernel.c -o $OBJDIR/kernel.o  || exit
-$i686_GCC -S kernel/x86/kernel.c -o $LISTDIR/kernel.lst  || exit
+$i686_GCC -c kernel/x86/kernel.c -o $OBJDIR/x86_kernel.o  || exit
+$i686_GCC -S kernel/x86/kernel.c -o $LISTDIR/x86_kernel.lst  || exit
 
-$i686_GCC -c kernel/x86/vgadisp.c -o $OBJDIR/screen.o  || exit
-$i686_GCC -S kernel/x86/vgadisp.c -o $LISTDIR/screen.lst || exit
+$i686_GCC -c kernel/x86/vgadisp.c -o $OBJDIR/x86_screen.o  || exit
+$i686_GCC -S kernel/x86/vgadisp.c -o $LISTDIR/x86_screen.lst || exit
 
-$i686_GCC -c kernel/x86/gdt.c -o $OBJDIR/gdt.o  || exit
-$i686_GCC -S kernel/x86/gdt.c -o $LISTDIR/gdt.lst || exit
-
+$i686_GCC -c kernel/x86/gdt.c -o $OBJDIR/x86_gdt.o  || exit
+$i686_GCC -S kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst || exit
 
 $LD_KERNEL -relocatable \
-           $OBJDIR/kernel.o \
-           $OBJDIR/screen.o \
-           $OBJDIR/gdt.o \
+           $OBJDIR/x86_kernel.o \
+           $OBJDIR/x86_screen.o \
+           $OBJDIR/x86_gdt.o \
            -o $OBJDIR/kernel_x86.o
 
