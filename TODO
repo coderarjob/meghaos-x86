@@ -1,0 +1,12 @@
+MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
+------------------------------------------------------------------------------
+
+[X] GDT and LDT concept           - 25th Aug 2020
+[X] IDT and TSS                   - 1st  Sep 2020
+[X] Test Protected mode entry     - 3rd  Sep 2020
+[X] x86 Cross compiler setup      - 21st Oct 2020
+[X] GDT.c                         - 23rd Oct 2020
+[X] VGA text driver               - 1st  Nov 2020
+[X] Header file structures        - 1st  Nov 2020
+[X] mem.c                         - 1st  Nov 2020
+[ ] TSS                           - 6th  Nov 2020
