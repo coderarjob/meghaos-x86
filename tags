@@ -266,7 +266,7 @@ irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
 jump_to_usermode	kernel/x86/kernel.c	/^void jump_to_usermode() {$/;"	f
-kassert	include/assert.h	17;"	d
+kassert	include/assert.h	22;"	d
 kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
 kbochs_breakpoint	include/kernel.h	42;"	d
 kdisp_init	kernel/x86/vgadisp.c	/^void kdisp_init()$/;"	f
@@ -281,6 +281,7 @@ kgdt_write	kernel/x86/gdt.c	/^void kgdt_write()$/;"	f
 khalt	include/x86/kernel.h	23;"	d
 kpanic	include/panic.h	17;"	d
 kpanic	include/panic.h	20;"	d
+kstatic_assert	include/assert.h	18;"	d
 ldt_seg	kernel/x86/kernel.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
 limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
 limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
