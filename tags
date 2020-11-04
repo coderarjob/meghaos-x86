@@ -39,6 +39,7 @@ HiddenSectors	bootloader/x86/boot0/boot.s	/^	HiddenSectors		dd 0		    ; Number o
 INTEL_32_GDT_LOCATION	include/x86/memloc.h	15;"	d
 IN_CONFIG	.original/src/kernel/terminal.s	/^IN_CONFIG: 	db 1$/;"	d
 IN_QUEUE	.original/src/kernel/terminal.s	/^IN_QUEUE:$/;"	l
+KASSERT_NEVER_REACH	include/assert.h	15;"	d
 LIGHT_BLUE	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
 LIGHT_CYAN	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
 LIGHT_GRAY	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
@@ -96,10 +97,13 @@ VolumeLabel	.original/src/bootloader/boot.s	/^	VolumeLabel		db "ARJOBOS    "; Vo
 VolumeLabel	bootloader/x86/boot0/boot.s	/^	VolumeLabel	        db "MEGHAOS    "; Volume Label: any 11 chars$/;"	d
 WHITE	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 YELLOW	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+__ASSERT_H__	include/assert.h	13;"	d
+__C99__	include/kernel.h	16;"	d
 __DISPTEXT_H__	include/disp.h	13;"	d
 __IO_H__	include/io.h	14;"	d
 __KERNEL_H__	include/kernel.h	13;"	d
 __KERNEL_H_x86__	include/x86/kernel.h	17;"	d
+__KPANIC_H__	include/panic.h	13;"	d
 __MEM_H__	include/mem.h	17;"	d
 __MEM_LOC_H__	include/x86/memloc.h	13;"	d
 __PORTABLE_TYPES__	include/types.h	14;"	d
@@ -124,7 +128,7 @@ __k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^
 __k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
 __k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
 __k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
-__kpanic	kernel/kernel.c	/^void __kpanic(const char *file, int lineno, const char *s,...)$/;"	f
+__kpanic	kernel/kernel.c	/^void __kpanic(const char *s,...)$/;"	f
 __main	kernel/x86/kernel.c	/^void __main()$/;"	f
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
 __sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
@@ -262,8 +266,9 @@ irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
 jump_to_usermode	kernel/x86/kernel.c	/^void jump_to_usermode() {$/;"	f
+kassert	include/assert.h	17;"	d
 kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
-kbochs_breakpoint	include/kernel.h	36;"	d
+kbochs_breakpoint	include/kernel.h	42;"	d
 kdisp_init	kernel/x86/vgadisp.c	/^void kdisp_init()$/;"	f
 kdisp_ioctl	kernel/x86/vgadisp.c	/^void kdisp_ioctl(u8 request, ...)$/;"	f
 kdisp_putc	kernel/x86/vgadisp.c	/^void kdisp_putc(char c)$/;"	f
@@ -274,7 +279,8 @@ key_codes	.original/src/devices/keyboard.s	/^key_codes:$/;"	l
 kgdt_edit	kernel/x86/gdt.c	/^void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)$/;"	f
 kgdt_write	kernel/x86/gdt.c	/^void kgdt_write()$/;"	f
 khalt	include/x86/kernel.h	23;"	d
-kpanic	include/kernel.h	45;"	d
+kpanic	include/panic.h	17;"	d
+kpanic	include/panic.h	20;"	d
 ldt_seg	kernel/x86/kernel.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
 limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
 limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
