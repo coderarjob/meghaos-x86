@@ -113,7 +113,6 @@ We are going to follow Semantic Versioning Scheme (https://semver.org/).
    |Major  | Increments when backward compatibility is broken.     |
    |Minor  | Increments when backward compatibility is maintained. |
    |Patch  | Bug fixes, that does not break backward compatibility.|
-   |-------|-------------------------------------------------------|
 
 5. Whenever the left or middle digit changes, we reset the digits to the right.
    * 1.2.14  -->  1.3.0  --> 2.0.0
@@ -123,12 +122,12 @@ We are going to follow Semantic Versioning Scheme (https://semver.org/).
 
 ### Example:
 
-    |Merge from             |  Merge to  |   Tag                    |
-    |-----------------------|------------|--------------------------|
-    |kernel/basic/bootloade | Develop    |  201104.0                |
-    |kernel/basic/gdt       | Develop    |  201104.1                |
-    |kernel/basic/console   | Develop    |  201107.0                |
-    |Develop                | Master     |  0.1.0.201107.0-dev      |
-    |kernel/basic/idt       | Develop    |  201108.0                |
-    |Develop                | Master     |  0.2.0.201108.0-dev      |
-    |-----------------------|------------|--------------------------|
+|Merge from             |  Merge to  |   Tag                    |
+|-----------------------|------------|--------------------------|
+|kernel/basic/bootloade | Develop    |  201104.0                |
+|kernel/basic/gdt       | Develop    |  201104.1                |
+|kernel/basic/console   | Develop    |  201107.0                |
+|Develop                | Master     |  0.1.0.201107.0-dev      |
+|kernel/basic/idt       | Develop    |  201108.0                |
+|Develop                | Master     |  0.2.0.201108.0-dev      |
+|-----------------------|------------|--------------------------|
