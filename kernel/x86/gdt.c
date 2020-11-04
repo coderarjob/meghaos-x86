@@ -71,16 +71,9 @@ void kgdt_write()
 void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
 {
     // Valid range is MIN_INDEX < index < gdt_count < GDT_MAX_COUNT
-    if (gdt_index < GDT_MIN_INDEX || 
-        gdt_index > gdt_count || 
-        gdt_index > GDT_MAX_COUNT) {
-        kpanic("Invalid gdt_index. MIN_INDEX: %xH, index: %xH, "
-                "gdt_count: %xH, GDT_COUNT: %xH", 
-                GDT_MIN_INDEX,
-                gdt_index,
-                gdt_count,
-                GDT_MAX_COUNT);
-    }
+    kassert(gdt_index >= GDT_MIN_INDEX &&
+            gdt_index <= gdt_count     && 
+            gdt_index <= GDT_MAX_COUNT);
 
     gdt[gdt_index].limit_low = (u16)limit;
     gdt[gdt_index].base_low = (u16)base;

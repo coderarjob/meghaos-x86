@@ -12,6 +12,10 @@
 #ifndef __KERNEL_H__
 #define __KERNEL_H__
 
+#if __STDC_VERSION__ >= 199901
+    #define __C99__
+#endif
+
 #ifdef __linux__
 #error "You are targetting Linux. Which is wrong!"
 #endif 
@@ -25,6 +29,8 @@
 #include <disp.h>
 #include <mem.h>
 #include <io.h>
+#include <panic.h>
+#include <assert.h>
 
 #ifdef __i386__
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
@@ -40,9 +46,5 @@ void printk(u8 type, const char *fmt, ...);
 
 /* Prints formatted on screen at the cursor location.*/
 void vprintk(const char *fmt, va_list list);
-
-/* Displays an error message on the screen and Halts */
-#define kpanic(s,...) __kpanic(__FILE__,__LINE__,s,__VA_ARGS__)
-void __kpanic(const char *file, int lineno, const char *s,...);
 
 #endif
