@@ -39,6 +39,7 @@ HiddenSectors	bootloader/x86/boot0/boot.s	/^	HiddenSectors		dd 0		    ; Number o
 INTEL_32_GDT_LOCATION	include/x86/memloc.h	15;"	d
 IN_CONFIG	.original/src/kernel/terminal.s	/^IN_CONFIG: 	db 1$/;"	d
 IN_QUEUE	.original/src/kernel/terminal.s	/^IN_QUEUE:$/;"	l
+IOMAP_SIZE	kernel/x86/kernel.c	47;"	d	file:
 KASSERT_NEVER_REACH	include/assert.h	15;"	d
 LIGHT_BLUE	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
 LIGHT_CYAN	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
@@ -114,6 +115,7 @@ __enable_a20gate_bios	bootloader/x86/boot1/a20gate.s	/^__enable_a20gate_bios:$/;
 __init	.original/src/kernel/kernel.s	/^__init:$/;"	l
 __io_add_notification	.original/src/kernel/io.s	/^__io_add_notification:$/;"	l
 __is_a20gate_enabled	bootloader/x86/boot1/a20gate.s	/^__is_a20gate_enabled:$/;"	l
+__jump_to_usermode	kernel/x86/usermode.s	/^__jump_to_usermode:$/;"	l
 __k_alloc	.original/src/kernel/mem.s	/^__k_alloc:$/;"	l
 __k_free	.original/src/kernel/mem.s	/^__k_free:$/;"	l
 __k_io_init	.original/src/kernel/io.s	/^__k_io_init:$/;"	l
@@ -146,6 +148,7 @@ _init	.original/src/kernel/guru.s	/^_init:$/;"	l
 _init	.original/src/kernel/loader.s	/^_init:$/;"	l
 _init	.original/src/kernel/vfs/vfs_main.s	/^_init:$/;"	l
 _init_addr	.original/src/kernel/loader.s	/^_init_addr: dw 	 MODULE0_OFF$/;"	d
+_jump_to_usermode	kernel/usermode.s	/^_jump_to_usermode$/;"	l
 _lf	.original/src/kernel/guru.s	/^_lf:$/;"	l
 _printhex	.original/src/kernel/guru.s	/^_printhex:$/;"	l
 _putchar	.original/src/kernel/guru.s	/^_putchar:$/;"	l
@@ -224,6 +227,8 @@ esp2	kernel/x86/kernel.c	/^    u32 esp2;$/;"	m	struct:tss	file:
 exit	.original/src/bootloader/boot.s	/^exit:	$/;"	l
 exit	.original/src/kernel/loader.s	/^exit:$/;"	l
 exit	bootloader/x86/boot0/boot.s	/^exit:	$/;"	l
+export	kernel/usermode.s	/^export _jump_to_usermode$/;"	l
+extern	kernel/x86/usermode.s	/^extern usermode_main$/;"	l
 failed_drive_error	.original/src/bootloader/boot.s	/^failed_drive_error:$/;"	l
 failed_drive_error	bootloader/x86/boot0/boot.s	/^failed_drive_error:$/;"	l
 failed_file_not_found	.original/src/bootloader/boot.s	/^failed_file_not_found:$/;"	l
@@ -251,6 +256,8 @@ gdt_meta	bootloader/x86/boot1/gdt.s	/^gdt_meta:$/;"	l
 gdt_size	kernel/x86/gdt.c	/^struct gdt_size$/;"	s	file:
 get_filesystem_from_name	.original/src/kernel/vfs/vfs_base.s	/^get_filesystem_from_name:$/;"	l
 get_mount_point_from_drive	.original/src/kernel/vfs/vfs_base.s	/^get_mount_point_from_drive:$/;"	l
+global	kernel/usermode.s	/^global _kbochs_breakpoint$/;"	l
+global	kernel/x86/usermode.s	/^global __jump_to_usermode$/;"	l
 gs	kernel/x86/kernel.c	/^    u32 gs;$/;"	m	struct:tss	file:
 hello	.original/src/kernel/loader.s	/^hello: db "Showing this message using a debug.mod routine.",13,10$/;"	d
 hexdump	.original/src/kernel/guru.s	/^hexdump:$/;"	l
@@ -259,13 +266,13 @@ inc	.original/src/devices/vga.s	/^		inc di$/;"	d
 inc	.original/src/kernel/guru.s	/^		inc di$/;"	d
 inc	.original/src/kernel/vfs/vfs_base.s	/^	inc di$/;"	d
 invalid_routine_number_msg	.original/src/kernel/despatcher.s	/^invalid_routine_number_msg: db ";( addRoutine (despatcher). Routine number is "$/;"	d
-iomap_base	kernel/x86/kernel.c	/^    u32 iomap_base;$/;"	m	struct:tss	file:
+iomap_base	kernel/x86/kernel.c	/^    u16 iomap_base;$/;"	m	struct:tss	file:
+iopers	kernel/x86/kernel.c	/^static u8 *iopers = (u8 *)&tss_entry + sizeof(struct tss);$/;"	v	file:
 iret	.original/src/kernel/interrupt.s	/^iret$/;"	l
 iret	bootloader/x86/boot0/boot.s	/^iret$/;"	l
 irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
-jump_to_usermode	kernel/x86/kernel.c	/^void jump_to_usermode() {$/;"	f
 kassert	include/assert.h	22;"	d
 kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
 kbochs_breakpoint	include/kernel.h	42;"	d
@@ -460,14 +467,16 @@ sys_vga_set_cursor_location	.original/src/devices/vga.s	/^sys_vga_set_cursor_loc
 sys_vga_write	.original/src/devices/vga.s	/^sys_vga_write:$/;"	l
 text_attr	kernel/x86/vgadisp.c	/^          crtc_flags, text_attr;$/;"	v	file:
 times	.original/src/kernel/loader.s	/^times 768 - ($-$$) db 0$/;"	l
+trap	kernel/x86/kernel.c	/^    u16 trap;$/;"	m	struct:tss	file:
 tss	kernel/x86/kernel.c	/^struct tss {$/;"	s	file:
-tss_entry	kernel/x86/kernel.c	/^static struct tss tss_entry;$/;"	v	typeref:struct:tss	file:
+tss_entry	kernel/x86/kernel.c	/^static struct tss tss_entry = {0};$/;"	v	typeref:struct:tss	file:
 u128	include/x86/types.h	20;"	d
 u16	include/x86/types.h	17;"	d
 u32	include/x86/types.h	18;"	d
 u64	include/x86/types.h	19;"	d
 u8	include/x86/types.h	16;"	d
 update_cursor	kernel/x86/vgadisp.c	/^static void update_cursor()$/;"	f	file:
+usermode_main	kernel/x86/kernel.c	/^void usermode_main()$/;"	f
 vfs_close	.original/src/kernel/vfs/vfs_main.s	/^vfs_close:$/;"	l
 vfs_mount	.original/src/kernel/vfs/vfs_base.s	/^vfs_mount:$/;"	l
 vfs_open	.original/src/kernel/vfs/vfs_main.s	/^vfs_open:$/;"	l
