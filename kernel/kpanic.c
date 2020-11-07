@@ -1,6 +1,6 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Cross Platform Kernel Routines
+* Megha Operating System V2 - Cross Platform kpanic function
 * ---------------------------------------------------------------------------
 *
 * Dated: 1st November 2020

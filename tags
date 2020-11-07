@@ -142,7 +142,7 @@ __k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^
 __k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
 __k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
 __k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
-__kpanic	kernel/kernel.c	/^void __kpanic(const char *s,...)$/;"	f
+__kpanic	kernel/kpanic.c	/^void __kpanic(const char *s,...)$/;"	f
 __main	kernel/x86/kernel.c	/^void __main()$/;"	f
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
 __sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
