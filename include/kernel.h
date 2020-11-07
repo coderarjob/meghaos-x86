@@ -38,6 +38,9 @@
 
 enum printk_types { PK_ONSCREEN };
 
+/* Used to know the offset of a member in a structure type */
+#define OFFSET_OF(type,member) ((size_t)(&((type *)0)->member))
+
 /* Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 

@@ -21,6 +21,9 @@ $i686_GCC -S kernel/x86/kernel.c -o $LISTDIR/x86_kernel.lst  || exit
 $i686_GCC -c kernel/x86/vgadisp.c -o $OBJDIR/x86_screen.o  || exit
 $i686_GCC -S kernel/x86/vgadisp.c -o $LISTDIR/x86_screen.lst || exit
 
+$i686_GCC -c kernel/x86/tss.c -o $OBJDIR/x86_tss.o  || exit
+$i686_GCC -S kernel/x86/tss.c -o $LISTDIR/x86_tss.lst || exit
+
 $i686_GCC -c kernel/x86/gdt.c -o $OBJDIR/x86_gdt.o  || exit
 $i686_GCC -S kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst || exit
 
@@ -29,5 +32,6 @@ $LD_KERNEL -relocatable \
            $OBJDIR/x86_screen.o \
            $OBJDIR/x86_gdt.o \
            $OBJDIR/x86_usermode.o \
+           $OBJDIR/x86_tss.o \
            -o $OBJDIR/kernel_x86.o || exit
 

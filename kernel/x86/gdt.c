@@ -44,7 +44,6 @@ struct gdt_size
 /* Variables */
 static volatile struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
 static u16 gdt_count = GDT_MIN_INDEX;
-
 /* -------------------------------------------------------------------------*/
 
 /* -------------------------------------------------------------------------*/

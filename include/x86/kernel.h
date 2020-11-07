@@ -19,8 +19,33 @@
 #define GDT_MIN_INDEX   3     // Minimum index that can be editted in Kernel.
 #define GDT_MAX_COUNT   512   // Number of GDT entries in memory
 
+#define __GDT_SELECTOR_FROM_INDEX(index, ring) ((index)<<3)|(ring)
+
+// Kernel Code segment selector.
+#define GDT_INDEX_KCODE 1
+#define GDT_SELECTOR_KCODE __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_KCODE, 0)
+
+// Kernel Data segment selector.
+#define GDT_INDEX_KDATA 2
+#define GDT_SELECTOR_KDATA __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_KDATA, 0)
+
+// Kernel TSS segment selector.
+#define GDT_INDEX_KTSS  3
+#define GDT_SELECTOR_KTSS __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_KTSS, 0)
+
+// User Code segment selector.
+#define GDT_INDEX_UCODE 4
+#define GDT_SELECTOR_UCODE __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_UCODE, 3)
+
+// User Data segment selector.
+#define GDT_INDEX_UDATA 5
+#define GDT_SELECTOR_UDATA __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_UDATA, 3)
+
 /* Halts the processor by going into infinite loop */
 #define khalt() __asm__ volatile ("jmp $;");
+
+/* Initializes the tss_entry structure, installs a tss segment in GDT */
+void ktss_init();
 
 /* Edits a GDT descriptor in the GDT table.
  * Note: If gdt_index < 3 or > gdt_count or > GDT_MAX_COUNT then an exception 
