@@ -83,25 +83,52 @@ We are going to follow Semantic Versioning Scheme (https://semver.org/).
 
 1. Every commit in the Master branch must have a tag, and this will be the
    release version.
+
    * If there is _merge from a hotfix branch_, then we increment the 
-     _right most digit_ of the version.
+     _right most digit_ of the version. 
+
    * If there is _merge from the develop branch_, then we increment the
      _middle_ digit of the version.
+
+   * Set appropriate `releasetype` in the tag.
+
+   * Must mention the `build` of the Develop/Hotfix branch being merged.
+
 2. Every merge on the develop branch from a feature branch then must have a 
    tag, and this will be the bulid version. 
+   * `releasetype` must not be set. 
 
 ### Semantic Versioning Scheme:
-1. Version will be structured:   `major.minor.patch-build.buildminor`.
-   
-   Example: `1.2.19-20200909.1`
-  
-2. Build is in the format: `<year><month><day>.<build_minor>`.
-3. |Version| Reason for change|
-   |-------|------------------|
-   |Major| Increments when backward compatibility is broken.|
-   |Minor| Increments when backward compatibility is maintained.|
-   |Patch| Bug fixes, that does not break backward compatibility.|
-4. Whenever the left or middle digit changes, we reset the digits to the right.
+
+1. Version will be structured:   
+    `major.minor.patch-build.buildminor-releasetype`
+   * Example: `1.2.19-200909.1-dev`
+
+2. Build is in the format: `<year><month><day>.<build_minor>`
+
+3. Release types are : `dev`, `alpha`
+
+4. |Version| Reason for change                                     |
+   |-------|-------------------------------------------------------|
+   |Major  | Increments when backward compatibility is broken.     |
+   |Minor  | Increments when backward compatibility is maintained. |
+   |Patch  | Bug fixes, that does not break backward compatibility.|
+
+5. Whenever the left or middle digit changes, we reset the digits to the right.
    * 1.2.14  -->  1.3.0  --> 2.0.0
-5. If a feature or bug fix breaks backward compatibility we should wait and
+
+6. If a feature or bug fix breaks backward compatibility we should wait and
    collect some more of such fixes and then do a *Major* release.
+
+### Example:
+
+    |-----------------------|------------|--------------------------|
+    |Merge from             |  Merge to  |   Tag                    |
+    |-----------------------|------------|--------------------------|
+    |kernel/basic/bootloader| Develop    |  201104.0                |
+    |kernel/basic/gdt       | Develop    |  201104.1                |
+    |kernel/basic/console   | Develop    |  201107.0                |
+    |Develop                | Master     |  0.1.0.201107.0-dev      |
+    |kernel/basic/idt       | Develop    |  201108.0                |
+    |Develop                | Master     |  0.2.0.201108.0-dev      |
+    |-----------------------|------------|--------------------------|

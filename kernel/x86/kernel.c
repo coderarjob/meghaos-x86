@@ -14,57 +14,38 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-struct tss {
-    u32 prevtask;
-    u32 esp0;
-    u32 ss0;
-    u32 esp1;
-    u32 ss1;
-    u32 esp2;
-    u32 ss2;
-    u32 cr3;
-    u32 eip;
-    u32 eflags;
-    u32 eax;
-    u32 ecx;
-    u32 edx;
-    u32 ebx;
-    u32 esp;
-    u32 ebp;
-    u32 esi;
-    u32 edi;
-    u32 es;
-    u32 cs;
-    u32 ss;
-    u32 ds;
-    u32 fs;
-    u32 gs;
-    u32 ldt_seg;
-    u32 iomap_base;
-} __attribute__((packed));
-
-static struct tss tss_entry;
+void usermode_main();
+void __jump_to_usermode(u32 dataselector, 
+                        u32 codeselector, void(*user_func)());
+//void __jump_to_usermode();
 
 __attribute__((noreturn)) 
 void __main()
 {
     kdisp_init();
     printk(PK_ONSCREEN,"\r\nKernel starting..");
-   
+
+    ktss_init();
+
     // Usermode code segment
-    kgdt_edit(GDT_MIN_INDEX, 0, 0xFFFFF, 0xFA, 0xD);
+    kgdt_edit(GDT_INDEX_UCODE, 0, 0xFFFFF, 0xFA, 0xD);
     // Usermode data segment
-    kgdt_edit(GDT_MIN_INDEX+1, 0, 0xFFFFF, 0xF2, 0xD);
-
-    // TSS Segment
-    kgdt_edit(GDT_MIN_INDEX+2, (u32)&tss_entry, 
-            sizeof(struct tss) -1, 0xE9, 0x9);
-
+    kgdt_edit(GDT_INDEX_UDATA, 0, 0xFFFFF, 0xF2, 0xD);
     kgdt_write();
 
+    // Jump to user mode
+    printk(PK_ONSCREEN,"OK\r\nJumping to User mode..");
+
+    __jump_to_usermode(GDT_SELECTOR_UDATA, 
+                       GDT_SELECTOR_UCODE,
+                       &usermode_main);
     while(1);
 }
 
-void jump_to_usermode() {
-         
+void usermode_main()
+{
+    kdisp_ioctl(DISP_SETATTR,WHITE);
+    printk(PK_ONSCREEN,"\r\nInside usermode..");
+
+    while(1);
 }

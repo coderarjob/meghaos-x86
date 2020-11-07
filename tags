@@ -29,8 +29,18 @@ DriveNo	bootloader/x86/boot0/boot.s	/^	DriveNo		        dw 0		    ; Drive No: 0$
 EXTENDED	.original/src/devices/keyboard.s	/^		EXTENDED: EQU 0x40$/;"	d
 FileSystem	.original/src/bootloader/boot.s	/^	FileSystem		db "FAT12   "	; File system type: don't change!$/;"	d
 FileSystem	bootloader/x86/boot0/boot.s	/^	FileSystem	        db "FAT12   "	; File system type: don't change!$/;"	d
+GDT_INDEX_KCODE	include/x86/kernel.h	25;"	d
+GDT_INDEX_KDATA	include/x86/kernel.h	29;"	d
+GDT_INDEX_KTSS	include/x86/kernel.h	33;"	d
+GDT_INDEX_UCODE	include/x86/kernel.h	37;"	d
+GDT_INDEX_UDATA	include/x86/kernel.h	41;"	d
 GDT_MAX_COUNT	include/x86/kernel.h	20;"	d
 GDT_MIN_INDEX	include/x86/kernel.h	19;"	d
+GDT_SELECTOR_KCODE	include/x86/kernel.h	26;"	d
+GDT_SELECTOR_KDATA	include/x86/kernel.h	30;"	d
+GDT_SELECTOR_KTSS	include/x86/kernel.h	34;"	d
+GDT_SELECTOR_UCODE	include/x86/kernel.h	38;"	d
+GDT_SELECTOR_UDATA	include/x86/kernel.h	42;"	d
 GREEN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 HeadCount	.original/src/bootloader/boot.s	/^	HeadCount		dw 2		; Number of sides\/heads$/;"	d
 HeadCount	bootloader/x86/boot0/boot.s	/^	HeadCount		    dw 2		    ; Number of sides\/heads$/;"	d
@@ -39,6 +49,8 @@ HiddenSectors	bootloader/x86/boot0/boot.s	/^	HiddenSectors		dd 0		    ; Number o
 INTEL_32_GDT_LOCATION	include/x86/memloc.h	15;"	d
 IN_CONFIG	.original/src/kernel/terminal.s	/^IN_CONFIG: 	db 1$/;"	d
 IN_QUEUE	.original/src/kernel/terminal.s	/^IN_QUEUE:$/;"	l
+IOMAP_SIZE	kernel/x86/tss.c	16;"	d	file:
+KASSERT_NEVER_REACH	include/assert.h	15;"	d
 LIGHT_BLUE	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
 LIGHT_CYAN	include/x86/vgatext.h	/^                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, $/;"	e	enum:vga_colors
 LIGHT_GRAY	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
@@ -63,6 +75,7 @@ NumberOfFats	.original/src/bootloader/boot.s	/^	NumberOfFats		db 2		; Number of 
 NumberOfFats	bootloader/x86/boot0/boot.s	/^	NumberOfFats		db 2		    ; Number of copies of the FAT$/;"	d
 OEMLabel	.original/src/bootloader/boot.s	/^	OEMLabel		db "ARJOBOOT"	; Disk label$/;"	d
 OEMLabel	bootloader/x86/boot0/boot.s	/^	OEMLabel		    db "MEGHAOS2"	; Disk label$/;"	d
+OFFSET_OF	include/kernel.h	42;"	d
 OUT_CONFIG	.original/src/kernel/terminal.s	/^OUT_CONFIG: db 1$/;"	d
 OUT_QUEUE	.original/src/kernel/terminal.s	/^OUT_QUEUE:$/;"	l
 PINK	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
@@ -96,10 +109,14 @@ VolumeLabel	.original/src/bootloader/boot.s	/^	VolumeLabel		db "ARJOBOS    "; Vo
 VolumeLabel	bootloader/x86/boot0/boot.s	/^	VolumeLabel	        db "MEGHAOS    "; Volume Label: any 11 chars$/;"	d
 WHITE	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 YELLOW	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
+__ASSERT_H__	include/assert.h	13;"	d
+__C99__	include/kernel.h	16;"	d
 __DISPTEXT_H__	include/disp.h	13;"	d
+__GDT_SELECTOR_FROM_INDEX	include/x86/kernel.h	22;"	d
 __IO_H__	include/io.h	14;"	d
 __KERNEL_H__	include/kernel.h	13;"	d
 __KERNEL_H_x86__	include/x86/kernel.h	17;"	d
+__KPANIC_H__	include/panic.h	13;"	d
 __MEM_H__	include/mem.h	17;"	d
 __MEM_LOC_H__	include/x86/memloc.h	13;"	d
 __PORTABLE_TYPES__	include/types.h	14;"	d
@@ -110,6 +127,7 @@ __enable_a20gate_bios	bootloader/x86/boot1/a20gate.s	/^__enable_a20gate_bios:$/;
 __init	.original/src/kernel/kernel.s	/^__init:$/;"	l
 __io_add_notification	.original/src/kernel/io.s	/^__io_add_notification:$/;"	l
 __is_a20gate_enabled	bootloader/x86/boot1/a20gate.s	/^__is_a20gate_enabled:$/;"	l
+__jump_to_usermode	kernel/x86/usermode.s	/^__jump_to_usermode:$/;"	l
 __k_alloc	.original/src/kernel/mem.s	/^__k_alloc:$/;"	l
 __k_free	.original/src/kernel/mem.s	/^__k_free:$/;"	l
 __k_io_init	.original/src/kernel/io.s	/^__k_io_init:$/;"	l
@@ -124,7 +142,7 @@ __k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^
 __k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
 __k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
 __k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
-__kpanic	kernel/kernel.c	/^void __kpanic(const char *file, int lineno, const char *s,...)$/;"	f
+__kpanic	kernel/kernel.c	/^void __kpanic(const char *s,...)$/;"	f
 __main	kernel/x86/kernel.c	/^void __main()$/;"	f
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
 __sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
@@ -166,12 +184,12 @@ callvector	.original/src/kernel/guru.s	/^callvector: dw printhex,copy_to_screen,
 clear	.original/src/kernel/guru.s	/^clear:$/;"	l
 column	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 copy_to_screen	.original/src/kernel/guru.s	/^copy_to_screen:$/;"	l
-cr3	kernel/x86/kernel.c	/^    u32 cr3;$/;"	m	struct:tss	file:
+cr3	kernel/x86/tss.c	/^    u32 cr3;$/;"	m	struct:tss	file:
 crt_addr_port	kernel/x86/vgadisp.c	23;"	d	file:
 crt_data_port	kernel/x86/vgadisp.c	24;"	d	file:
 crt_read	kernel/x86/vgadisp.c	25;"	d	file:
 crtc_flags	kernel/x86/vgadisp.c	/^          crtc_flags, text_attr;$/;"	v	file:
-cs	kernel/x86/kernel.c	/^    u32 cs;$/;"	m	struct:tss	file:
+cs	kernel/x86/tss.c	/^    u32 cs;$/;"	m	struct:tss	file:
 csh	.original/src/common/readsector.s	/^csh:$/;"	l
 csh	include/asm/csh.s	/^    csh:$/;"	l
 db	.original/src/devices/keyboard.s	/^db		M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM,  M_NUM	; 0x17$/;"	l
@@ -196,30 +214,31 @@ disp_attr	include/x86/vgatext.h	19;"	d
 disp_ioctl	include/disp.h	/^enum disp_ioctl {DISP_GETCOORDS, $/;"	g
 drivefailedstr	.original/src/bootloader/boot.s	/^drivefailedstr:  db	 'FL',0$/;"	d
 drivefailedstr	bootloader/x86/boot0/boot.s	/^drivefailedstr:  db	 'D',0$/;"	d
-ds	kernel/x86/kernel.c	/^    u32 ds;$/;"	m	struct:tss	file:
-eax	kernel/x86/kernel.c	/^    u32 eax;$/;"	m	struct:tss	file:
-ebp	kernel/x86/kernel.c	/^    u32 ebp;$/;"	m	struct:tss	file:
-ebx	kernel/x86/kernel.c	/^    u32 ebx;$/;"	m	struct:tss	file:
-ecx	kernel/x86/kernel.c	/^    u32 ecx;$/;"	m	struct:tss	file:
-edi	kernel/x86/kernel.c	/^    u32 edi;$/;"	m	struct:tss	file:
-edx	kernel/x86/kernel.c	/^    u32 edx;$/;"	m	struct:tss	file:
-eflags	kernel/x86/kernel.c	/^    u32 eflags;$/;"	m	struct:tss	file:
-eip	kernel/x86/kernel.c	/^    u32 eip;$/;"	m	struct:tss	file:
+ds	kernel/x86/tss.c	/^    u32 ds;$/;"	m	struct:tss	file:
+eax	kernel/x86/tss.c	/^    u32 eax;$/;"	m	struct:tss	file:
+ebp	kernel/x86/tss.c	/^    u32 ebp;$/;"	m	struct:tss	file:
+ebx	kernel/x86/tss.c	/^    u32 ebx;$/;"	m	struct:tss	file:
+ecx	kernel/x86/tss.c	/^    u32 ecx;$/;"	m	struct:tss	file:
+edi	kernel/x86/tss.c	/^    u32 edi;$/;"	m	struct:tss	file:
+edx	kernel/x86/tss.c	/^    u32 edx;$/;"	m	struct:tss	file:
+eflags	kernel/x86/tss.c	/^    u32 eflags;$/;"	m	struct:tss	file:
+eip	kernel/x86/tss.c	/^    u32 eip;$/;"	m	struct:tss	file:
 enable_a20	bootloader/x86/boot1/a20gate.s	/^enable_a20:$/;"	l
 endstruc	.original/src/common/queue.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/guru.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/process.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/vfs/vfs_base.s	/^endstruc$/;"	l
-es	kernel/x86/kernel.c	/^    u32 es;$/;"	m	struct:tss	file:
-esi	kernel/x86/kernel.c	/^    u32 esi;$/;"	m	struct:tss	file:
-esp	kernel/x86/kernel.c	/^    u32 esp;$/;"	m	struct:tss	file:
-esp0	kernel/x86/kernel.c	/^    u32 esp0;$/;"	m	struct:tss	file:
-esp1	kernel/x86/kernel.c	/^    u32 esp1;$/;"	m	struct:tss	file:
-esp2	kernel/x86/kernel.c	/^    u32 esp2;$/;"	m	struct:tss	file:
+es	kernel/x86/tss.c	/^    u32 es;$/;"	m	struct:tss	file:
+esi	kernel/x86/tss.c	/^    u32 esi;$/;"	m	struct:tss	file:
+esp	kernel/x86/tss.c	/^    u32 esp;$/;"	m	struct:tss	file:
+esp0	kernel/x86/tss.c	/^    u32 esp0;$/;"	m	struct:tss	file:
+esp1	kernel/x86/tss.c	/^    u32 esp1;$/;"	m	struct:tss	file:
+esp2	kernel/x86/tss.c	/^    u32 esp2;$/;"	m	struct:tss	file:
 exit	.original/src/bootloader/boot.s	/^exit:	$/;"	l
 exit	.original/src/kernel/loader.s	/^exit:$/;"	l
 exit	bootloader/x86/boot0/boot.s	/^exit:	$/;"	l
+extern	kernel/x86/usermode.s	/^extern usermode_main$/;"	l
 failed_drive_error	.original/src/bootloader/boot.s	/^failed_drive_error:$/;"	l
 failed_drive_error	bootloader/x86/boot0/boot.s	/^failed_drive_error:$/;"	l
 failed_file_not_found	.original/src/bootloader/boot.s	/^failed_file_not_found:$/;"	l
@@ -236,7 +255,7 @@ filesector	bootloader/x86/boot0/loadFile.s	/^filesector:	resw 	1$/;"	l
 fileslist	.original/src/kernel/vfs/vfs.s	/^fileslist: times MAX_OPEN_FILES_COUNT * file_size db 0$/;"	l
 flags	kernel/x86/gdt.c	/^    u8 flags     :4;$/;"	m	struct:gdt_des	file:
 friendly_filenames	.original/src/kernel/loader.s	/^friendly_filenames: db 10,13," guru.mod   ",0$/;"	d
-fs	kernel/x86/kernel.c	/^    u32 fs;$/;"	m	struct:tss	file:
+fs	kernel/x86/tss.c	/^    u32 fs;$/;"	m	struct:tss	file:
 fslist	.original/src/kernel/vfs/vfs.s	/^fslist: times MAX_REGISTERED_FILESYSTEM * filesystem_size db 0$/;"	l
 fslist_count	.original/src/kernel/vfs/vfs.s	/^fslist_count: dw 0$/;"	d
 gdt	bootloader/x86/boot1/gdt.s	/^gdt:    $/;"	l
@@ -247,7 +266,8 @@ gdt_meta	bootloader/x86/boot1/gdt.s	/^gdt_meta:$/;"	l
 gdt_size	kernel/x86/gdt.c	/^struct gdt_size$/;"	s	file:
 get_filesystem_from_name	.original/src/kernel/vfs/vfs_base.s	/^get_filesystem_from_name:$/;"	l
 get_mount_point_from_drive	.original/src/kernel/vfs/vfs_base.s	/^get_mount_point_from_drive:$/;"	l
-gs	kernel/x86/kernel.c	/^    u32 gs;$/;"	m	struct:tss	file:
+global	kernel/x86/usermode.s	/^global __jump_to_usermode$/;"	l
+gs	kernel/x86/tss.c	/^    u32 gs;$/;"	m	struct:tss	file:
 hello	.original/src/kernel/loader.s	/^hello: db "Showing this message using a debug.mod routine.",13,10$/;"	d
 hexdump	.original/src/kernel/guru.s	/^hexdump:$/;"	l
 inb	include/x86/io.h	17;"	d
@@ -255,15 +275,16 @@ inc	.original/src/devices/vga.s	/^		inc di$/;"	d
 inc	.original/src/kernel/guru.s	/^		inc di$/;"	d
 inc	.original/src/kernel/vfs/vfs_base.s	/^	inc di$/;"	d
 invalid_routine_number_msg	.original/src/kernel/despatcher.s	/^invalid_routine_number_msg: db ";( addRoutine (despatcher). Routine number is "$/;"	d
-iomap_base	kernel/x86/kernel.c	/^    u32 iomap_base;$/;"	m	struct:tss	file:
+iomap	kernel/x86/tss.c	/^    u8 iomap[IOMAP_SIZE];$/;"	m	struct:tss	file:
+iomap_base	kernel/x86/tss.c	/^    u16 iomap_base;$/;"	m	struct:tss	file:
 iret	.original/src/kernel/interrupt.s	/^iret$/;"	l
 iret	bootloader/x86/boot0/boot.s	/^iret$/;"	l
 irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
-jump_to_usermode	kernel/x86/kernel.c	/^void jump_to_usermode() {$/;"	f
+kassert	include/assert.h	22;"	d
 kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
-kbochs_breakpoint	include/kernel.h	36;"	d
+kbochs_breakpoint	include/kernel.h	45;"	d
 kdisp_init	kernel/x86/vgadisp.c	/^void kdisp_init()$/;"	f
 kdisp_ioctl	kernel/x86/vgadisp.c	/^void kdisp_ioctl(u8 request, ...)$/;"	f
 kdisp_putc	kernel/x86/vgadisp.c	/^void kdisp_putc(char c)$/;"	f
@@ -273,9 +294,12 @@ key	.original/src/devices/keyboard.s	/^key:$/;"	l
 key_codes	.original/src/devices/keyboard.s	/^key_codes:$/;"	l
 kgdt_edit	kernel/x86/gdt.c	/^void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)$/;"	f
 kgdt_write	kernel/x86/gdt.c	/^void kgdt_write()$/;"	f
-khalt	include/x86/kernel.h	23;"	d
-kpanic	include/kernel.h	45;"	d
-ldt_seg	kernel/x86/kernel.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
+khalt	include/x86/kernel.h	45;"	d
+kpanic	include/panic.h	17;"	d
+kpanic	include/panic.h	20;"	d
+kstatic_assert	include/assert.h	18;"	d
+ktss_init	kernel/x86/tss.c	/^void ktss_init()$/;"	f
+ldt_seg	kernel/x86/tss.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
 limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
 limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
 loadFile	.original/src/bootloader/loadFile.s	/^loadFile:$/;"	l
@@ -349,7 +373,7 @@ pop	.original/src/kernel/vfs/vfs_main.s	/^	pop di$/;"	d
 pop	.original/src/kernel/vfs/vfs_main.s	/^	pop ds$/;"	d
 pop	.original/src/kernel/vfs/vfs_main.s	/^	pop dx$/;"	d
 pop	bootloader/x86/boot0/loadFile.s	/^	pop ds$/;"	d
-prevtask	kernel/x86/kernel.c	/^    u32 prevtask;$/;"	m	struct:tss	file:
+prevtask	kernel/x86/tss.c	/^    u32 prevtask;$/;"	m	struct:tss	file:
 printString	.original/src/kernel/loader.s	/^	printString di$/;"	d
 printhex	.original/src/kernel/guru.s	/^printhex:$/;"	l
 printk	kernel/printk.c	/^void printk(u8 type, const char *fmt, ...)$/;"	f
@@ -416,10 +440,10 @@ scroll_down_one_row	.original/src/kernel/terminal.s	/^scroll_down_one_row:$/;"	l
 scroll_up_one_row	.original/src/kernel/terminal.s	/^scroll_up_one_row:$/;"	l
 size	kernel/x86/gdt.c	/^    u16 size;$/;"	m	struct:gdt_size	file:
 size_t	include/x86/types.h	22;"	d
-ss	kernel/x86/kernel.c	/^    u32 ss;$/;"	m	struct:tss	file:
-ss0	kernel/x86/kernel.c	/^    u32 ss0;$/;"	m	struct:tss	file:
-ss1	kernel/x86/kernel.c	/^    u32 ss1;$/;"	m	struct:tss	file:
-ss2	kernel/x86/kernel.c	/^    u32 ss2;$/;"	m	struct:tss	file:
+ss	kernel/x86/tss.c	/^    u32 ss;$/;"	m	struct:tss	file:
+ss0	kernel/x86/tss.c	/^    u32 ss0;$/;"	m	struct:tss	file:
+ss1	kernel/x86/tss.c	/^    u32 ss1;$/;"	m	struct:tss	file:
+ss2	kernel/x86/tss.c	/^    u32 ss2;$/;"	m	struct:tss	file:
 struc	.original/src/common/queue.s	/^struc Q$/;"	l
 struc	.original/src/kernel/guru.s	/^struc params,2$/;"	l
 struc	.original/src/kernel/guru.s	/^struc reg,2$/;"	l
@@ -453,14 +477,16 @@ sys_vga_set_cursor_location	.original/src/devices/vga.s	/^sys_vga_set_cursor_loc
 sys_vga_write	.original/src/devices/vga.s	/^sys_vga_write:$/;"	l
 text_attr	kernel/x86/vgadisp.c	/^          crtc_flags, text_attr;$/;"	v	file:
 times	.original/src/kernel/loader.s	/^times 768 - ($-$$) db 0$/;"	l
-tss	kernel/x86/kernel.c	/^struct tss {$/;"	s	file:
-tss_entry	kernel/x86/kernel.c	/^static struct tss tss_entry;$/;"	v	typeref:struct:tss	file:
+trap	kernel/x86/tss.c	/^    u16 trap;$/;"	m	struct:tss	file:
+tss	kernel/x86/tss.c	/^struct tss {$/;"	s	file:
+tss_entry	kernel/x86/tss.c	/^static struct tss tss_entry = {0};$/;"	v	typeref:struct:tss	file:
 u128	include/x86/types.h	20;"	d
 u16	include/x86/types.h	17;"	d
 u32	include/x86/types.h	18;"	d
 u64	include/x86/types.h	19;"	d
 u8	include/x86/types.h	16;"	d
 update_cursor	kernel/x86/vgadisp.c	/^static void update_cursor()$/;"	f	file:
+usermode_main	kernel/x86/kernel.c	/^void usermode_main()$/;"	f
 vfs_close	.original/src/kernel/vfs/vfs_main.s	/^vfs_close:$/;"	l
 vfs_mount	.original/src/kernel/vfs/vfs_base.s	/^vfs_mount:$/;"	l
 vfs_open	.original/src/kernel/vfs/vfs_main.s	/^vfs_open:$/;"	l
