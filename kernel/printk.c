@@ -27,7 +27,9 @@ void printk(u8 type, const char *fmt, ...)
         case PK_ONSCREEN:
             vprintk(fmt, list);
             break;
-
+        default:
+            kassert(0,"Invalid type in printk");
+            break;
     }
 
     va_end(list);
@@ -53,6 +55,10 @@ void vprintk(const char *fmt, va_list list)
                 case 's':
                     s = va_arg(list,char *);
                     pstring(s);
+                    break;
+                default:
+                    // No need to show any error.
+                    // No need to panic either.
                     break;
             }
             continue;

@@ -14,10 +14,10 @@
 
 /* Displays an error message on the screen and Halts */
 #ifdef __C99__
-#define kpanic(s,...) __kpanic(s "\r\nin %s:%x at %s\r\n", __VA_ARGS__, \
-                               __FILE__, __LINE__, __func__)
+#define kpanic(s,...) __kpanic(s "\r\nin %s:%s:%x", __VA_ARGS__, \
+                               __FILE__, __func__,__LINE__)
 #else
-#define kpanic(s,...) __kpanic(s "\r\nin %s:%x\r\n", __VA_ARGS__, \
+#define kpanic(s,...) __kpanic(s "\r\nin %s:%x", __VA_ARGS__, \
                                __FILE__, __LINE__)
 #endif // __C99__
 

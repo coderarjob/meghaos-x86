@@ -23,10 +23,14 @@ $i686_GCC -S kernel/mem.c -o $LISTDIR/mem.lst || exit
 $i686_GCC -c kernel/kpanic.c -o $OBJDIR/kpanic.o  || exit
 $i686_GCC -S kernel/kpanic.c -o $LISTDIR/kpanic.lst || exit
 
+$i686_GCC -c kernel/errno.c -o $OBJDIR/errno.o  || exit
+$i686_GCC -S kernel/errno.c -o $LISTDIR/errno.lst || exit
+
 $LD_KERNEL $OBJDIR/kernel_x86.o \
            $OBJDIR/printk.o \
            $OBJDIR/mem.o \
            $OBJDIR/kpanic.o \
+           $OBJDIR/errno.o \
            -o $OBJDIR/kernel.elf
 
 $OBJCOPY -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt

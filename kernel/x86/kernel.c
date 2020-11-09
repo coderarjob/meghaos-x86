@@ -41,7 +41,6 @@ void __main()
 
 void usermode_main()
 {
-    kdisp_ioctl(DISP_SETATTR,WHITE);
     printk(PK_ONSCREEN,"\r\nInside usermode..");
 
     while(1);
