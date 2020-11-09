@@ -17,14 +17,12 @@
 void usermode_main();
 void __jump_to_usermode(u32 dataselector, 
                         u32 codeselector, void(*user_func)());
-//void __jump_to_usermode();
 
 __attribute__((noreturn)) 
 void __main()
 {
     kdisp_init();
     printk(PK_ONSCREEN,"\r\nKernel starting..");
-
     ktss_init();
 
     // Usermode code segment
@@ -35,7 +33,6 @@ void __main()
 
     // Jump to user mode
     printk(PK_ONSCREEN,"OK\r\nJumping to User mode..");
-
     __jump_to_usermode(GDT_SELECTOR_UDATA, 
                        GDT_SELECTOR_UCODE,
                        &usermode_main);
@@ -44,7 +41,6 @@ void __main()
 
 void usermode_main()
 {
-    kdisp_ioctl(DISP_SETATTR,WHITE);
     printk(PK_ONSCREEN,"\r\nInside usermode..");
 
     while(1);

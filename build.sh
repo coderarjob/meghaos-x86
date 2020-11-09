@@ -39,7 +39,8 @@ export GCC32="i686-elf-gcc -std=gnu99\
                   -Wextra \
                   -Wall \
                   $GCC_INCPATH \
-                  -O1 -fno-unit-at-a-time "
+                  -O1 -fno-unit-at-a-time \
+                  -D DEBUG "
 
                   export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
 export OBJCOPY="i686-elf-objcopy"
@@ -52,7 +53,7 @@ if [ ! -e $TEMPDIR ]; then
 fi
 
 if [ ! -e $DISKTEMPDIR ]; then
-    mkdir $DISKTEMPDIR
+    mkdir -p $DISKTEMPDIR
 fi
 
 if [ ! -e $OBJDIR ]; then
@@ -60,7 +61,7 @@ if [ ! -e $OBJDIR ]; then
 fi
 
 if [ ! -e $IMAGEDIR ]; then
-    mkdir $IMAGEDIR
+    mkdir -p $IMAGEDIR
 fi
 
 if [ ! -e $LISTDIR ]; then

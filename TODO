@@ -1,6 +1,8 @@
 MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 ------------------------------------------------------------------------------
 
+# TASKS
+
 [X] GDT and LDT concept           - 25th Aug 2020
 [X] IDT and TSS                   - 1st  Sep 2020
 [X] Test Protected mode entry     - 3rd  Sep 2020
@@ -10,3 +12,11 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] Header file structures        - 1st  Nov 2020
 [X] mem.c                         - 1st  Nov 2020
 [ ] TSS                           - 6th  Nov 2020
+
+# READING
+
+[ ] xv6 Book                      - 10th Nov 2020
+    https://pdos.csail.mit.edu/6.828/2019/xv6/book-riscv-rev0.pdf 
+
+
+
