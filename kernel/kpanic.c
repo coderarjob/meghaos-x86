@@ -11,6 +11,7 @@
 
 /* Hook function called from kpanic macro. 
  * Displays an error message on the screen and Halts */
+__attribute__((noreturn)) 
 void __kpanic(const char *s,...)
 {
     va_list l;

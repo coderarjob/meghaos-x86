@@ -42,7 +42,7 @@
 #define GDT_SELECTOR_UDATA __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_UDATA, 3)
 
 /* Halts the processor by going into infinite loop */
-#define khalt() __asm__ volatile ("jmp $;");
+#define khalt() for(;;)
 
 /* Initializes the tss_entry structure, installs a tss segment in GDT */
 void ktss_init();
