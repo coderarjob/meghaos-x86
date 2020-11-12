@@ -42,6 +42,6 @@ void __main()
 void usermode_main()
 {
     printk(PK_ONSCREEN,"\r\nInside usermode..");
-
     while(1);
 }
+
