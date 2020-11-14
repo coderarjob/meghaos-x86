@@ -67,9 +67,9 @@ void ktss_init()
 
     // Install a TSS Segment
     kgdt_edit(GDT_INDEX_KTSS,
-            (u32)&tss_entry, 
-            sizeof(struct tss) -1, 
-            0xE9, 0x9);
+            (u32)&tss_entry,            // Base in the Physical Linear space.
+            sizeof(struct tss) -1,      // Size of the Segemnt = sizeof(tss)-1
+            0xE9, 0x1);                 // DPL = 3, Scaling is not required.
     kgdt_write();
 
     // Write to TS register
