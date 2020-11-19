@@ -17,6 +17,7 @@
 void usermode_main();
 void __jump_to_usermode(u32 dataselector, 
                         u32 codeselector, void(*user_func)());
+void printbase(u32 num, u32 base);
 
 __attribute__((noreturn)) 
 void __main()
@@ -42,6 +43,8 @@ void __main()
 void usermode_main()
 {
     printk(PK_ONSCREEN,"\r\nInside usermode..");
+    printk(PK_ONSCREEN,"\r\n8917 = %x (hex), %d (dex), %o (oct), %b (bin)",
+                        8917,8917,8917,8917);
     while(1);
 }
 

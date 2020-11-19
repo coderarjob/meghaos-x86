@@ -14,7 +14,7 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-static void phex(u32 num);
+static void pnum_base(u32 num, u32 base);
 static void pstring(const char *s);
 
 void printk(u8 type, const char *fmt, ...)
@@ -50,7 +50,19 @@ void vprintk(const char *fmt, va_list list)
                     break;
                 case 'x':
                     d = va_arg(list,u32);
-                    phex(d);
+                    pnum_base(d,16);
+                    break;
+                case 'd':
+                    d = va_arg(list,u32);
+                    pnum_base(d,10);
+                    break;
+                case 'o':
+                    d = va_arg(list,u32);
+                    pnum_base(d,8);
+                    break;
+                case 'b':
+                    d = va_arg(list,u32);
+                    pnum_base(d,2);
                     break;
                 case 's':
                     s = va_arg(list,char *);
@@ -68,16 +80,22 @@ void vprintk(const char *fmt, va_list list)
     }
 }
 
-/* Displays a 32 bit number in Hexadecimal representation on the screen.  */
-static void phex(u32 num)
+/* Displays a 32 bit number in various representation on the screen.  */
+static void pnum_base(u32 num, u32 base)
 {
-    char *hexchars = "0123456789ABCDEF";
-    char output[9] = {0};
+    char *chars = "0123456789ABCDEF";
+    
+    // Holds the largest possible representation. 33 in case of 32 bit int.
+    char output[sizeof(u32)*8+1] = {0};       
+    int i = 0;
+    do{
+        output[i++] = chars[num % base];
+        num /= base;
+    }while(num > 0);
 
-    for(int i = 7; i >= 0; i--, num >>= 4)
-        output[i] = hexchars[num & 0xF];
-
-    pstring(output);
+    // Display the characters in output in reverse order.
+    while(i--)
+        kdisp_putc(output[i]);
 }
 
 static void pstring(const char *s)

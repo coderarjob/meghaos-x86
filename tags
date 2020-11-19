@@ -241,7 +241,6 @@ esp2	kernel/x86/tss.c	/^    u32 esp2;$/;"	m	struct:tss	file:
 exit	.original/src/bootloader/boot.s	/^exit:	$/;"	l
 exit	.original/src/kernel/loader.s	/^exit:$/;"	l
 exit	bootloader/x86/boot0/boot.s	/^exit:	$/;"	l
-extern	kernel/x86/usermode.s	/^extern usermode_main$/;"	l
 failed_drive_error	.original/src/bootloader/boot.s	/^failed_drive_error:$/;"	l
 failed_drive_error	bootloader/x86/boot0/boot.s	/^failed_drive_error:$/;"	l
 failed_file_not_found	.original/src/bootloader/boot.s	/^failed_file_not_found:$/;"	l
@@ -336,7 +335,7 @@ osegoffset	.original/src/bootloader/loadFile.s	/^osegoffset	resw	1$/;"	l
 osegoffset	bootloader/x86/boot0/loadFile.s	/^osegoffset	resw	1$/;"	l
 outb	include/x86/io.h	16;"	d
 panic	.original/src/kernel/guru.s	/^panic:$/;"	l
-phex	kernel/printk.c	/^static void phex(u32 num)$/;"	f	file:
+pnum_base	kernel/printk.c	/^static void pnum_base(u32 num, u32 base)$/;"	f	file:
 pop	.original/src/bootloader/loadFile.s	/^	pop ds$/;"	d
 pop	.original/src/common/queue.s	/^	pop di$/;"	d
 pop	.original/src/common/queue.s	/^	pop ds$/;"	d
