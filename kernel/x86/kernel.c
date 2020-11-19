@@ -43,6 +43,7 @@ void __main()
 void usermode_main()
 {
     printk(PK_ONSCREEN,"\r\nInside usermode..");
+    kdisp_ioctl(DISP_SETATTR, GREEN);
     printk(PK_ONSCREEN,"\r\n8917 = %x (hex), %d (dex), %o (oct), %b (bin)",
                         8917,8917,8917,8917);
     while(1);

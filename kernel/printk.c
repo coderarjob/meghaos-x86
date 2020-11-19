@@ -85,8 +85,9 @@ static void pnum_base(u32 num, u32 base)
 {
     char *chars = "0123456789ABCDEF";
     
-    // Holds the largest possible representation. 33 in case of 32 bit int.
-    char output[sizeof(u32)*8+1] = {0};       
+    // Holds space for the largest possible representation. 
+    // Example: 33 characters in case of 32 bit int. (Base 2)
+    char output[33] = {0};       
     int i = 0;
     do{
         output[i++] = chars[num % base];
