@@ -32,24 +32,30 @@ ERR_UNKNOWN	include/errno.h	/^enum {ERR_NONE, ERR_UNKNOWN,ERRNO_COUNT};$/;"	e	en
 EXTENDED	.original/src/devices/keyboard.s	/^		EXTENDED: EQU 0x40$/;"	d
 FileSystem	.original/src/bootloader/boot.s	/^	FileSystem		db "FAT12   "	; File system type: don't change!$/;"	d
 FileSystem	bootloader/x86/boot0/boot.s	/^	FileSystem	        db "FAT12   "	; File system type: don't change!$/;"	d
-GDT_INDEX_KCODE	include/x86/kernel.h	25;"	d
-GDT_INDEX_KDATA	include/x86/kernel.h	29;"	d
-GDT_INDEX_KTSS	include/x86/kernel.h	33;"	d
-GDT_INDEX_UCODE	include/x86/kernel.h	37;"	d
-GDT_INDEX_UDATA	include/x86/kernel.h	41;"	d
-GDT_MAX_COUNT	include/x86/kernel.h	20;"	d
-GDT_MIN_INDEX	include/x86/kernel.h	19;"	d
-GDT_SELECTOR_KCODE	include/x86/kernel.h	26;"	d
-GDT_SELECTOR_KDATA	include/x86/kernel.h	30;"	d
-GDT_SELECTOR_KTSS	include/x86/kernel.h	34;"	d
-GDT_SELECTOR_UCODE	include/x86/kernel.h	38;"	d
-GDT_SELECTOR_UDATA	include/x86/kernel.h	42;"	d
+GDT_INDEX_KCODE	include/x86/kernel.h	31;"	d
+GDT_INDEX_KDATA	include/x86/kernel.h	35;"	d
+GDT_INDEX_KTSS	include/x86/kernel.h	39;"	d
+GDT_INDEX_UCODE	include/x86/kernel.h	43;"	d
+GDT_INDEX_UDATA	include/x86/kernel.h	47;"	d
+GDT_MAX_COUNT	include/x86/kernel.h	26;"	d
+GDT_MIN_INDEX	include/x86/kernel.h	25;"	d
+GDT_SELECTOR_KCODE	include/x86/kernel.h	32;"	d
+GDT_SELECTOR_KDATA	include/x86/kernel.h	36;"	d
+GDT_SELECTOR_KTSS	include/x86/kernel.h	40;"	d
+GDT_SELECTOR_UCODE	include/x86/kernel.h	44;"	d
+GDT_SELECTOR_UDATA	include/x86/kernel.h	48;"	d
 GREEN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 HeadCount	.original/src/bootloader/boot.s	/^	HeadCount		dw 2		; Number of sides\/heads$/;"	d
 HeadCount	bootloader/x86/boot0/boot.s	/^	HeadCount		    dw 2		    ; Number of sides\/heads$/;"	d
 HiddenSectors	.original/src/bootloader/boot.s	/^	HiddenSectors		dd 0		; Number of hidden sectors$/;"	d
 HiddenSectors	bootloader/x86/boot0/boot.s	/^	HiddenSectors		dd 0		    ; Number of hidden sectors$/;"	d
+IDT_DES_TYPE_16_INTERRUPT_GATE	include/x86/kernel.h	/^                    IDT_DES_TYPE_16_INTERRUPT_GATE = 6,$/;"	e	enum:idt_des_types
+IDT_DES_TYPE_16_TRAP_GATE	include/x86/kernel.h	/^                    IDT_DES_TYPE_16_TRAP_GATE = 7,$/;"	e	enum:idt_des_types
+IDT_DES_TYPE_32_INTERRUPT_GATE	include/x86/kernel.h	/^                    IDT_DES_TYPE_32_INTERRUPT_GATE = 0xE,$/;"	e	enum:idt_des_types
+IDT_DES_TYPE_32_TRAP_GATE	include/x86/kernel.h	/^                    IDT_DES_TYPE_32_TRAP_GATE = 0xF};$/;"	e	enum:idt_des_types
+IDT_DES_TYPE_TASK_GATE	include/x86/kernel.h	/^enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5, $/;"	e	enum:idt_des_types
 INTEL_32_GDT_LOCATION	include/x86/memloc.h	15;"	d
+INTEL_32_IDT_LOCATION	include/x86/memloc.h	16;"	d
 IN_CONFIG	.original/src/kernel/terminal.s	/^IN_CONFIG: 	db 1$/;"	d
 IN_QUEUE	.original/src/kernel/terminal.s	/^IN_QUEUE:$/;"	l
 IOMAP_SIZE	kernel/x86/tss.c	16;"	d	file:
@@ -115,7 +121,7 @@ __ASSERT_H__	include/assert.h	13;"	d
 __C99__	include/kernel.h	16;"	d
 __DISPTEXT_H__	include/disp.h	13;"	d
 __ERRORNO_H__	include/errno.h	11;"	d
-__GDT_SELECTOR_FROM_INDEX	include/x86/kernel.h	22;"	d
+__GDT_SELECTOR_FROM_INDEX	include/x86/kernel.h	28;"	d
 __IO_H__	include/io.h	14;"	d
 __KERNEL_H__	include/kernel.h	13;"	d
 __KERNEL_H_x86__	include/x86/kernel.h	17;"	d
@@ -191,6 +197,7 @@ cr3	kernel/x86/tss.c	/^    u32 cr3;$/;"	m	struct:tss	file:
 crt_addr_port	kernel/x86/vgadisp.c	23;"	d	file:
 crt_data_port	kernel/x86/vgadisp.c	24;"	d	file:
 crt_read	kernel/x86/vgadisp.c	25;"	d	file:
+crt_write	kernel/x86/vgadisp.c	26;"	d	file:
 crtc_flags	kernel/x86/vgadisp.c	/^          crtc_flags, text_attr;$/;"	v	file:
 cs	kernel/x86/tss.c	/^    u32 cs;$/;"	m	struct:tss	file:
 csh	.original/src/common/readsector.s	/^csh:$/;"	l
@@ -215,6 +222,8 @@ dec	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	dec di						
 dec	.original/src/kernel/process_registers_in_stack-incomplete.s	/^	dec di$/;"	d
 disp_attr	include/x86/vgatext.h	19;"	d
 disp_ioctl	include/disp.h	/^enum disp_ioctl {DISP_GETCOORDS, $/;"	g
+div_zero	kernel/x86/kernel.c	/^void div_zero()$/;"	f
+dpl	kernel/x86/idt.c	/^    u8 dpl:2;$/;"	m	struct:idt_des	file:
 drivefailedstr	.original/src/bootloader/boot.s	/^drivefailedstr:  db	 'FL',0$/;"	d
 drivefailedstr	bootloader/x86/boot0/boot.s	/^drivefailedstr:  db	 'D',0$/;"	d
 ds	kernel/x86/tss.c	/^    u32 ds;$/;"	m	struct:tss	file:
@@ -272,6 +281,11 @@ global	kernel/x86/usermode.s	/^global __jump_to_usermode$/;"	l
 gs	kernel/x86/tss.c	/^    u32 gs;$/;"	m	struct:tss	file:
 hello	.original/src/kernel/loader.s	/^hello: db "Showing this message using a debug.mod routine.",13,10$/;"	d
 hexdump	.original/src/kernel/guru.s	/^hexdump:$/;"	l
+idt	kernel/x86/idt.c	/^static volatile struct idt_des *idt = (struct idt_des*)INTEL_32_IDT_LOCATION;$/;"	v	typeref:struct:idt_des	file:
+idt_des	kernel/x86/idt.c	/^struct idt_des$/;"	s	file:
+idt_des_types	include/x86/kernel.h	/^enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5, $/;"	g
+idt_size	kernel/x86/idt.c	/^struct idt_size$/;"	s	file:
+idt_write	kernel/x86/idt.c	/^static void idt_write()$/;"	f	file:
 inb	include/x86/io.h	17;"	d
 inc	.original/src/devices/vga.s	/^		inc di$/;"	d
 inc	.original/src/kernel/guru.s	/^		inc di$/;"	d
@@ -300,19 +314,23 @@ key	.original/src/devices/keyboard.s	/^key:$/;"	l
 key_codes	.original/src/devices/keyboard.s	/^key_codes:$/;"	l
 kgdt_edit	kernel/x86/gdt.c	/^void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)$/;"	f
 kgdt_write	kernel/x86/gdt.c	/^void kgdt_write()$/;"	f
-khalt	include/x86/kernel.h	45;"	d
+khalt	include/x86/kernel.h	51;"	d
+kidt_edit	kernel/x86/idt.c	/^void kidt_edit(int index, void(*func)() , u16 seg_tss_selector, $/;"	f
+kidt_init	kernel/x86/idt.c	/^void kidt_init()$/;"	f
 kpanic	include/panic.h	17;"	d
 kpanic	include/panic.h	20;"	d
 kstatic_assert	include/assert.h	18;"	d
 kstatic_assert	include/assert.h	27;"	d
 ktss_init	kernel/x86/tss.c	/^void ktss_init()$/;"	f
 ldt_seg	kernel/x86/tss.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
+limit	kernel/x86/idt.c	/^    u16 limit;$/;"	m	struct:idt_size	file:
 limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
 limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
 loadFile	.original/src/bootloader/loadFile.s	/^loadFile:$/;"	l
 loadFile	bootloader/x86/boot0/loadFile.s	/^loadFile:$/;"	l
 load_gdt	bootloader/x86/boot1/gdt.s	/^load_gdt:$/;"	l
 location	kernel/x86/gdt.c	/^    u32 location;$/;"	m	struct:gdt_size	file:
+location	kernel/x86/idt.c	/^    u32 location;$/;"	m	struct:idt_size	file:
 memcpy	kernel/mem.c	/^void *memcpy(void *dest, const void *src, size_t n)$/;"	f
 memset	kernel/mem.c	/^void *memset(void *s, int c, size_t n)$/;"	f
 modifier_maps	.original/src/devices/keyboard.s	/^modifier_maps:$/;"	l
@@ -329,11 +347,14 @@ msg_file_not_found	.original/src/kernel/loader.s	/^msg_file_not_found: db "   No
 msg_loader_welcome	.original/src/kernel/loader.s	/^msg_loader_welcome: db 10,13,10,13$/;"	d
 msg_success	bootloader/x86/boot1/boot1.s	/^msg_success:  db "OK",0$/;"	d
 msg_welcome	bootloader/x86/boot1/boot1.s	/^msg_welcome: db     13,10,OS_NAME,13,10$/;"	d
+offset_high	kernel/x86/idt.c	/^    u16 offset_high;$/;"	m	struct:idt_des	file:
+offset_low	kernel/x86/idt.c	/^    u16 offset_low;$/;"	m	struct:idt_des	file:
 osegment	.original/src/bootloader/loadFile.s	/^osegment	resw	1$/;"	l
 osegment	bootloader/x86/boot0/loadFile.s	/^osegment	resw	1$/;"	l
 osegoffset	.original/src/bootloader/loadFile.s	/^osegoffset	resw	1$/;"	l
 osegoffset	bootloader/x86/boot0/loadFile.s	/^osegoffset	resw	1$/;"	l
 outb	include/x86/io.h	16;"	d
+p	kernel/x86/idt.c	/^    u8 p:1;$/;"	m	struct:idt_des	file:
 panic	.original/src/kernel/guru.s	/^panic:$/;"	l
 pnum_base	kernel/printk.c	/^static void pnum_base(u32 num, u32 base)$/;"	f	file:
 pop	.original/src/bootloader/loadFile.s	/^	pop ds$/;"	d
@@ -445,6 +466,7 @@ retf	.original/src/kernel/process_registers_in_stack-incomplete.s	/^retf$/;"	l
 row	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 scroll_down_one_row	.original/src/kernel/terminal.s	/^scroll_down_one_row:$/;"	l
 scroll_up_one_row	.original/src/kernel/terminal.s	/^scroll_up_one_row:$/;"	l
+segment_tss_selector	kernel/x86/idt.c	/^    u16 segment_tss_selector;$/;"	m	struct:idt_des	file:
 size	kernel/x86/gdt.c	/^    u16 size;$/;"	m	struct:gdt_size	file:
 size_t	include/x86/types.h	22;"	d
 ss	kernel/x86/tss.c	/^    u32 ss;$/;"	m	struct:tss	file:
@@ -487,6 +509,7 @@ times	.original/src/kernel/loader.s	/^times 768 - ($-$$) db 0$/;"	l
 trap	kernel/x86/tss.c	/^    u16 trap;$/;"	m	struct:tss	file:
 tss	kernel/x86/tss.c	/^struct tss {$/;"	s	file:
 tss_entry	kernel/x86/tss.c	/^static struct tss tss_entry = {0};$/;"	v	typeref:struct:tss	file:
+type	kernel/x86/idt.c	/^    u8 type:5;$/;"	m	struct:idt_des	file:
 u128	include/x86/types.h	20;"	d
 u16	include/x86/types.h	17;"	d
 u32	include/x86/types.h	18;"	d
@@ -505,3 +528,4 @@ vga_set_origin	.original/src/devices/vga.s	/^vga_set_origin:$/;"	l
 vgab	kernel/x86/vgadisp.c	/^static u16 *vgab = (u16 *)0xB8000;$/;"	v	file:
 vprintk	kernel/printk.c	/^void vprintk(const char *fmt, va_list list)$/;"	f
 wait_kbd	.original/src/devices/keyboard.s	/^wait_kbd:$/;"	l
+zeros	kernel/x86/idt.c	/^    u8 zeros;$/;"	m	struct:idt_des	file:

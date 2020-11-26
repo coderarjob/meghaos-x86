@@ -24,5 +24,8 @@ $GCC32 -S kernel/x86/vgadisp.c -o $LISTDIR/x86_screen.lst || exit
 $GCC32 -c kernel/x86/tss.c -o $K_OBJDIR/x86_tss.o  || exit
 $GCC32 -S kernel/x86/tss.c -o $LISTDIR/x86_tss.lst || exit
 
-$GCC32 -c kernel/x86/gdt.c -o $K_OBJDIR/x86_gdt.o  || exit
-$GCC32 -S kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst || exit
+$GCC32 -c kernel/x86/gdt.c -o $K_OBJDIR/x86_gdt.o    || exit
+$GCC32 -S kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst  || exit
+
+$GCC32 -c kernel/x86/idt.c -o $K_OBJDIR/x86_idt.o   || exit
+$GCC32 -S kernel/x86/idt.c -o $LISTDIR/x86_idt.lst || exit

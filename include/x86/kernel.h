@@ -16,6 +16,12 @@
 #ifndef __KERNEL_H_x86__
 #define __KERNEL_H_x86__
 
+enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5, 
+                    IDT_DES_TYPE_16_INTERRUPT_GATE = 6,
+                    IDT_DES_TYPE_32_INTERRUPT_GATE = 0xE,
+                    IDT_DES_TYPE_16_TRAP_GATE = 7,
+                    IDT_DES_TYPE_32_TRAP_GATE = 0xF};
+
 #define GDT_MIN_INDEX   3     // Minimum index that can be editted in Kernel.
 #define GDT_MAX_COUNT   512   // Number of GDT entries in memory
 
@@ -54,4 +60,12 @@ void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags);
 
 /* Writes the GDT structure address and length to the GDTR register.  */
 void kgdt_write();
+
+/* Fills the IDT table with zeros, and setup the IDTR register */
+void kidt_init();
+
+/* Edits an IDT descriptor */
+void kidt_edit(int index, void(*func)() , u16 seg_tss_selector, 
+        enum idt_des_types type, u8 dpl);
+
 #endif //__KERNEL_H_x86__
