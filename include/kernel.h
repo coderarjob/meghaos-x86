@@ -31,6 +31,7 @@
 #include <io.h>
 #include <panic.h>
 #include <assert.h>
+#include <errno.h>
 
 #ifdef __i386__
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */

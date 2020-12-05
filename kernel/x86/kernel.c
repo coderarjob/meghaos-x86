@@ -17,14 +17,14 @@
 void usermode_main();
 void __jump_to_usermode(u32 dataselector, 
                         u32 codeselector, void(*user_func)());
-//void __jump_to_usermode();
+void div_zero();
+void sys_dummy();
 
 __attribute__((noreturn)) 
 void __main()
 {
     kdisp_init();
     printk(PK_ONSCREEN,"\r\nKernel starting..");
-
     ktss_init();
 
     // Usermode code segment
@@ -33,19 +33,47 @@ void __main()
     kgdt_edit(GDT_INDEX_UDATA, 0, 0xFFFFF, 0xF2, 0xD);
     kgdt_write();
 
+    // Setup IDT
+    kidt_init();
+    kidt_edit(0,div_zero,GDT_SELECTOR_KCODE,IDT_DES_TYPE_32_INTERRUPT_GATE,0);
+    kidt_edit(0x40,sys_dummy,GDT_SELECTOR_KCODE,
+              IDT_DES_TYPE_32_INTERRUPT_GATE,3);
+
     // Jump to user mode
     printk(PK_ONSCREEN,"OK\r\nJumping to User mode..");
-
     __jump_to_usermode(GDT_SELECTOR_UDATA, 
                        GDT_SELECTOR_UCODE,
                        &usermode_main);
     while(1);
 }
 
+void sys_dummy()
+{
+    outb(0x80,4);
+}
+
+void div_zero()
+{
+    kpanic("%s","Error: Division by zero"); 
+}
+
 void usermode_main()
 {
-    kdisp_ioctl(DISP_SETATTR,WHITE);
     printk(PK_ONSCREEN,"\r\nInside usermode..");
+    kdisp_ioctl(DISP_SETATTR, GREEN);
+    printk(PK_ONSCREEN,"\r\n8917 = %x (hex), %d (dex), %o (oct), %b (bin)\r\n",
+                        8917,8917,8917,8917);
+
+    int i;
+    for (i = 0; i < 100000; i++)
+        printk(PK_ONSCREEN,"%d\r",i);
+
+    /*kbochs_breakpoint();
+    __asm__ volatile ("int 0x40");*/
+
+    int b = 0;
+    volatile int a = 8/b;
 
     while(1);
 }
+

@@ -61,15 +61,15 @@ void ktss_init()
     // In ourcase it starts right at the end of tss_entry.
     tss_entry.iomap_base = OFFSET_OF(struct tss,iomap); 
     // Setup defaults to TSS, so that we can return to kernel mode.
-    // TODO: Setup a proper place for the usermode stack.
+    // TODO: Setup a proper place for the kernel stack.
     tss_entry.ss0 = 0x10;
     tss_entry.esp0 = 0x27FFF;
 
     // Install a TSS Segment
     kgdt_edit(GDT_INDEX_KTSS,
-            (u32)&tss_entry, 
-            sizeof(struct tss) -1, 
-            0xE9, 0x9);
+            (u32)&tss_entry,            // Base in the Physical Linear space.
+            sizeof(struct tss) -1,      // Size of the Segemnt = sizeof(tss)-1
+            0xE9, 0x1);                 // DPL = 3, Scaling is not required.
     kgdt_write();
 
     // Write to TS register

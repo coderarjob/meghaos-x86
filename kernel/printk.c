@@ -14,7 +14,7 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-static void phex(u32 num);
+static void pnum_base(u32 num, u32 base);
 static void pstring(const char *s);
 
 void printk(u8 type, const char *fmt, ...)
@@ -27,7 +27,9 @@ void printk(u8 type, const char *fmt, ...)
         case PK_ONSCREEN:
             vprintk(fmt, list);
             break;
-
+        default:
+            kassert(0,"Invalid type in printk");
+            break;
     }
 
     va_end(list);
@@ -48,11 +50,27 @@ void vprintk(const char *fmt, va_list list)
                     break;
                 case 'x':
                     d = va_arg(list,u32);
-                    phex(d);
+                    pnum_base(d,16);
+                    break;
+                case 'd':
+                    d = va_arg(list,u32);
+                    pnum_base(d,10);
+                    break;
+                case 'o':
+                    d = va_arg(list,u32);
+                    pnum_base(d,8);
+                    break;
+                case 'b':
+                    d = va_arg(list,u32);
+                    pnum_base(d,2);
                     break;
                 case 's':
                     s = va_arg(list,char *);
                     pstring(s);
+                    break;
+                default:
+                    // No need to show any error.
+                    // No need to panic either.
                     break;
             }
             continue;
@@ -62,16 +80,23 @@ void vprintk(const char *fmt, va_list list)
     }
 }
 
-/* Displays a 32 bit number in Hexadecimal representation on the screen.  */
-static void phex(u32 num)
+/* Displays a 32 bit number in various representation on the screen.  */
+static void pnum_base(u32 num, u32 base)
 {
-    char *hexchars = "0123456789ABCDEF";
-    char output[9] = {0};
+    char *chars = "0123456789ABCDEF";
+    
+    // Holds space for the largest possible representation. 
+    // Example: 33 characters in case of 32 bit int. (Base 2)
+    char output[33] = {0};       
+    int i = 0;
+    do{
+        output[i++] = chars[num % base];
+        num /= base;
+    }while(num > 0);
 
-    for(int i = 7; i >= 0; i--, num >>= 4)
-        output[i] = hexchars[num & 0xF];
-
-    pstring(output);
+    // Display the characters in output in reverse order.
+    while(i--)
+        kdisp_putc(output[i]);
 }
 
 static void pstring(const char *s)

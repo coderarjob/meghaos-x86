@@ -9,29 +9,23 @@
 # Later on kernel_x86.o will be linked with the common part into a elf binary.
 echo "    [ Compilling x86 Kernel ]    "
 
-i686_GCC="$GCC32" 
-
 nasm -f elf32 kernel/x86/usermode.s -g \
      -l $LISTDIR/x86_usermode.lst \
-     -o $OBJDIR/x86_usermode.o  || exit
+     -o $K_OBJDIR/x86_usermode.o  || exit
 
-$i686_GCC -c kernel/x86/kernel.c -o $OBJDIR/x86_kernel.o  || exit
-$i686_GCC -S kernel/x86/kernel.c -o $LISTDIR/x86_kernel.lst  || exit
+# Kernel must must be named kernel.o, as this is hardcoded in kernel.ld
+# NOTE: Must be a way to pass the filename
+$GCC32 -c kernel/x86/kernel.c -o $K_OBJDIR/x86_kernel.o  || exit
+$GCC32 -S kernel/x86/kernel.c -o $LISTDIR/x86_kernel.lst  || exit
 
-$i686_GCC -c kernel/x86/vgadisp.c -o $OBJDIR/x86_screen.o  || exit
-$i686_GCC -S kernel/x86/vgadisp.c -o $LISTDIR/x86_screen.lst || exit
+$GCC32 -c kernel/x86/vgadisp.c -o $K_OBJDIR/x86_screen.o  || exit
+$GCC32 -S kernel/x86/vgadisp.c -o $LISTDIR/x86_screen.lst || exit
 
-$i686_GCC -c kernel/x86/tss.c -o $OBJDIR/x86_tss.o  || exit
-$i686_GCC -S kernel/x86/tss.c -o $LISTDIR/x86_tss.lst || exit
+$GCC32 -c kernel/x86/tss.c -o $K_OBJDIR/x86_tss.o  || exit
+$GCC32 -S kernel/x86/tss.c -o $LISTDIR/x86_tss.lst || exit
 
-$i686_GCC -c kernel/x86/gdt.c -o $OBJDIR/x86_gdt.o  || exit
-$i686_GCC -S kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst || exit
+$GCC32 -c kernel/x86/gdt.c -o $K_OBJDIR/x86_gdt.o    || exit
+$GCC32 -S kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst  || exit
 
-$LD_KERNEL -relocatable \
-           $OBJDIR/x86_kernel.o \
-           $OBJDIR/x86_screen.o \
-           $OBJDIR/x86_gdt.o \
-           $OBJDIR/x86_usermode.o \
-           $OBJDIR/x86_tss.o \
-           -o $OBJDIR/kernel_x86.o || exit
-
+$GCC32 -c kernel/x86/idt.c -o $K_OBJDIR/x86_idt.o   || exit
+$GCC32 -S kernel/x86/idt.c -o $LISTDIR/x86_idt.lst || exit

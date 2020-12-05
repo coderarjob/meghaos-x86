@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCH=x86
+export ARCH=x86
 if [ $# -ge 1 ]; then
     ARCH=$1
 fi
@@ -25,60 +25,57 @@ export GCC_INCPATH="-I include -I include/x86"
 # -fno-toplevel-reorder and -fno-section-anchors. 
 
 export GCC32="i686-elf-gcc -std=gnu99\
-                  -nostdlib \
-                  -c \
-                  -g \
-                  -ffreestanding \
-                  -fno-pie \
-                  -fno-stack-protector \
-                  -fno-asynchronous-unwind-tables \
-                  -m32 \
-                  -march=i386 \
-                  -masm=intel \
-                  -Wpedantic \
-                  -Wextra \
-                  -Wall \
-                  $GCC_INCPATH \
-                  -O1 -fno-unit-at-a-time "
+              -nostartfiles \
+              -g \
+              -ffreestanding \
+              -fno-pie \
+              -fno-stack-protector \
+              -fno-asynchronous-unwind-tables \
+              -m32 \
+              -march=i386 \
+              -masm=intel \
+              -Wpedantic \
+              -Wextra \
+              -Wall \
+              $GCC_INCPATH \
+              -O1 -fno-unit-at-a-time \
+              -D DEBUG "
 
-                  export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
+export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
 export OBJCOPY="i686-elf-objcopy"
-
-# export LD_LOADER="ld -m elf_i386 --oformat binary --script=build/loader.ld"
 
 # Create folders
 if [ ! -e $TEMPDIR ]; then
-    mkdir $TEMPDIR
+    mkdir $TEMPDIR || exit
 fi
 
 if [ ! -e $DISKTEMPDIR ]; then
-    mkdir $DISKTEMPDIR
+    mkdir -p $DISKTEMPDIR || exit
 fi
 
 if [ ! -e $OBJDIR ]; then
-    mkdir $OBJDIR
+    mkdir $OBJDIR || exit
 fi
 
 if [ ! -e $IMAGEDIR ]; then
-    mkdir $IMAGEDIR
+    mkdir -p $IMAGEDIR || exit
 fi
 
 if [ ! -e $LISTDIR ]; then
-    mkdir $LISTDIR
+    mkdir $LISTDIR || exit
 fi
 
 # Cleanup directories
-rm -f $TEMPDIR/*
-rm -f $DISKTEMPDIR/*
-rm -f $OBJDIR/*
-rm -f $IMAGEDIR/*
-rm -f $LISTDIR/*
+rm -f $TEMPDIR/* || exit
+rm -f $DISKTEMPDIR/* || exit
+rm -fr $OBJDIR/* || exit
+rm -f $IMAGEDIR/* || exit
+rm -f $LISTDIR/* || exit
 
 # Build the bootloaders
 bash bootloader/x86/build.sh || exit
 
 # Build kernel
-bash kernel/x86/build.sh || exit
 bash kernel/build.sh || exit
 
 # Build the floppy image
@@ -103,7 +100,7 @@ echo "    [ Writing bootloader to floppy image ]    "
 dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
 
 echo "    [ Storage Utilization ]"
-wc -c $OBJDIR/*
+wc -c $OBJDIR/*.flt
 
 echo "    [ Cleaning up ]"
 rm -f -r $DISKTEMPDIR || exit
