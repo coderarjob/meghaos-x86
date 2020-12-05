@@ -26,7 +26,8 @@
 #define crt_write(i,v) do{outb(crt_addr_port,i);outb(crt_data_port,v);}while(0)
 
 static u8 row, column,
-          crtc_flags, text_attr;
+          crtc_flags, 
+          text_attr;
 
 static u16 *vgab = (u16 *)0xB8000;
 
