@@ -11,12 +11,19 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] VGA text driver               - 1st  Nov 2020
 [X] Header file structures        - 1st  Nov 2020
 [X] mem.c                         - 1st  Nov 2020
-[ ] TSS                           - 6th  Nov 2020
+[X] TSS                           - 6th  Nov 2020
+[X] Jump to ring 3 (demo)         - 6th  Nov 2020
+[ ] Document TSS for later        - 17th Nov 2020
+[ ] IDT (demo)                    - 14th Nov 2020
+[ ] System calls demo (demo)      - 14th Nov 2020
+[ ] Basic keyboard ISQ 
+    handler (demo)                - 18th Nov 2020
+[ ] GP handler                    - 16th Nov 2020
+[ ] DIV0 handler                  - 17th Nov 2020
 
 # READING
 
-[ ] xv6 Book                      - 10th Nov 2020
+[ ] xv6 Book                      - 14th Nov 2020
     https://pdos.csail.mit.edu/6.828/2019/xv6/book-riscv-rev0.pdf 
-
-
-
+[ ] 8259 datasheet                - 12th Nov 2020
+[ ] 820093 datasheet              - 15th Nov 2020

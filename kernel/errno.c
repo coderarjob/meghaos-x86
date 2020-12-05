@@ -13,7 +13,11 @@
 u32 kerrno;
 
 /* Error descriptions indexed by kerrno */
+/* NOTE: In a measure to reduce the kernel binary, we can only create the 
+ * below array if DEBUG is defined */
+#if defined(DEBUG)
 char *kerrdes[] = {
                     "No error",
                     "Unknown error"
                  };
+#endif

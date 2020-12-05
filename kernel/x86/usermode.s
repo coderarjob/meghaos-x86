@@ -1,6 +1,4 @@
 
-extern usermode_main
-global __jump_to_usermode
 
 ; Sets up the data segments, and jumps to a routine in user mode
 ; Signature:
@@ -24,4 +22,5 @@ __jump_to_usermode:
     push dword [ebp + 12]       ; Function pointer
 
     iret
+global __jump_to_usermode
 

@@ -23,9 +23,11 @@
 #define crt_addr_port  (crtc_flags & CRTC_IOAS_SET)?0x3D4:0x3B4
 #define crt_data_port  (crtc_flags & CRTC_IOAS_SET)?0x3D5:0x3B5
 #define crt_read(i,v)  do{outb(crt_addr_port,i);inb(crt_data_port,v);}while(0)
+#define crt_write(i,v) do{outb(crt_addr_port,i);outb(crt_data_port,v);}while(0)
 
 static u8 row, column,
-          crtc_flags, text_attr;
+          crtc_flags, 
+          text_attr;
 
 static u16 *vgab = (u16 *)0xB8000;
 
@@ -130,11 +132,13 @@ static void update_cursor()
     // Set the cursor location.
     u16 index = row * VGA_COLUMNS + column;
 
-    outb(0x3D4, 0xf);
+    crt_write(0xf,index & 0xFF);
+    crt_write(0xe,index>>8);
+    /*outb(0x3D4, 0xf);
     outb(0x3D5, index & 0xFF);
 
     outb(0x3D4, 0xe);
-    outb(0x3D5, index>>8); 
+    outb(0x3D5, index>>8);*/
 }
 
 /* Prints an ASCII character on the VGA text mode frame buffer
