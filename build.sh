@@ -35,6 +35,7 @@ export GCC32="i686-elf-gcc -std=gnu99\
               -march=i386 \
               -masm=intel \
               -Wpedantic \
+              -Wpadded \
               -Wextra \
               -Wall \
               $GCC_INCPATH \
