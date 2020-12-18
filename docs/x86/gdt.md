@@ -6,8 +6,8 @@ _23st October 2020_
 Where to keep the GDT? Two possible options:
 
 1. At a fixed physical location, say `0x00800`
-2. Keep two separate GDTs on in `boot1` and another in `kernel`. Why two?
-   Because the stack area overlaps the memory where `boot` is loaded.
+2. Keep two separate GDTs one in `boot1` and another in `kernel`. Why two?
+   Because the kernel stack area overlaps the memory where `boot1` is loaded.
 
 I thought I will go with option 2. Because it decouples `boot1` and `kernel`.
 So I thought, but you see they are anyways linked. Let me explain.

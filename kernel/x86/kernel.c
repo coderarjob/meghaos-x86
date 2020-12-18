@@ -20,9 +20,6 @@ void __jump_to_usermode(u32 dataselector,
 void div_zero();
 void sys_dummy();
 
-//#define p_t char*
-typedef char* p_t;
-
 __attribute__((noreturn)) 
 void __main()
 {
@@ -63,6 +60,11 @@ void div_zero()
 void usermode_main()
 {
     printk(PK_ONSCREEN,"\r\nInside usermode..");
+    printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
+                        45789,
+                        0xcafeefe,
+                        02760,
+                        "Hello Arjob");
     while(1);
 }
 

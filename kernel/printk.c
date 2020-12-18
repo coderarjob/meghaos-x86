@@ -38,7 +38,8 @@ void printk(u8 type, const char *fmt, ...)
 /* Prints formatted on screen at the cursor location.*/
 void vprintk(const char *fmt, va_list list)
 {
-    u32 d;
+    int d;                   // Compiler always infers numeric literial as int,
+                             // until 'L', 'LL', etc override is provided.
     const char *s;
 
     for (const char *c = fmt;*c ; c++)
@@ -49,19 +50,19 @@ void vprintk(const char *fmt, va_list list)
                     kdisp_putc('%');
                     break;
                 case 'x':
-                    d = va_arg(list,u32);
+                    d = va_arg(list,int);
                     pnum_base(d,16);
                     break;
                 case 'd':
-                    d = va_arg(list,u32);
+                    d = va_arg(list,int);
                     pnum_base(d,10);
                     break;
                 case 'o':
-                    d = va_arg(list,u32);
+                    d = va_arg(list,int);
                     pnum_base(d,8);
                     break;
                 case 'b':
-                    d = va_arg(list,u32);
+                    d = va_arg(list,int);
                     pnum_base(d,2);
                     break;
                 case 's':
