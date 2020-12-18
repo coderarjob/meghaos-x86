@@ -468,7 +468,7 @@ scroll_down_one_row	.original/src/kernel/terminal.s	/^scroll_down_one_row:$/;"	l
 scroll_up_one_row	.original/src/kernel/terminal.s	/^scroll_up_one_row:$/;"	l
 segment_tss_selector	kernel/x86/idt.c	/^    u16 segment_tss_selector;$/;"	m	struct:idt_des	file:
 size	kernel/x86/gdt.c	/^    u16 size;$/;"	m	struct:gdt_size	file:
-size_t	include/x86/types.h	22;"	d
+size_t	include/x86/types.h	/^    typedef u32 size_t;     \/\/ Type that can hold the largest number in an $/;"	t
 ss	kernel/x86/tss.c	/^    u32 ss;$/;"	m	struct:tss	file:
 ss0	kernel/x86/tss.c	/^    u32 ss0;$/;"	m	struct:tss	file:
 ss1	kernel/x86/tss.c	/^    u32 ss1;$/;"	m	struct:tss	file:
@@ -511,11 +511,10 @@ trap	kernel/x86/tss.c	/^    u16 trap;$/;"	m	struct:tss	file:
 tss	kernel/x86/tss.c	/^struct tss {$/;"	s	file:
 tss_entry	kernel/x86/tss.c	/^static struct tss tss_entry = {0};$/;"	v	typeref:struct:tss	file:
 type	kernel/x86/idt.c	/^    u8 type:5;$/;"	m	struct:idt_des	file:
-u128	include/x86/types.h	20;"	d
-u16	include/x86/types.h	17;"	d
-u32	include/x86/types.h	18;"	d
-u64	include/x86/types.h	19;"	d
-u8	include/x86/types.h	16;"	d
+u16	include/x86/types.h	/^    typedef unsigned short u16;$/;"	t
+u32	include/x86/types.h	/^    typedef unsigned int u32;$/;"	t
+u64	include/x86/types.h	/^    typedef unsigned long long u64;$/;"	t
+u8	include/x86/types.h	/^    typedef unsigned char u8;$/;"	t
 update_cursor	kernel/x86/vgadisp.c	/^static void update_cursor()$/;"	f	file:
 usermode_main	kernel/x86/kernel.c	/^void usermode_main()$/;"	f
 vfs_close	.original/src/kernel/vfs/vfs_main.s	/^vfs_close:$/;"	l

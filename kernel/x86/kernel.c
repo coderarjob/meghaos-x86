@@ -60,20 +60,11 @@ void div_zero()
 void usermode_main()
 {
     printk(PK_ONSCREEN,"\r\nInside usermode..");
-    kdisp_ioctl(DISP_SETATTR, GREEN);
-    printk(PK_ONSCREEN,"\r\n8917 = %x (hex), %d (dex), %o (oct), %b (bin)\r\n",
-                        8917,8917,8917,8917);
-
-    int i;
-    for (i = 0; i < 100000; i++)
-        printk(PK_ONSCREEN,"%d\r",i);
-
-    /*kbochs_breakpoint();
-    __asm__ volatile ("int 0x40");*/
-
-    int b = 0;
-    volatile int a = 8/b;
-
+    printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
+                        45789,
+                        0xcafeefe,
+                        02760,
+                        "Hello Arjob");
     while(1);
 }
 

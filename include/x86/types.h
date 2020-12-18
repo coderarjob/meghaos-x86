@@ -13,12 +13,20 @@
 #ifndef __x86_TYPES__
 #define __x86_TYPES__
 
-    #define u8   unsigned char
-    #define u16  unsigned short
-    #define u32  unsigned int
-    #define u64  unsigned long
-    #define u128 unsigned long long 
-    
-    #define size_t u32      // Type that can hold the largest number in an 
+    /* typedefs produce a more consistent result, for complicated types,
+     * than #define 
+     * Example:
+     *    #define p_t char*
+     *    p_t a,b,c             // a is char *, b,c are char.
+     *
+     *   typedef char* p_t;
+     *   p_t a,b,c              // a,b,c are char* as it should be.
+     * */
+    typedef unsigned char u8;
+    typedef unsigned short u16;
+    typedef unsigned int u32;
+    typedef unsigned long long u64;
+
+    typedef u32 size_t;     // Type that can hold the largest number in an 
                             // architecture.
 #endif // __x86_TYPES__
