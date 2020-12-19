@@ -24,7 +24,7 @@ __attribute__((noreturn))
 void __kernel_main()
 {
     kdisp_init();
-    printk(PK_ONSCREEN,"\r\nKernel starting..");
+    printk(PK_ONSCREEN,"\r\nPaging enabled..OK\r\nKernel starting..");
     ktss_init();
 
     // Usermode code segment
@@ -59,7 +59,7 @@ void div_zero()
 
 void usermode_main()
 {
-    volatile int a = 8/0;
+    //volatile int a = 8/0;
     printk(PK_ONSCREEN,"\r\nInside usermode..");
     printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
                         45789,

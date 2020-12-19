@@ -36,7 +36,7 @@ export GCC_INCPATH="-I include -I include/x86"
 # -Wa,msyntax=intel     : .intel_syntax attribute alternate in assembly files
 # -Wa,mnaked-reg        : do not require % in front of registers
 
-export GCC32="i686-elf-gcc -std=gnu99\
+export GCC32="i686-elf-gcc -std=c99\
               -nostartfiles \
               -g \
               -ffreestanding \
