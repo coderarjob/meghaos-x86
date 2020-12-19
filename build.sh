@@ -24,6 +24,18 @@ export GCC_INCPATH="-I include -I include/x86"
 # -fno-unit-at-a-time implies 
 # -fno-toplevel-reorder and -fno-section-anchors. 
 
+# NOTE:
+# If using GCC to compile assembly files in Intel syntax, use the following
+# options: 
+#           -Wa,--32,-msyntax=intel,-mnaked-reg
+
+# NOTE:
+# -masm=intel           : .intel_syntax attribute alternate in C files.
+# -Wa,<assembler options>
+# -Wa,--32              : assembler targets i386 CPU
+# -Wa,msyntax=intel     : .intel_syntax attribute alternate in assembly files
+# -Wa,mnaked-reg        : do not require % in front of registers
+
 export GCC32="i686-elf-gcc -std=gnu99\
               -nostartfiles \
               -g \

@@ -151,8 +151,11 @@ __k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^
 __k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
 __k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
 __k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
+__kernel_entry	kernel/x86/paging.s	/^__kernel_entry:$/;"	l
+__kernel_main	kernel/x86/kernel.c	/^void __kernel_main()$/;"	f
 __kpanic	kernel/kpanic.c	/^void __kpanic(const char *s,...)$/;"	f
-__main	kernel/x86/kernel.c	/^void __main()$/;"	f
+__page_dir	kernel/x86/paging.s	/^__page_dir:$/;"	l
+__page_table	kernel/x86/paging.s	/^__page_table:$/;"	l
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
 __sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
 __term_write_vga	.original/src/kernel/terminal.s	/^__term_write_vga:$/;"	l
@@ -250,6 +253,7 @@ esp2	kernel/x86/tss.c	/^    u32 esp2;$/;"	m	struct:tss	file:
 exit	.original/src/bootloader/boot.s	/^exit:	$/;"	l
 exit	.original/src/kernel/loader.s	/^exit:$/;"	l
 exit	bootloader/x86/boot0/boot.s	/^exit:	$/;"	l
+extern	kernel/x86/paging.s	/^extern __kernel_main$/;"	l
 failed_drive_error	.original/src/bootloader/boot.s	/^failed_drive_error:$/;"	l
 failed_drive_error	bootloader/x86/boot0/boot.s	/^failed_drive_error:$/;"	l
 failed_file_not_found	.original/src/bootloader/boot.s	/^failed_file_not_found:$/;"	l
@@ -264,6 +268,8 @@ fileremsize	bootloader/x86/boot0/loadFile.s	/^fileremsize	resw 	1 ; even though 
 filesector	.original/src/bootloader/loadFile.s	/^filesector:	resw 	1$/;"	l
 filesector	bootloader/x86/boot0/loadFile.s	/^filesector:	resw 	1$/;"	l
 fileslist	.original/src/kernel/vfs/vfs.s	/^fileslist: times MAX_OPEN_FILES_COUNT * file_size db 0$/;"	l
+fill_pd	kernel/x86/paging.s	/^fill_pd:$/;"	l
+fill_pt	kernel/x86/paging.s	/^fill_pt:$/;"	l
 flags	kernel/x86/gdt.c	/^    u8 flags     :4;$/;"	m	struct:gdt_des	file:
 friendly_filenames	.original/src/kernel/loader.s	/^friendly_filenames: db 10,13," guru.mod   ",0$/;"	d
 fs	kernel/x86/tss.c	/^    u32 fs;$/;"	m	struct:tss	file:
@@ -277,11 +283,14 @@ gdt_meta	bootloader/x86/boot1/gdt.s	/^gdt_meta:$/;"	l
 gdt_size	kernel/x86/gdt.c	/^struct gdt_size$/;"	s	file:
 get_filesystem_from_name	.original/src/kernel/vfs/vfs_base.s	/^get_filesystem_from_name:$/;"	l
 get_mount_point_from_drive	.original/src/kernel/vfs/vfs_base.s	/^get_mount_point_from_drive:$/;"	l
+global	kernel/x86/paging.s	/^global __kernel_entry$/;"	l
+global	kernel/x86/paging.s	/^global __page_dir$/;"	l
+global	kernel/x86/paging.s	/^global __page_table$/;"	l
 global	kernel/x86/usermode.s	/^global __jump_to_usermode$/;"	l
 gs	kernel/x86/tss.c	/^    u32 gs;$/;"	m	struct:tss	file:
 hello	.original/src/kernel/loader.s	/^hello: db "Showing this message using a debug.mod routine.",13,10$/;"	d
 hexdump	.original/src/kernel/guru.s	/^hexdump:$/;"	l
-idt	kernel/x86/idt.c	/^static volatile struct idt_des *idt = (struct idt_des*)INTEL_32_IDT_LOCATION;$/;"	v	typeref:struct:idt_des	file:
+idt	kernel/x86/idt.c	/^static struct idt_des *idt;$/;"	v	typeref:struct:idt_des	file:
 idt_des	kernel/x86/idt.c	/^struct idt_des$/;"	s	file:
 idt_des_types	include/x86/kernel.h	/^enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5, $/;"	g
 idt_size	kernel/x86/idt.c	/^struct idt_size$/;"	s	file:
@@ -298,8 +307,8 @@ iret	bootloader/x86/boot0/boot.s	/^iret$/;"	l
 irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
-kassert	include/assert.h	22;"	d
-kassert	include/assert.h	28;"	d
+kassert	include/assert.h	31;"	d
+kassert	include/assert.h	37;"	d
 kassert_perror	include/errno.h	22;"	d
 kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
 kbochs_breakpoint	include/kernel.h	46;"	d
@@ -319,8 +328,8 @@ kidt_edit	kernel/x86/idt.c	/^void kidt_edit(int index, void(*func)() , u16 seg_t
 kidt_init	kernel/x86/idt.c	/^void kidt_init()$/;"	f
 kpanic	include/panic.h	17;"	d
 kpanic	include/panic.h	20;"	d
-kstatic_assert	include/assert.h	18;"	d
 kstatic_assert	include/assert.h	27;"	d
+kstatic_assert	include/assert.h	36;"	d
 ktss_init	kernel/x86/tss.c	/^void ktss_init()$/;"	f
 ldt_seg	kernel/x86/tss.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
 limit	kernel/x86/idt.c	/^    u16 limit;$/;"	m	struct:idt_size	file:
@@ -466,6 +475,10 @@ retf	.original/src/kernel/process_registers_in_stack-incomplete.s	/^retf$/;"	l
 row	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 scroll_down_one_row	.original/src/kernel/terminal.s	/^scroll_down_one_row:$/;"	l
 scroll_up_one_row	.original/src/kernel/terminal.s	/^scroll_up_one_row:$/;"	l
+section	kernel/x86/paging.s	/^section .after_paging$/;"	l
+section	kernel/x86/paging.s	/^section .before_paging$/;"	l
+section	kernel/x86/paging.s	/^section .bss$/;"	l
+section	kernel/x86/paging.s	/^section .text$/;"	l
 segment_tss_selector	kernel/x86/idt.c	/^    u16 segment_tss_selector;$/;"	m	struct:idt_des	file:
 size	kernel/x86/gdt.c	/^    u16 size;$/;"	m	struct:gdt_size	file:
 size_t	include/x86/types.h	/^    typedef u32 size_t;     \/\/ Type that can hold the largest number in an $/;"	t

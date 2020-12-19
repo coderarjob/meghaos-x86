@@ -33,7 +33,15 @@ struct idt_size
 
 /* -------------------------------------------------------------------------*/
 /* Variables */
-static volatile struct idt_des *idt = (struct idt_des*)INTEL_32_IDT_LOCATION;
+
+/* TODO: 
+ * Following assignment which sets idt = 0, is getting ignored by the compiler.
+ * That is the reason, we are doing the same assignment in kidt_init.
+ */
+
+//static struct idt_des *idt = (struct idt_des*)INTEL_32_IDT_LOCATION;
+static struct idt_des *idt;
+
 /* -------------------------------------------------------------------------*/
 
 /* -------------------------------------------------------------------------*/
@@ -44,6 +52,7 @@ static void idt_write();
 /* Set all bytes to zero, for all the 256 IDT entries */
 void kidt_init()
 {
+    idt = (struct idt_des*)INTEL_32_IDT_LOCATION;
     memset((void *)idt, 0, sizeof(struct idt_des) * 256);
     idt_write();
 }

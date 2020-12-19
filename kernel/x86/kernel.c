@@ -21,7 +21,7 @@ void div_zero();
 void sys_dummy();
 
 __attribute__((noreturn)) 
-void __main()
+void __kernel_main()
 {
     kdisp_init();
     printk(PK_ONSCREEN,"\r\nKernel starting..");
@@ -59,6 +59,7 @@ void div_zero()
 
 void usermode_main()
 {
+    volatile int a = 8/0;
     printk(PK_ONSCREEN,"\r\nInside usermode..");
     printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
                         45789,
