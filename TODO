@@ -22,13 +22,17 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] DIV0 handler                  - 17th Nov 2020
 [X] 32Bit Paging                  - 19th Dec 2020
 [X] Identity Paging (demo)        - 19th Dec 2020
-[ ] Page fault handler            - 20th Dec 2020
+[X] Page fault handler (demo)     - 20th Dec 2020
+[ ] Page fault handler in asm     - 20th Dec 2020
 [ ] Higher half kernel implement  - 22th Dec 2020
 
 # BUGS
  
 [ ] __func__ is giving garbage    
     after paging.s was included.
+    If paging.s is compiled with 
+    GAS then __func__ is working 
+    in the kernel.c
 
 # TODOs
  

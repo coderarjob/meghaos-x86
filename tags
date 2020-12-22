@@ -151,10 +151,13 @@ __k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^
 __k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
 __k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
 __k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
+__kernel_entry	kernel/x86/_gas_paging.s	/^__kernel_entry:$/;"	l
 __kernel_entry	kernel/x86/paging.s	/^__kernel_entry:$/;"	l
 __kernel_main	kernel/x86/kernel.c	/^void __kernel_main()$/;"	f
 __kpanic	kernel/kpanic.c	/^void __kpanic(const char *s,...)$/;"	f
+__page_dir	kernel/x86/_gas_paging.s	/^__page_dir:$/;"	l
 __page_dir	kernel/x86/paging.s	/^__page_dir:$/;"	l
+__page_table	kernel/x86/_gas_paging.s	/^__page_table:$/;"	l
 __page_table	kernel/x86/paging.s	/^__page_table:$/;"	l
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
 __sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
@@ -180,6 +183,7 @@ _str_indexof	.original/src/kernel/vfs/vfs_main.s	/^_str_indexof:		$/;"	l
 _str_is_equal	.original/src/kernel/vfs/vfs_base.s	/^_str_is_equal:$/;"	l
 _strlen	.original/src/kernel/vfs/vfs_base.s	/^_strlen:$/;"	l
 _vfs_fs_open	.original/src/kernel/vfs/vfs_fs.s	/^_vfs_fs_open:$/;"	l
+a	kernel/x86/kernel.c	/^volatile char *a = (char *)0x0;$/;"	v
 access	kernel/x86/gdt.c	/^    u8 access;$/;"	m	struct:gdt_des	file:
 base_high	kernel/x86/gdt.c	/^    u8 base_high;$/;"	m	struct:gdt_des	file:
 base_low	kernel/x86/gdt.c	/^    u16 base_low;$/;"	m	struct:gdt_des	file:
@@ -268,7 +272,9 @@ fileremsize	bootloader/x86/boot0/loadFile.s	/^fileremsize	resw 	1 ; even though 
 filesector	.original/src/bootloader/loadFile.s	/^filesector:	resw 	1$/;"	l
 filesector	bootloader/x86/boot0/loadFile.s	/^filesector:	resw 	1$/;"	l
 fileslist	.original/src/kernel/vfs/vfs.s	/^fileslist: times MAX_OPEN_FILES_COUNT * file_size db 0$/;"	l
+fill_pd	kernel/x86/_gas_paging.s	/^fill_pd:$/;"	l
 fill_pd	kernel/x86/paging.s	/^fill_pd:$/;"	l
+fill_pt	kernel/x86/_gas_paging.s	/^fill_pt:$/;"	l
 fill_pt	kernel/x86/paging.s	/^fill_pt:$/;"	l
 flags	kernel/x86/gdt.c	/^    u8 flags     :4;$/;"	m	struct:gdt_des	file:
 friendly_filenames	.original/src/kernel/loader.s	/^friendly_filenames: db 10,13," guru.mod   ",0$/;"	d
@@ -364,6 +370,7 @@ osegoffset	.original/src/bootloader/loadFile.s	/^osegoffset	resw	1$/;"	l
 osegoffset	bootloader/x86/boot0/loadFile.s	/^osegoffset	resw	1$/;"	l
 outb	include/x86/io.h	16;"	d
 p	kernel/x86/idt.c	/^    u8 p:1;$/;"	m	struct:idt_des	file:
+page_fault	kernel/x86/kernel.c	/^void page_fault()$/;"	f
 panic	.original/src/kernel/guru.s	/^panic:$/;"	l
 pnum_base	kernel/printk.c	/^static void pnum_base(u32 num, u32 base)$/;"	f	file:
 pop	.original/src/bootloader/loadFile.s	/^	pop ds$/;"	d

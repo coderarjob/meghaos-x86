@@ -21,7 +21,11 @@
                                __FILE__, __LINE__)
 #endif // __C99__
 
-/* Displays an error message on the screen and Halts */
+/* Displays an error message on the screen and Halts 
+ * Note: The attribute here suppresses warning from GCC when used within
+ * another `noreturn` function.
+ * */
+__attribute__((noreturn))
 void __kpanic(const char *s,...);
 
 #endif // __KPANIC_H__
