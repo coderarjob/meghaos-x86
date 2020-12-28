@@ -282,7 +282,7 @@ fs	kernel/x86/tss.c	/^    u32 fs;$/;"	m	struct:tss	file:
 fslist	.original/src/kernel/vfs/vfs.s	/^fslist: times MAX_REGISTERED_FILESYSTEM * filesystem_size db 0$/;"	l
 fslist_count	.original/src/kernel/vfs/vfs.s	/^fslist_count: dw 0$/;"	d
 gdt	bootloader/x86/boot1/gdt.s	/^gdt:    $/;"	l
-gdt	kernel/x86/gdt.c	/^static volatile struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;$/;"	v	typeref:struct:gdt_des	file:
+gdt	kernel/x86/gdt.c	/^static volatile struct gdt_des *gdt;$/;"	v	typeref:struct:gdt_des	file:
 gdt_count	kernel/x86/gdt.c	/^static u16 gdt_count = GDT_MIN_INDEX;$/;"	v	file:
 gdt_des	kernel/x86/gdt.c	/^struct gdt_des$/;"	s	file:
 gdt_meta	bootloader/x86/boot1/gdt.s	/^gdt_meta:$/;"	l
@@ -482,8 +482,6 @@ retf	.original/src/kernel/process_registers_in_stack-incomplete.s	/^retf$/;"	l
 row	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 scroll_down_one_row	.original/src/kernel/terminal.s	/^scroll_down_one_row:$/;"	l
 scroll_up_one_row	.original/src/kernel/terminal.s	/^scroll_up_one_row:$/;"	l
-section	kernel/x86/paging.s	/^section .after_paging$/;"	l
-section	kernel/x86/paging.s	/^section .before_paging$/;"	l
 section	kernel/x86/paging.s	/^section .bss$/;"	l
 section	kernel/x86/paging.s	/^section .text$/;"	l
 segment_tss_selector	kernel/x86/idt.c	/^    u16 segment_tss_selector;$/;"	m	struct:idt_des	file:
@@ -545,7 +543,7 @@ vfs_umount	.original/src/kernel/vfs/vfs_base.s	/^vfs_umount:$/;"	l
 vga_colors	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	g
 vga_offset	.original/src/kernel/guru.s	/^vga_offset: dw  0$/;"	d
 vga_set_origin	.original/src/devices/vga.s	/^vga_set_origin:$/;"	l
-vgab	kernel/x86/vgadisp.c	/^static u16 *vgab = (u16 *)0xB8000;$/;"	v	file:
+vgab	kernel/x86/vgadisp.c	/^static u16 *vgab;$/;"	v	file:
 vprintk	kernel/printk.c	/^void vprintk(const char *fmt, va_list list)$/;"	f
 wait_kbd	.original/src/devices/keyboard.s	/^wait_kbd:$/;"	l
 zeros	kernel/x86/idt.c	/^    u8 zeros;$/;"	m	struct:idt_des	file:

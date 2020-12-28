@@ -10,14 +10,13 @@
 ; - Intiial version. Identity paging implementation
 ; ---------------------------------------------------------------------------
 
-global __kernel_entry
 extern __kernel_main
+global __kernel_entry
 global __page_dir
 global __page_table
 
-section .before_paging
+;section .prepage.data nobits alloc noexec write 
 section .bss
-
 align 4096
 __page_dir:
     resd 1024
@@ -25,6 +24,7 @@ __page_table:
     resd 1024
 .size: equ $-__page_table
 
+;section .prepage.text progbits alloc exec nowrite
 section .text
 __kernel_entry:
 
@@ -43,6 +43,7 @@ __kernel_entry:
     or eax, 0x80000000
     mov cr0, eax
 
+    xchg bx, bx
     jmp __kernel_main
     hlt
 
@@ -72,4 +73,3 @@ fill_pt:
         loop .write_next_pte
     popad
     ret
-section .after_paging

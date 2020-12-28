@@ -29,7 +29,7 @@ static u8 row, column,
           crtc_flags, 
           text_attr;
 
-static u16 *vgab = (u16 *)0xB8000;
+static u16 *vgab;
 
 static void update_cursor();
 
@@ -72,7 +72,8 @@ void kdisp_ioctl(u8 request, ...)
 
 /* Finds the where the next character should go and places the cursor there.*/
 void kdisp_init()
-{
+{ 
+    vgab = (u16 *)0xB8000;
     // ------------------------------------------------------------
     // Scan the vga buffer to find where the next character should go.
     u16 s,          // Current Scan index.

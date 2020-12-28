@@ -42,7 +42,7 @@ struct gdt_size
 
 /* -------------------------------------------------------------------------*/
 /* Variables */
-static volatile struct gdt_des *gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
+static volatile struct gdt_des *gdt;
 static u16 gdt_count = GDT_MIN_INDEX;
 /* -------------------------------------------------------------------------*/
 
@@ -68,7 +68,8 @@ void kgdt_write()
  * Note: If gdt_index < 3 or > gdt_count or > GDT_MAX_COUNT then an exception 
  * is generated.  */
 void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
-{
+{ 
+    gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
     // Valid range is MIN_INDEX < index < gdt_count < GDT_MAX_COUNT
     if (!(  gdt_index >= GDT_MIN_INDEX &&
             gdt_index <= gdt_count     && 

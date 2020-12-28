@@ -13,11 +13,14 @@ SECTIONS
     .data :
     {
         *.o (.data);
+        *.o (.rodata*);
+    }
+    .bss :
+    {
         *.o (.bss);
-        *.o (.rodata);
     }
     /DISCARD/ : 
     {
-        *(.eh_frame)
+        *(.eh_frame);
     }
 }
