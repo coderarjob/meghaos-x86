@@ -28,11 +28,12 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 
 # BUGS
  
-[ ] __func__ is giving garbage    
-    after paging.s was included.
-    If paging.s is compiled with 
-    GAS then __func__ is working 
+[X] __func__ is giving garbage after paging.s was included.
+    If paging.s is compiled with GAS then __func__ is working 
     in the kernel.c
+
+    28th Dec 2020
+    Sol: .rodata* section must be before .bss section the KERNEL.ELF file.
 
 # TODOs
  
@@ -42,7 +43,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     - Each process has separate kernel data and kernel stack. 
       Thus no conflict, between processes.
 [ ] Paging model considerations   - 12th Dec 2020
-[ ] Higher half kernel read       - 18th Dec 2020
+[X] Higher half kernel read       - 18th Dec 2020
 [ ] Usermode application model    - 20th Dec 2020
 [ ] UI model considerations       - 25th Dec 2020
 [ ] Usermode, Kernel IPC model    - 25th Dec 2020

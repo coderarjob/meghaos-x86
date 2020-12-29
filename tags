@@ -54,8 +54,9 @@ IDT_DES_TYPE_16_TRAP_GATE	include/x86/kernel.h	/^                    IDT_DES_TYP
 IDT_DES_TYPE_32_INTERRUPT_GATE	include/x86/kernel.h	/^                    IDT_DES_TYPE_32_INTERRUPT_GATE = 0xE,$/;"	e	enum:idt_des_types
 IDT_DES_TYPE_32_TRAP_GATE	include/x86/kernel.h	/^                    IDT_DES_TYPE_32_TRAP_GATE = 0xF};$/;"	e	enum:idt_des_types
 IDT_DES_TYPE_TASK_GATE	include/x86/kernel.h	/^enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5, $/;"	e	enum:idt_des_types
-INTEL_32_GDT_LOCATION	include/x86/memloc.h	15;"	d
-INTEL_32_IDT_LOCATION	include/x86/memloc.h	16;"	d
+INTEL_32_GDT_LOCATION	include/x86/memloc.h	16;"	d
+INTEL_32_IDT_LOCATION	include/x86/memloc.h	15;"	d
+INTEL_32_KSTACK_TOP	include/x86/memloc.h	17;"	d
 IN_CONFIG	.original/src/kernel/terminal.s	/^IN_CONFIG: 	db 1$/;"	d
 IN_QUEUE	.original/src/kernel/terminal.s	/^IN_QUEUE:$/;"	l
 IOMAP_SIZE	kernel/x86/tss.c	16;"	d	file:

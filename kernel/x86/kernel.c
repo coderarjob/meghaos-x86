@@ -83,13 +83,13 @@ void div_zero()
 
 void usermode_main()
 {
-    //volatile int a = 8/0;
     printk(PK_ONSCREEN,"\r\nInside usermode..");
     printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
                         45789,
                         0xcafeefe,
                         02760,
                         "Hello Arjob");
+
     *a = 0;    
 
     while(1);

@@ -15,8 +15,8 @@ __jump_to_usermode:
     mov fs, ax
     mov gs, ax
 
-    push eax
-    push esp
+    push eax                    ; Stack segment selector = DS
+    push esp                    ; User mode stack pointer
     pushf
     push dword [ebp + 8]        ; Code Segment selector
     push dword [ebp + 12]       ; Function pointer

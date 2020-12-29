@@ -43,7 +43,6 @@ __kernel_entry:
     or eax, 0x80000000
     mov cr0, eax
 
-    xchg bx, bx
     jmp __kernel_main
     hlt
 
