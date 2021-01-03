@@ -25,6 +25,8 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] Page fault handler (demo)     - 20th Dec 2020
 [ ] Page fault handler in asm     - 20th Dec 2020
 [ ] Higher half kernel implement  - 22th Dec 2020
+[ ] A way to pass information from 
+    bootloader to the kernel      - 31st Dec 2020
 
 # BUGS
  
