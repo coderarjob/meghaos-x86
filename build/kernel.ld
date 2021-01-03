@@ -1,24 +1,26 @@
-ENTRY (__main)
+ENTRY (__kernel_entry)
 SECTIONS
 {
     . = 0x28000;                 /* Kernel is loaded at 0x2800:0x0000 */
-    _kernel_start = .;
     .text :/*AT(0x0)*/
     {
         /* Order of linking .o files is importaint. 
          * We must link kernel first. The first function in kernel.o must be
-         * __main() */
-        build/obj/kernel/x86_kernel.o (.text);
+         * __kernel_entry() */
+        build/obj/kernel/x86_paging.o (.text);
         *.o (.text);             
     }
     .data :
     {
         *.o (.data);
+        *.o (.rodata*);
+    }
+    .bss :
+    {
         *.o (.bss);
-        *.o (.rodata);
     }
     /DISCARD/ : 
     {
-        *(.eh_frame)
+        *(.eh_frame);
     }
 }

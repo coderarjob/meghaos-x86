@@ -61,9 +61,12 @@ void ktss_init()
     // In ourcase it starts right at the end of tss_entry.
     tss_entry.iomap_base = OFFSET_OF(struct tss,iomap); 
     // Setup defaults to TSS, so that we can return to kernel mode.
-    // TODO: Setup a proper place for the kernel stack.
-    tss_entry.ss0 = 0x10;
-    tss_entry.esp0 = 0x27FFF;
+    // Setup a proper place for the kernel stack. This is the location the
+    // ESP will have when returning to kernel mode from user mode. On a cross
+    // privilate level INT instruction, the stack will have the 
+    // user mode CS, EIP, EFLAGS, SS, ESP.
+    tss_entry.ss0 = GDT_SELECTOR_KDATA;
+    tss_entry.esp0 = INTEL_32_KSTACK_TOP;
 
     // Install a TSS Segment
     kgdt_edit(GDT_INDEX_KTSS,

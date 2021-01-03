@@ -13,8 +13,15 @@ nasm -f elf32 kernel/x86/usermode.s -g \
      -l $LISTDIR/x86_usermode.lst \
      -o $K_OBJDIR/x86_usermode.o  || exit
 
+nasm -f elf32 kernel/x86/paging.s -g \
+     -l $LISTDIR/x86_paging.lst \
+     -o $K_OBJDIR/x86_paging.o  || exit
+
 # Kernel must must be named kernel.o, as this is hardcoded in kernel.ld
 # NOTE: Must be a way to pass the filename
+#$GCC32 -c -Wa,-adhln kernel/x86/paging.s \
+#       -o $K_OBJDIR/x86_paging.o > $LISTDIR/x86_paging.lst  || exit
+
 $GCC32 -c kernel/x86/kernel.c -o $K_OBJDIR/x86_kernel.o  || exit
 $GCC32 -S kernel/x86/kernel.c -o $LISTDIR/x86_kernel.lst  || exit
 
