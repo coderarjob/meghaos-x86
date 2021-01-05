@@ -46,6 +46,10 @@
     int 0x31
     pop si
 %endmacro
+
+%define HIGH(x,b) ((x)>>(b))
+%define LOW(x,b) ((x) & (x^b-1))
+
 ; ******************************************************
 ; INCLUDE FILES
 ; ******************************************************
@@ -56,17 +60,27 @@
 ; ******************************************************
 ; DATA
 ; ******************************************************
+struc mem_des_t
+    .BaseAddrLow   : resd 1
+    .BaseAddrHigh  : resd 1
+    .LengthLow     : resd 1
+    .LengthHigh    : resd 1
+    .Type          : resd 1
+endstruc
+
 kernel_file: db     KERNEL_FILE
 
 msg_welcome: db     13,10,OS_NAME,13,10
              db     "  boot0 : ",BOOT0_BUILD,","
              db     "  boot1 : ",BOOT1_BUILD,0
 
-msg_A20    : db 13,10,"A20 GATE","... ",0
-msg_GDT    : db 13,10,"GDT","... ",0
-msg_PMODE  : db 13,10,"Protected Mode","... ",0
-msg_LD_KRNL: db 13,10,"Loading kernel image","... ",0
-msg_ST_KRNL: db 13,10,"Starting kernel","... ",0
+msg_A20    : db 13,10,"A20 GATE... ",0
+msg_GDT    : db 13,10,"GDT... ",0
+msg_PMODE  : db 13,10,"Protected Mode... ",0
+msg_LD_KRNL: db 13,10,"Loading kernel image... ",0
+msg_ST_KRNL: db 13,10,"Starting kernel... ",0
+msg_MEMINFO: db 13,10,"BIOS memory info... ",0
+msg_AVLMEM : db 13,10,"Available memory... ",0
 
 msg_success:  db "OK",0
 msg_failed :  db "!",0
@@ -75,8 +89,31 @@ msg_failed :  db "!",0
 ; CODE
 ; ******************************************************
 _start:
-    ; Welcome message
+    ; -------- [ Welcome message ] -----------
     printString msg_welcome
+
+    ; -------- [ Get memory information ] -----------
+    printString msg_MEMINFO
+    mov ax, BOOT_INFO_SEG
+    mov es, ax
+    mov di, BOOT_INFO_OFF
+    call __e820
+    jc .failed
+    printString msg_success
+
+    ; -------- [ Calculate total usable memory ] -----------
+    ; We require at least 4 MB of usable RAM. We HALT if the amount is less.
+
+    printString msg_AVLMEM
+    ; AX = Entry Count
+    ; ES:DI = Pointer to mem_des_t array
+    ; Return in EAX:EBX
+    call __calc_total_mem
+    cmp eax, HIGH(MEM_AVL_MIN,32)                  ; 4 MiB
+    jl .failed
+    cmp ebx, LOW(MEM_AVL_MIN,32)                   ; 4 MiB
+    jl .failed
+    printString msg_success
 
     ; -------- [ Load Kernel Image ] -----------
     printString msg_LD_KRNL
@@ -137,3 +174,93 @@ _start:
     printString msg_failed
     jmp .end
 
+; Sums up the 'FREE' regions in the BOOT_INFO array.
+; Input:
+;       ES:DI - Location to where the array of mem_des_t will be saved.
+;       AX    - Count
+; Output:
+;       EAX:EBX - 64bit sum
+__calc_total_mem:
+    push cx
+    push di
+
+    ; Clear the result 
+    mov [.sum], dword 0
+    mov [.sum + 2], dword 0
+
+   ; CX holds the entry count
+   mov cx, ax
+   jcxz .fin
+
+.again:
+    ; Check if entry is of Type 'FREE' 
+    cmp dword [es:di + mem_des_t.Type], 1
+    jne .next
+
+    ; Type = 1, We add with the SUM
+    mov eax, [es:DI + mem_des_t.LengthLow]
+    add [.sum], eax             ; Little endian, Low DWORD is at low address
+
+    mov ebx, [es:DI + mem_des_t.LengthHigh]
+    adc [.sum + 4], ebx
+
+.next:
+    add di, mem_des_t_size      ; Pointer to next entry
+    loop .again
+
+    ; Loop ended
+.fin:
+    mov ebx, [.sum]             ; Lower DWORD
+    mov eax, [.sum + 4]         ; Higher DWORD
+
+    pop di
+    pop cx
+    ret
+
+.sum: dd 0      ; Stores the 64Bit sum
+      dd 0
+;   
+; Calls BIOS routine INT 15H (EAX = 0xE820) to get MemoryMap
+; NOTE: There is not maximum limit of the number of entries that 
+;       we want in the array. May lead to overwriting/overlaping 
+;       when kernel is loaded.
+; Input: 
+;       ES:DI - Location to where the array of mem_des_t will be saved.
+; Output: 
+;       CR flag - 1 (Error)
+;       CR flag - 0 (No error, output in CX)
+;       AX - Number of entries of entries.
+__e820:
+    push ebx
+    push edx
+    push ecx
+    push di
+
+    ; Continuation value starts from 0.
+    xor ebx, ebx
+    jmp .int15
+.loop:
+    add di, mem_des_t_size      ; Increment DI
+    inc word [.mem_des_count]   ; Increment entry count
+.int15:
+    mov ecx, mem_des_t_size
+    mov edx, 'PAMS'         ; 53 4D 41 50
+    mov eax, 0xE820                 
+    int 0x15
+
+    jc .failed                  ; CR = 1, means error.
+    test ebx, ebx               ; EBX = 0, means last entry.
+    jnz .loop                   ; Loop if not last.
+.success:
+    clc                         ; CF = 0 (not error)
+    mov ax, [.mem_des_count]    ; Returns entry count.
+    jmp .fin            
+.failed:
+    stc                 ; Error in 0xE820 or it is not supported.
+.fin:
+    pop di
+    pop ecx
+    pop edx
+    pop ebx
+    ret
+.mem_des_count: dw  1   ; Valid array length

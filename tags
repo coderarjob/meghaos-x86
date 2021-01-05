@@ -132,6 +132,8 @@ __MEM_LOC_H__	include/x86/memloc.h	13;"	d
 __PORTABLE_TYPES__	include/types.h	14;"	d
 __VGA_TEXT_H__	include/x86/vgatext.h	13;"	d
 __add_module_to_process_list	.original/src/kernel/loader.s	/^__add_module_to_process_list:$/;"	l
+__calc_total_mem	bootloader/x86/boot1/boot1.s	/^__calc_total_mem:$/;"	l
+__e820	bootloader/x86/boot1/boot1.s	/^__e820:$/;"	l
 __enable_a20_fast	bootloader/x86/boot1/a20gate.s	/^__enable_a20_fast:$/;"	l
 __enable_a20gate_bios	bootloader/x86/boot1/a20gate.s	/^__enable_a20gate_bios:$/;"	l
 __init	.original/src/kernel/kernel.s	/^__init:$/;"	l
@@ -249,6 +251,7 @@ endstruc	.original/src/kernel/guru.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/process.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/vfs/vfs_base.s	/^endstruc$/;"	l
+endstruc	bootloader/x86/boot1/boot1.s	/^endstruc$/;"	l
 es	kernel/x86/tss.c	/^    u32 es;$/;"	m	struct:tss	file:
 esi	kernel/x86/tss.c	/^    u32 esi;$/;"	m	struct:tss	file:
 esp	kernel/x86/tss.c	/^    u32 esp;$/;"	m	struct:tss	file:
@@ -352,11 +355,13 @@ memset	kernel/mem.c	/^void *memset(void *s, int c, size_t n)$/;"	f
 modifier_maps	.original/src/devices/keyboard.s	/^modifier_maps:$/;"	l
 mountlist	.original/src/kernel/vfs/vfs.s	/^mountlist: times MAX_MOUNT_POINT_COUNT * mount_point_size db 0$/;"	l
 mountlist_count	.original/src/kernel/vfs/vfs.s	/^mountlist_count: dw 0$/;"	d
-msg_A20	bootloader/x86/boot1/boot1.s	/^msg_A20    : db 13,10,"A20 GATE","... ",0$/;"	l
-msg_GDT	bootloader/x86/boot1/boot1.s	/^msg_GDT    : db 13,10,"GDT","... ",0$/;"	l
-msg_LD_KRNL	bootloader/x86/boot1/boot1.s	/^msg_LD_KRNL: db 13,10,"Loading kernel image","... ",0$/;"	d
-msg_PMODE	bootloader/x86/boot1/boot1.s	/^msg_PMODE  : db 13,10,"Protected Mode","... ",0$/;"	l
-msg_ST_KRNL	bootloader/x86/boot1/boot1.s	/^msg_ST_KRNL: db 13,10,"Starting kernel","... ",0$/;"	d
+msg_A20	bootloader/x86/boot1/boot1.s	/^msg_A20    : db 13,10,"A20 GATE... ",0$/;"	l
+msg_AVLMEM	bootloader/x86/boot1/boot1.s	/^msg_AVLMEM : db 13,10,"Available memory... ",0$/;"	l
+msg_GDT	bootloader/x86/boot1/boot1.s	/^msg_GDT    : db 13,10,"GDT... ",0$/;"	l
+msg_LD_KRNL	bootloader/x86/boot1/boot1.s	/^msg_LD_KRNL: db 13,10,"Loading kernel image... ",0$/;"	d
+msg_MEMINFO	bootloader/x86/boot1/boot1.s	/^msg_MEMINFO: db 13,10,"BIOS memory info... ",0$/;"	d
+msg_PMODE	bootloader/x86/boot1/boot1.s	/^msg_PMODE  : db 13,10,"Protected Mode... ",0$/;"	l
+msg_ST_KRNL	bootloader/x86/boot1/boot1.s	/^msg_ST_KRNL: db 13,10,"Starting kernel... ",0$/;"	d
 msg_failed	bootloader/x86/boot1/boot1.s	/^msg_failed :  db "!",0$/;"	l
 msg_file_loaded	.original/src/kernel/loader.s	/^msg_file_loaded:    db "   Done",0$/;"	d
 msg_file_not_found	.original/src/kernel/loader.s	/^msg_file_not_found: db "   Not found",0$/;"	d
@@ -418,6 +423,7 @@ pop	.original/src/kernel/vfs/vfs_main.s	/^	pop di$/;"	d
 pop	.original/src/kernel/vfs/vfs_main.s	/^	pop ds$/;"	d
 pop	.original/src/kernel/vfs/vfs_main.s	/^	pop dx$/;"	d
 pop	bootloader/x86/boot0/loadFile.s	/^	pop ds$/;"	d
+pop	bootloader/x86/boot1/boot1.s	/^    pop di$/;"	d
 prevtask	kernel/x86/tss.c	/^    u32 prevtask;$/;"	m	struct:tss	file:
 printString	.original/src/kernel/loader.s	/^	printString di$/;"	d
 printhex	.original/src/kernel/guru.s	/^printhex:$/;"	l
@@ -466,6 +472,7 @@ push	.original/src/kernel/vfs/vfs_main.s	/^	push di$/;"	d
 push	.original/src/kernel/vfs/vfs_main.s	/^	push ds$/;"	d
 push	.original/src/kernel/vfs/vfs_main.s	/^	push dx$/;"	d
 push	bootloader/x86/boot0/loadFile.s	/^	push ds$/;"	d
+push	bootloader/x86/boot1/boot1.s	/^    push di$/;"	d
 queue_get	.original/src/common/queue.s	/^queue_get:$/;"	l
 queue_put	.original/src/common/queue.s	/^queue_put:$/;"	l
 ret	.original/src/kernel/io.s	/^ret$/;"	l
@@ -498,6 +505,7 @@ struc	.original/src/kernel/guru.s	/^struc reg,2$/;"	l
 struc	.original/src/kernel/process.s	/^struc CREATE_PROCESS_LVARS$/;"	l
 struc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^struc CREATE_PROCESS_LVARS$/;"	l
 struc	.original/src/kernel/vfs/vfs_base.s	/^struc mount_args$/;"	l
+struc	bootloader/x86/boot1/boot1.s	/^struc mem_des_t$/;"	l
 sys_addRoutine	.original/src/kernel/despatcher.s	/^sys_addRoutine:$/;"	l
 sys_despatcher	.original/src/kernel/despatcher.s	/^sys_despatcher:$/;"	l
 sys_dummy	kernel/x86/kernel.c	/^void sys_dummy()$/;"	f
