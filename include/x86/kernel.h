@@ -16,6 +16,8 @@
 #ifndef __KERNEL_H_x86__
 #define __KERNEL_H_x86__
 
+#include <x86/boot.h>
+
 enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5, 
                     IDT_DES_TYPE_16_INTERRUPT_GATE = 6,
                     IDT_DES_TYPE_32_INTERRUPT_GATE = 0xE,
@@ -47,8 +49,6 @@ enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5,
 #define GDT_INDEX_UDATA 5
 #define GDT_SELECTOR_UDATA __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_UDATA, 3)
 
-/* Halts the processor by going into infinite loop */
-#define khalt() for(;;)
 
 /* Initializes the tss_entry structure, installs a tss segment in GDT */
 void ktss_init();

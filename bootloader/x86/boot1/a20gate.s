@@ -96,7 +96,7 @@ enable_a20:
     jc .enabled
 
     ; Method 1: BIOS method
-    ;call __enable_a20gate_bios
+    call __enable_a20gate_bios
     call __is_a20gate_enabled
     jc .enabled
     printString msg_failed
