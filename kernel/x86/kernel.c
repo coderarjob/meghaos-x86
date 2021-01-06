@@ -24,19 +24,6 @@ void __display_system_info();
 
 volatile char *a = (char *)0x0;
 
-struct mem_des
-{
-    u64 baseAddr;
-    u64 length;
-    u32 type;
-}__attribute__((packed));
-
-struct boot_info
-{
-    u16 count;
-    struct mem_des items[];
-}__attribute__((packed));
-
 __attribute__((noreturn)) 
 void __kernel_main()
 {

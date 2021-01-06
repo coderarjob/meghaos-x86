@@ -33,18 +33,18 @@ ERR_UNKNOWN	include/errno.h	/^enum {ERR_NONE, ERR_UNKNOWN,ERRNO_COUNT};$/;"	e	en
 EXTENDED	.original/src/devices/keyboard.s	/^		EXTENDED: EQU 0x40$/;"	d
 FileSystem	.original/src/bootloader/boot.s	/^	FileSystem		db "FAT12   "	; File system type: don't change!$/;"	d
 FileSystem	bootloader/x86/boot0/boot.s	/^	FileSystem	        db "FAT12   "	; File system type: don't change!$/;"	d
-GDT_INDEX_KCODE	include/x86/kernel.h	31;"	d
-GDT_INDEX_KDATA	include/x86/kernel.h	35;"	d
-GDT_INDEX_KTSS	include/x86/kernel.h	39;"	d
-GDT_INDEX_UCODE	include/x86/kernel.h	43;"	d
-GDT_INDEX_UDATA	include/x86/kernel.h	47;"	d
-GDT_MAX_COUNT	include/x86/kernel.h	26;"	d
-GDT_MIN_INDEX	include/x86/kernel.h	25;"	d
-GDT_SELECTOR_KCODE	include/x86/kernel.h	32;"	d
-GDT_SELECTOR_KDATA	include/x86/kernel.h	36;"	d
-GDT_SELECTOR_KTSS	include/x86/kernel.h	40;"	d
-GDT_SELECTOR_UCODE	include/x86/kernel.h	44;"	d
-GDT_SELECTOR_UDATA	include/x86/kernel.h	48;"	d
+GDT_INDEX_KCODE	include/x86/kernel.h	33;"	d
+GDT_INDEX_KDATA	include/x86/kernel.h	37;"	d
+GDT_INDEX_KTSS	include/x86/kernel.h	41;"	d
+GDT_INDEX_UCODE	include/x86/kernel.h	45;"	d
+GDT_INDEX_UDATA	include/x86/kernel.h	49;"	d
+GDT_MAX_COUNT	include/x86/kernel.h	28;"	d
+GDT_MIN_INDEX	include/x86/kernel.h	27;"	d
+GDT_SELECTOR_KCODE	include/x86/kernel.h	34;"	d
+GDT_SELECTOR_KDATA	include/x86/kernel.h	38;"	d
+GDT_SELECTOR_KTSS	include/x86/kernel.h	42;"	d
+GDT_SELECTOR_UCODE	include/x86/kernel.h	46;"	d
+GDT_SELECTOR_UDATA	include/x86/kernel.h	50;"	d
 GREEN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 HeadCount	.original/src/bootloader/boot.s	/^	HeadCount		dw 2		; Number of sides\/heads$/;"	d
 HeadCount	bootloader/x86/boot0/boot.s	/^	HeadCount		    dw 2		    ; Number of sides\/heads$/;"	d
@@ -120,10 +120,11 @@ VolumeLabel	bootloader/x86/boot0/boot.s	/^	VolumeLabel	        db "MEGHAOS    ";
 WHITE	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 YELLOW	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 __ASSERT_H__	include/assert.h	13;"	d
+__BOOT_H__	include/x86/boot.h	13;"	d
 __C99__	include/kernel.h	16;"	d
 __DISPTEXT_H__	include/disp.h	13;"	d
 __ERRORNO_H__	include/errno.h	11;"	d
-__GDT_SELECTOR_FROM_INDEX	include/x86/kernel.h	28;"	d
+__GDT_SELECTOR_FROM_INDEX	include/x86/kernel.h	30;"	d
 __IO_H__	include/io.h	14;"	d
 __KERNEL_H__	include/kernel.h	13;"	d
 __KERNEL_H_x86__	include/x86/kernel.h	17;"	d
@@ -192,11 +193,11 @@ _strlen	.original/src/kernel/vfs/vfs_base.s	/^_strlen:$/;"	l
 _vfs_fs_open	.original/src/kernel/vfs/vfs_fs.s	/^_vfs_fs_open:$/;"	l
 a	kernel/x86/kernel.c	/^volatile char *a = (char *)0x0;$/;"	v
 access	kernel/x86/gdt.c	/^    u8 access;$/;"	m	struct:gdt_des	file:
-baseAddr	kernel/x86/kernel.c	/^    u64 baseAddr;$/;"	m	struct:mem_des	file:
+baseAddr	include/x86/boot.h	/^        u64 baseAddr;$/;"	m	struct:mem_des
 base_high	kernel/x86/gdt.c	/^    u8 base_high;$/;"	m	struct:gdt_des	file:
 base_low	kernel/x86/gdt.c	/^    u16 base_low;$/;"	m	struct:gdt_des	file:
 base_middle	kernel/x86/gdt.c	/^    u8 base_middle;$/;"	m	struct:gdt_des	file:
-boot_info	kernel/x86/kernel.c	/^struct boot_info$/;"	s	file:
+boot_info	include/x86/boot.h	/^    struct boot_info$/;"	s
 boot_main	.original/src/bootloader/boot.s	/^boot_main:	$/;"	l
 boot_main	bootloader/x86/boot0/boot.s	/^boot_main:	$/;"	l
 bootfile	.original/src/bootloader/boot.s	/^bootfile: db 'LOADER     '$/;"	d
@@ -209,7 +210,7 @@ callvector	.original/src/kernel/guru.s	/^callvector: dw printhex,copy_to_screen,
 clear	.original/src/kernel/guru.s	/^clear:$/;"	l
 column	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 copy_to_screen	.original/src/kernel/guru.s	/^copy_to_screen:$/;"	l
-count	kernel/x86/kernel.c	/^    u16 count;$/;"	m	struct:boot_info	file:
+count	include/x86/boot.h	/^        u16 count;$/;"	m	struct:boot_info
 cr3	kernel/x86/tss.c	/^    u32 cr3;$/;"	m	struct:tss	file:
 crt_addr_port	kernel/x86/vgadisp.c	23;"	d	file:
 crt_data_port	kernel/x86/vgadisp.c	24;"	d	file:
@@ -322,7 +323,7 @@ iomap_base	kernel/x86/tss.c	/^    u16 iomap_base;$/;"	m	struct:tss	file:
 iret	.original/src/kernel/interrupt.s	/^iret$/;"	l
 iret	bootloader/x86/boot0/boot.s	/^iret$/;"	l
 irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
-items	kernel/x86/kernel.c	/^    struct mem_des items[];$/;"	m	struct:boot_info	typeref:struct:boot_info::mem_des	file:
+items	include/x86/boot.h	/^        struct mem_des items[];$/;"	m	struct:boot_info	typeref:struct:boot_info::mem_des
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
 kassert	include/assert.h	31;"	d
@@ -350,7 +351,7 @@ kstatic_assert	include/assert.h	27;"	d
 kstatic_assert	include/assert.h	36;"	d
 ktss_init	kernel/x86/tss.c	/^void ktss_init()$/;"	f
 ldt_seg	kernel/x86/tss.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
-length	kernel/x86/kernel.c	/^    u64 length;$/;"	m	struct:mem_des	file:
+length	include/x86/boot.h	/^        u64 length;$/;"	m	struct:mem_des
 limit	kernel/x86/idt.c	/^    u16 limit;$/;"	m	struct:idt_size	file:
 limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
 limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
@@ -359,7 +360,7 @@ loadFile	bootloader/x86/boot0/loadFile.s	/^loadFile:$/;"	l
 load_gdt	bootloader/x86/boot1/gdt.s	/^load_gdt:$/;"	l
 location	kernel/x86/gdt.c	/^    u32 location;$/;"	m	struct:gdt_size	file:
 location	kernel/x86/idt.c	/^    u32 location;$/;"	m	struct:idt_size	file:
-mem_des	kernel/x86/kernel.c	/^struct mem_des$/;"	s	file:
+mem_des	include/x86/boot.h	/^    struct mem_des$/;"	s
 memcpy	kernel/mem.c	/^void *memcpy(void *dest, const void *src, size_t n)$/;"	f
 memset	kernel/mem.c	/^void *memset(void *s, int c, size_t n)$/;"	f
 modifier_maps	.original/src/devices/keyboard.s	/^modifier_maps:$/;"	l
@@ -548,8 +549,8 @@ times	.original/src/kernel/loader.s	/^times 768 - ($-$$) db 0$/;"	l
 trap	kernel/x86/tss.c	/^    u16 trap;$/;"	m	struct:tss	file:
 tss	kernel/x86/tss.c	/^struct tss {$/;"	s	file:
 tss_entry	kernel/x86/tss.c	/^static struct tss tss_entry = {0};$/;"	v	typeref:struct:tss	file:
+type	include/x86/boot.h	/^        u32 type;$/;"	m	struct:mem_des
 type	kernel/x86/idt.c	/^    u8 type:5;$/;"	m	struct:idt_des	file:
-type	kernel/x86/kernel.c	/^    u32 type;$/;"	m	struct:mem_des	file:
 u16	include/x86/types.h	/^    typedef unsigned short u16;$/;"	t
 u32	include/x86/types.h	/^    typedef unsigned int u32;$/;"	t
 u64	include/x86/types.h	/^    typedef unsigned long long u64;$/;"	t
