@@ -515,8 +515,8 @@ struc	.original/src/kernel/guru.s	/^struc reg,2$/;"	l
 struc	.original/src/kernel/process.s	/^struc CREATE_PROCESS_LVARS$/;"	l
 struc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^struc CREATE_PROCESS_LVARS$/;"	l
 struc	.original/src/kernel/vfs/vfs_base.s	/^struc mount_args$/;"	l
+struc	bootloader/x86/boot1/boot1.s	/^struc boot_info_t$/;"	l
 struc	bootloader/x86/boot1/boot1.s	/^struc mem_des_t$/;"	l
-struc	bootloader/x86/boot1/boot1.s	/^struc mem_info_t$/;"	l
 sys_addRoutine	.original/src/kernel/despatcher.s	/^sys_addRoutine:$/;"	l
 sys_despatcher	.original/src/kernel/despatcher.s	/^sys_despatcher:$/;"	l
 sys_dummy	kernel/x86/kernel.c	/^void sys_dummy()$/;"	f

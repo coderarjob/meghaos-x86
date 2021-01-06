@@ -68,7 +68,7 @@ struc mem_des_t
     .Type          : resd 1
 endstruc
 
-struc mem_info_t
+struc boot_info_t
     .mem_des_count : resw 1
     .mem_des_items : resw mem_des_t_size
 endstruc
@@ -232,7 +232,7 @@ __calc_total_mem:
 .sum: dd 0      ; Stores the 64Bit sum
       dd 0
 
-; Calls __e820 routine, and setup the mem_info_t structure in BOOT_INFO
+; Calls __e820 routine, and setup the boot_info_t structure in BOOT_INFO
 ; segment.
 ; Input:
 ;   None
@@ -242,17 +242,17 @@ __calc_total_mem:
 __get_mem_info:
     
     ; Clears the count
-    mov [es:BOOT_INFO_OFF + mem_info_t.mem_des_count], word 0
+    mov [es:BOOT_INFO_OFF + boot_info_t.mem_des_count], word 0
 
-    ; Fill the mem map in the mem_info_t structure.
+    ; Fill the mem map in the boot_info_t structure.
     mov ax, BOOT_INFO_SEG
     mov es, ax
-    lea di, [BOOT_INFO_OFF + mem_info_t.mem_des_items]
+    lea di, [BOOT_INFO_OFF + boot_info_t.mem_des_items]
     call __e820
 
-    ; Write the returned count in mem_info_t structure
+    ; Write the returned count in boot_info_t structure
     ; NOTE: MOV does not effect any flag. So no need to preserve EFLAGS.
-    mov [es:BOOT_INFO_OFF + mem_info_t.mem_des_count], ax
+    mov [es:BOOT_INFO_OFF + boot_info_t.mem_des_count], ax
 .fin:
     ret
 
