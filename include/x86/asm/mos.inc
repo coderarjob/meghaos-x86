@@ -26,6 +26,11 @@
 
     KSTACK_TOP:     EQU     0x27FFF         ; Stack is 128 KB in size
 
+    BOOT_INFO_SEG:  EQU     0x0000          ; Location of the multiboot_info
+    BOOT_INFO_OFF:  EQU     0x1800          ; structure, as filled by 'boot1'
+
+    MEM_AVL_MIN:    EQU     4 * 1024 * 1024 ; 4 MB RAM required mininum.
+
     ; Filenames
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"

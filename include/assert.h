@@ -14,7 +14,16 @@
 
 #if defined(DEBUG)
 
-/* If expression `t' is false, compiler will generate an error */
+/* If expression `t' is false, compiler will generate an error 
+ *
+ * Note: This workes because an array dimension cannot be negative, which is
+ * what the macro expands to when t == false.
+ *
+ * Note: sizeof(char[!!(t) - 1]) would also have worked, but when t == true, 
+ * the array size will become 0. This gives compiler warning 
+ * 'ISO C forbids zero sized array'. To avoid this warning/error, we multiply 
+ * by 2.
+ */
 #define kstatic_assert(t) ((void)sizeof(char[2*!!(t) - 1]))
 
 /* If assertion `t' is false, call kpanic() and halts. 

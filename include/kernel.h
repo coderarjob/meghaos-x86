@@ -39,6 +39,9 @@
 
 enum printk_types { PK_ONSCREEN };
 
+/* Halts the processor by going into infinite loop */
+#define khalt() for(;;)
+
 /* Used to know the offset of a member in a structure type */
 #define OFFSET_OF(type,member) ((size_t)(&((type *)0)->member))
 

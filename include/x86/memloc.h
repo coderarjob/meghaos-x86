@@ -12,7 +12,9 @@
 #ifndef __MEM_LOC_H__
 #define __MEM_LOC_H__
 
-    #define INTEL_32_GDT_LOCATION   0x0800
-    #define INTEL_32_IDT_LOCATION   0x0000
+    #define INTEL_32_IDT_LOCATION   0x0000 /* 256 entries, 8 bytes each */
+    #define INTEL_32_GDT_LOCATION   0x0800 /* 512 entries, 8 bytes each */
+    #define INTEL_32_KSTACK_TOP     0x27FFF /* Stack grows down from here */
+    #define BOOT_INFO_LOCATION      0x1800
 
 #endif //__MEM_LOC_H__
