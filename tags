@@ -8,6 +8,7 @@ ALT	.original/src/devices/keyboard.s	/^		ALT: EQU 0x10$/;"	d
 ATTRIBUTE	.original/src/devices/vga.s	/^ATTRIBUTE:$/;"	l
 BLACK	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 BLUE	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
+BOOT_INFO_LOCATION	include/x86/memloc.h	18;"	d
 BROWN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 BytesPerSector	.original/src/bootloader/boot.s	/^	BytesPerSector		dw 512		; Bytes per sector$/;"	d
 BytesPerSector	bootloader/x86/boot0/boot.s	/^	BytesPerSector		dw 512		    ; Bytes per sector$/;"	d
@@ -32,18 +33,18 @@ ERR_UNKNOWN	include/errno.h	/^enum {ERR_NONE, ERR_UNKNOWN,ERRNO_COUNT};$/;"	e	en
 EXTENDED	.original/src/devices/keyboard.s	/^		EXTENDED: EQU 0x40$/;"	d
 FileSystem	.original/src/bootloader/boot.s	/^	FileSystem		db "FAT12   "	; File system type: don't change!$/;"	d
 FileSystem	bootloader/x86/boot0/boot.s	/^	FileSystem	        db "FAT12   "	; File system type: don't change!$/;"	d
-GDT_INDEX_KCODE	include/x86/kernel.h	31;"	d
-GDT_INDEX_KDATA	include/x86/kernel.h	35;"	d
-GDT_INDEX_KTSS	include/x86/kernel.h	39;"	d
-GDT_INDEX_UCODE	include/x86/kernel.h	43;"	d
-GDT_INDEX_UDATA	include/x86/kernel.h	47;"	d
-GDT_MAX_COUNT	include/x86/kernel.h	26;"	d
-GDT_MIN_INDEX	include/x86/kernel.h	25;"	d
-GDT_SELECTOR_KCODE	include/x86/kernel.h	32;"	d
-GDT_SELECTOR_KDATA	include/x86/kernel.h	36;"	d
-GDT_SELECTOR_KTSS	include/x86/kernel.h	40;"	d
-GDT_SELECTOR_UCODE	include/x86/kernel.h	44;"	d
-GDT_SELECTOR_UDATA	include/x86/kernel.h	48;"	d
+GDT_INDEX_KCODE	include/x86/kernel.h	33;"	d
+GDT_INDEX_KDATA	include/x86/kernel.h	37;"	d
+GDT_INDEX_KTSS	include/x86/kernel.h	41;"	d
+GDT_INDEX_UCODE	include/x86/kernel.h	45;"	d
+GDT_INDEX_UDATA	include/x86/kernel.h	49;"	d
+GDT_MAX_COUNT	include/x86/kernel.h	28;"	d
+GDT_MIN_INDEX	include/x86/kernel.h	27;"	d
+GDT_SELECTOR_KCODE	include/x86/kernel.h	34;"	d
+GDT_SELECTOR_KDATA	include/x86/kernel.h	38;"	d
+GDT_SELECTOR_KTSS	include/x86/kernel.h	42;"	d
+GDT_SELECTOR_UCODE	include/x86/kernel.h	46;"	d
+GDT_SELECTOR_UDATA	include/x86/kernel.h	50;"	d
 GREEN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
 HeadCount	.original/src/bootloader/boot.s	/^	HeadCount		dw 2		; Number of sides\/heads$/;"	d
 HeadCount	bootloader/x86/boot0/boot.s	/^	HeadCount		    dw 2		    ; Number of sides\/heads$/;"	d
@@ -84,7 +85,7 @@ NumberOfFats	.original/src/bootloader/boot.s	/^	NumberOfFats		db 2		; Number of 
 NumberOfFats	bootloader/x86/boot0/boot.s	/^	NumberOfFats		db 2		    ; Number of copies of the FAT$/;"	d
 OEMLabel	.original/src/bootloader/boot.s	/^	OEMLabel		db "ARJOBOOT"	; Disk label$/;"	d
 OEMLabel	bootloader/x86/boot0/boot.s	/^	OEMLabel		    db "MEGHAOS2"	; Disk label$/;"	d
-OFFSET_OF	include/kernel.h	43;"	d
+OFFSET_OF	include/kernel.h	46;"	d
 OUT_CONFIG	.original/src/kernel/terminal.s	/^OUT_CONFIG: db 1$/;"	d
 OUT_QUEUE	.original/src/kernel/terminal.s	/^OUT_QUEUE:$/;"	l
 PINK	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
@@ -119,10 +120,11 @@ VolumeLabel	bootloader/x86/boot0/boot.s	/^	VolumeLabel	        db "MEGHAOS    ";
 WHITE	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 YELLOW	include/x86/vgatext.h	/^                  PINK, YELLOW, WHITE};$/;"	e	enum:vga_colors
 __ASSERT_H__	include/assert.h	13;"	d
+__BOOT_H__	include/x86/boot.h	13;"	d
 __C99__	include/kernel.h	16;"	d
 __DISPTEXT_H__	include/disp.h	13;"	d
 __ERRORNO_H__	include/errno.h	11;"	d
-__GDT_SELECTOR_FROM_INDEX	include/x86/kernel.h	28;"	d
+__GDT_SELECTOR_FROM_INDEX	include/x86/kernel.h	30;"	d
 __IO_H__	include/io.h	14;"	d
 __KERNEL_H__	include/kernel.h	13;"	d
 __KERNEL_H_x86__	include/x86/kernel.h	17;"	d
@@ -132,8 +134,12 @@ __MEM_LOC_H__	include/x86/memloc.h	13;"	d
 __PORTABLE_TYPES__	include/types.h	14;"	d
 __VGA_TEXT_H__	include/x86/vgatext.h	13;"	d
 __add_module_to_process_list	.original/src/kernel/loader.s	/^__add_module_to_process_list:$/;"	l
+__calc_total_mem	bootloader/x86/boot1/boot1.s	/^__calc_total_mem:$/;"	l
+__display_system_info	kernel/x86/kernel.c	/^void __display_system_info()$/;"	f
+__e820	bootloader/x86/boot1/boot1.s	/^__e820:$/;"	l
 __enable_a20_fast	bootloader/x86/boot1/a20gate.s	/^__enable_a20_fast:$/;"	l
 __enable_a20gate_bios	bootloader/x86/boot1/a20gate.s	/^__enable_a20gate_bios:$/;"	l
+__get_mem_info	bootloader/x86/boot1/boot1.s	/^__get_mem_info:$/;"	l
 __init	.original/src/kernel/kernel.s	/^__init:$/;"	l
 __io_add_notification	.original/src/kernel/io.s	/^__io_add_notification:$/;"	l
 __is_a20gate_enabled	bootloader/x86/boot1/a20gate.s	/^__is_a20gate_enabled:$/;"	l
@@ -160,6 +166,7 @@ __page_dir	kernel/x86/_gas_paging.s	/^__page_dir:$/;"	l
 __page_dir	kernel/x86/paging.s	/^__page_dir:$/;"	l
 __page_table	kernel/x86/_gas_paging.s	/^__page_table:$/;"	l
 __page_table	kernel/x86/paging.s	/^__page_table:$/;"	l
+__printhex	bootloader/x86/boot1/boot1.s	/^__printhex:$/;"	l
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
 __sys_addRoutine	.original/src/kernel/despatcher.s	/^__sys_addRoutine:$/;"	l
 __term_write_vga	.original/src/kernel/terminal.s	/^__term_write_vga:$/;"	l
@@ -186,9 +193,11 @@ _strlen	.original/src/kernel/vfs/vfs_base.s	/^_strlen:$/;"	l
 _vfs_fs_open	.original/src/kernel/vfs/vfs_fs.s	/^_vfs_fs_open:$/;"	l
 a	kernel/x86/kernel.c	/^volatile char *a = (char *)0x0;$/;"	v
 access	kernel/x86/gdt.c	/^    u8 access;$/;"	m	struct:gdt_des	file:
+baseAddr	include/x86/boot.h	/^        u64 baseAddr;$/;"	m	struct:mem_des
 base_high	kernel/x86/gdt.c	/^    u8 base_high;$/;"	m	struct:gdt_des	file:
 base_low	kernel/x86/gdt.c	/^    u16 base_low;$/;"	m	struct:gdt_des	file:
 base_middle	kernel/x86/gdt.c	/^    u8 base_middle;$/;"	m	struct:gdt_des	file:
+boot_info	include/x86/boot.h	/^    struct boot_info$/;"	s
 boot_main	.original/src/bootloader/boot.s	/^boot_main:	$/;"	l
 boot_main	bootloader/x86/boot0/boot.s	/^boot_main:	$/;"	l
 bootfile	.original/src/bootloader/boot.s	/^bootfile: db 'LOADER     '$/;"	d
@@ -201,6 +210,7 @@ callvector	.original/src/kernel/guru.s	/^callvector: dw printhex,copy_to_screen,
 clear	.original/src/kernel/guru.s	/^clear:$/;"	l
 column	kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 copy_to_screen	.original/src/kernel/guru.s	/^copy_to_screen:$/;"	l
+count	include/x86/boot.h	/^        u16 count;$/;"	m	struct:boot_info
 cr3	kernel/x86/tss.c	/^    u32 cr3;$/;"	m	struct:tss	file:
 crt_addr_port	kernel/x86/vgadisp.c	23;"	d	file:
 crt_data_port	kernel/x86/vgadisp.c	24;"	d	file:
@@ -249,6 +259,7 @@ endstruc	.original/src/kernel/guru.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/process.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^endstruc$/;"	l
 endstruc	.original/src/kernel/vfs/vfs_base.s	/^endstruc$/;"	l
+endstruc	bootloader/x86/boot1/boot1.s	/^endstruc$/;"	l
 es	kernel/x86/tss.c	/^    u32 es;$/;"	m	struct:tss	file:
 esi	kernel/x86/tss.c	/^    u32 esi;$/;"	m	struct:tss	file:
 esp	kernel/x86/tss.c	/^    u32 esp;$/;"	m	struct:tss	file:
@@ -312,13 +323,14 @@ iomap_base	kernel/x86/tss.c	/^    u16 iomap_base;$/;"	m	struct:tss	file:
 iret	.original/src/kernel/interrupt.s	/^iret$/;"	l
 iret	bootloader/x86/boot0/boot.s	/^iret$/;"	l
 irq0	.original/src/kernel/interrupt.s	/^irq0:$/;"	l
+items	include/x86/boot.h	/^        struct mem_des items[];$/;"	m	struct:boot_info	typeref:struct:boot_info::mem_des
 jmp	.original/src/kernel/process.s	/^jmp __k_process_switch.process_saved$/;"	l
 jmp	.original/src/kernel/process_registers_in_stack-incomplete.s	/^jmp __k_process_switch.process_saved$/;"	l
 kassert	include/assert.h	31;"	d
 kassert	include/assert.h	37;"	d
 kassert_perror	include/errno.h	22;"	d
 kb_interrupt	.original/src/devices/keyboard.s	/^kb_interrupt:$/;"	l
-kbochs_breakpoint	include/kernel.h	46;"	d
+kbochs_breakpoint	include/kernel.h	49;"	d
 kdisp_init	kernel/x86/vgadisp.c	/^void kdisp_init()$/;"	f
 kdisp_ioctl	kernel/x86/vgadisp.c	/^void kdisp_ioctl(u8 request, ...)$/;"	f
 kdisp_putc	kernel/x86/vgadisp.c	/^void kdisp_putc(char c)$/;"	f
@@ -330,7 +342,7 @@ key	.original/src/devices/keyboard.s	/^key:$/;"	l
 key_codes	.original/src/devices/keyboard.s	/^key_codes:$/;"	l
 kgdt_edit	kernel/x86/gdt.c	/^void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)$/;"	f
 kgdt_write	kernel/x86/gdt.c	/^void kgdt_write()$/;"	f
-khalt	include/x86/kernel.h	51;"	d
+khalt	include/kernel.h	43;"	d
 kidt_edit	kernel/x86/idt.c	/^void kidt_edit(int index, void(*func)() , u16 seg_tss_selector, $/;"	f
 kidt_init	kernel/x86/idt.c	/^void kidt_init()$/;"	f
 kpanic	include/panic.h	17;"	d
@@ -339,6 +351,7 @@ kstatic_assert	include/assert.h	27;"	d
 kstatic_assert	include/assert.h	36;"	d
 ktss_init	kernel/x86/tss.c	/^void ktss_init()$/;"	f
 ldt_seg	kernel/x86/tss.c	/^    u32 ldt_seg;$/;"	m	struct:tss	file:
+length	include/x86/boot.h	/^        u64 length;$/;"	m	struct:mem_des
 limit	kernel/x86/idt.c	/^    u16 limit;$/;"	m	struct:idt_size	file:
 limit_high	kernel/x86/gdt.c	/^    u8 limit_high:4;$/;"	m	struct:gdt_des	file:
 limit_low	kernel/x86/gdt.c	/^    u16 limit_low;$/;"	m	struct:gdt_des	file:
@@ -347,21 +360,24 @@ loadFile	bootloader/x86/boot0/loadFile.s	/^loadFile:$/;"	l
 load_gdt	bootloader/x86/boot1/gdt.s	/^load_gdt:$/;"	l
 location	kernel/x86/gdt.c	/^    u32 location;$/;"	m	struct:gdt_size	file:
 location	kernel/x86/idt.c	/^    u32 location;$/;"	m	struct:idt_size	file:
+mem_des	include/x86/boot.h	/^    struct mem_des$/;"	s
 memcpy	kernel/mem.c	/^void *memcpy(void *dest, const void *src, size_t n)$/;"	f
 memset	kernel/mem.c	/^void *memset(void *s, int c, size_t n)$/;"	f
 modifier_maps	.original/src/devices/keyboard.s	/^modifier_maps:$/;"	l
 mountlist	.original/src/kernel/vfs/vfs.s	/^mountlist: times MAX_MOUNT_POINT_COUNT * mount_point_size db 0$/;"	l
 mountlist_count	.original/src/kernel/vfs/vfs.s	/^mountlist_count: dw 0$/;"	d
-msg_A20	bootloader/x86/boot1/boot1.s	/^msg_A20    : db 13,10,"A20 GATE","... ",0$/;"	l
-msg_GDT	bootloader/x86/boot1/boot1.s	/^msg_GDT    : db 13,10,"GDT","... ",0$/;"	l
-msg_LD_KRNL	bootloader/x86/boot1/boot1.s	/^msg_LD_KRNL: db 13,10,"Loading kernel image","... ",0$/;"	d
-msg_PMODE	bootloader/x86/boot1/boot1.s	/^msg_PMODE  : db 13,10,"Protected Mode","... ",0$/;"	l
-msg_ST_KRNL	bootloader/x86/boot1/boot1.s	/^msg_ST_KRNL: db 13,10,"Starting kernel","... ",0$/;"	d
-msg_failed	bootloader/x86/boot1/boot1.s	/^msg_failed :  db "!",0$/;"	l
+msg_A20	bootloader/x86/boot1/boot1.s	/^msg_A20    : db 13,10,"A20 GATE... ",0$/;"	l
+msg_AVLMEM	bootloader/x86/boot1/boot1.s	/^msg_AVLMEM : db 13,10,"Available memory... ",0$/;"	l
+msg_GDT	bootloader/x86/boot1/boot1.s	/^msg_GDT    : db 13,10,"GDT... ",0$/;"	l
+msg_LD_KRNL	bootloader/x86/boot1/boot1.s	/^msg_LD_KRNL: db 13,10,"Loading kernel image... ",0$/;"	d
+msg_MEMINFO	bootloader/x86/boot1/boot1.s	/^msg_MEMINFO: db 13,10,"BIOS memory info... ",0$/;"	d
+msg_PMODE	bootloader/x86/boot1/boot1.s	/^msg_PMODE  : db 13,10,"Protected Mode... ",0$/;"	l
+msg_ST_KRNL	bootloader/x86/boot1/boot1.s	/^msg_ST_KRNL: db 13,10,"Starting kernel... ",0$/;"	d
+msg_failed	bootloader/x86/boot1/boot1.s	/^msg_failed :  db " !",0$/;"	l
 msg_file_loaded	.original/src/kernel/loader.s	/^msg_file_loaded:    db "   Done",0$/;"	d
 msg_file_not_found	.original/src/kernel/loader.s	/^msg_file_not_found: db "   Not found",0$/;"	d
 msg_loader_welcome	.original/src/kernel/loader.s	/^msg_loader_welcome: db 10,13,10,13$/;"	d
-msg_success	bootloader/x86/boot1/boot1.s	/^msg_success:  db "OK",0$/;"	d
+msg_success	bootloader/x86/boot1/boot1.s	/^msg_success:  db " OK",0$/;"	d
 msg_welcome	bootloader/x86/boot1/boot1.s	/^msg_welcome: db     13,10,OS_NAME,13,10$/;"	d
 offset_high	kernel/x86/idt.c	/^    u16 offset_high;$/;"	m	struct:idt_des	file:
 offset_low	kernel/x86/idt.c	/^    u16 offset_low;$/;"	m	struct:idt_des	file:
@@ -418,6 +434,7 @@ pop	.original/src/kernel/vfs/vfs_main.s	/^	pop di$/;"	d
 pop	.original/src/kernel/vfs/vfs_main.s	/^	pop ds$/;"	d
 pop	.original/src/kernel/vfs/vfs_main.s	/^	pop dx$/;"	d
 pop	bootloader/x86/boot0/loadFile.s	/^	pop ds$/;"	d
+pop	bootloader/x86/boot1/boot1.s	/^    pop di$/;"	d
 prevtask	kernel/x86/tss.c	/^    u32 prevtask;$/;"	m	struct:tss	file:
 printString	.original/src/kernel/loader.s	/^	printString di$/;"	d
 printhex	.original/src/kernel/guru.s	/^printhex:$/;"	l
@@ -466,6 +483,7 @@ push	.original/src/kernel/vfs/vfs_main.s	/^	push di$/;"	d
 push	.original/src/kernel/vfs/vfs_main.s	/^	push ds$/;"	d
 push	.original/src/kernel/vfs/vfs_main.s	/^	push dx$/;"	d
 push	bootloader/x86/boot0/loadFile.s	/^	push ds$/;"	d
+push	bootloader/x86/boot1/boot1.s	/^    push di$/;"	d
 queue_get	.original/src/common/queue.s	/^queue_get:$/;"	l
 queue_put	.original/src/common/queue.s	/^queue_put:$/;"	l
 ret	.original/src/kernel/io.s	/^ret$/;"	l
@@ -498,6 +516,8 @@ struc	.original/src/kernel/guru.s	/^struc reg,2$/;"	l
 struc	.original/src/kernel/process.s	/^struc CREATE_PROCESS_LVARS$/;"	l
 struc	.original/src/kernel/process_registers_in_stack-incomplete.s	/^struc CREATE_PROCESS_LVARS$/;"	l
 struc	.original/src/kernel/vfs/vfs_base.s	/^struc mount_args$/;"	l
+struc	bootloader/x86/boot1/boot1.s	/^struc boot_info_t$/;"	l
+struc	bootloader/x86/boot1/boot1.s	/^struc mem_des_t$/;"	l
 sys_addRoutine	.original/src/kernel/despatcher.s	/^sys_addRoutine:$/;"	l
 sys_despatcher	.original/src/kernel/despatcher.s	/^sys_despatcher:$/;"	l
 sys_dummy	kernel/x86/kernel.c	/^void sys_dummy()$/;"	f
@@ -529,6 +549,7 @@ times	.original/src/kernel/loader.s	/^times 768 - ($-$$) db 0$/;"	l
 trap	kernel/x86/tss.c	/^    u16 trap;$/;"	m	struct:tss	file:
 tss	kernel/x86/tss.c	/^struct tss {$/;"	s	file:
 tss_entry	kernel/x86/tss.c	/^static struct tss tss_entry = {0};$/;"	v	typeref:struct:tss	file:
+type	include/x86/boot.h	/^        u32 type;$/;"	m	struct:mem_des
 type	kernel/x86/idt.c	/^    u8 type:5;$/;"	m	struct:idt_des	file:
 u16	include/x86/types.h	/^    typedef unsigned short u16;$/;"	t
 u32	include/x86/types.h	/^    typedef unsigned int u32;$/;"	t

@@ -20,6 +20,7 @@ void __jump_to_usermode(u32 dataselector,
 void div_zero();
 void sys_dummy();
 void page_fault();
+void __display_system_info();
 
 volatile char *a = (char *)0x0;
 
@@ -27,14 +28,18 @@ __attribute__((noreturn))
 void __kernel_main()
 {
     kdisp_init();
-    printk(PK_ONSCREEN,"\r\nPaging enabled..OK\r\nKernel starting..");
+    printk(PK_ONSCREEN,"\r\nPaging enabled... OK");
+
+    // TSS setup
     ktss_init();
+    printk(PK_ONSCREEN,"\r\nTSS setup... OK");
 
     // Usermode code segment
     kgdt_edit(GDT_INDEX_UCODE, 0, 0xFFFFF, 0xFA, 0xD);
     // Usermode data segment
     kgdt_edit(GDT_INDEX_UDATA, 0, 0xFFFFF, 0xF2, 0xD);
     kgdt_write();
+    printk(PK_ONSCREEN,"\r\nUser mode GDT setup... OK");
 
     // Setup IDT
     kidt_init();
@@ -44,12 +49,30 @@ void __kernel_main()
     kidt_edit(0x40,sys_dummy,GDT_SELECTOR_KCODE,
               IDT_DES_TYPE_32_INTERRUPT_GATE,3);
 
+    printk(PK_ONSCREEN,"\r\nIDT setup... OK");
+
+    // Display available memory
+    __display_system_info();
+
     // Jump to user mode
-    printk(PK_ONSCREEN,"OK\r\nJumping to User mode..");
+    printk(PK_ONSCREEN,"\r\nJumping to User mode..");
     __jump_to_usermode(GDT_SELECTOR_UDATA, 
                        GDT_SELECTOR_UCODE,
                        &usermode_main);
     while(1);
+}
+
+void __display_system_info()
+{
+    struct boot_info *mi = (struct boot_info*)BOOT_INFO_LOCATION;
+    u64 available_memory = 0;
+
+    for(int i = mi->count - 1; i > 0; i--){
+        if (mi->items[i].type == 1) 
+            available_memory += mi->items[i].length;
+    }
+
+    printk(PK_ONSCREEN,"\r\n    Total Memory: %dKB",available_memory/1024);
 }
 
 __attribute__((noreturn))
