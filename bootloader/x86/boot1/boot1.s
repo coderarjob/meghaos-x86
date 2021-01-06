@@ -68,6 +68,11 @@ struc mem_des_t
     .Type          : resd 1
 endstruc
 
+struc mem_info_t
+    .mem_des_count : resw 1
+    .mem_des_items : resw mem_des_t_size
+endstruc
+
 kernel_file: db     KERNEL_FILE
 
 msg_welcome: db     13,10,OS_NAME,13,10
@@ -82,8 +87,8 @@ msg_ST_KRNL: db 13,10,"Starting kernel... ",0
 msg_MEMINFO: db 13,10,"BIOS memory info... ",0
 msg_AVLMEM : db 13,10,"Available memory... ",0
 
-msg_success:  db "OK",0
-msg_failed :  db "!",0
+msg_success:  db " OK",0
+msg_failed :  db " !",0
 
 ; ******************************************************
 ; CODE
@@ -94,25 +99,32 @@ _start:
 
     ; -------- [ Get memory information ] -----------
     printString msg_MEMINFO
-    mov ax, BOOT_INFO_SEG
-    mov es, ax
-    mov di, BOOT_INFO_OFF
-    call __e820
+    call __get_mem_info
     jc .failed
     printString msg_success
-
+    
     ; -------- [ Calculate total usable memory ] -----------
     ; We require at least 4 MB of usable RAM. We HALT if the amount is less.
-
     printString msg_AVLMEM
     ; AX = Entry Count
     ; ES:DI = Pointer to mem_des_t array
     ; Return in EAX:EBX
     call __calc_total_mem
+
+    ; Display the total free memory in hex
+    call __printhex         ; Display HIGH (EAX)
+    push eax                ; Display LOW (EBX)
+        mov eax, ebx
+        call __printhex
+    pop eax
+
+    ; Check if the amount of free memory is >= 4MB
     cmp eax, HIGH(MEM_AVL_MIN,32)                  ; 4 MiB
-    jl .failed
-    cmp ebx, LOW(MEM_AVL_MIN,32)                   ; 4 MiB
-    jl .failed
+    jg .ne1                                        ; HIGH(AVRAM) > HIGH(4MB)
+    jl .failed                                     ; HIGH(AVRAM) < HIGH(4MB)
+    cmp ebx, LOW(MEM_AVL_MIN,32)                   ; HIGH(AVRAM) = HIGH(4MB)
+    jl .failed                                     ; LOW(AVRAM) < LOW(4MB)
+.ne1:                                              ; AVRAM >= 4MB
     printString msg_success
 
     ; -------- [ Load Kernel Image ] -----------
@@ -219,7 +231,31 @@ __calc_total_mem:
 
 .sum: dd 0      ; Stores the 64Bit sum
       dd 0
-;   
+
+; Calls __e820 routine, and setup the mem_info_t structure in BOOT_INFO
+; segment.
+; Input:
+;   None
+; Output:
+;   CR   - 1 (error)
+;   CR   - 0 (no error)
+__get_mem_info:
+    
+    ; Clears the count
+    mov [es:BOOT_INFO_OFF + mem_info_t.mem_des_count], word 0
+
+    ; Fill the mem map in the mem_info_t structure.
+    mov ax, BOOT_INFO_SEG
+    mov es, ax
+    lea di, [BOOT_INFO_OFF + mem_info_t.mem_des_items]
+    call __e820
+
+    ; Write the returned count in mem_info_t structure
+    ; NOTE: MOV does not effect any flag. So no need to preserve EFLAGS.
+    mov [es:BOOT_INFO_OFF + mem_info_t.mem_des_count], ax
+.fin:
+    ret
+
 ; Calls BIOS routine INT 15H (EAX = 0xE820) to get MemoryMap
 ; NOTE: There is not maximum limit of the number of entries that 
 ;       we want in the array. May lead to overwriting/overlaping 
@@ -264,3 +300,27 @@ __e820:
     pop ebx
     ret
 .mem_des_count: dw  1   ; Valid array length
+
+; Prints 32 bit hex, on screen
+; Input:
+;   EAX
+; Output:
+;   None
+__printhex:
+    pushad
+
+    mov ecx, 8
+.next:
+    mov ebx, eax
+    and ebx, 0xF
+    mov bl, [.hexchars + ebx]       ; nibble to hex character.
+    mov [.hexstr + ecx - 1], bl     ; 8th nibble goes to index 7 of .hexstr
+    shr eax, 4
+    loop .next
+
+    printString .hexstr
+    popad
+    ret
+.hexchars: db "0123456789ABCDEF"
+.hexstr: times 9 db 0               ; one extra zero in the end.
+

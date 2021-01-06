@@ -47,8 +47,6 @@ enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5,
 #define GDT_INDEX_UDATA 5
 #define GDT_SELECTOR_UDATA __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_UDATA, 3)
 
-/* Halts the processor by going into infinite loop */
-#define khalt() for(;;)
 
 /* Initializes the tss_entry structure, installs a tss segment in GDT */
 void ktss_init();
