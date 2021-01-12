@@ -67,7 +67,7 @@ void __display_system_info()
     struct boot_info *mi = (struct boot_info*)BOOT_INFO_LOCATION;
     u64 available_memory = 0;
 
-    for(int i = mi->count - 1; i > 0; i--){
+    for(int i = 0; i < mi->count -1; i++){
         if (mi->items[i].type == 1) 
             available_memory += mi->items[i].length;
     }
