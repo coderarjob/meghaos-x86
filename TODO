@@ -24,6 +24,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] Memory detection              - 5th Jan 2021
 [X] Check minumum memory in boo1  - 5th Jan 2021
 [ ] Document TSS for later        - 17th Nov 2020
+[ ] Document BOOTINFO struct      - 3rd Feb 2021
 [ ] Basic keyboard ISQ 
     handler (demo)                - 18th Nov 2020
 [ ] GP handler                    - 16th Nov 2020
