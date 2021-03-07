@@ -13,22 +13,23 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] mem.c                         - 1st  Nov 2020
 [X] TSS                           - 6th  Nov 2020
 [X] Jump to ring 3 (demo)         - 6th  Nov 2020
-[ ] Document TSS for later        - 17th Nov 2020
 [X] IDT (demo)                    - 14th Nov 2020
 [X] System calls demo (demo)      - 14th Nov 2020
-[ ] Basic keyboard ISQ 
-    handler (demo)                - 18th Nov 2020
-[ ] GP handler                    - 16th Nov 2020
 [X] DIV0 handler                  - 17th Nov 2020
 [X] 32Bit Paging                  - 19th Dec 2020
 [X] Identity Paging (demo)        - 19th Dec 2020
 [X] Page fault handler (demo)     - 20th Dec 2020
-[ ] Page fault handler in asm     - 20th Dec 2020
-[ ] Higher half kernel implement  - 22th Dec 2020
 [X] A way to pass information from 
     bootloader to the kernel      - 31st Dec 2020
-[X] Memory detection              - 5th Dec 2021
-[X] Check minumum memory in boo1  - 5th Dec 2021
+[X] Memory detection              - 5th Jan 2021
+[X] Check minumum memory in boo1  - 5th Jan 2021
+[ ] Document TSS for later        - 17th Nov 2020
+[ ] Document BOOTINFO struct      - 3rd Feb 2021
+[ ] Basic keyboard ISQ 
+    handler (demo)                - 18th Nov 2020
+[ ] GP handler                    - 16th Nov 2020
+[ ] Page fault handler in asm     - 26th Jan 2021
+[ ] Higher half kernel implement  - 31st Jan 2021
 
 # BUGS
  

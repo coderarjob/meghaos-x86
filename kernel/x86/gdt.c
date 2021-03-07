@@ -52,6 +52,7 @@ static u16 gdt_count = GDT_MIN_INDEX;
 /* Writes the GDT structure address and length to the GDTR register.  */
 void kgdt_write()
 {
+    /*TODO: BUG: gdt could be used before assignemnt.*/
     volatile struct gdt_size s = {
         .size = sizeof(struct gdt_des) * gdt_count -1,
         .location = (u32)gdt

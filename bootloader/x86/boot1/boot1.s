@@ -232,21 +232,23 @@ __calc_total_mem:
 .sum: dd 0      ; Stores the 64Bit sum
       dd 0
 
-; Calls __e820 routine, and setup the boot_info_t structure in BOOT_INFO
-; segment.
+; Helper routine for the __e820 routine, which sets up the boot_info_t 
+; structure in BOOT_INFO segment.
 ; Input:
 ;   None
 ; Output:
-;   CR   - 1 (error)
-;   CR   - 0 (no error)
+;   ES:DI - Points to the BOOT_INFO structure location.
+;   AX    - Number of entries of entries.
+;   CR    - 1 (error)
+;   CR    - 0 (no error)
 __get_mem_info:
     
     ; Clears the count
+    mov ax, BOOT_INFO_SEG
+    mov es, ax
     mov [es:BOOT_INFO_OFF + boot_info_t.mem_des_count], word 0
 
     ; Fill the mem map in the boot_info_t structure.
-    mov ax, BOOT_INFO_SEG
-    mov es, ax
     lea di, [BOOT_INFO_OFF + boot_info_t.mem_des_items]
     call __e820
 
@@ -257,7 +259,7 @@ __get_mem_info:
     ret
 
 ; Calls BIOS routine INT 15H (EAX = 0xE820) to get MemoryMap
-; NOTE: There is not maximum limit of the number of entries that 
+; NOTE: There is no maximum limit of the number of entries that 
 ;       we want in the array. May lead to overwriting/overlaping 
 ;       when kernel is loaded.
 ; Input: 
