@@ -86,10 +86,10 @@ rm -f $IMAGEDIR/* || exit
 rm -f $LISTDIR/* || exit
 
 # Build the bootloaders
-bash bootloader/x86/build.sh || exit
+bash src/bootloader/x86/build.sh || exit
 
 # Build kernel
-bash kernel/build.sh || exit
+bash src/kernel/build.sh || exit
 
 # Build the floppy image
 echo "    [ Creating disk image ]    "

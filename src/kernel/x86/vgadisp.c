@@ -154,6 +154,9 @@ void kdisp_putc(char c)
         case '\n':
             row++;
             break;
+        case '\t':
+            column += (4 - (column%4));
+            break;
         default:
             index = row * VGA_COLUMNS + column;
             vgab[index] = (text_attr << 8 | c);

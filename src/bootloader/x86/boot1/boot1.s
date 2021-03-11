@@ -79,16 +79,16 @@ msg_welcome: db     13,10,OS_NAME,13,10
              db     "  boot0 : ",BOOT0_BUILD,","
              db     "  boot1 : ",BOOT1_BUILD,0
 
-msg_A20    : db 13,10,"A20 GATE... ",0
-msg_GDT    : db 13,10,"GDT... ",0
-msg_PMODE  : db 13,10,"Protected Mode... ",0
-msg_LD_KRNL: db 13,10,"Loading kernel image... ",0
-msg_ST_KRNL: db 13,10,"Starting kernel... ",0
-msg_MEMINFO: db 13,10,"BIOS memory info... ",0
-msg_AVLMEM : db 13,10,"Available memory... ",0
+msg_A20    : db 13,10,"[  ]    A20 GATE. ",0
+msg_GDT    : db 13,10,"[  ]    GDT. ",0
+msg_PMODE  : db 13,10,"[  ]    Protected Mode. ",0
+msg_LD_KRNL: db 13,10,"[  ]    Loading kernel image. ",0
+msg_ST_KRNL: db 13,10,"[  ]    Starting kernel. ",0
+msg_MEMINFO: db 13,10,"[  ]    BIOS memory info. ",0
+msg_AVLMEM : db 13,10,"[  ]    Available memory. ",0
 
-msg_success:  db " OK",0
-msg_failed :  db " !",0
+msg_success:  db 13,"[OK]",0
+msg_failed :  db 13,"[ER]",0
 
 ; ******************************************************
 ; CODE

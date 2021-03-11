@@ -14,13 +14,13 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-void usermode_main();
+static void usermode_main();
 void __jump_to_usermode(u32 dataselector, 
                         u32 codeselector, void(*user_func)());
-void div_zero();
-void sys_dummy();
-void page_fault();
-void __display_system_info();
+static void div_zero();
+static void sys_dummy();
+static void page_fault();
+static void display_system_info();
 
 volatile char *a = (char *)0x0;
 
@@ -28,20 +28,23 @@ __attribute__((noreturn))
 void __kernel_main()
 {
     kdisp_init();
-    printk(PK_ONSCREEN,"\r\nPaging enabled... OK");
+    printk(PK_ONSCREEN,"\r\n[OK]\tPaging enabled.");
 
     // TSS setup
+    printk(PK_ONSCREEN,"\r\n[  ]\tTSS setup.");
     ktss_init();
-    printk(PK_ONSCREEN,"\r\nTSS setup... OK");
+    printk(PK_ONSCREEN,"\r[OK]");
 
     // Usermode code segment
+    printk(PK_ONSCREEN,"\r\n[  ]\tUser mode GDT setup.");
     kgdt_edit(GDT_INDEX_UCODE, 0, 0xFFFFF, 0xFA, 0xD);
     // Usermode data segment
     kgdt_edit(GDT_INDEX_UDATA, 0, 0xFFFFF, 0xF2, 0xD);
     kgdt_write();
-    printk(PK_ONSCREEN,"\r\nUser mode GDT setup... OK");
+    printk(PK_ONSCREEN,"\r[OK]");
 
     // Setup IDT
+    printk(PK_ONSCREEN,"\r\n[  ]\tIDT setup");
     kidt_init();
     kidt_edit(0,div_zero,GDT_SELECTOR_KCODE,IDT_DES_TYPE_32_INTERRUPT_GATE,0);
     kidt_edit(14,page_fault,GDT_SELECTOR_KCODE, 
@@ -49,20 +52,21 @@ void __kernel_main()
     kidt_edit(0x40,sys_dummy,GDT_SELECTOR_KCODE,
               IDT_DES_TYPE_32_INTERRUPT_GATE,3);
 
-    printk(PK_ONSCREEN,"\r\nIDT setup... OK");
+    printk(PK_ONSCREEN,"\r[OK]");
 
     // Display available memory
-    __display_system_info();
+    display_system_info();
 
     // Jump to user mode
     printk(PK_ONSCREEN,"\r\nJumping to User mode..");
+    kdisp_ioctl(DISP_SETATTR,disp_attr(BLACK,CYAN,0));
     __jump_to_usermode(GDT_SELECTOR_UDATA, 
                        GDT_SELECTOR_UCODE,
                        &usermode_main);
     while(1);
 }
 
-void __display_system_info()
+void display_system_info()
 {
     struct boot_info *mi = (struct boot_info*)BOOT_INFO_LOCATION;
     u64 available_memory = 0;
@@ -72,7 +76,7 @@ void __display_system_info()
             available_memory += mi->items[i].length;
     }
 
-    printk(PK_ONSCREEN,"\r\n    Total Memory: %dKB",available_memory/1024);
+    printk(PK_ONSCREEN,"\r\nTotal Memory: %d KiB",available_memory/1024);
 }
 
 __attribute__((noreturn))
@@ -95,6 +99,7 @@ void page_fault()
 
 void sys_dummy()
 {
+    printk(PK_ONSCREEN,"\r\nInside sys_dummy routine..");
     outb(0x80,4);
 }
 
@@ -106,6 +111,8 @@ void div_zero()
 
 void usermode_main()
 {
+    __asm__ volatile ("int 0x40");
+
     printk(PK_ONSCREEN,"\r\nInside usermode..");
     printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
                         45789,
