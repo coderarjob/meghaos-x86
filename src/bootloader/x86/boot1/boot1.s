@@ -48,7 +48,7 @@
 %endmacro
 
 %define HIGH(x,b) ((x)>>(b))
-%define LOW(x,b) ((x) & (x^b-1))
+%define LOW(x,b) ((x) & ((1<<b)-1))
 
 ; ******************************************************
 ; INCLUDE FILES
@@ -119,11 +119,13 @@ _start:
     pop eax
 
     ; Check if the amount of free memory is >= 4MB
+    ; NOTE: We need to use unsigned JMP instructions.
+    xchg bx, bx
     cmp eax, HIGH(MEM_AVL_MIN,32)                  ; 4 MiB
-    jg .ne1                                        ; HIGH(AVRAM) > HIGH(4MB)
-    jl .failed                                     ; HIGH(AVRAM) < HIGH(4MB)
+    ja .ne1                                        ; HIGH(AVRAM) > HIGH(4MB)
+    jb .failed                                     ; HIGH(AVRAM) < HIGH(4MB)
     cmp ebx, LOW(MEM_AVL_MIN,32)                   ; HIGH(AVRAM) = HIGH(4MB)
-    jl .failed                                     ; LOW(AVRAM) < LOW(4MB)
+    jb .failed                                     ; LOW(AVRAM) < LOW(4MB)
 .ne1:                                              ; AVRAM >= 4MB
     printString msg_success
 

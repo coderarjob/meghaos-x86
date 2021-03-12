@@ -14,8 +14,8 @@ BytesPerSector	.original/src/bootloader/boot.s	/^	BytesPerSector		dw 512		; Byte
 BytesPerSector	src/bootloader/x86/boot0/boot.s	/^	BytesPerSector		dw 512		    ; Bytes per sector$/;"	d
 CAPS	.original/src/devices/keyboard.s	/^		CAPS: EQU 0x2$/;"	d
 CAPS_LED	.original/src/devices/keyboard.s	/^		CAPS_LED: EQU 0x4$/;"	d
-CRTC_BLINK_ENABLED	src/kernel/x86/vgadisp.c	20;"	d	file:
-CRTC_IOAS_SET	src/kernel/x86/vgadisp.c	21;"	d	file:
+CRTC_BLINK_ENABLED	src/kernel/x86/vgadisp.c	21;"	d	file:
+CRTC_IOAS_SET	src/kernel/x86/vgadisp.c	22;"	d	file:
 CTRL	.original/src/devices/keyboard.s	/^		CTRL: EQU 0x8$/;"	d
 CURSOR	.original/src/devices/vga.s	/^CURSOR:$/;"	l
 CYAN	include/x86/vgatext.h	/^enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, $/;"	e	enum:vga_colors
@@ -110,9 +110,10 @@ SectorsPerTrack	.original/src/bootloader/boot.s	/^	SectorsPerTrack		dw 18		; Sec
 SectorsPerTrack	src/bootloader/x86/boot0/boot.s	/^	SectorsPerTrack		dw 18		    ; Sectors per track (36\/cylinder)$/;"	d
 Signature	.original/src/bootloader/boot.s	/^	Signature		db 41		; Drive signature: 41 for floppy$/;"	d
 Signature	src/bootloader/x86/boot0/boot.s	/^	Signature	        db 41		    ; Drive signature: 41 for floppy$/;"	d
-VGA_COLUMNS	src/kernel/x86/vgadisp.c	16;"	d	file:
-VGA_MAX_INDEX	src/kernel/x86/vgadisp.c	18;"	d	file:
-VGA_ROWS	src/kernel/x86/vgadisp.c	17;"	d	file:
+TABSTOP	src/kernel/x86/vgadisp.c	16;"	d	file:
+VGA_COLUMNS	src/kernel/x86/vgadisp.c	17;"	d	file:
+VGA_MAX_INDEX	src/kernel/x86/vgadisp.c	19;"	d	file:
+VGA_ROWS	src/kernel/x86/vgadisp.c	18;"	d	file:
 VolumeID	.original/src/bootloader/boot.s	/^	VolumeID		dd 00000000h	; Volume ID: any number$/;"	d
 VolumeID	src/bootloader/x86/boot0/boot.s	/^	VolumeID	        dd 00000000h	; Volume ID: any number$/;"	d
 VolumeLabel	.original/src/bootloader/boot.s	/^	VolumeLabel		db "ARJOBOS    "; Volume Label: any 11 chars$/;"	d
@@ -157,13 +158,10 @@ __k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^
 __k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
 __k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
 __k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
-__kernel_entry	src/kernel/x86/_gas_paging.s	/^__kernel_entry:$/;"	l
 __kernel_entry	src/kernel/x86/paging.s	/^__kernel_entry:$/;"	l
 __kernel_main	src/kernel/x86/kernel.c	/^void __kernel_main()$/;"	f
 __kpanic	src/kernel/kpanic.c	/^void __kpanic(const char *s,...)$/;"	f
-__page_dir	src/kernel/x86/_gas_paging.s	/^__page_dir:$/;"	l
 __page_dir	src/kernel/x86/paging.s	/^__page_dir:$/;"	l
-__page_table	src/kernel/x86/_gas_paging.s	/^__page_table:$/;"	l
 __page_table	src/kernel/x86/paging.s	/^__page_table:$/;"	l
 __printhex	src/bootloader/x86/boot1/boot1.s	/^__printhex:$/;"	l
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
@@ -211,10 +209,10 @@ column	src/kernel/x86/vgadisp.c	/^static u8 row, column,$/;"	v	file:
 copy_to_screen	.original/src/kernel/guru.s	/^copy_to_screen:$/;"	l
 count	include/x86/boot.h	/^        u16 count;$/;"	m	struct:boot_info
 cr3	src/kernel/x86/tss.c	/^    u32 cr3;$/;"	m	struct:tss	file:
-crt_addr_port	src/kernel/x86/vgadisp.c	23;"	d	file:
-crt_data_port	src/kernel/x86/vgadisp.c	24;"	d	file:
-crt_read	src/kernel/x86/vgadisp.c	25;"	d	file:
-crt_write	src/kernel/x86/vgadisp.c	26;"	d	file:
+crt_addr_port	src/kernel/x86/vgadisp.c	24;"	d	file:
+crt_data_port	src/kernel/x86/vgadisp.c	25;"	d	file:
+crt_read	src/kernel/x86/vgadisp.c	26;"	d	file:
+crt_write	src/kernel/x86/vgadisp.c	27;"	d	file:
 crtc_flags	src/kernel/x86/vgadisp.c	/^          crtc_flags, $/;"	v	file:
 cs	src/kernel/x86/tss.c	/^    u32 cs;$/;"	m	struct:tss	file:
 csh	.original/src/common/readsector.s	/^csh:$/;"	l
@@ -284,9 +282,7 @@ fileremsize	src/bootloader/x86/boot0/loadFile.s	/^fileremsize	resw 	1 ; even tho
 filesector	.original/src/bootloader/loadFile.s	/^filesector:	resw 	1$/;"	l
 filesector	src/bootloader/x86/boot0/loadFile.s	/^filesector:	resw 	1$/;"	l
 fileslist	.original/src/kernel/vfs/vfs.s	/^fileslist: times MAX_OPEN_FILES_COUNT * file_size db 0$/;"	l
-fill_pd	src/kernel/x86/_gas_paging.s	/^fill_pd:$/;"	l
 fill_pd	src/kernel/x86/paging.s	/^fill_pd:$/;"	l
-fill_pt	src/kernel/x86/_gas_paging.s	/^fill_pt:$/;"	l
 fill_pt	src/kernel/x86/paging.s	/^fill_pt:$/;"	l
 flags	src/kernel/x86/gdt.c	/^    u8 flags     :4;$/;"	m	struct:gdt_des	file:
 friendly_filenames	.original/src/kernel/loader.s	/^friendly_filenames: db 10,13," guru.mod   ",0$/;"	d
