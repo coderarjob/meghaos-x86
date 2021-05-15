@@ -158,10 +158,13 @@ __k_process_save	.original/src/kernel/process_registers_in_stack-incomplete.s	/^
 __k_process_switch	.original/src/kernel/process.s	/^__k_process_switch:$/;"	l
 __k_process_switch	.original/src/kernel/process_registers_in_stack-incomplete.s	/^__k_process_switch:$/;"	l
 __k_setlasterror	.original/src/kernel/kernel.s	/^__k_setlasterror:$/;"	l
+__kernel_entry	src/kernel/x86/_gas_paging.s	/^__kernel_entry:$/;"	l
 __kernel_entry	src/kernel/x86/paging.s	/^__kernel_entry:$/;"	l
 __kernel_main	src/kernel/x86/kernel.c	/^void __kernel_main()$/;"	f
 __kpanic	src/kernel/kpanic.c	/^void __kpanic(const char *s,...)$/;"	f
+__page_dir	src/kernel/x86/_gas_paging.s	/^__page_dir:$/;"	l
 __page_dir	src/kernel/x86/paging.s	/^__page_dir:$/;"	l
+__page_table	src/kernel/x86/_gas_paging.s	/^__page_table:$/;"	l
 __page_table	src/kernel/x86/paging.s	/^__page_table:$/;"	l
 __printhex	src/bootloader/x86/boot1/boot1.s	/^__printhex:$/;"	l
 __set_cursor_location	.original/src/devices/vga.s	/^__set_cursor_location:$/;"	l
@@ -188,7 +191,7 @@ _str_indexof	.original/src/kernel/vfs/vfs_main.s	/^_str_indexof:		$/;"	l
 _str_is_equal	.original/src/kernel/vfs/vfs_base.s	/^_str_is_equal:$/;"	l
 _strlen	.original/src/kernel/vfs/vfs_base.s	/^_strlen:$/;"	l
 _vfs_fs_open	.original/src/kernel/vfs/vfs_fs.s	/^_vfs_fs_open:$/;"	l
-a	src/kernel/x86/kernel.c	/^volatile char *a = (char *)0x0;$/;"	v
+a	src/kernel/x86/kernel.c	/^volatile char *a = (char *)0x400000;$/;"	v
 access	src/kernel/x86/gdt.c	/^    u8 access;$/;"	m	struct:gdt_des	file:
 baseAddr	include/x86/boot.h	/^        u64 baseAddr;$/;"	m	struct:mem_des
 base_high	src/kernel/x86/gdt.c	/^    u8 base_high;$/;"	m	struct:gdt_des	file:
@@ -275,6 +278,7 @@ failed_file_not_found	.original/src/kernel/loader.s	/^failed_file_not_found:$/;"
 failed_file_not_found	src/bootloader/x86/boot0/boot.s	/^failed_file_not_found:$/;"	l
 fat_files	.original/src/kernel/loader.s	/^fat_files:   $/;"	l
 fatal_error	.original/src/kernel/loader.s	/^fatal_error:	    db "Cannot continue. Fatal error.",0$/;"	d
+fault_gp	src/kernel/x86/kernel.c	/^void fault_gp()$/;"	f
 filenotfoundstr	.original/src/bootloader/boot.s	/^filenotfoundstr: db      'LD',0$/;"	d
 filenotfoundstr	src/bootloader/x86/boot0/boot.s	/^filenotfoundstr: db  'F',0$/;"	d
 fileremsize	.original/src/bootloader/loadFile.s	/^fileremsize	resw 	1 ; even though the file size in FAT12 is 32 bits, we$/;"	l
@@ -282,7 +286,9 @@ fileremsize	src/bootloader/x86/boot0/loadFile.s	/^fileremsize	resw 	1 ; even tho
 filesector	.original/src/bootloader/loadFile.s	/^filesector:	resw 	1$/;"	l
 filesector	src/bootloader/x86/boot0/loadFile.s	/^filesector:	resw 	1$/;"	l
 fileslist	.original/src/kernel/vfs/vfs.s	/^fileslist: times MAX_OPEN_FILES_COUNT * file_size db 0$/;"	l
+fill_pd	src/kernel/x86/_gas_paging.s	/^fill_pd:$/;"	l
 fill_pd	src/kernel/x86/paging.s	/^fill_pd:$/;"	l
+fill_pt	src/kernel/x86/_gas_paging.s	/^fill_pt:$/;"	l
 fill_pt	src/kernel/x86/paging.s	/^fill_pt:$/;"	l
 flags	src/kernel/x86/gdt.c	/^    u8 flags     :4;$/;"	m	struct:gdt_des	file:
 friendly_filenames	.original/src/kernel/loader.s	/^friendly_filenames: db 10,13," guru.mod   ",0$/;"	d

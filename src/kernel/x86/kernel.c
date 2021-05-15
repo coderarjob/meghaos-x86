@@ -19,10 +19,13 @@ void __jump_to_usermode(u32 dataselector,
                         u32 codeselector, void(*user_func)());
 static void div_zero();
 static void sys_dummy();
+static void fault_gp();
 static void page_fault();
 static void display_system_info();
 
-volatile char *a = (char *)0x0;
+/* Only the first 4 MB (0x0000 to 0x3FFFFF) is currently mapped.
+ * So accessing 0x400000, causes page fault*/
+volatile char *a = (char *)0x400000;
 
 __attribute__((noreturn)) 
 void __kernel_main()
@@ -46,8 +49,11 @@ void __kernel_main()
     // Setup IDT
     printk(PK_ONSCREEN,"\r\n[  ]\tIDT setup");
     kidt_init();
-    kidt_edit(0,div_zero,GDT_SELECTOR_KCODE,IDT_DES_TYPE_32_INTERRUPT_GATE,0);
+    kidt_edit(0,div_zero,GDT_SELECTOR_KCODE,
+              IDT_DES_TYPE_32_INTERRUPT_GATE,0);
     kidt_edit(14,page_fault,GDT_SELECTOR_KCODE, 
+              IDT_DES_TYPE_32_INTERRUPT_GATE,0);
+    kidt_edit(13,fault_gp,GDT_SELECTOR_KCODE, 
               IDT_DES_TYPE_32_INTERRUPT_GATE,0);
     kidt_edit(0x40,sys_dummy,GDT_SELECTOR_KCODE,
               IDT_DES_TYPE_32_INTERRUPT_GATE,3);
@@ -72,6 +78,9 @@ void display_system_info()
     u64 available_memory = 0;
 
     for(int i = 0; i < mi->count; i++){
+        /*printk(PK_ONSCREEN, 
+                "\r\n* map: Start = %x, Length = %x, Type = %d",
+                mi->items[i].baseAddr, mi->items[i].length, mi->items[i].type);*/
         if (mi->items[i].type == 1) 
             available_memory += mi->items[i].length;
     }
@@ -93,6 +102,7 @@ void page_fault()
     __asm__ volatile ("mov %%eax, [%%esp+0x24]\r\n"
                       "mov %0, %%eax":"=m"(errorcode)::"eax");
     __asm__ volatile ("mov %0, %%cr2":"=r"(fault_addr));
+
     kpanic("Page fault when accessing address 0x%x (error: 0x%x)",
             fault_addr,errorcode);
 }
@@ -101,6 +111,13 @@ void sys_dummy()
 {
     printk(PK_ONSCREEN,"\r\nInside sys_dummy routine..");
     outb(0x80,4);
+    // Needs to IRET not RET
+}
+
+__attribute__((noreturn))
+void fault_gp()
+{
+    kpanic("%s","General protection fault."); 
 }
 
 __attribute__((noreturn))
@@ -111,7 +128,7 @@ void div_zero()
 
 void usermode_main()
 {
-    __asm__ volatile ("int 0x40");
+    //__asm__ volatile ("int 0x40");
 
     printk(PK_ONSCREEN,"\r\nInside usermode..");
     printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
@@ -119,7 +136,11 @@ void usermode_main()
                         0xcafeefe,
                         02760,
                         "Hello Arjob");
+    u64 var = 0xCF010203040506FF;   
+    printk(PK_ONSCREEN,"\r\n%x",var);
 
+    outb(0x60,'B');
+    //kassert(("Nonsense error",1<0),"Nonsense");
     *a = 0;    
 
     while(1);
