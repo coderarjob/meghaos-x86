@@ -36,3 +36,6 @@ $GCC32 -S src/kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst  || exit
 
 $GCC32 -c src/kernel/x86/idt.c -o $K_OBJDIR/x86_idt.o   || exit
 $GCC32 -S src/kernel/x86/idt.c -o $LISTDIR/x86_idt.lst || exit
+
+$GCC32 -c src/kernel/x86/kdebug.c -o $K_OBJDIR/x86_kdebug.o   || exit
+$GCC32 -S src/kernel/x86/kdebug.c -o $LISTDIR/x86_kdebug.lst || exit

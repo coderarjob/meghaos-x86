@@ -30,6 +30,9 @@ volatile char *a = (char *)0x400000;
 __attribute__((noreturn)) 
 void __kernel_main()
 {
+    printk(PK_DEBUG,"Kernel is stating\r\n");
+    printk(PK_DEBUG,"Hang in there pal\r\n");
+
     kdisp_init();
     printk(PK_ONSCREEN,"\r\n[OK]\tPaging enabled.");
 
@@ -77,10 +80,12 @@ void display_system_info()
     struct boot_info *mi = (struct boot_info*)BOOT_INFO_LOCATION;
     u64 available_memory = 0;
 
+    printk(PK_DEBUG,"Boot info structure:");
     for(int i = 0; i < mi->count; i++){
-        /*printk(PK_ONSCREEN, 
+        printk(PK_DEBUG,
                 "\r\n* map: Start = %x, Length = %x, Type = %d",
-                mi->items[i].baseAddr, mi->items[i].length, mi->items[i].type);*/
+                mi->items[i].baseAddr, mi->items[i].length, mi->items[i].type);
+
         if (mi->items[i].type == 1) 
             available_memory += mi->items[i].length;
     }

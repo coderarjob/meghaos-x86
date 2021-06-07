@@ -14,60 +14,80 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-static void pnum_base(u32 num, u32 base);
-static void pstring(const char *s);
+// I could not simplly print to port E9 everytime printf is called. That way the messages will always be printed
+// on screen but only displayed to console if DEBUG is set. Only way to disable printing to screen is to delete
+// the printk statements.
+// Because of the above problem, and to have better control which message is printed where, I have two separate
+// 'destinations' one vga and another debug.
+// Note that the kdisp_* and kdebug_* functions can have different implementations based on the target architecure
+// or debug environment. But the implementation of vprintk and printk should not change.
+struct kconsole_operations{
+    void (*ioctl)(u8 request, ...);
+    void (*init)();
+    void (*putc)(char c);
+};
+
+struct kconsole_operations conop[] = {
+    {
+        .ioctl = kdisp_ioctl,
+        .init  = kdisp_init,
+        .putc = kdisp_putc
+    },
+    {
+        .putc = kdebug_putc
+    },
+};
+
+static void pnum_base(struct kconsole_operations*, u32 num, u32 base);
+static void pstring(struct kconsole_operations*, const char *s);
 
 void printk(u8 type, const char *fmt, ...)
 {
+    // Print to debug cnsole only if DEBUG macro is set.
+    #ifndef DEBUG
+        if (type == PK_DEBUG) return;
+    #endif
+
     va_list list;               
     va_start (list, fmt);
-    
-    switch(type)
-    {
-        case PK_ONSCREEN:
-            vprintk(fmt, list);
-            break;
-        default:
-            kassert(0,"Invalid type in printk");
-            break;
-    }
-
+    vprintk(type, fmt, list);
     va_end(list);
 }
 
 /* Prints formatted on screen at the cursor location.*/
-void vprintk(const char *fmt, va_list list)
+void vprintk(u8 type, const char *fmt, va_list list)
 {
+    struct kconsole_operations *cop = &conop[type];
+
     int d;                   // Compiler always infers numeric literial as int,
                              // until 'L', 'LL', etc override is provided.
     const char *s;
-
     for (const char *c = fmt;*c ; c++)
     {
         if (*c == '%') {
             switch (*++c) {
                 case '%':
-                    kdisp_putc('%');
+                    cop->putc('%');
                     break;
                 case 'x':
                     d = va_arg(list,int);
-                    pnum_base(d,16);
+                    pnum_base(cop,d,16);
                     break;
                 case 'd':
                     d = va_arg(list,int);
-                    pnum_base(d,10);
+                    pnum_base(cop,d,10);
                     break;
                 case 'o':
                     d = va_arg(list,int);
-                    pnum_base(d,8);
+                    pnum_base(cop,d,8);
                     break;
                 case 'b':
                     d = va_arg(list,int);
-                    pnum_base(d,2);
+                    pnum_base(cop,d,2);
                     break;
                 case 's':
                     s = va_arg(list,char *);
-                    pstring(s);
+                    pstring(cop,s);
                     break;
                 default:
                     // No need to show any error.
@@ -77,12 +97,13 @@ void vprintk(const char *fmt, va_list list)
             continue;
         }
 
-        kdisp_putc(*c);
+        cop->putc(*c);
     }
 }
 
 /* Displays a 32 bit number in various representation on the screen.  */
-static void pnum_base(u32 num, u32 base)
+static void pnum_base(struct kconsole_operations *cop, 
+                      u32 num, u32 base)
 {
     char *chars = "0123456789ABCDEF";
     
@@ -97,11 +118,11 @@ static void pnum_base(u32 num, u32 base)
 
     // Display the characters in output in reverse order.
     while(i--)
-        kdisp_putc(output[i]);
+        cop->putc(output[i]);
 }
 
-static void pstring(const char *s)
+static void pstring(struct kconsole_operations *cop, const char *s)
 {
     for(;*s;s++)
-        kdisp_putc(*s);
+        cop->putc(*s);
 }

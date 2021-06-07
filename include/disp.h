@@ -12,6 +12,7 @@
 #ifndef __DISPTEXT_H__
 #define __DISPTEXT_H__
 
+#include <types.h>
 
 #ifdef __i386__
     #include <x86/vgatext.h>

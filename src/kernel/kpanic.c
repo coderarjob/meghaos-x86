@@ -19,7 +19,7 @@ void __kpanic(const char *s,...)
 
     kdisp_ioctl(DISP_SETATTR, disp_attr(RED,WHITE,0));
     printk(PK_ONSCREEN,"\r\nKernel Panic!\n\r");
-    vprintk(s,l);
+    vprintk(PK_ONSCREEN, s,l);
     va_end(l);
 
     khalt();
