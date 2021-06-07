@@ -13,22 +13,44 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] mem.c                         - 1st  Nov 2020
 [X] TSS                           - 6th  Nov 2020
 [X] Jump to ring 3 (demo)         - 6th  Nov 2020
-[ ] Document TSS for later        - 17th Nov 2020
 [X] IDT (demo)                    - 14th Nov 2020
 [X] System calls demo (demo)      - 14th Nov 2020
-[ ] Basic keyboard ISQ 
-    handler (demo)                - 18th Nov 2020
-[ ] GP handler                    - 16th Nov 2020
 [X] DIV0 handler                  - 17th Nov 2020
 [X] 32Bit Paging                  - 19th Dec 2020
 [X] Identity Paging (demo)        - 19th Dec 2020
 [X] Page fault handler (demo)     - 20th Dec 2020
-[ ] Page fault handler in asm     - 20th Dec 2020
-[ ] Higher half kernel implement  - 22th Dec 2020
 [X] A way to pass information from 
     bootloader to the kernel      - 31st Dec 2020
-[X] Memory detection              - 5th Dec 2021
-[X] Check minumum memory in boo1  - 5th Dec 2021
+[X] Memory detection              - 5th Jan 2021
+[X] Check minumum memory in boo1  - 5th Jan 2021
+[ ] Document TSS for later        - 17th Nov 2020
+[ ] Document BOOTINFO struct      - 3rd Feb 2021
+[ ] Basic keyboard ISQ 
+    handler (demo)                - 18th Nov 2020
+[ ] GP handler                    - 16th Nov 2020
+[ ] Page fault handler in asm     - 26th Jan 2021
+[ ] Higher half kernel implement  - 31st Jan 2021
+[ ] RAMDISK (INITRD.0) creation 
+    in build.sh
+[ ] BOOT1 to load KLDR 
+    (kernel loader) and INITRD.0
+[ ] 
+# LONG TERM PLANS
+
+## 1. USE UEFI TOGETHER WITH LEGACY BIOS.
+[ ] `LoadFile` routine in `boot0` to read from FAT32 not FAT12. 
+    This is needed becuase UEFI boot disks must be formated in FAT32.
+[ ] (Optional) A seek(..) type routine, so that we can load different parts of 
+    file to memory. This comes handy to load the 
+    INITRD (which could be > 64 KB). 
+    
+    This is optional becuase we can live without this routine, if we split our 
+    INTRD in two parts. 1st part is smallest, which is loaded by `boo1`, it 
+    contains the kernel and rest of the initial part of the OS. The rest will 
+    be lumped together in the 2nd INITRD file.
+
+    NOTE: Seek need not be a separate routine, we can just implement it inside 
+    the `LoadFile` routine, and take a `start` location as argument.
 
 # BUGS
  

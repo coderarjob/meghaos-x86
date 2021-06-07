@@ -13,6 +13,7 @@
 #include <kernel.h>
 #include <stdarg.h>
 
+#define TABSTOP     4
 #define VGA_COLUMNS 80
 #define VGA_ROWS    25
 #define VGA_MAX_INDEX (VGA_COLUMNS * VGA_ROWS -1)
@@ -153,6 +154,9 @@ void kdisp_putc(char c)
             break;
         case '\n':
             row++;
+            break;
+        case '\t':
+            column += (TABSTOP - (column % TABSTOP));
             break;
         default:
             index = row * VGA_COLUMNS + column;

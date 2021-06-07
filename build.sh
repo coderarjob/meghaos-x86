@@ -1,9 +1,10 @@
 #!/bin/bash
 
 export ARCH=x86
-if [ $# -ge 1 ]; then
-    ARCH=$1
-fi
+export DEBUG=DEBUG
+
+if [ $# -ge 1 ]; then ARCH=$1; fi
+if [ $# -ge 2 ]; then DEBUG=$2; fi
 
 export TEMPDIR="build/temp"
 export OBJDIR="build/obj"
@@ -46,13 +47,14 @@ export GCC32="i686-elf-gcc -std=c99\
               -m32 \
               -march=i386 \
               -masm=intel \
+              -mno-red-zone \
               -Wpedantic \
               -Wpadded \
               -Wextra \
               -Wall \
               $GCC_INCPATH \
               -O1 -fno-unit-at-a-time \
-              -D DEBUG "
+              -D $DEBUG"
 
 export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
 export OBJCOPY="i686-elf-objcopy"
@@ -86,10 +88,10 @@ rm -f $IMAGEDIR/* || exit
 rm -f $LISTDIR/* || exit
 
 # Build the bootloaders
-bash bootloader/x86/build.sh || exit
+bash src/bootloader/x86/build.sh || exit
 
 # Build kernel
-bash kernel/build.sh || exit
+bash src/kernel/build.sh || exit
 
 # Build the floppy image
 echo "    [ Creating disk image ]    "
