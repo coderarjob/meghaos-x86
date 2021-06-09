@@ -15,11 +15,6 @@
 
 #include <types.h>
 
-enum kdebug_ioctl {KDEBUG_SETATTR};
-
-/* Display ioctrl */
-void kdebug_ioctl(u8 request, ...);
-
 /* Prints an ASCII character based on kdebug_putc implementation.
  * When debugging with Qemu, default implementation is to output
  * to 0xE9 port.
