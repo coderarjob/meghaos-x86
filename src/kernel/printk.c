@@ -14,13 +14,14 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-enum _type_modifiers {
+typedef enum type_modifiers_tag {
     INT, LONG, LONG_LONG
-}; 
+} type_modifiers_t; 
 
-enum _processing_states{
-    FLAGS,WIDTH,PRECISION,TYPE,CONVERTION,LITERAL,ERROR,COMPLETED
-}; 
+typedef enum processing_states_tag{
+    TYPE,CONVERTION,LITERAL,ERROR, EXIT
+} processing_states_t; 
+
 
 // I could not simplly print to port E9 everytime printf is called. That way 
 // the messages will always be printed on screen but only displayed to console 
@@ -37,16 +38,20 @@ static struct kconsole_operations{
     { .putc = kdebug_putc }
 };
 
+typedef struct pf_tag{
+    struct kconsole_operations *cop;
+    type_modifiers_t type_mod;
+    const char *fmt;
+    const char *p;
+    va_list *list;
+} pf_t;
+
 static void pnum_base(struct kconsole_operations*, u64 num, u32 base);
 static void pstring(struct kconsole_operations*, const char *s);
-static u64 _get_int_arg(va_list *list, enum _type_modifiers type_modifier);
+static u64 _get_int_arg(va_list *list, type_modifiers_t type_modifier);
 
 void printk(u8 type, const char *fmt, ...)
 {
-    // Print to debug cnsole only if DEBUG macro is set.
-    #ifndef DEBUG
-        if (type == PK_DEBUG) return;
-    #endif
 
     va_list list;               
     va_start (list, fmt);
@@ -54,104 +59,128 @@ void printk(u8 type, const char *fmt, ...)
     va_end(list);
 }
 
-static enum _processing_states 
-_convertion_processing(struct kconsole_operations *cop, 
-                              enum _type_modifiers type_mod,
-                              const char *template, va_list *list)
+static processing_states_t _convertion(pf_t *pf) 
 {
     u64 d;
     char *s;
+    
+    const char c = *pf->fmt;
 
-    switch(*template){
+    switch(c){
         case 'x':
-            d = _get_int_arg(list,type_mod);
-            pnum_base(cop,d,16);
+            d = _get_int_arg(pf->list,pf->type_mod);
+            pnum_base(pf->cop,d,16);
             break;
         case 'd':
-            d = _get_int_arg(list,type_mod);
-            pnum_base(cop,d,10);
+            d = _get_int_arg(pf->list,pf->type_mod);
+            pnum_base(pf->cop,d,10);
             break;
         case 'o':
-            d = _get_int_arg(list,type_mod);
-            pnum_base(cop,d,8);
+            d = _get_int_arg(pf->list,pf->type_mod);
+            pnum_base(pf->cop,d,8);
             break;
         case 'b':
-            d = _get_int_arg(list,type_mod);
-            pnum_base(cop,d,2);
+            d = _get_int_arg(pf->list,pf->type_mod);
+            pnum_base(pf->cop,d,2);
             break;
         case 's':
-            s = va_arg(*list,char *);
-            pstring(cop,s);
+            s = va_arg(*pf->list,char *);
+            pstring(pf->cop,s);
             break;
         case '%':
-            cop->putc('%');
+            pf->cop->putc('%');
             break;
         default:
             return ERROR;
             break;
     } 
 
-    return COMPLETED;
+    pf->fmt++;
+    return LITERAL;
 }
 
-static enum _processing_states 
-_type_processing(const char *template, enum _type_modifiers *tmod)
+static processing_states_t _type(pf_t *pf)
 {
-    switch(*template){
+    const char c = *pf->fmt;
+    if (c != 'l')
+        return CONVERTION;
+
+    if (pf->type_mod == LONG_LONG)
+        return ERROR;
+
+    pf->type_mod = (pf->type_mod == LONG)?LONG_LONG:LONG;
+    pf->fmt++;
+    return TYPE;
+}
+
+static processing_states_t _litetal(pf_t *pf)
+{
+    const char c = *pf->fmt;
+    switch(c)
+    {
         case '%':
+            pf->p = pf->fmt++;
+            pf->type_mod = INT;
+            return TYPE;
             break;
-        case 'l':
-            *tmod = (*tmod == LONG) ? LONG_LONG: LONG;
+        case '\0':
+            return EXIT;
             break;
         default:
-            return CONVERTION;
+            pf->cop->putc(c);
+            pf->fmt++;
+            break;
     }
-
-    return TYPE;
+    return LITERAL;
 }
 
 /* Prints formatted on screen at the cursor location.*/
 void vprintk(u8 type, const char *fmt, va_list list)
 {
-    enum _type_modifiers type_mod;
-    enum _processing_states state;
-    struct kconsole_operations *cop = &conop[type];
+    // Print to debug cnsole only if DEBUG macro is set.
+#ifndef DEBUG
+    if (type == PK_DEBUG) return;
+#endif
 
-    for (const char *c = fmt ; *c; c++) {
-        type_mod = INT;
-        state = (*c == '%') ? TYPE : LITERAL;
+    processing_states_t state = LITERAL;
+    pf_t pf_info = {
+        .cop = &conop[type],
+        .fmt = fmt,
+        .type_mod = INT,
+        .list = &list,
+    };
 
-        const char *cs = c;
-        while(*cs && state != COMPLETED && state != LITERAL) {
-            switch(state){
-                case FLAGS:
-                    break;
-                case WIDTH:
-                    break;
-                case PRECISION:
-                    break;
-                case TYPE:
-                    if ((state = _type_processing(cs, &type_mod)) == TYPE)
-                        cs++;
-                    break;
-                case CONVERTION:
-                    state = _convertion_processing(cop, type_mod, cs, &list);
-                    if (state == ERROR)
-                        state = LITERAL;
-                    else
-                        c = cs;
-                    break;
-                default:
-                    break;
-            }
+    while(state != EXIT){
+        switch(state) {
+            case LITERAL:
+                state = _litetal(&pf_info);
+                break;
+            case TYPE:
+                state = _type(&pf_info);
+                break;
+            case CONVERTION:
+                state = _convertion(&pf_info);
+                break;
+            case ERROR:
+                while(pf_info.p <= pf_info.fmt)
+                    pf_info.cop->putc(*pf_info.p++);
+
+                if (*pf_info.fmt == '\0'){
+                    state = EXIT;
+                }
+                else {
+                    state = LITERAL;
+                    pf_info.fmt++;
+                }
+                break;
+            case EXIT:
+                // Keeps the compiler happy.
+                break;
         }
-
-        if (state == LITERAL)
-            cop->putc(*c);
     }
 }
 
-static u64 _get_int_arg(va_list *list, enum _type_modifiers type_modifier)
+static u64 _get_int_arg(va_list *list, type_modifiers_t type_modifier)
 {
     switch (type_modifier)
     {
@@ -161,7 +190,7 @@ static u64 _get_int_arg(va_list *list, enum _type_modifiers type_modifier)
         case LONG_LONG:
             return va_arg(*list,long long int);
             break;
-        case INT:
+        default:
             return va_arg(*list,int);
             break;
     }
