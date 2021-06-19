@@ -43,6 +43,7 @@ struct tss {
     u32 ldt_seg;
     u16 trap;
     u16 iomap_base;
+    u32 ssp;
     u8 iomap[IOMAP_SIZE];
 } __attribute__((packed));
 
@@ -54,7 +55,9 @@ void ktss_init()
 {
     // Deny permissions to all IO ports by setting all the bits
     memset(tss_entry.iomap, 0xFF, IOMAP_SIZE-1);
-    tss_entry.iomap[122] &=0xcf;    // To give VGA ports.
+    tss_entry.iomap[29] &=0xFC;     // E9 Debug port
+    tss_entry.iomap[122] &=0xcf;    // VGA 3D4 and 3D5 ports
+
     // IOMAP area determines the io port permissions when CPL > IOPL.
     // If the corresponding bit is set, access to that port is denied.
     // iomap area starts at an offset from the start of tss. 

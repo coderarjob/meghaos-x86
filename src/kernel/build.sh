@@ -28,5 +28,5 @@ $GCC32 -S src/kernel/kpanic.c -o $LISTDIR/kpanic.lst || exit
 $GCC32 -c src/kernel/errno.c -o $K_OBJDIR/errno.o  || exit
 $GCC32 -S src/kernel/errno.c -o $LISTDIR/errno.lst || exit
 
-$LD_KERNEL $K_OBJDIR/*.o -o $OBJDIR/kernel.elf || exit
+$LD_KERNEL $LD_FLAGS $K_OBJDIR/*.o $LD_OPTIONS -o $OBJDIR/kernel.elf || exit
 $OBJCOPY -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt || exit

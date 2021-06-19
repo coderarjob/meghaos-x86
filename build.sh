@@ -16,14 +16,12 @@ export DISKTEMPDIR="build/diskimage/temp"
 export NASM_INCPATH="-I include/x86/asm -I include/asm"
 export GCC_INCPATH="-I include -I include/x86"
 
-# -fno-toplevel-reorder prevents reordering of top level functions
-# -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
-
 # IMPORTAINT NOTE:
 # __main must not be reordered. It must reside at the entry address.
 # Without this flag, boot1 may jump to a wrong function not __main.
 # -fno-unit-at-a-time implies 
 # -fno-toplevel-reorder and -fno-section-anchors. 
+# -fno-toplevel-reorder prevents reordering of top level functions
 
 # NOTE:
 # If using GCC to compile assembly files in Intel syntax, use the following
@@ -37,9 +35,12 @@ export GCC_INCPATH="-I include -I include/x86"
 # -Wa,msyntax=intel     : .intel_syntax attribute alternate in assembly files
 # -Wa,mnaked-reg        : do not require % in front of registers
 
+# NOTE:
+# -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
+
 export GCC32="i686-elf-gcc -std=c99\
-              -nostartfiles \
               -g \
+              -nostartfiles \
               -ffreestanding \
               -fno-pie \
               -fno-stack-protector \
@@ -56,7 +57,18 @@ export GCC32="i686-elf-gcc -std=c99\
               -O1 -fno-unit-at-a-time \
               -D $DEBUG"
 
-export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
+
+# -libgcc is included because of helper functions used by gcc.
+# For example: __udivdi3 function used for division of 64 bit integers.
+# Note: LD_KERNEL LD_FLAGS {*.o files} LD_OPTIONS -o {output elf}. If
+#       LD_OPTIONS were places before input files, the linking with -lgcc did 
+#       not work.
+export LD_OPTIONS="-ffreestanding \
+                   -nostdlib \
+                   -lgcc"       
+export LD_FLAGS="-T build/kernel.ld"
+export LD_KERNEL="i686-elf-gcc"
+
 export OBJCOPY="i686-elf-objcopy"
 
 # Create folders

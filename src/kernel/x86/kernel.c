@@ -30,6 +30,8 @@ volatile char *a = (char *)0x400000;
 __attribute__((noreturn)) 
 void __kernel_main()
 {
+    printk(PK_DEBUG,"Kernel is starting\r\n");
+
     kdisp_init();
     printk(PK_ONSCREEN,"\r\n[OK]\tPaging enabled.");
 
@@ -77,10 +79,12 @@ void display_system_info()
     struct boot_info *mi = (struct boot_info*)BOOT_INFO_LOCATION;
     u64 available_memory = 0;
 
+    printk(PK_DEBUG,"Boot info structure:");
     for(int i = 0; i < mi->count; i++){
-        /*printk(PK_ONSCREEN, 
-                "\r\n* map: Start = %x, Length = %x, Type = %d",
-                mi->items[i].baseAddr, mi->items[i].length, mi->items[i].type);*/
+        printk(PK_DEBUG,
+                "\r\n* map: Start = %llx, Length = %llx, Type = %d",
+                mi->items[i].baseAddr, mi->items[i].length, mi->items[i].type);
+
         if (mi->items[i].type == 1) 
             available_memory += mi->items[i].length;
     }
@@ -137,9 +141,8 @@ void usermode_main()
                         02760,
                         "Hello Arjob");
     u64 var = 0xCF010203040506FF;   
-    printk(PK_ONSCREEN,"\r\n%x",var);
+    printk(PK_ONSCREEN,"\r\n%llx",var);
 
-    outb(0x60,'B');
     //kassert(("Nonsense error",1<0),"Nonsense");
     *a = 0;    
 
