@@ -27,6 +27,7 @@
 #include <types.h>
 #include <stdarg.h>
 #include <disp.h>
+#include <kdebug.h>
 #include <mem.h>
 #include <io.h>
 #include <panic.h>
@@ -37,7 +38,7 @@
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
 #endif
 
-enum printk_types { PK_ONSCREEN };
+enum printk_types { PK_ONSCREEN, PK_DEBUG };
 
 /* Halts the processor by going into infinite loop */
 #define khalt() for(;;)
@@ -52,6 +53,6 @@ enum printk_types { PK_ONSCREEN };
 void printk(u8 type, const char *fmt, ...);
 
 /* Prints formatted on screen at the cursor location.*/
-void vprintk(const char *fmt, va_list list);
+void vprintk(u8 type, const char *fmt, va_list list);
 
 #endif
