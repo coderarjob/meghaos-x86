@@ -1,7 +1,8 @@
 #!/bin/bash
 
 export ARCH=x86
-export DEBUG=DEBUG
+export DEBUG=NDEBUG
+LINK_USING_LD=1
 
 if [ $# -ge 1 ]; then ARCH=$1; fi
 if [ $# -ge 2 ]; then DEBUG=$2; fi
@@ -65,21 +66,22 @@ export GCC32="i686-elf-gcc -std=c99\
 #       not work.
 
 # Link using the ld program. 
-GCCVER=$(gcc -v 2>&1|tail - -n 1|awk '{print $3}')
-LIBPATH=$(dirname $(readlink $(which i686-elf-ld)))/../lib/gcc/i686-elf
+if [ $LINK_USING_LD -eq 1 ]; then
+    GCCVER=$(gcc -v 2>&1|tail - -n 1|awk '{print $3}')
+    LIBPATH=$(dirname $(readlink $(which i686-elf-ld)))/../lib/gcc/i686-elf
 
-export LD_OPTIONS="-lgcc"       
-export LD_FLAGS="--nmagic \
-                 --script build/kernel.ld \
-                 -L $LIBPATH/$GCCVER/"
-export LD_KERNEL="i686-elf-ld"
-
-# Link using the gcc program. 
-# export LD_OPTIONS="-ffreestanding \
-#                   -nostdlib \
-#                   -lgcc"       
-# export LD_FLAGS="-T build/kernel.ld"
-# export LD_KERNEL="i686-elf-gcc"
+    export LD_OPTIONS="-lgcc"       
+    export LD_FLAGS="--nmagic \
+                     --script build/kernel.ld \
+                     -L $LIBPATH/$GCCVER/"
+    export LD_KERNEL="i686-elf-ld"
+else
+     export LD_OPTIONS="-ffreestanding \
+                       -nostdlib \
+                       -lgcc"       
+     export LD_FLAGS="-T build/kernel.ld"
+     export LD_KERNEL="i686-elf-gcc"
+fi
 
 export OBJCOPY="i686-elf-objcopy"
 
