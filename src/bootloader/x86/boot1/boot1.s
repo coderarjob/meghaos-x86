@@ -48,7 +48,7 @@
 %endmacro
 
 %define HIGH(x,b) ((x)>>(b))
-%define LOW(x,b) ((x) & (x^b-1))
+%define LOW(x,b) ((x) & ((1<<b)-1))
 
 ; ******************************************************
 ; INCLUDE FILES
@@ -79,16 +79,16 @@ msg_welcome: db     13,10,OS_NAME,13,10
              db     "  boot0 : ",BOOT0_BUILD,","
              db     "  boot1 : ",BOOT1_BUILD,0
 
-msg_A20    : db 13,10,"A20 GATE... ",0
-msg_GDT    : db 13,10,"GDT... ",0
-msg_PMODE  : db 13,10,"Protected Mode... ",0
-msg_LD_KRNL: db 13,10,"Loading kernel image... ",0
-msg_ST_KRNL: db 13,10,"Starting kernel... ",0
-msg_MEMINFO: db 13,10,"BIOS memory info... ",0
-msg_AVLMEM : db 13,10,"Available memory... ",0
+msg_A20    : db 13,10,"[  ]    A20 GATE. ",0
+msg_GDT    : db 13,10,"[  ]    GDT. ",0
+msg_PMODE  : db 13,10,"[  ]    Protected Mode. ",0
+msg_LD_KRNL: db 13,10,"[  ]    Loading kernel image. ",0
+msg_ST_KRNL: db 13,10,"[  ]    Starting kernel. ",0
+msg_MEMINFO: db 13,10,"[  ]    BIOS memory info. ",0
+msg_AVLMEM : db 13,10,"[  ]    Available memory. ",0
 
-msg_success:  db " OK",0
-msg_failed :  db " !",0
+msg_success:  db 13,"[OK]",0
+msg_failed :  db 13,"[ER]",0
 
 ; ******************************************************
 ; CODE
@@ -119,11 +119,13 @@ _start:
     pop eax
 
     ; Check if the amount of free memory is >= 4MB
+    ; NOTE: We need to use unsigned JMP instructions.
+    xchg bx, bx
     cmp eax, HIGH(MEM_AVL_MIN,32)                  ; 4 MiB
-    jg .ne1                                        ; HIGH(AVRAM) > HIGH(4MB)
-    jl .failed                                     ; HIGH(AVRAM) < HIGH(4MB)
+    ja .ne1                                        ; HIGH(AVRAM) > HIGH(4MB)
+    jb .failed                                     ; HIGH(AVRAM) < HIGH(4MB)
     cmp ebx, LOW(MEM_AVL_MIN,32)                   ; HIGH(AVRAM) = HIGH(4MB)
-    jl .failed                                     ; LOW(AVRAM) < LOW(4MB)
+    jb .failed                                     ; LOW(AVRAM) < LOW(4MB)
 .ne1:                                              ; AVRAM >= 4MB
     printString msg_success
 
@@ -232,21 +234,23 @@ __calc_total_mem:
 .sum: dd 0      ; Stores the 64Bit sum
       dd 0
 
-; Calls __e820 routine, and setup the boot_info_t structure in BOOT_INFO
-; segment.
+; Helper routine for the __e820 routine, which sets up the boot_info_t 
+; structure in BOOT_INFO segment.
 ; Input:
 ;   None
 ; Output:
-;   CR   - 1 (error)
-;   CR   - 0 (no error)
+;   ES:DI - Points to the BOOT_INFO structure location.
+;   AX    - Number of entries of entries.
+;   CR    - 1 (error)
+;   CR    - 0 (no error)
 __get_mem_info:
     
     ; Clears the count
+    mov ax, BOOT_INFO_SEG
+    mov es, ax
     mov [es:BOOT_INFO_OFF + boot_info_t.mem_des_count], word 0
 
     ; Fill the mem map in the boot_info_t structure.
-    mov ax, BOOT_INFO_SEG
-    mov es, ax
     lea di, [BOOT_INFO_OFF + boot_info_t.mem_des_items]
     call __e820
 
@@ -257,7 +261,7 @@ __get_mem_info:
     ret
 
 ; Calls BIOS routine INT 15H (EAX = 0xE820) to get MemoryMap
-; NOTE: There is not maximum limit of the number of entries that 
+; NOTE: There is no maximum limit of the number of entries that 
 ;       we want in the array. May lead to overwriting/overlaping 
 ;       when kernel is loaded.
 ; Input: 

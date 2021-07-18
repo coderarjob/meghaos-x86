@@ -1,9 +1,11 @@
 #!/bin/bash
 
 export ARCH=x86
-if [ $# -ge 1 ]; then
-    ARCH=$1
-fi
+export DEBUG=NDEBUG
+LINK_USING_LD=1
+
+if [ $# -ge 1 ]; then ARCH=$1; fi
+if [ $# -ge 2 ]; then DEBUG=$2; fi
 
 export TEMPDIR="build/temp"
 export OBJDIR="build/obj"
@@ -15,14 +17,12 @@ export DISKTEMPDIR="build/diskimage/temp"
 export NASM_INCPATH="-I include/x86/asm -I include/asm"
 export GCC_INCPATH="-I include -I include/x86"
 
-# -fno-toplevel-reorder prevents reordering of top level functions
-# -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
-
 # IMPORTAINT NOTE:
 # __main must not be reordered. It must reside at the entry address.
 # Without this flag, boot1 may jump to a wrong function not __main.
 # -fno-unit-at-a-time implies 
 # -fno-toplevel-reorder and -fno-section-anchors. 
+# -fno-toplevel-reorder prevents reordering of top level functions
 
 # NOTE:
 # If using GCC to compile assembly files in Intel syntax, use the following
@@ -36,9 +36,12 @@ export GCC_INCPATH="-I include -I include/x86"
 # -Wa,msyntax=intel     : .intel_syntax attribute alternate in assembly files
 # -Wa,mnaked-reg        : do not require % in front of registers
 
+# NOTE:
+# -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
+
 export GCC32="i686-elf-gcc -std=c99\
-              -nostartfiles \
               -g \
+              -nostartfiles \
               -ffreestanding \
               -fno-pie \
               -fno-stack-protector \
@@ -46,15 +49,40 @@ export GCC32="i686-elf-gcc -std=c99\
               -m32 \
               -march=i386 \
               -masm=intel \
+              -mno-red-zone \
               -Wpedantic \
               -Wpadded \
               -Wextra \
               -Wall \
               $GCC_INCPATH \
               -O1 -fno-unit-at-a-time \
-              -D DEBUG "
+              -D $DEBUG"
 
-export LD_KERNEL="i686-elf-ld -m elf_i386 --nmagic --script=build/kernel.ld"
+
+# -libgcc is included because of helper functions used by gcc.
+# For example: __udivdi3 function used for division of 64 bit integers.
+# Note: LD_KERNEL LD_FLAGS {*.o files} LD_OPTIONS -o {output elf}. If
+#       LD_OPTIONS were places before input files, the linking with -lgcc did 
+#       not work.
+
+# Link using the ld program. 
+if [ $LINK_USING_LD -eq 1 ]; then
+    GCCVER=$(gcc -v 2>&1|tail - -n 1|awk '{print $3}')
+    LIBPATH=$(dirname $(readlink $(which i686-elf-ld)))/../lib/gcc/i686-elf
+
+    export LD_OPTIONS="-lgcc"       
+    export LD_FLAGS="--nmagic \
+                     --script build/kernel.ld \
+                     -L $LIBPATH/$GCCVER/"
+    export LD_KERNEL="i686-elf-ld"
+else
+     export LD_OPTIONS="-ffreestanding \
+                       -nostdlib \
+                       -lgcc"       
+     export LD_FLAGS="-T build/kernel.ld"
+     export LD_KERNEL="i686-elf-gcc"
+fi
+
 export OBJCOPY="i686-elf-objcopy"
 
 # Create folders
@@ -86,10 +114,10 @@ rm -f $IMAGEDIR/* || exit
 rm -f $LISTDIR/* || exit
 
 # Build the bootloaders
-bash bootloader/x86/build.sh || exit
+bash src/bootloader/x86/build.sh || exit
 
 # Build kernel
-bash kernel/build.sh || exit
+bash src/kernel/build.sh || exit
 
 # Build the floppy image
 echo "    [ Creating disk image ]    "

@@ -7,14 +7,14 @@
 
 # Build the bootloader 0
 echo "    [ Compilling boot0 ]    "
-nasm -f bin bootloader/x86/boot0/boot.s \
-    -I bootloader/x86/boot0 $NASM_INCPATH \
+nasm -f bin src/bootloader/x86/boot0/boot.s \
+    -I src/bootloader/x86/boot0 $NASM_INCPATH \
     -O0 -o $OBJDIR/boot0.flt \
     -l $LISTDIR/boot0.lst || exit
 
 # Build the bootloader 1
 echo "    [ Compilling boot1 ]    "
-nasm -f bin bootloader/x86/boot1/boot1.s \
-     -I bootloader/x86/boot1 $NASM_INCPATH \
+nasm -f bin src/bootloader/x86/boot1/boot1.s \
+     -I src/bootloader/x86/boot1 $NASM_INCPATH \
      -O0 -o $OBJDIR/boot1.flt \
      -l $LISTDIR/boot1.lst || exit

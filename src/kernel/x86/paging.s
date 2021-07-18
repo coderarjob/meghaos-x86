@@ -22,7 +22,6 @@ __page_dir:
     resd 1024
 __page_table:
     resd 1024
-.size: equ $-__page_table
 
 ;section .prepage.text progbits alloc exec nowrite
 section .text
@@ -60,7 +59,7 @@ fill_pt:
     pushad
         mov edi, __page_table
         mov eax, 0
-        mov ecx, __page_table.size
+        mov ecx, 1024           ; There are 1024 entries per page table.
 .write_next_pte:
         push eax
             and eax, 0b11111111_11111111_11110000_00000000
@@ -70,5 +69,6 @@ fill_pt:
         add edi, 4
         add eax, 4096
         loop .write_next_pte
+        xchg bx, bx
     popad
     ret
