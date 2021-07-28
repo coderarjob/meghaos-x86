@@ -2,25 +2,35 @@ ENTRY (__kernel_entry)
 SECTIONS
 {
     . = 0x28000;                 /* Kernel is loaded at 0x2800:0x0000 */
-    .text :/*AT(0x0)*/
+    KERNEL_START = .;
+    .prepage.bss :
     {
-        /* Order of linking .o files is importaint. 
-         * We must link kernel first. The first function in kernel.o must be
-         * __kernel_entry() */
-        build/obj/kernel/x86_paging.o (.text);
+        *.o (.prepage.bss);
+    }
+    .prepage.text :
+    {
+        *.o (.prepage.text);
+    }
+    PREPAGE_END = .;
+    /*. += 0xC0000000;*/
+
+    /*.text ALIGN(4k): AT(PREPAGE_END) */
+    .text ALIGN(4k): 
+    {
         *.o (.text);             
     }
-    .data :
+    .data ALIGN(4K):
     {
         *.o (.data);
         *.o (.rodata*);
     }
-    .bss :
+    .bss ALIGN(4K):
     {
         *.o (.bss);
     }
     /DISCARD/ : 
     {
         *(.eh_frame);
+        *(.comment);
     }
 }

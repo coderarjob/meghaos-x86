@@ -15,16 +15,14 @@ global __kernel_entry
 global __page_dir
 global __page_table
 
-;section .prepage.data nobits alloc noexec write 
-section .bss
+section .prepage.bss nobits alloc
 align 4096
 __page_dir:
     resd 1024
 __page_table:
     resd 1024
 
-;section .prepage.text progbits alloc exec nowrite
-section .text
+section .prepage.text progbits alloc exec nowrite
 __kernel_entry:
 
     call fill_pd
