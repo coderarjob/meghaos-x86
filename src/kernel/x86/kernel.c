@@ -30,8 +30,6 @@ volatile char *a = (char *)0x400000;
 __attribute__((noreturn)) 
 void __kernel_main()
 {
-    printk(PK_DEBUG,"Kernel is starting\r\n");
-
     kdisp_init();
     printk(PK_ONSCREEN,"\r\n[OK]\tPaging enabled.");
 
@@ -142,6 +140,7 @@ void usermode_main()
                         "Hello Arjob");
     u64 var = 0xCF010203040506FF;   
     printk(PK_ONSCREEN,"\r\n%llx",var);
+    printk(PK_ONSCREEN,"\r\nLocation of __kernel_main = %x",__kernel_main);
 
     //kassert(("Nonsense error",1<0),"Nonsense");
     *a = 0;    
