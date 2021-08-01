@@ -74,7 +74,7 @@ void kdisp_ioctl(u8 request, ...)
 /* Finds the where the next character should go and places the cursor there.*/
 void kdisp_init()
 { 
-    vgab = (u16 *)0xB8000;
+    vgab = (u16 *)VIDEO_RAM_LOCATION;
     // ------------------------------------------------------------
     // Scan the vga buffer to find where the next character should go.
     u16 s,          // Current Scan index.
