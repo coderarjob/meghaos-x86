@@ -25,9 +25,11 @@ __page_table:
 section .prepage.text progbits alloc exec nowrite
 __kernel_entry:
 
+    xchg bx, bx
     call fill_pd
     call fill_pt
 
+    xchg bx, bx
     mov eax, __page_dir
     and eax, 0b11111111_11111111_11110000_00000000
     mov cr3, eax
@@ -40,6 +42,11 @@ __kernel_entry:
     or eax, 0x80000000
     mov cr0, eax
 
+    mov eax, __page_dir
+    and eax, 0b11111111_11111111_11110000_00000000
+    mov cr3, eax
+
+    xchg bx, bx
     jmp __kernel_main
     hlt
 
@@ -50,6 +57,7 @@ fill_pd:
         and eax, 0b11111111_11111111_11110000_00000000
         or eax, 7
         mov [edi],eax
+        mov [edi + 768*4],eax
     popad
     ret
 
@@ -67,6 +75,5 @@ fill_pt:
         add edi, 4
         add eax, 4096
         loop .write_next_pte
-        xchg bx, bx
     popad
     ret
