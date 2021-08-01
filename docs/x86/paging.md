@@ -38,7 +38,8 @@ How to use page tables to map Virtual Addresses to Physical Addresses?
 #### kpm = 0x1000, kvm = 0xC0000000
 
 This is possible, but we will not be able to access memory lower than 0x1000. This is therefore,
-not a viable mapping.
+not a viable mapping. (There will be no mapping of physical addresses from 0000 to 0x0FFF in 
+the page tables)
 
 #### kpm = 0x1000, kvm = 0xC0001000
 ```
@@ -116,7 +117,7 @@ Indexes into the page directory table to get the start of the page table.
 Consider we have 
 * kvm = 0xC0001000
 * kpm = 0x00001000
-* We want the map VBA physical memory 0xB8000 to the 1024th page.
+* We want the map VGA physical memory 0xB8000 to the 1024th page.
 
 What will be the setup?
 
@@ -158,9 +159,11 @@ In general, application programs, should not worry about physical addresses. If 
 calculation is required, then, this is mostly done during development and such address is 
 hardcoded.
 
-1. i = Index into a page table, with a page entry equals `physical address/0x1000` value. 
+1. i = Search page tables, for an page table entry equal to `physical address/0x1000` value. 
+       Take the page entry index.
 2. m = address of the start of this page table.
-3. j = Index into page directory table, with directory entry equals `m/0x1000`.
+3. j = Search page directory table for an directory entry equal to `m/0x1000`. 
+       Take the directory index.
 
 Logical address:
 [31:22] : j
