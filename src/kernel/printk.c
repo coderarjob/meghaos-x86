@@ -48,7 +48,7 @@ typedef struct pf_tag{
 
 static void pnum_base(struct kconsole_operations*, u64 num, u32 base);
 static void pstring(struct kconsole_operations*, const char *s);
-static u64 _get_int_arg(va_list *list, type_modifiers_t type_modifier);
+static u64 get_int_argument(va_list *list, type_modifiers_t type_modifier);
 
 void printk(u8 type, const char *fmt, ...)
 {
@@ -68,19 +68,19 @@ static processing_states_t _convertion(pf_t *pf)
 
     switch(c){
         case 'x':
-            d = _get_int_arg(pf->list,pf->type_mod);
+            d = get_int_argument(pf->list,pf->type_mod);
             pnum_base(pf->cop,d,16);
             break;
-        case 'd':
-            d = _get_int_arg(pf->list,pf->type_mod);
+        case 'u':
+            d = get_int_argument(pf->list,pf->type_mod);
             pnum_base(pf->cop,d,10);
             break;
         case 'o':
-            d = _get_int_arg(pf->list,pf->type_mod);
+            d = get_int_argument(pf->list,pf->type_mod);
             pnum_base(pf->cop,d,8);
             break;
         case 'b':
-            d = _get_int_arg(pf->list,pf->type_mod);
+            d = get_int_argument(pf->list,pf->type_mod);
             pnum_base(pf->cop,d,2);
             break;
         case 's':
@@ -180,18 +180,18 @@ void vprintk(u8 type, const char *fmt, va_list list)
     }
 }
 
-static u64 _get_int_arg(va_list *list, type_modifiers_t type_modifier)
+static u64 get_int_argument(va_list *list, type_modifiers_t type_modifier)
 {
     switch (type_modifier)
     {
         case LONG:
-            return va_arg(*list,long int);
+            return va_arg(*list,unsigned long int);
             break;
         case LONG_LONG:
-            return va_arg(*list,long long int);
+            return va_arg(*list,unsigned long long int);
             break;
         default:
-            return va_arg(*list,int);
+            return va_arg(*list,unsigned int);
             break;
     }
 }

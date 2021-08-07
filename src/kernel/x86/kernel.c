@@ -80,14 +80,14 @@ void display_system_info()
     printk(PK_DEBUG,"Boot info structure:");
     for(int i = 0; i < mi->count; i++){
         printk(PK_DEBUG,
-                "\r\n* map: Start = %llx, Length = %llx, Type = %d",
+                "\r\n* map: Start = %llx, Length = %llx, Type = %u",
                 mi->items[i].baseAddr, mi->items[i].length, mi->items[i].type);
 
         if (mi->items[i].type == 1) 
             available_memory += mi->items[i].length;
     }
 
-    printk(PK_ONSCREEN,"\r\nTotal Memory: %d KiB",available_memory/1024);
+    printk(PK_ONSCREEN,"\r\nTotal Memory: %u KiB",available_memory/1024);
 }
 
 __attribute__((noreturn))
@@ -133,7 +133,7 @@ void usermode_main()
     //__asm__ volatile ("int 0x40");
 
     printk(PK_ONSCREEN,"\r\nInside usermode..");
-    printk(PK_ONSCREEN,"\r\n%d,%x,%o,%s,%%",
+    printk(PK_ONSCREEN,"\r\n%u,%x,%o,%s,%%",
                         45789,
                         0xcafeefe,
                         02760,
