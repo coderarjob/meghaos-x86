@@ -26,6 +26,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] Document TSS for later        - 17 Nov 2020     28 Jun 2021
 [X] Document IDT for later        - 30 Jun 2021     28 Jun 2021
 [X] Document Call Gates           - 30 Jun 2021     28 Jun 2021
+[X] Document Paging               - 24 Jul 2021     24 Jul 2021
 [ ] Document BOOTINFO struct      - 03 Feb 2021
 [ ] Basic keyboard ISQ 
     handler (demo)                - 18 Nov 2020
@@ -62,6 +63,15 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 
     28th Dec 2020
     Sol: .rodata* section must be before .bss section the KERNEL.ELF file.
+
+[X] %x, %d prints unsigned numbers, but _get_int_arg reads signed intgegers from
+    stack. Assignment of signed integers to unsigned int variable, causes
+    sign extension and this produces large output values.
+    Example:
+    printf("%x",0xC0000000) producing FFFFFFFFC0000000.
+
+    5th Arg 2020
+    Sol: Reading unsigned int variants in va_arg instead of just int, long etc.
 
 # TODOs
  
