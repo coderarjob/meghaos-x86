@@ -1,7 +1,8 @@
 #!/bin/bash
 
 export ARCH=x86
-export DEBUG=NDEBUG
+export DEBUG=DEBUG
+export VERBOSE=VERBOSE
 LINK_USING_LD=1
 
 if [ $# -ge 1 ]; then ARCH=$1; fi
@@ -56,8 +57,7 @@ export GCC32="i686-elf-gcc -std=c99\
               -Wall \
               $GCC_INCPATH \
               -O1 -fno-unit-at-a-time \
-              -D $DEBUG"
-
+              -D $DEBUG -D $VERBOSE" 
 
 # -libgcc is included because of helper functions used by gcc.
 # For example: __udivdi3 function used for division of 64 bit integers.

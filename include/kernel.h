@@ -38,7 +38,15 @@
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
 #endif
 
-enum printk_types { PK_ONSCREEN, PK_DEBUG };
+enum printk_types { 
+    PK_ONSCREEN, 
+#ifndef VERBOSE
+    PK_DEBUG
+#else
+    PK_DEBUG = PK_ONSCREEN
+#endif
+
+};
 
 /* Halts the processor by going into infinite loop */
 #define khalt() for(;;)
