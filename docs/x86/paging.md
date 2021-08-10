@@ -18,7 +18,7 @@ I think it should be in `kernel`. This is because of the following reasons.
     **May be `ORG VM_START` is the way to do it**
 
   3. The `boot1` becomes tied to the details of paging implementation (at-least
-     only to be overriden by the `kernel`).
+     only to be overridden by the `kernel`).
 
 ------------------------------------------------------------------------------
 _24 July 2021_
@@ -157,7 +157,7 @@ Before we begin, let us come up with a way to denote a page table.
 
 In general, application programs, should not worry about physical addresses. If however, such
 calculation is required, then, this is mostly done during development and such address is 
-hardcoded.
+hard coded.
 
 1. i = Search page tables, for an page table entry equal to `physical address/0x1000` value. 
        Take the page entry index.
@@ -170,7 +170,7 @@ Logical address:
 [21:12] : i
 [11:0 ] : any offset.
 
-Mathamatically this can be done by: j * 1024 * 4096 + i * 4096 + offset.
+Mathematically this can be done by: j * 1024 * 4096 + i * 4096 + offset.
 
 Logical address for **0xB8000** = 768 * 1024 * 4096 + 1023 * 4096 = 0xC03FF000.
 [31:22] : 768

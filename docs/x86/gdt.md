@@ -17,7 +17,7 @@ Kernel is loaded at physical location 0x28000. So all the offsets and addresses
 linking (static linking). So while the kernel is running, changing the GDT to a
 value is never going to be viable.
 
-kernel is staticly given addresses, so effective addresses must be preserved. 
+kernel is statically given addresses, so effective addresses must be preserved. 
 
 **EA = Base of SReg + Offset**
 
@@ -40,7 +40,7 @@ below (With just two segments, however).
 ------------------------------------------------------------------------------
 _21st October 2020_
 
-The below idea of separate segment for stack is not working becuase the GCC
+The below idea of separate segment for stack is not working because the GCC
 compiler generates code that do not work correctly when DS =/= SS.
 
 Here is an example:
@@ -78,14 +78,14 @@ same.
 
 One more change tough, the GDT that is setup by the `boot1` is local to it. The
 kernel must setup and initialize another GDT of its own. The reason for that is
-becuase, seting up of GDT actually should reside with the kernel, and not with
+because, setting up of GDT actually should reside with the kernel, and not with
 the bootloader. Also in multiprocessor systems there should be one GDT for each
 processor. Which is too much to ask of a bootloader. The `boot1` will setup a
-rudimentry protected mode environment, for the kernel (Kernel is written in C
+rudimentary protected mode environment, for the kernel (Kernel is written in C
 and GCC does not work well with real mode), but the final setup rests with the
 Kernel.
 
-Paging and Virutal memory is quite importaint it seems with the available
+Paging and Virtual memory is quite important it seems with the available
 tools.
 ------------------------------------------------------------------------------
 _19th Oct 2020_
@@ -100,7 +100,7 @@ check because the stack size is never provided to the processor.
 3. A `data` segment descriptor.	    -       0   - 4 GB
 
 ### GDT proposed:
-So it is benifitial for the stack to have a overlapping but sepate segment in
+So it is beneficial for the stack to have a overlapping but separate segment in
 the GDT. The new GDT should look like this.
 
 1. A `null` segment descriptor  	- 
@@ -125,7 +125,7 @@ segment should be a 'Expand down' segment. However, in that case the processor
 will not check for under-flow. __Is there no bound check?__
 </strike>
 
-The above is striked because, having jsut a Expand Up segment is enough for the
+The above is striked because, having just a Expand Up segment is enough for the
 processor to check both the upper and lower bounds. 
 
 |--------|-----------|----------------------|------------------------|

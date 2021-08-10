@@ -11,13 +11,13 @@ Here are the **goals**.
      Photoshop.
   2. The 'Calculate contact angle' feature from ACAM application can be used in
      an image taken from Camera or an image created in Paint. The said feature
-     can be called from any application, without separately openning the ACAM
+     can be called from any application, without separately opening the ACAM
      application.
   The walls of application should disappear and the features in it can be used
   seamlessly across the whole operating system.
   **Applications are add-ons to the Operating System features.**
 
-* The **Editor** program will serve an importaint place in the UI. It is where
+* The **Editor** program will serve an important place in the UI. It is where
   the user can type commands and also write programs or paint. As a matter of
   fact, any document can have embedded commands that can be executed from
   inside the editor. (Inspiration from Oberon Operating System, and Plan9 rio)
@@ -36,7 +36,7 @@ Here are the **goals**.
 * Computer opens to an editor with the options last saved (commands in the
   toolbar). The user can use the editor to execute commands or write document
   or programs. Any call to a feature will open another window and keep the
-  window assiciated to that command (along with the arguments) for future
+  window associated to that command (along with the arguments) for future
   displaying of output. That is, when the same command is executed with the
   same argument, it will be displayed in the same window.
 
