@@ -56,7 +56,6 @@ struc boot_info_t
 endstruc
 
 files:       db     KERNEL_FILE  , "KERNEL.FLT",0,0,0
-             db     RAMDISK0_FILE, "RAMDISK0.FLT",0
              db     0
 
 msg_welcome: db     13,10,OS_NAME,13,10
