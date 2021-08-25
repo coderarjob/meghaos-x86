@@ -40,10 +40,10 @@
 
 enum printk_types { 
     PK_ONSCREEN, 
-#ifndef VERBOSE
-    PK_DEBUG
-#else
+#if defined(DEBUG) && defined(VERBOSE)
     PK_DEBUG = PK_ONSCREEN
+#else
+    PK_DEBUG
 #endif
 
 };
