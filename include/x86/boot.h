@@ -20,9 +20,17 @@
         u64 length;
         u32 type;
     }__attribute__((packed));
+    
+    struct file_des
+    {
+        u32 startLocation;
+        u16 length;
+    }__attribute__((packed));
 
     struct boot_info
     {
+        u16 filecount;
+        struct file_des files[11];
         u16 count;
         struct mem_des items[];
     }__attribute__((packed));

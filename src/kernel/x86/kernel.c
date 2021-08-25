@@ -70,24 +70,31 @@ void __kernel_main()
                        GDT_SELECTOR_UCODE,
                        &usermode_main);
     while(1);
+    
 }
 
 void display_system_info()
 {
     struct boot_info *mi = (struct boot_info*)BOOT_INFO_LOCATION;
-    u64 available_memory = 0;
 
-    printk(PK_DEBUG,"Boot info structure:");
-    for(int i = 0; i < mi->count; i++){
-        printk(PK_DEBUG,
-                "\r\n* map: Start = %llx, Length = %llx, Type = %u",
-                mi->items[i].baseAddr, mi->items[i].length, mi->items[i].type);
-
-        if (mi->items[i].type == 1) 
-            available_memory += mi->items[i].length;
+    printk(PK_DEBUG,"\r\nLoaded kernel files:");
+    for (int i = 0; i < mi->filecount; i++){
+        struct file_des file = mi->files[i];
+        printk(PK_DEBUG,"\r\n* file: Start = %x, Length = %x",
+                file.startLocation, file.length);
     }
 
-    printk(PK_ONSCREEN,"\r\nTotal Memory: %u KiB",available_memory/1024);
+    printk(PK_DEBUG,"\r\nBoot info structure:"); 
+    u64 available_memory = 0;
+    for(int i = 0; i < mi->count; i++)
+    {
+        struct mem_des item = mi->items[i];
+        available_memory += item.length;
+        printk(PK_DEBUG, "\r\n* map: Start = %llx, Length = %llx, Type = %u",
+                         item.baseAddr, item.length, item.type);
+    }
+
+    printk(PK_ONSCREEN,"\r\nAvailable memory: %u KiB",available_memory/1024);
 }
 
 __attribute__((noreturn))
