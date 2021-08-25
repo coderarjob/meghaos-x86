@@ -64,8 +64,8 @@ msg_welcome: db     13,10,OS_NAME,13,10
 
 msg_A20    : db 13,10,"[  ]    A20 GATE. ",0
 msg_GDT    : db 13,10,"[  ]    GDT. ",0
-msg_PMODE  : db 13,10,"[  ]    Protected Mode. ",0
-msg_LD_FILE: db 13,10,"[  ]    Loading. ",0
+msg_PMODE  : db 13,10,"[  ]    Protected mode. ",0
+msg_LD_FILE: db 13,10,"[  ]    Loading file : ",0
 msg_ST_KRNL: db 13,10,"[  ]    Starting kernel. ",0
 msg_MEMINFO: db 13,10,"[  ]    BIOS memory info. ",0
 msg_AVLMEM : db 13,10,"[  ]    Available memory. ",0
@@ -131,6 +131,12 @@ _start:
     ;       The location of the GDT can be passed to the kernel in the
     ;       BOOT_INFO structure. And the kernel can do whatever it wants
     ;       with it.
+    printString msg_GDT
+    printString msg_success
+
+    printString msg_PMODE
+    printString msg_success
+
     call copy_gdt_to_global
     EnterProtectedMode32 gdt32_meta_global
     [BITS 32]
