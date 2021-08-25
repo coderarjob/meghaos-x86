@@ -77,11 +77,16 @@ msg_failed : db 13,"[ER]",0
 ; CODE
 ; ******************************************************
 _start:
-    ; Disable Interrupts as IDT is not present for protected mode.
-    cli
-
     ; -------- [ Welcome message ] -----------
     printString msg_welcome
+
+    ; -------- [ Clean Boot info memory ] -----------
+    mov al, 0
+    mov bx, BOOT_INFO_SEG
+    mov es, bx
+    mov di, BOOT_INFO_OFF
+    mov cx, boot_info_t_size
+    rep stosb
 
     ; -------- [ Get memory information ] -----------
     printString msg_MEMINFO
