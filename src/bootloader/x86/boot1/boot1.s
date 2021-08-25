@@ -7,42 +7,17 @@
 ;
 ; Note: The loader is a transient program, so no Interrupt routine, System
 ; calls must be placed in the loader.
-;
-; Dated: 8th September 2020
-; ---------------------------------------------------------------------------
-; Change Log
-; ---------------------------------------------------------------------------
-; Bulid 20201019
-; - GDT will always reside at location 0x0800. It is no longer at
-;   Kernel's/boot1's local address.
-; - Expand down kernel stack segment of 128 KB.
-; - FS is also set to the Data Segment index.
-; ---------------------------------------------------------------------------
-; Bulid 20201008
-; - Jump to kernel code, is done using
-;       jmp <gdt seg>:dword <kernel_memory>
-;   instead of the machine code.
-; ---------------------------------------------------------------------------
-; Version 20201006
-; - GDT is local, not at 0x0000:0x0800. Kernel will have a separate GDT in its
-;   local address space, and the one here will be deprecated, when kernel
-;   loads.
-; ---------------------------------------------------------------------------
-; Version 20200917
-; - Welcome message
-; - A20 Gate enabling
-; ---------------------------------------------------------------------------
-; Version 20200901
-; - Initial version
+; 
+; Dated: 25 Aug 2021
 ; ---------------------------------------------------------------------------
     org 0x8000
     jmp _start
 ; ******************************************************
 ; MACRO BLOCK
 ; ******************************************************
-%macro printString 1
+%macro printString 1-2 0
     push si
-    mov si, %1
+    lea si, [%1 + %2]
     int 0x31
     pop si
 %endmacro
@@ -61,19 +36,28 @@
 ; DATA
 ; ******************************************************
 struc mem_des_t
-    .BaseAddrLow   : resd 1
-    .BaseAddrHigh  : resd 1
-    .LengthLow     : resd 1
-    .LengthHigh    : resd 1
-    .Type          : resd 1
+            .BaseAddrLow   : resd 1
+            .BaseAddrHigh  : resd 1
+            .LengthLow     : resd 1
+            .LengthHigh    : resd 1
+            .Type          : resd 1
+endstruc
+
+struc file_des_t
+            .StartLocation : resd 1
+            .Length        : resw 1
 endstruc
 
 struc boot_info_t
-    .mem_des_count : resw 1
-    .mem_des_items : resw mem_des_t_size
+            .file_count    : resw 1
+            .file_dec_items: resb file_des_t_size * MAX_FILES_COUNT
+            .mem_des_count : resw 1
+            .mem_des_items : resb mem_des_t_size
 endstruc
 
-kernel_file: db     KERNEL_FILE
+files:       db     KERNEL_FILE  , "KERNEL.FLT",0,0,0
+             db     RAMDISK0_FILE, "RAMDISK0.FLT",0
+             db     0
 
 msg_welcome: db     13,10,OS_NAME,13,10
              db     "  boot0 : ",BOOT0_BUILD,","
@@ -82,25 +66,27 @@ msg_welcome: db     13,10,OS_NAME,13,10
 msg_A20    : db 13,10,"[  ]    A20 GATE. ",0
 msg_GDT    : db 13,10,"[  ]    GDT. ",0
 msg_PMODE  : db 13,10,"[  ]    Protected Mode. ",0
-msg_LD_KRNL: db 13,10,"[  ]    Loading kernel image. ",0
+msg_LD_FILE: db 13,10,"[  ]    Loading. ",0
 msg_ST_KRNL: db 13,10,"[  ]    Starting kernel. ",0
 msg_MEMINFO: db 13,10,"[  ]    BIOS memory info. ",0
 msg_AVLMEM : db 13,10,"[  ]    Available memory. ",0
 
-msg_success:  db 13,"[OK]",0
-msg_failed :  db 13,"[ER]",0
+msg_success: db 13,"[OK]",0
+msg_failed : db 13,"[ER]",0
 
 ; ******************************************************
 ; CODE
 ; ******************************************************
 _start:
+    ; Disable Interrupts as IDT is not present for protected mode.
+    cli
+
     ; -------- [ Welcome message ] -----------
     printString msg_welcome
 
     ; -------- [ Get memory information ] -----------
     printString msg_MEMINFO
     call __get_mem_info
-    jc .failed
     printString msg_success
     
     ; -------- [ Calculate total usable memory ] -----------
@@ -119,74 +105,116 @@ _start:
     pop eax
 
     ; Check if the amount of free memory is >= 4MB
-    ; NOTE: We need to use unsigned JMP instructions.
-    xchg bx, bx
     cmp eax, HIGH(MEM_AVL_MIN,32)                  ; 4 MiB
     ja .ne1                                        ; HIGH(AVRAM) > HIGH(4MB)
-    jb .failed                                     ; HIGH(AVRAM) < HIGH(4MB)
+    jb failed                                     ; HIGH(AVRAM) < HIGH(4MB)
     cmp ebx, LOW(MEM_AVL_MIN,32)                   ; HIGH(AVRAM) = HIGH(4MB)
-    jb .failed                                     ; LOW(AVRAM) < LOW(4MB)
+    jb failed                                     ; LOW(AVRAM) < LOW(4MB)
 .ne1:                                              ; AVRAM >= 4MB
-    printString msg_success
-
-    ; -------- [ Load Kernel Image ] -----------
-    printString msg_LD_KRNL
-
-    mov ax, KERNEL_SEG
-    mov bx, KERNEL_OFF
-    mov dx, kernel_file
-
-    int 0x30
-    cmp ax, 0			            ; Check if read was successful
-    je .failed	                    ; Show error message if read failed.
-
     printString msg_success
 
     ; -------- [ A20 Gate Enabling ] -----------
     printString msg_A20
     call enable_a20
-    jnc .failed
+    jnc failed
     printString msg_success
 
-    ; -------- [ GDT ] -----------
-    printString msg_GDT
-    call load_gdt
-    printString msg_success
+    ; -------- [ Load Kernel and ramdisk files ] -----------
+    call __load_kernel_and_ramdisks
 
-    ; -------- [ Enter Protected mode ] -----------
-    printString msg_PMODE
-    printString msg_success
-
-    ; Say goodbye to 16 bits
-    mov eax, cr0
-    or eax, 1
-    mov cr0, eax
-
-    ; Clear prefetch queue
-    jmp .clear_prefetch_queue
-    nop
-    nop
-.clear_prefetch_queue:
-
-    ; Disable Interrupts as IVT is not yet present
-    cli
-
-    mov eax, 0x10    ; GDT index 2
-    mov ds, eax
-    mov es, eax
-    mov gs, eax
-    mov fs, eax
-    mov ss, eax
-    mov esp, KSTACK_TOP
-
-    ; -------- [ Jumping to Kernel ] -----------
-    jmp 0x8:dword (KERNEL_SEG * 0x10 + KERNEL_OFF)
-
+    ; -------- [ Enter Protected Mode and Jump to Kernel ] -----------
+    ; TODO: Do we really need to copy the GDT to a global location.
+    ;       The location of the GDT can be passed to the kernel in the
+    ;       BOOT_INFO structure. And the kernel can do whatever it wants
+    ;       with it.
+    call copy_gdt_to_global
+    EnterProtectedMode32 gdt32_meta_global
+    [BITS 32]
+    jmp KERNEL_IMG_MEM
+    [BITS 16]
 .end:
     jmp $
-.failed:
-    printString msg_failed
-    jmp .end
+
+
+; Loads Kernel image and Ram Disk files to RAM.
+; Input:
+;   None
+; Output:
+;   Success - None
+;   Failure - Will jump to 'finish' and halt.
+__load_kernel_and_ramdisks:
+    pusha
+     ; Points to current file.
+     mov si, files                                      
+
+    ; Points into file_des_items[] array
+    lea di, [BOOT_INFO_OFF + boot_info_t.file_dec_items]
+
+    xor ecx, ecx
+.load_next:
+
+    ; Print the file name on screen
+        printString msg_LD_FILE
+        printString si, 11
+
+    ; --- Load the current file into temprary buffer.
+        mov ax, FILE_BUFF_SEG
+        mov bx, FILE_BUFF_OFF
+        mov dx, si
+        int 0x30
+        cmp ax, 0			            ; Check if read was successful
+        je failed	                    ; Show error message if read failed.
+
+    ; ---- Copy the buffer, into its proper location
+        EnterProtectedMode32
+        [BITS 32]
+
+        pusha
+            xor ecx, ecx
+            mov cx, ax
+
+            mov ebx, 0x10    ; GDT index 2
+            mov es, ebx
+            mov ds, ebx
+
+            mov esi, (FILE_BUFF_SEG << 4 | FILE_BUFF_OFF) 
+            mov edi, [.copy_dest_location]
+
+            rep movsb
+        popa
+         
+        EnterProtectedMode16
+        [BITS 16]
+        EnterRealMode
+    ; ---- Update the file_des_items array and file_count in boot_info
+        pusha
+            mov bx, BOOT_INFO_SEG
+            mov es, bx
+
+            mov [es:di + file_des_t.Length], ax
+            mov eax, [.copy_dest_location]
+            mov [es:di + file_des_t.StartLocation], eax
+
+            inc word [es:BOOT_INFO_OFF + boot_info_t.file_count]
+        popa
+
+        printString msg_success
+
+    ; ---- Next file name after
+        add [.copy_dest_location], ax
+        add di, file_des_t_size
+        inc cx
+
+        ; TODO: Check for Max module count
+
+        add si, 24
+        cmp [si], byte 0
+        jnz .load_next
+.nomore:
+    popa
+    ret
+.copy_dest_location  : dd KERNEL_IMG_MEM
+.count_completed     : dw 0
 
 ; Sums up the 'FREE' regions in the BOOT_INFO array.
 ; Input:
@@ -239,10 +267,11 @@ __calc_total_mem:
 ; Input:
 ;   None
 ; Output:
-;   ES:DI - Points to the BOOT_INFO structure location.
-;   AX    - Number of entries of entries.
-;   CR    - 1 (error)
-;   CR    - 0 (no error)
+;   Success:
+;     ES:DI   - Points to the BOOT_INFO structure location.
+;     AX      - Number of entries of entries.
+;   Failure:
+;             - Jumps to 'finish' and Halts.
 __get_mem_info:
     
     ; Clears the count
@@ -267,9 +296,10 @@ __get_mem_info:
 ; Input: 
 ;       ES:DI - Location to where the array of mem_des_t will be saved.
 ; Output: 
-;       CR flag - 1 (Error)
-;       CR flag - 0 (No error, output in CX)
-;       AX - Number of entries of entries.
+;   Success:
+;       AX      - Number of entries of entries. (No error)
+;   Failure:
+;               - Jumps to 'finish' and Halts.
 __e820:
     push ebx
     push edx
@@ -288,16 +318,13 @@ __e820:
     mov eax, 0xE820                 
     int 0x15
 
-    jc .failed                  ; CR = 1, means error.
+    jc failed                   ; CR = 1, means error.
     test ebx, ebx               ; EBX = 0, means last entry.
     jnz .loop                   ; Loop if not last.
 .success:
     clc                         ; CF = 0 (not error)
     mov ax, [.mem_des_count]    ; Returns entry count.
-    jmp .fin            
-.failed:
-    stc                 ; Error in 0xE820 or it is not supported.
-.fin:
+
     pop di
     pop ecx
     pop edx
@@ -328,3 +355,7 @@ __printhex:
 .hexchars: db "0123456789ABCDEF"
 .hexstr: times 9 db 0               ; one extra zero in the end.
 
+; Global jump location when there is an unrecovarable error.
+failed:
+    printString msg_failed
+    jmp $

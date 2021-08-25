@@ -1,7 +1,7 @@
 ENTRY (__kernel_entry)
 SECTIONS
 {
-    . = 0x28000;                 /* Kernel is loaded at 0x2800:0x0000 */
+    . = 0x100000;                 /* Kernel is loaded at 100000 */
     .prepage.text : 
     {
         *.o (.prepage.text);
