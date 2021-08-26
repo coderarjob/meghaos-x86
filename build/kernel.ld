@@ -10,10 +10,9 @@ SECTIONS
     {
         *.o (.prepage.bss);
     }
-    PREPAGE_END = .;
     . += 0xC0000000; 
 
-    .text : AT(PREPAGE_END)
+    .text : AT( ADDR(.text) - 0xC0000000)
     {
         *.o (.text);             
     }
