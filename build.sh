@@ -67,7 +67,7 @@ export GCC32="i686-elf-gcc -std=c99\
 
 # Link using the ld program. 
 if [ $LINK_USING_LD -eq 1 ]; then
-    GCCVER=$(gcc -v 2>&1|tail - -n 1|awk '{print $3}')
+    GCCVER=$(i686-elf-gcc -v 2>&1|tail - -n 1|awk '{print $3}')
     LIBPATH=$(dirname $(readlink $(which i686-elf-ld)))/../lib/gcc/i686-elf
 
     export LD_OPTIONS="-lgcc"       
