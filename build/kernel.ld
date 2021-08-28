@@ -1,14 +1,10 @@
-ENTRY (__kernel_entry)
+ENTRY (g_kernel_entry)
 SECTIONS
 {
     . = 0x100000;                 /* Kernel is loaded at 100000 */
     .prepage.text : 
     {
         *.o (.prepage.text);
-    }
-    .prepage.bss :
-    {
-        *.o (.prepage.bss);
     }
     . += 0xC0000000; 
 

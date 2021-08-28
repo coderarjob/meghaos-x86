@@ -11,9 +11,9 @@
 ; ---------------------------------------------------------------------------
 
 extern __kernel_main
-global __kernel_entry
-global __page_dir
-global __page_table
+global g_kernel_entry
+global g_page_dir
+global g_page_table
 
 ; ---------------------------------------------------------------------------
 ; Structures
@@ -42,35 +42,39 @@ struc boot_info_t
 endstruc
 
 ; ---------------------------------------------------------------------------
+; Macros
+; ---------------------------------------------------------------------------
+%define PHY(m) (m - 0xC0000000)
+
+; ---------------------------------------------------------------------------
 ; Data Section
 ; ---------------------------------------------------------------------------
-section .prepage.bss nobits alloc
-__page_dir  : resd 1
-__page_table: resd 1
+section .bss nobits alloc
+g_page_dir  : resd 1
+g_page_table: resd 1
 
 ; ---------------------------------------------------------------------------
 ; Text Section
 ; ---------------------------------------------------------------------------
 section .prepage.text progbits alloc exec nowrite
-__kernel_entry:
+
+g_kernel_entry:
 
     ; Calculates based on the last file loaded by boot1, the
     ; 4KB aligned location to place page directory.
         call s_calculate_page_dir_location
-        mov [__page_dir], eax
+        mov [PHY(g_page_dir)], eax
     ; --
 
     ; Page table is placed 4KB from the Page directory.
         add eax, 0x1000
-        mov [__page_table], eax
+        mov [PHY(g_page_table)], eax
     ; --
 
-    xchg bx, bx
-    call fill_pd
-    call fill_pt
+    call s_fill_pd
+    call s_fill_pt
 
-    xchg bx, bx
-    mov eax, [__page_dir]
+    mov eax, [PHY(g_page_dir)]
     and eax, 0b11111111_11111111_11110000_00000000
     mov cr3, eax
     
@@ -82,18 +86,56 @@ __kernel_entry:
     or eax, 0x80000000
     mov cr0, eax
 
-    mov eax, [__page_dir]
-    and eax, 0b11111111_11111111_11110000_00000000
-    mov cr3, eax
+    ; The below .text portion will get linked at a different location
+    ; in memory. We need to jump to it.
+    jmp .higher_mapped
 
-    xchg bx, bx
+; ---------------------------------------------------------------------
+    ; Before we can remove the identity mapping, the symbols
+    ; need to have higher addresses. That is why the below
+    ; source is in .text section just like the rest of the
+    ; kernel. This portion will actually be linked after the
+    ; whole to .prepage.text. So will not be in the order it
+    ; appears here in the source.
+section .text progbits alloc exec nowrite
+
+.higher_mapped:
+    ; Disable identity map
+       mov eax, [g_page_dir]
+       mov [eax], dword 0
+    ; --
+
+    ; Map stack to higher address
+    ; TODO: Need to remove this hard coded address shomehow.
+    mov esp, 0xC0027FFF
+
+    ; Clear TLB
+        mov eax, [g_page_dir]
+        and eax, 0b11111111_11111111_11110000_00000000
+        mov cr3, eax
+    ; --
+
     jmp __kernel_main
     hlt
+; ---------------------------------------------------------------------
 
-fill_pd:
+section .prepage.text progbits alloc exec nowrite
+
+; ---------------------------------------------------------------------
+; Sets up the Page directory to have both identity mapping and mapping
+; at 0xC0000000 (3 GB) address.
+; The same page table is mapped at two locations in the page directory
+; This will allow the same range of physical address to be available
+; via two distinct virtual addresses.
+; Input:
+;   None
+; Ouptut:
+;   None
+; ---------------------------------------------------------------------
+s_fill_pd:
     pushad
-        mov edi, [__page_dir]
-        mov eax, [__page_table]
+        mov edi, [PHY(g_page_dir)]
+        mov eax, [PHY(g_page_table)]
         and eax, 0b11111111_11111111_11110000_00000000
         or eax, 7
         mov [edi],eax
@@ -101,9 +143,16 @@ fill_pd:
     popad
     ret
 
-fill_pt:
+; ---------------------------------------------------------------------
+; Sets up the page table to map address 0x000000 to 0x3FFFFF
+; Input:
+;   None
+; Ouptut:
+;   EAX - Location where to place the page directory.
+; ---------------------------------------------------------------------
+s_fill_pt:
     pushad
-        mov edi, [__page_table]
+        mov edi, [PHY(g_page_table)]
         mov eax, 0
         mov ecx, 1024           ; There are 1024 entries per page table.
 .write_next_pte:
