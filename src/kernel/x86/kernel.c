@@ -23,9 +23,11 @@ static void fault_gp();
 static void page_fault();
 static void display_system_info();
 
-/* Only the first 4 MB (0x0000 to 0x3FFFFF) is currently mapped.
- * So accessing 0x400000, causes page fault*/
-volatile char *a = (char *)0x400000;
+/*
+ Virtual memory        ->  Physical memory
+ 0xc0000000-0xc03fffff -> 0x000000000000-0x0000003fffff
+*/
+volatile char *a = (char *)0x00300000;
 
 __attribute__((noreturn)) 
 void __kernel_main()
@@ -84,7 +86,7 @@ void display_system_info()
                 file.startLocation, file.length);
     }
 
-    printk(PK_DEBUG,"\r\nBoot info structure:"); 
+    printk(PK_DEBUG,"\r\nBIOS Memory map:"); 
     u64 available_memory = 0;
     for(int i = 0; i < mi->count; i++)
     {
@@ -94,6 +96,7 @@ void display_system_info()
                          item.baseAddr, item.length, item.type);
     }
 
+    printk(PK_ONSCREEN,"\r\nKernel files loaded: %u", mi->filecount);
     printk(PK_ONSCREEN,"\r\nAvailable memory: %u KiB",available_memory/1024);
 }
 
