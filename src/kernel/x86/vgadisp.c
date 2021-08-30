@@ -15,7 +15,7 @@
 
 #define TABSTOP     4
 #define VGA_COLUMNS 80
-#define VGA_ROWS    25
+#define VGA_ROWS    50
 #define VGA_MAX_INDEX (VGA_COLUMNS * VGA_ROWS -1)
 
 #define CRTC_BLINK_ENABLED  (1<<0)

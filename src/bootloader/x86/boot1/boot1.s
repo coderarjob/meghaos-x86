@@ -77,6 +77,14 @@ msg_failed : db 13,"[ER]",0
 ; CODE
 ; ******************************************************
 _start:
+    ; -------- [ Set 9x8 font  ] -----------
+    mov ax, 0x3
+    int 0x10
+
+    mov bl, 0x00
+    mov ax, 0x1112
+    int 0x10
+
     ; -------- [ Welcome message ] -----------
     printString msg_welcome
 
@@ -160,6 +168,7 @@ __load_kernel_and_ramdisks:
     ; Points into file_des_items[] array
     lea di, [BOOT_INFO_OFF + boot_info_t.file_dec_items]
 
+    ; Counts the number of loaded files.
     xor ecx, ecx
 .load_next:
 
@@ -215,7 +224,9 @@ __load_kernel_and_ramdisks:
         add di, file_des_t_size
         inc cx
 
-        ; TODO: Check for Max module count
+        ; We have loaded MAX_FILES_COUNT. We load no more!
+        cmp cx, MAX_FILES_COUNT
+        je .nomore
 
         add si, 24
         cmp [si], byte 0
