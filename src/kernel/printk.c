@@ -34,6 +34,8 @@ int printk(const char *fmt, ...)
     char buffer[MAX_PRINTABLE_STRING_LENGTH];
     int len = vsnprintk(buffer, ARRAY_LENGTH(buffer), fmt, l);
 
+    va_end(l);
+
     s_prnstr(buffer);    
     return len;
 }

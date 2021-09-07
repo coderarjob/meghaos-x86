@@ -34,11 +34,6 @@ void __kernel_main()
 {
     kdisp_init();
     printk("\r\n[OK]\tPaging enabled.");
-    /*printk("\r\nHello %u (%llx). %s. 100%t",
-                        65535,
-                        0xabcdabcdabcdabcd,
-                        "I am Arjob");
-    khalt();*/
 
     // TSS setup
     printk("\r\n[  ]\tTSS setup.");
@@ -87,7 +82,7 @@ void display_system_info()
     printk_debug("%s","\r\nLoaded kernel files:");
     for (int i = 0; i < mi->filecount; i++){
         struct file_des file = mi->files[i];
-        printk_debug("%s","\r\n* file: Start = %x, Length = %x",
+        printk_debug("\r\n* file: Start = %x, Length = %x",
                 file.startLocation, file.length);
     }
 
@@ -97,7 +92,7 @@ void display_system_info()
     {
         struct mem_des item = mi->items[i];
         available_memory += item.length;
-        printk_debug( "\r\n* map: Start = %llx, Length = %llx, Type = %u",
+        printk_debug("\r\n* map: Start = %llx, Length = %llx, Type = %u",
                          item.baseAddr, item.length, item.type);
     }
 
