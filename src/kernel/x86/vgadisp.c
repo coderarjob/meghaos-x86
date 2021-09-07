@@ -13,10 +13,10 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-#define TABSTOP     4
-#define VGA_COLUMNS 80
-#define VGA_ROWS    50
-#define VGA_MAX_INDEX (VGA_COLUMNS * VGA_ROWS -1)
+#define TABSTOP             4
+#define VGA_COLUMNS         MAX_VGA_COLUMNS
+#define VGA_ROWS            MAX_VGA_ROWS
+#define VGA_MAX_INDEX       (VGA_COLUMNS * VGA_ROWS -1)
 
 #define CRTC_BLINK_ENABLED  (1<<0)
 #define CRTC_IOAS_SET       (1<<1)
@@ -39,8 +39,8 @@ void kdisp_ioctl(u8 request, ...)
 {
     va_list l;
     va_start(l, request);
-    u8 *p;
-    u8 v;
+    int *p;
+    int v;
 
     switch(request){
         case DISP_SETATTR:
@@ -49,7 +49,7 @@ void kdisp_ioctl(u8 request, ...)
                 text_attr &= 0x7F;
             break;
         case DISP_GETATTR:
-            p = va_arg(l,u8 *);
+            p = va_arg(l,int *);
             *p = text_attr;
             break;
         case DISP_SETCOORDS:
@@ -62,10 +62,10 @@ void kdisp_ioctl(u8 request, ...)
             update_cursor();
             break;
         case DISP_GETCOORDS:
-            p = va_arg(l,u8 *);       // ROW
+            p = va_arg(l,int *);       // ROW
             *p = row;
 
-            p = va_arg(l,u8 *);       // COLUMN
+            p = va_arg(l,int *);       // COLUMN
             *p = column;
             break;
     };

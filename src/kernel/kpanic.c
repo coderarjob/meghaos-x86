@@ -12,18 +12,19 @@
 /* Hook function called from kpanic macro. 
  * Displays an error message on the screen and Halts */
 __attribute__((noreturn)) 
-void __kpanic(const char *s,...)
+void kpanic_gs(const char *s,...)
 {
+    char buffer[MAX_PRINTABLE_STRING_LENGTH];
     va_list l;
+
     va_start(l,s);
+    vsnprintk(buffer, ARRAY_LENGTH(buffer), s, l);
+    va_end(l);
+
+    printk_debug("%s",buffer);
 
     kdisp_ioctl(DISP_SETATTR, disp_attr(RED,WHITE,0));
-    printk(PK_ONSCREEN,"\r\nKernel Panic!\n\r");
-    vprintk(PK_ONSCREEN, s,l);
-
-    printk(PK_DEBUG,"\r\nKernel Panic!\n\r");
-    vprintk(PK_DEBUG, s,l);
-    va_end(l);
+    printk(buffer);
 
     khalt();
 }

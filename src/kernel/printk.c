@@ -8,196 +8,145 @@
 * NOTE: Actual VGA driver will be a server in User Mode.
 * -----------------------------------------------------------------------------
 *
-* Dated: 24th October 2020
+* Dated: 5th September 2021
 */
 
 #include <kernel.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
-typedef enum type_modifiers_tag {
-    INT, LONG, LONG_LONG
-} type_modifiers_t; 
-
-typedef enum processing_states_tag{
-    TYPE,CONVERTION,LITERAL,ERROR, EXIT
-} processing_states_t; 
-
-
-// I could not simplly print to port E9 everytime printf is called. That way 
-// the messages will always be printed on screen but only displayed to console 
-// if DEBUG is set. Only way to disable printing to screen is to delete the 
-// printk statements.  Because of the above problem, and to have better 
-// control which message is printed where, I have two separate 'destinations' 
-// one vga and another debug.  Note that the kdisp_* and kdebug_* functions 
-// can have different implementations based on the target architecure or debug 
-// environment. But the implementation of vprintk and printk should not change.
-static struct kconsole_operations{
-    void (*putc)(char c);
-} conop[] = {
-    { .putc = kdisp_putc },
-    { .putc = kdebug_putc }
+enum IntTypes {
+    INT, LONGINT, LONGLONGINT
 };
 
-typedef struct pf_tag{
-    struct kconsole_operations *cop;
-    type_modifiers_t type_mod;
-    const char *fmt;
-    const char *p;
-    va_list *list;
-} pf_t;
+static void s_prnstr(const char *str);
+static void s_itoa(char **dest, size_t *size, u64 num, u32 base);
+static bool s_convert(char **dest, size_t *size, enum IntTypes inttype, char c, 
+                      va_list *l);
+static enum IntTypes s_readtype(const char **fmt, char *c);
+static u64 s_readint(enum IntTypes inttype, va_list *l);
 
-static void pnum_base(struct kconsole_operations*, u64 num, u32 base);
-static void pstring(struct kconsole_operations*, const char *s);
-static u64 get_int_argument(va_list *list, type_modifiers_t type_modifier);
-
-void printk(u8 type, const char *fmt, ...)
+int printk(const char *fmt, ...)
 {
+    va_list l;
+    va_start(l, fmt);
 
-    va_list list;               
-    va_start (list, fmt);
-    vprintk(type, fmt, list);
-    va_end(list);
+    char buffer[MAX_PRINTABLE_STRING_LENGTH];
+    int len = vsnprintk(buffer, ARRAY_LENGTH(buffer), fmt, l);
+
+    s_prnstr(buffer);    
+    return len;
 }
 
-static processing_states_t _convertion(pf_t *pf) 
+int vsnprintk(char *dest, size_t size, const char *fmt, va_list l)
 {
-    u64 d;
-    char *s;
-    
-    const char c = *pf->fmt;
+    size_t originalsize = size;
 
-    switch(c){
-        case 'x':
-            d = get_int_argument(pf->list,pf->type_mod);
-            pnum_base(pf->cop,d,16);
+    char c;
+    while((c = *fmt) && size > 1)
+    {
+        bool isliteral = true;
+        const char *prevfmt = fmt;
+
+        if (c == '%')
+        {
+            enum IntTypes inttype = s_readtype(&fmt, &c);
+            isliteral = s_convert(&dest, &size, inttype, c, &l);
+        }
+
+        while (prevfmt <= fmt && size > 1 && isliteral)
+        {
+            *dest++ = *prevfmt++;
+            size--;
+        }
+
+        fmt++;
+    }
+
+    *dest = '\0';
+    size--;
+
+    return originalsize - size;
+}
+
+static enum IntTypes s_readtype(const char **fmt, char *c)
+{
+    enum IntTypes inttype = INT;
+    while ((*c = *++(*fmt)))
+    {
+        if (*c == 'l')
+            inttype = (inttype == INT) ? LONGINT : LONGLONGINT;
+        else
             break;
-        case 'u':
-            d = get_int_argument(pf->list,pf->type_mod);
-            pnum_base(pf->cop,d,10);
+    }
+    return inttype;
+}
+static u64 s_readint(enum IntTypes inttype, va_list *l)
+{
+    u64 value;
+    switch(inttype)
+    {
+        case INT:
+            value = va_arg(*l, u32);
             break;
-        case 'o':
-            d = get_int_argument(pf->list,pf->type_mod);
-            pnum_base(pf->cop,d,8);
+        case LONGINT:
+            value = va_arg(*l, u32);
             break;
-        case 'b':
-            d = get_int_argument(pf->list,pf->type_mod);
-            pnum_base(pf->cop,d,2);
-            break;
-        case 's':
-            s = va_arg(*pf->list,char *);
-            pstring(pf->cop,s);
-            break;
-        case '%':
-            pf->cop->putc('%');
+        case LONGLONGINT:
+            value = va_arg(*l, u64);
             break;
         default:
-            return ERROR;
+            value = 0xCAFEBABE189;
             break;
-    } 
-
-    pf->fmt++;
-    return LITERAL;
+    }
+    return value;
 }
-
-static processing_states_t _type(pf_t *pf)
+static bool s_convert(char **dest, size_t *size, enum IntTypes inttype, char c, 
+                      va_list *l)
 {
-    const char c = *pf->fmt;
-    if (c != 'l')
-        return CONVERTION;
+    u64 intvalue;
+    char *stringvalue;
+    bool isliteral = false;
 
-    if (pf->type_mod == LONG_LONG)
-        return ERROR;
-
-    pf->type_mod = (pf->type_mod == LONG)?LONG_LONG:LONG;
-    pf->fmt++;
-    return TYPE;
-}
-
-static processing_states_t _litetal(pf_t *pf)
-{
-    const char c = *pf->fmt;
     switch(c)
     {
+        case 'u':
+            intvalue = s_readint(inttype, l);
+            s_itoa(dest, size, intvalue, 10);
+            break;
+        case 'x':
+            intvalue = s_readint(inttype, l);
+            s_itoa(dest, size, intvalue, 16);
+            break;
+        case 'b':
+            intvalue = s_readint(inttype, l);
+            s_itoa(dest, size, intvalue, 2);
+            break;
+        case 'o':
+            intvalue = s_readint(inttype, l);
+            s_itoa(dest, size, intvalue, 8);
+            break;
+        case 's':
+            stringvalue = va_arg(*l, char *);
+            while(*stringvalue && *size > 1)
+            {
+                *(*dest)++ = *stringvalue++;
+                (*size)--;
+            }
+            break;
         case '%':
-            pf->p = pf->fmt++;
-            pf->type_mod = INT;
-            return TYPE;
-            break;
-        case '\0':
-            return EXIT;
+            *(*dest)++ = '%';
+            (*size)--;
             break;
         default:
-            pf->cop->putc(c);
-            pf->fmt++;
+            isliteral = true;
             break;
     }
-    return LITERAL;
+
+    return isliteral;
 }
-
-/* Prints formatted on screen at the cursor location.*/
-void vprintk(u8 type, const char *fmt, va_list list)
-{
-    // Print to debug cnsole only if DEBUG macro is set.
-#ifndef DEBUG
-    if (type == PK_DEBUG) return;
-#endif
-
-    processing_states_t state = LITERAL;
-    pf_t pf_info = {
-        .cop = &conop[type],
-        .fmt = fmt,
-        .type_mod = INT,
-        .list = &list,
-    };
-
-    while(state != EXIT){
-        switch(state) {
-            case LITERAL:
-                state = _litetal(&pf_info);
-                break;
-            case TYPE:
-                state = _type(&pf_info);
-                break;
-            case CONVERTION:
-                state = _convertion(&pf_info);
-                break;
-            case ERROR:
-                while(pf_info.p <= pf_info.fmt)
-                    pf_info.cop->putc(*pf_info.p++);
-
-                if (*pf_info.fmt == '\0'){
-                    state = EXIT;
-                }
-                else {
-                    state = LITERAL;
-                    pf_info.fmt++;
-                }
-                break;
-            case EXIT:
-                // Keeps the compiler happy.
-                break;
-        }
-    }
-}
-
-static u64 get_int_argument(va_list *list, type_modifiers_t type_modifier)
-{
-    switch (type_modifier)
-    {
-        case LONG:
-            return va_arg(*list,unsigned long int);
-            break;
-        case LONG_LONG:
-            return va_arg(*list,unsigned long long int);
-            break;
-        default:
-            return va_arg(*list,unsigned int);
-            break;
-    }
-}
-
 /* Displays a 64 bit number in various representation on the screen.  */
-static void pnum_base(struct kconsole_operations *cop, u64 num, u32 base) 
+static void s_itoa(char **dest, size_t *size, u64 num, u32 base) 
 {
     char *chars = "0123456789ABCDEF";
 
@@ -211,12 +160,15 @@ static void pnum_base(struct kconsole_operations *cop, u64 num, u32 base)
     }while(num > 0);
 
     // Display the characters in output in reverse order.
-    while(i--)
-        cop->putc(output[i]);
+    while(i-- && *size > 1) 
+    {
+        *(*dest)++ = output[i];
+        (*size)--;
+    }
 }
 
-static void pstring(struct kconsole_operations *cop, const char *s)
+static void s_prnstr(const char *str)
 {
-    for(;*s;s++)
-        cop->putc(*s);
+    for(;*str;str++)
+        kdisp_putc(*str);
 }

@@ -33,20 +33,11 @@
 #include <panic.h>
 #include <assert.h>
 #include <errno.h>
+#include <limits.h>
 
 #ifdef __i386__
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
 #endif
-
-enum printk_types { 
-    PK_ONSCREEN, 
-#if defined(DEBUG) && defined(VERBOSE)
-    PK_DEBUG = PK_ONSCREEN
-#else
-    PK_DEBUG
-#endif
-
-};
 
 /* Halts the processor by going into infinite loop */
 #define khalt() for(;;)
@@ -54,13 +45,16 @@ enum printk_types {
 /* Used to know the offset of a member in a structure type */
 #define OFFSET_OF(type,member) ((size_t)(&((type *)0)->member))
 
+/* Length of an array in bytes */
+#define ARRAY_LENGTH(ar) (sizeof((ar))/sizeof((ar)[0]))
+
 /* Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
 /* Printf like function, that prints depending on type*/
-void printk(u8 type, const char *fmt, ...);
+int printk(const char *fmt, ...);
 
-/* Prints formatted on screen at the cursor location.*/
-void vprintk(u8 type, const char *fmt, va_list list);
+/* Writes formatted output to memory pointed to by the dest char pointer.*/
+int vsnprintk(char *dest, size_t size, const char *fmt, va_list l);
 
 #endif

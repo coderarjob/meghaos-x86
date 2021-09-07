@@ -24,9 +24,6 @@ enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5,
                     IDT_DES_TYPE_16_TRAP_GATE = 7,
                     IDT_DES_TYPE_32_TRAP_GATE = 0xF};
 
-#define GDT_MIN_INDEX   3     // Minimum index that can be editted in Kernel.
-#define GDT_MAX_COUNT   512   // Number of GDT entries in memory
-
 #define __GDT_SELECTOR_FROM_INDEX(index, ring) ((index)<<3)|(ring)
 
 // Kernel Code segment selector.
@@ -48,7 +45,6 @@ enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5,
 // User Data segment selector.
 #define GDT_INDEX_UDATA 5
 #define GDT_SELECTOR_UDATA __GDT_SELECTOR_FROM_INDEX(GDT_INDEX_UDATA, 3)
-
 
 /* Initializes the tss_entry structure, installs a tss segment in GDT */
 void ktss_init();

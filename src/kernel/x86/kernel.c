@@ -33,23 +33,28 @@ __attribute__((noreturn))
 void __kernel_main()
 {
     kdisp_init();
-    printk(PK_ONSCREEN,"\r\n[OK]\tPaging enabled.");
+    printk("\r\n[OK]\tPaging enabled.");
+    /*printk("\r\nHello %u (%llx). %s. 100%t",
+                        65535,
+                        0xabcdabcdabcdabcd,
+                        "I am Arjob");
+    khalt();*/
 
     // TSS setup
-    printk(PK_ONSCREEN,"\r\n[  ]\tTSS setup.");
+    printk("\r\n[  ]\tTSS setup.");
     ktss_init();
-    printk(PK_ONSCREEN,"\r[OK]");
+    printk("\r[OK]");
 
     // Usermode code segment
-    printk(PK_ONSCREEN,"\r\n[  ]\tUser mode GDT setup.");
+    printk("\r\n[  ]\tUser mode GDT setup.");
     kgdt_edit(GDT_INDEX_UCODE, 0, 0xFFFFF, 0xFA, 0xD);
     // Usermode data segment
     kgdt_edit(GDT_INDEX_UDATA, 0, 0xFFFFF, 0xF2, 0xD);
     kgdt_write();
-    printk(PK_ONSCREEN,"\r[OK]");
+    printk("\r[OK]");
 
     // Setup IDT
-    printk(PK_ONSCREEN,"\r\n[  ]\tIDT setup");
+    printk("\r\n[  ]\tIDT setup");
     kidt_init();
     kidt_edit(0,div_zero,GDT_SELECTOR_KCODE,
               IDT_DES_TYPE_32_INTERRUPT_GATE,0);
@@ -60,13 +65,13 @@ void __kernel_main()
     kidt_edit(0x40,sys_dummy,GDT_SELECTOR_KCODE,
               IDT_DES_TYPE_32_INTERRUPT_GATE,3);
 
-    printk(PK_ONSCREEN,"\r[OK]");
+    printk("\r[OK]");
 
     // Display available memory
     display_system_info();
 
     // Jump to user mode
-    printk(PK_ONSCREEN,"\r\nJumping to User mode..");
+    printk("\r\nJumping to User mode..");
     kdisp_ioctl(DISP_SETATTR,disp_attr(BLACK,CYAN,0));
     __jump_to_usermode(GDT_SELECTOR_UDATA, 
                        GDT_SELECTOR_UCODE,
@@ -79,25 +84,25 @@ void display_system_info()
 {
     struct boot_info *mi = (struct boot_info*)BOOT_INFO_LOCATION;
 
-    printk(PK_DEBUG,"\r\nLoaded kernel files:");
+    printk_debug("%s","\r\nLoaded kernel files:");
     for (int i = 0; i < mi->filecount; i++){
         struct file_des file = mi->files[i];
-        printk(PK_DEBUG,"\r\n* file: Start = %x, Length = %x",
+        printk_debug("%s","\r\n* file: Start = %x, Length = %x",
                 file.startLocation, file.length);
     }
 
-    printk(PK_DEBUG,"\r\nBIOS Memory map:"); 
+    printk_debug("%s","\r\nBIOS Memory map:"); 
     u64 available_memory = 0;
     for(int i = 0; i < mi->count; i++)
     {
         struct mem_des item = mi->items[i];
         available_memory += item.length;
-        printk(PK_DEBUG, "\r\n* map: Start = %llx, Length = %llx, Type = %u",
+        printk_debug( "\r\n* map: Start = %llx, Length = %llx, Type = %u",
                          item.baseAddr, item.length, item.type);
     }
 
-    printk(PK_ONSCREEN,"\r\nKernel files loaded: %u", mi->filecount);
-    printk(PK_ONSCREEN,"\r\nAvailable memory: %u KiB",available_memory/1024);
+    printk_debug("\r\nKernel files loaded: %u", mi->filecount);
+    printk_debug("\r\nAvailable memory: %u KiB",available_memory/1024);
 }
 
 __attribute__((noreturn))
@@ -121,7 +126,7 @@ void page_fault()
 
 void sys_dummy()
 {
-    printk(PK_ONSCREEN,"\r\nInside sys_dummy routine..");
+    printk("\r\nInside sys_dummy routine..");
     outb(0x80,4);
     // Needs to IRET not RET
 }
@@ -142,15 +147,15 @@ void usermode_main()
 {
     //__asm__ volatile ("int 0x40");
 
-    printk(PK_ONSCREEN,"\r\nInside usermode..");
-    printk(PK_ONSCREEN,"\r\n%u,%x,%o,%s,%%",
+    printk("\r\nInside usermode..");
+    printk("\r\n%u,%x,%o,%s,%%",
                         45789,
                         0xcafeefe,
                         02760,
                         "Hello Arjob");
     u64 var = 0xCF010203040506FF;   
-    printk(PK_ONSCREEN,"\r\n%llx",var);
-    printk(PK_ONSCREEN,"\r\nLocation of __kernel_main = %x",__kernel_main);
+    printk("\r\n%llx",var);
+    printk("\r\nLocation of __kernel_main = %x",__kernel_main);
 
     //kassert(("Nonsense error",1<0),"Nonsense");
     *a = 0;    
