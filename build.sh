@@ -3,8 +3,8 @@
 export ARCH=x86
 export DEBUG=DEBUG
 # DEBUG LEVEL BITS
-# x x x x x x [VGA BUFFER] [E9]
-export DEBUGLEVEL=3
+# x x x x x x [Screen] [E9]
+export DEBUGLEVEL=2
 LINK_USING_LD=1
 
 if [ $# -ge 1 ]; then ARCH=$1; fi
