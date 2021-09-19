@@ -64,6 +64,10 @@ void __kernel_main()
 
     // Display available memory
     display_system_info();
+    
+    // Paging information
+    extern void paging_print();
+    paging_print();
 
     // Jump to user mode
     printk("\r\nJumping to User mode..");

@@ -74,14 +74,17 @@ g_kernel_entry:
     call s_fill_pd
     call s_fill_pt
 
+    ; Caching is enabled, with write-back caching.
     mov eax, [PHY(g_page_dir)]
     and eax, 0b11111111_11111111_11110000_00000000
     mov cr3, eax
     
+    ; Page size extension and page address extension is disabled
     mov eax, cr4
-    and eax, 0b11111111_11111111_11111111_11101111
+    and eax, 0b11111111_11111111_11111111_11001111
     mov cr4, eax
 
+    ; Enable paging
     mov eax, cr0
     or eax, 0x80000000
     mov cr0, eax
@@ -111,7 +114,6 @@ section .text progbits alloc exec nowrite
 
     ; Clear TLB
         mov eax, [g_page_dir]
-        and eax, 0b11111111_11111111_11110000_00000000
         mov cr3, eax
     ; --
 
@@ -136,6 +138,7 @@ s_fill_pd:
     pushad
         mov edi, [PHY(g_page_dir)]
         mov eax, [PHY(g_page_table)]
+        ; Caching is enabled, with write-back caching.
         and eax, 0b11111111_11111111_11110000_00000000
         or eax, 7
         mov [edi],eax
@@ -157,6 +160,7 @@ s_fill_pt:
         mov ecx, 1024           ; There are 1024 entries per page table.
 .write_next_pte:
         push eax
+            ; Caching is enabled, with write-back caching.
             and eax, 0b11111111_11111111_11110000_00000000
             or eax, 7
             mov [edi],eax
