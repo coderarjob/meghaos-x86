@@ -26,7 +26,19 @@
     typedef unsigned short u16;
     typedef unsigned int u32;
     typedef unsigned long long u64;
-
     typedef u32 size_t;     // Type that can hold the largest number in an 
                             // architecture.
+
+    // 32 bit Physical address. This type will prevent mixing physical and
+    // virtual addresses as this type cannot be cast to any other pointer, not
+    // even void * explicitly.
+    typedef 
+    struct { size_t value; } __attribute__((packed)) PHYSICAL_ADDRESS;
+
+    // Casts a bit field of n bits to 32 bit unsigned int.
+    inline u32 CAST_BITN_U32(u32 t, u32 n) { 
+        n--; 
+        return (u32)(t & ((2 << n) -1)); 
+    }
+
 #endif // __x86_TYPES__
