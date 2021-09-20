@@ -17,6 +17,7 @@
 #define __KERNEL_H_x86__
 
 #include <x86/boot.h>
+#include <x86/paging.h>
 
 enum idt_des_types {IDT_DES_TYPE_TASK_GATE = 5, 
                     IDT_DES_TYPE_16_INTERRUPT_GATE = 6,

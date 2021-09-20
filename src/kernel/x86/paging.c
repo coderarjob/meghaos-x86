@@ -8,69 +8,20 @@
 * Dated: 13 September 2021
 ; ---------------------------------------------------------------------------
 */
-
 #include <kernel.h>
 
-struct pte
-{
-    int    present          : 1,
-           write_allowed    : 1,
-           user_accessable  : 1,
-           pwt              : 1,
-           pcw              : 1,
-           accessed         : 1,
-           dirty            : 1,
-           pat              : 1,
-           global_page      : 1,
-           ing2             : 3,
-           page_addr        :20;
-} __attribute__((packed));
-
-struct pde4mb
-{
-    int    pagetable_low    :10,
-           zeros            : 5,
-           pagetable_high   : 4,
-           pat              : 1;
-    int    ing2             : 3,
-           global           : 1,
-           ps_mustbe1       : 1,
-           dirty            : 1,
-           accessed         : 1,
-           pcw              : 1,
-           pwt              : 1,
-           user_accessable  : 1,
-           write_allowed    : 1,
-           present          : 1;
-} __attribute__((packed));
-
-struct pde4kb
-{
-    int    present          : 1,
-           write_allowed    : 1,
-           user_accessable  : 1,
-           pwt              : 1,
-           pcw              : 1,
-           accessed         : 1,
-           ing0             : 1,
-           ps_mustbe0       : 1,
-           ing2             : 4,
-           pagetable_addr   :20;
-} __attribute__((packed));
-
-volatile u8 large_array[4096] = {100};
+volatile u8 large_array[8096] = {100};
 
 void paging_print()
 {
-    extern int g_page_dir, g_page_table;
-    struct pde4kb *pde = (struct pde4kb *)(0xC0000000 + g_page_dir);
-    struct pte    *pte = (struct pte *)   (0xC0000000 + g_page_table);
-    
-#define BIT1(t) ((t) & 0x1)
-#define BIT20(t) ((t) & ((2 << 19) -1))
+    struct pde4kb *pde = (struct pde4kb *)CAST_PA_VA(g_page_dir);
+    struct pte    *pte = (struct pte *)   CAST_PA_VA(g_page_table);
+
+#define CAST_BIT1_U32(t)  CAST_BITN_U32(t,  1)
+#define CAST_BIT20_U32(t) CAST_BITN_U32(t, 20)
 
     printk("\r\nPage directory: %x\r\n", pde);
-    printk("Page table    : %x\r\n", pte);
+    printk(    "Page table    : %x\r\n", pte);
 
     printk("Dir 0: \r\n"
            "       page table addr = %x, \r\n"
@@ -81,14 +32,14 @@ void paging_print()
            "       user accessable = %x, \r\n"
            "       write allowed   = %x, \r\n"
            "       present         = %x, \r\n",
-           BIT20(pde[0].pagetable_addr),
-           BIT1(pde[0].ps_mustbe0),
-           BIT1(pde[0].accessed),
-           BIT1(pde[0].pcw),
-           BIT1(pde[0].pwt),
-           BIT1(pde[0].user_accessable),
-           BIT1(pde[0].write_allowed),
-           BIT1(pde[0].present));
+           CAST_BIT20_U32(pde[0].pagetable_addr),
+           CAST_BIT1_U32(pde[0].ps_mustbe0),
+           CAST_BIT1_U32(pde[0].accessed),
+           CAST_BIT1_U32(pde[0].pcw),
+           CAST_BIT1_U32(pde[0].pwt),
+           CAST_BIT1_U32(pde[0].user_accessable),
+           CAST_BIT1_U32(pde[0].write_allowed),
+           CAST_BIT1_U32(pde[0].present));
                     
     printk("Dir 768: \r\n"
            "       page table addr = %x, \r\n"
@@ -99,14 +50,14 @@ void paging_print()
            "       user accessable = %x, \r\n"
            "       write allowed   = %x, \r\n"
            "       present         = %x, \r\n",
-           BIT20(pde[768].pagetable_addr),
-           BIT1(pde[768].ps_mustbe0),
-           BIT1(pde[768].accessed),
-           BIT1(pde[768].pcw),
-           BIT1(pde[768].pwt),
-           BIT1(pde[768].user_accessable),
-           BIT1(pde[768].write_allowed),
-           BIT1(pde[768].present));
+           CAST_BIT20_U32(pde[768].pagetable_addr),
+           CAST_BIT1_U32(pde[768].ps_mustbe0),
+           CAST_BIT1_U32(pde[768].accessed),
+           CAST_BIT1_U32(pde[768].pcw),
+           CAST_BIT1_U32(pde[768].pwt),
+           CAST_BIT1_U32(pde[768].user_accessable),
+           CAST_BIT1_U32(pde[768].write_allowed),
+           CAST_BIT1_U32(pde[768].present));
 
     printk("Page B8: \r\n"
            "       page addr       = %x, \r\n"
@@ -119,17 +70,17 @@ void paging_print()
            "       user accessable = %x, \r\n"
            "       write allowed   = %x, \r\n"
            "       present         = %x, \r\n",
-           BIT20(pte[1023].page_addr),
-           BIT1(pte[1023].global_page),
-           BIT1(pte[1023].pat),
-           BIT1(pte[1023].dirty),
-           BIT1(pte[1023].accessed),
-           BIT1(pte[1023].pcw),
-           BIT1(pte[1023].pwt),
-           BIT1(pte[1023].user_accessable),
-           BIT1(pte[1023].write_allowed),
-           BIT1(pte[1023].present));
-#undef BIT1
-#undef BIT20
+           CAST_BIT20_U32(pte[1023].page_addr),
+           CAST_BIT1_U32(pte[1023].global_page),
+           CAST_BIT1_U32(pte[1023].pat),
+           CAST_BIT1_U32(pte[1023].dirty),
+           CAST_BIT1_U32(pte[1023].accessed),
+           CAST_BIT1_U32(pte[1023].pcw),
+           CAST_BIT1_U32(pte[1023].pwt),
+           CAST_BIT1_U32(pte[1023].user_accessable),
+           CAST_BIT1_U32(pte[1023].write_allowed),
+           CAST_BIT1_U32(pte[1023].present));
+#undef CAST_BIT1_U32
+#undef CAST_BIT20_U32
 
 }
