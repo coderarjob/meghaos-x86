@@ -10,8 +10,6 @@
 */
 #include <kernel.h>
 
-volatile u8 large_array[8096] = {100};
-
 void paging_print()
 {
     struct pde4kb *pde = (struct pde4kb *)CAST_PA_VA(g_page_dir);
@@ -59,7 +57,7 @@ void paging_print()
            CAST_BIT1_U32(pde[768].write_allowed),
            CAST_BIT1_U32(pde[768].present));
 
-    printk("Page B8: \r\n"
+    printk("Page 1023: \r\n"
            "       page addr       = %x, \r\n"
            "       global          = %x, \r\n"
            "       pat             = %x, \r\n"
@@ -79,7 +77,7 @@ void paging_print()
            CAST_BIT1_U32(pte[1023].pwt),
            CAST_BIT1_U32(pte[1023].user_accessable),
            CAST_BIT1_U32(pte[1023].write_allowed),
-           CAST_BIT1_U32(pte[1023].present));
+           CAST_BIT1_U32(pte[1023].present)); 
 #undef CAST_BIT1_U32
 #undef CAST_BIT20_U32
 
