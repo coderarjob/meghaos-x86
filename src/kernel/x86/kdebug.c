@@ -11,12 +11,14 @@
 
 #if  defined(DEBUG)
 
+#if (DEBUG_LEVEL & 1)
 static void s_e9puts(const char *string)
 {
     char c;
     while((c = *string++))
         outb(0xE9, c);
 }
+#endif
 
 void printk_debug_gs(const char *fmt, ...)
 {
