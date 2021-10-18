@@ -69,6 +69,7 @@ void kdisp_ioctl(u8 request, ...)
             *p = column;
             break;
     };
+    va_end(l);
 }
 
 /* Finds the where the next character should go and places the cursor there.*/
