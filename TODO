@@ -36,7 +36,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [ ] RAMDISK (INITRD.0) creation 
     in build.sh
 [X] BOOT1 to load Kernel and INITRD.0         -                 25 Aug 2021
-[ ] Create a tools folder, with scripts to    -
+[X] Create a tools folder, with scripts to    -
     build gcc cross-compiler.
 [ ] Idea of VERBOSE to print debug messages   -
     on screen is faulty. There should be
@@ -48,6 +48,9 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     Correct option is selected based on 
     compiler flags and stage at which 
     the OS is currently.
+[ ] Physical memory allocator
+[ ] Virutal memory allocator
+
 
 # LONG TERM PLANS
 
@@ -85,11 +88,15 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     Sol: Reading unsigned int variants in va_arg instead of just int, long etc.
 
 [ ] Make symbols comply with the C99 standard. Symbols beginning with 
-    underscore is reserved. Rename them.
+    underscore is reserved [7.13]. Rename them.
     [ ] Macros in header files.
     [ ] Variable names in C source.
     [ ] Members in struct.
     [ ] Function names.
+
+[ ] Create/Update the C style guide. Consider the GNOME C style guide, but
+    some changes are required where the reason cannot be justified for this
+    project.
 
 # TODOs
  
