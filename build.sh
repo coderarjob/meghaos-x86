@@ -4,7 +4,7 @@ export ARCH=x86
 export DEBUG=DEBUG
 # DEBUG LEVEL BITS
 # x x x x x x [Screen] [E9]
-export DEBUGLEVEL=1
+export DEBUGLEVEL=2
 LINK_USING_LD=1
 
 if [ $# -ge 1 ]; then ARCH=$1; fi
@@ -83,7 +83,7 @@ if [ $LINK_USING_LD -eq 1 ]; then
 else
      export LD_OPTIONS="-ffreestanding \
                        -nostdlib \
-                       -lgcc"       
+                       -lgcc"
      export LD_FLAGS="-T build/kernel.ld"
      export LD_KERNEL="i686-elf-gcc"
 fi
@@ -110,7 +110,16 @@ mkdir $LISTDIR         || exit
 bash src/bootloader/x86/build.sh  || exit
 
 # Build kernel
-bash src/kernel/build.sh  2>"$REPORTSDIR/build_warnings.txt" || exit
+bash src/kernel/build.sh  2>"$REPORTSDIR/build_warnings.txt"
+
+# If build fails, build_warnings.txt will contain errors, as well as warnings,
+# otherwise will contain warnings only.
+# In that former case, we dump the last few lines of the file and exit.
+if [ $? -ne 0 ]; then
+    tail -n 10 "$REPORTSDIR/build_warnings.txt"
+    rm "$REPORTSDIR/build_warnings.txt"
+    exit
+fi
 # ---------------------------------------------------------------------------
 # Build the floppy image
 echo "    [ Creating disk image ]    "
@@ -140,7 +149,7 @@ echo "    [ Cleaning up ]"
 rm -f -r $DISKTEMPDIR || exit
 
 echo "    [ Generating tags file ]"
-ctags -R . || exit
+ctags -R ./src ./include/ || exit
 
 echo "    [ Running linting tool ]"
 ./lint.sh -D__i386__ \
