@@ -116,7 +116,7 @@ bash src/kernel/build.sh  2>"$REPORTSDIR/build_warnings.txt"
 # otherwise will contain warnings only.
 # In that former case, we dump the last few lines of the file and exit.
 if [ $? -ne 0 ]; then
-    tail -n 10 "$REPORTSDIR/build_warnings.txt"
+    grep --color=always -B2 -i Error "$REPORTSDIR/build_warnings.txt"
     rm "$REPORTSDIR/build_warnings.txt"
     exit
 fi
