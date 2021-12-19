@@ -33,7 +33,7 @@
 #include <panic.h>
 #include <assert.h>
 #include <errno.h>
-#include <limits.h>
+#include <moslimits.h>
 
 #ifdef __i386__
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */

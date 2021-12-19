@@ -10,8 +10,8 @@
 * Dated: 7th September 2021
 */
 
-#ifndef __LIMITS_H_X86__
-#define __LIMITS_H_X86__
+#ifndef __MOS_LIMITS_H_X86__
+#define __MOS_LIMITS_H_X86__
     
     #define MAX_VGA_COLUMNS                 80
     #define MAX_VGA_ROWS                    50
@@ -24,4 +24,4 @@
     // Number of GDT entries in memory
     #define GDT_MAX_COUNT                   512   
 
-#endif // __LIMITS_H_X86__
+#endif // __MOS_LIMITS_H_X86__

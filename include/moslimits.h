@@ -10,11 +10,11 @@
 * Dated: 7th September 2021
 */
 
-#ifndef __LIMITS_H__
-#define __LIMITS_H__
+#ifndef __MOS_LIMITS_H__
+#define __MOS_LIMITS_H__
 
 #ifdef __i386__
-    #include <x86/limits.h>
+    #include <x86/moslimits.h>
 #endif
 
-#endif //__LIMITS_H__
+#endif //__MOS_LIMITS_H__
