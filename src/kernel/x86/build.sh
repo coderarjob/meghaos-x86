@@ -19,8 +19,6 @@ nasm -f elf32 src/kernel/x86/entry.s -g \
 
 # Kernel must must be named kernel.o, as this is hardcoded in kernel.ld
 # NOTE: Must be a way to pass the filename
-#$GCC32 -c -Wa,-adhln kernel/x86/paging.s \
-#       -o $K_OBJDIR/x86_paging.o > $LISTDIR/x86_paging.lst  || exit
 
 $GCC32 -c src/kernel/x86/kernel.c -o $K_OBJDIR/x86_kernel.o                   || exit
 $GCC32 -S src/kernel/x86/kernel.c -o $LISTDIR/x86_kernel.lst  >/dev/null 2>&1 || exit
