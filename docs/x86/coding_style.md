@@ -6,17 +6,40 @@ _19 December 2021_
 ### (1) Naming
 #### (1.1) Functions
 
-1. Functions names must be lower case, and multi word function names, must be joined by `_`.
-2. Module/File name can be prefixed if that makes sense. 
-3. All global functions, that run within kernel space, must have `k_` prefix.
+1. Functions names must be lower Camel case. Do not separate out words with `_`.
+2. All global functions, that run within kernel space, must have `k` prefix.
+3. After the `k` prefix, module/file name can be placed, in lower case.
+4. After the `k` prefix and the module name, a `_` separates the actual function name verb.
 
    Example: 
    ```
-   FindResults *k_util_search_case_insensitive (char *str, char *pattern);
-   void         k_mm_alloc_page                (int count);
+   FindResults *
+   kutil_searchCaseIsensitive (char *str, char *pattern);
+   
+   void         
+   kmm_allocPage (int count);
    ```
-2. Functions that must not be called directly should end with `_ndu` (no direct use).
-3. Static functions with file scope, should begin with `s_`.
+5. Functions that must not be called directly should end with `_ndu` (no direct use).
+6. Static functions with file scope, should begin with `s`.
+
+**Rational**
+The `k` and the `module` name is a quick way to know the that the function influences the kernel
+space and the module name prevents wierd function name.
+
+```
+void
+kgdt_add(...) 
+{
+    ...
+}
+
+void
+kidt_add(...)
+{
+    ...
+}
+```
+
 
 *Restrictions:*
 1. Names starting with with `_` or `__` are reserved.
@@ -27,14 +50,15 @@ Ref: [https://www.gnu.org/software/libc/manual/html_node/Reserved-Names.html](GC
 
 #### (1.2) Variable
 
-1. All variable names must be lower case, and multi word function names, must be joined by `_`.
-2. Global kernel space variables, must have `k_` prefixed.
-3. Module/File name can be prefixed if that makes sense. 
+1. All variables must be lower Camel case. Do not separate out words with `_`.
+2. Global kernel variables, must have `k` prefix.
+3. After the `k` prefix, module/file name can be placed, in lower case.
+4. After the `k` prefix and the module name, a `_` separates the actual variable name.
 
    Example: 
    ```
-   ADDR k_mm_page0_location;
-   INT  k_gdt_location;
+   ADDR kmm_page0Location;
+   INT  kgdt_location;
    ```
 
 #### (1.3) typedef
@@ -45,28 +69,45 @@ New types are necessary in the following conditions:
 
 Regardless of the intended use of the custom type, following rules must be always followed:
 
-* All new types that replace standard types, must be written in all UPPERCASE.
-* All new types that are aliases must be written in UpperCamelCase. 
-* The new type must not have `_t` postfix. Because such names are reserved by the POSIX standard 
+1 All new types that replace standard types, must be written in all UPPERCASE.
+2 All new types that are aliases must be written in UpperCamelCase. 
+3 The new type must not have `_t` postfix. Because such names are reserved by the POSIX standard 
   and also possibility the gcc compiler.  Exception is type names, which are part of the C99 
   standard.
-* Always typedef enums and structs.
-* Names of the new type and the tag (enum and struct) must be the same.
-* No cryptic/shortened names.
+4 Always typedef enums and structs.
+5 Names of the new type and the tag (enum and struct) must be the same.
+6 No cryptic/shortened names.
+
+Things to consider:
+1. Instead of beginning a type name with the word 'kernel', start with 'k'.
+2. After the optional k, add the module name and an underscore after it, followed by the actual
+   type name. 
+   The underscore must be placed before the actual noun, if either 'k' or 'module' was used.
 
 Example:
 
 ```
-###if defined(_X86_)
+// These are a replacement for the C99 types, so the new type names are all UpperCase.
+#if defined(_X86_)
     typdef unsigned      int UINT
-###else
+#else
     typdef unsigned long int UINT
-###end if
+#end if
 
-typdef struct MatchResult {
+// Instead of KernelErrorCodes.
+typedef enum k_ErrorCodes 
+{
+    ERR_NONE,
+    ERR_BIOS_FAULT,
+    ERR_COUNT
+};
+
+// Module name written before the type name nown.
+typedef struct util_MatchResult 
+{
     UINT         count;
     MatchResult *next
-} MatchResult;
+} util_MatchResult;
 
 ```
 
@@ -157,8 +198,8 @@ insert (LinkedList ll, int (* ll_function[])(int, int), int count)
 
 static unsigned long
 insert (LinkedList ll, 
-        int (* ll_function[])(int, int), 
-        int count)
+        int        (* ll_function[])(int, int), 
+        int        count)
 {
     ...
 }
@@ -170,11 +211,20 @@ function.
 
 ```
 static unsigned long
-convert (unsigned long long value, IntegerTypes type) 
+convert (unsigned long long value, 
+         IntegerTypes       type) 
+{
+    ...
+}
+
+KernelMemory *
+k_getMemoryLocation (PageTable *pagetable,
+                     ADDR       virtualloc)
 {
     ...
 }
 ```
+The asterisk stays with the return type, not the identifier.
 
 **Rational**
 Function definitions can easily be separated from the use of the functions. 
@@ -230,20 +280,15 @@ With functions, this is less apparent, but the 2nd style is more clear in my tho
 
 #### (2.5) Return/Error codes
 
-|--------------------|----------------|--------------------------|-------------------------------|
 | Function name type | return type    |  Return value on success | Return value on failure/error |
 |--------------------|----------------|--------------------------|-------------------------------|
 | verb (print/getc)  |  int           |         >=0              |          <0                   |
-|--------------------|----------------|--------------------------|-------------------------------|
 | verb (print/getc)  |  pointer       |         > 0              |          =0                   |
-|--------------------|----------------|--------------------------|-------------------------------|
 | verb (print/getc)  |  unsigned int  |                       do not use                         |
-|--------------------|----------------|--------------------------|-------------------------------|
 | predicate          |  bool          |         true             |         false                 |
-|--------------------|----------------|--------------------------|-------------------------------|
 | predicate          |  int           |         =0 (false)       |          <0                   |
-|                                     |         >0 (true)        |          <0                   |
-|--------------------|----------------|--------------------------|-------------------------------|
+| predicate          |  int           |         >0 (true)        |          <0                   |
+
 In each case, errno is set to indicate the appropriate error.
 
 ------------------------------------------------------------------------------
