@@ -166,70 +166,85 @@ opinion. Indentation of 2 or 8 spaces is too little and too much.
   `++  --`
 6 and no space around the . and -> structure member operators.
 
-#### (2.2) Function declaration
+#### (2.2) Function definition
 
-All declarations in a file, should align the return type, function name and the starting bracket (
-in columns. Starting from the 2nd argument, every argument are placed in separate line, aligned 
-to the one before it.)
+1. When defining functions, the return type is placed in a separate line and the function name and 
+   its parameters are placed in the following line. 
 
-Example:
-```
-void            is_integer    (char c);
-unsigned int    to_integer    (char c);
-FindResults    *searchpattern (char *str, 
-                               char *pattern); 
-```
-The asterisk stays with the identifier, not the type.
-
-#### (2.3) Function definition
-
-When defining functions, the return type is placed in a separate line and the function name and its
-arguments are placed in the following line. Starting from the 2nd argument, every argument are 
-placed in separate line, aligned to the one before it.)
-
-**Rational**:
-
-```
-static unsigned long
-insert (LinkedList ll, int (* ll_function[])(int, int), int count)
-{
-    ...
-}
-
-static unsigned long
-insert (LinkedList ll, 
-        int        (* ll_function[])(int, int), 
-        int        count)
-{
-    ...
-}
-```
-
-As the above example demonstrates, when one of the argument is a function pointer, the
-arguments-in-separate-lines styles is much cleaner. To be consistent I keep this style for every
-function.
-
-```
-static unsigned long
-convert (unsigned long long value, 
-         IntegerTypes       type) 
-{
-    ...
-}
-
-KernelMemory *
-k_getMemoryLocation (PageTable *pagetable,
-                     ADDR       virtualloc)
-{
-    ...
-}
-```
-The asterisk stays with the return type, not the identifier.
+    static unsigned long
+    convert (unsigned long long value, 
+             IntegerTypes type) 
+    {
+        ...
+    }
 
 **Rational**
 Function definitions can easily be separated from the use of the functions. 
-`grep -r \^convert` will quickly find the definition and no call to this function or declaration
-will be part of this result. Apart from this, I think it looks less cluttered.
+`grep -r \^convert` will quickly find the definition only, not the declaration or any calls to 
+this function. Apart from this, I think it looks less cluttered.
+
+2. The parameter placement in the function definition, can be of two types. Choose the right one as
+   per the situation. Both are valid, and will come down to choice.
+
+   A. Each of the parameters are placed in individual lines, all aligned to the previous one. 
+   B. Parameters that are alike or part of a group, are placed on the same line. 
+
+
+**Rational**:
+
+    static unsigned long
+    insert (LinkedList ll, int (* ll_function[])(int, int), int count)
+    {
+        ...
+    }
+
+    static unsigned long
+    insert (LinkedList ll, 
+            int (* ll_function[])(int, int), 
+            int count)
+    {
+        ...
+    }
+
+As the above example demonstrates, when one of the argument is a function pointer, the
+parameters-in-separate-lines styles is much cleaner. 
+
+However, this is not practical when the number of arguments are small or makes sense to keep
+together.
+
+    static void 
+    setColor(UINT r,
+             UINT g,
+             UINT b)
+    {
+        ...
+    }
+
+    static void 
+    setColor(UINT r, UINT g, UINT b)
+    {
+        ...
+    }
+
+In this case, I think the below style makes more sense. 
+
+In the end the parameter placement comes down to judgement and is a matter of preference.
+
+#### (2.3) Function declaration
+
+All declarations in a file, should align the return type, function name and the starting bracket (
+in columns. The placement of the parameter match the parameter placement of the function
+definition.
+
+Example:
+    void                 is_integer    (char c);
+    unsigned int         to_integer    (char c);
+    static void          setColor      (UINT r, UINT g, UINT b)
+    static unsigned long insert        (LinkedList ll, 
+                                        int (* ll_function[])(int, int), 
+                                        int count)
+
+The asterisk stays with the identifier, not the type.
 
 #### (2.4) Brackets
 
