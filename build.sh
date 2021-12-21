@@ -142,18 +142,24 @@ runas umount $DISKTEMPDIR || exit
 echo "    [ Writing bootloader to floppy image ]    "
 dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
 # ---------------------------------------------------------------------------
-echo "    [ Storage Utilization ]"
-wc -c $OBJDIR/*.flt
-
-echo "    [ Cleaning up ]"
-rm -f -r $DISKTEMPDIR || exit
-
-echo "    [ Generating tags file ]"
-ctags -R ./src ./include/ || exit
-
 echo "    [ Running linting tool ]"
 ./lint.sh -D__i386__ \
           -D$DEBUG \
           -DDEBUG_LEVEL=$DEBUGLEVEL >"$REPORTSDIR/lint_report.txt" 2>&1 || exit
+
+echo "    [ Generating tags file ]"
+ctags -R ./src ./include/ || exit
+
+echo "    [ Cleaning up ]"
+rm -f -r $DISKTEMPDIR || exit
+
+# ---------------------------------------------------------------------------
+echo "    [ Report: Storage Utilization ]"
+wc -c $OBJDIR/*.flt
+
+echo "    [ Report: Warning count ]"
+WARNCOUNT=`grep -c -r "warning:" build/reports/build_warnings.txt`
+echo "Total compiler warnings: $WARNCOUNT"
+
 # ---------------------------------------------------------------------------
 echo "    [ Done ]"
