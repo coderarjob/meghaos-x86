@@ -98,6 +98,18 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     some changes are required where the reason cannot be justified for this
     project.
 
+[X] bug-no-boot-omega:
+    Not able to boot on some native hardware. The screen goes black and after
+    some cursor flickering, it settles someshere in the bottom row. Sometimes
+    there is a Omega character with the cursor in the end.
+    - It faults before passing control to the 2nd stage bootloader.
+    - Setting the VGA mode (to 0x3 Text mode) has no effect on the bug.
+
+    24th Dec 2021
+    Sol: I never set the DS register. Aparently in some system the segment
+    registers are not reset to zero before passing control to the
+    bootloader.
+
 # TODOs
  
 [X] Can kernel global variables like errno, etc, lie in the kernel, or be 
