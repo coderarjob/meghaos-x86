@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pushd ~/meghaos-v2/tmp/meghaos
+pushd ~/meghaos-v2/
 
 # --------------------------------------------------------------------------
 # Integer types
