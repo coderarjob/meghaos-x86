@@ -158,8 +158,10 @@ echo "    [ Report: Storage Utilization ]"
 wc -c $OBJDIR/*.flt
 
 echo "    [ Report: Warning count ]"
-WARNCOUNT=`grep -c -r "warning:" build/reports/build_warnings.txt`
-echo "Total compiler warnings: $WARNCOUNT"
+WARNCOUNT_GCC=`grep -c -r "warning:" build/reports/build_warnings.txt`
+WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`
+echo "Total compiler warnings: $WARNCOUNT_GCC"
+echo "Total lint warnings: $WARNCOUNT_LINT"
 
 # ---------------------------------------------------------------------------
 echo "    [ Done ]"
