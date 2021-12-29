@@ -21,10 +21,18 @@
 #define CRTC_BLINK_ENABLED  (1<<0)
 #define CRTC_IOAS_SET       (1<<1)
 
-#define crt_addr_port  (crtc_flags & CRTC_IOAS_SET)?0x3D4 : 0x3B4
-#define crt_data_port  (crtc_flags & CRTC_IOAS_SET)?0x3D5 : 0x3B5
-#define crt_read(i,v)  do{outb (crt_addr_port,i);inb (crt_data_port,v);}while (0)
-#define crt_write(i,v) do{outb (crt_addr_port,i);outb (crt_data_port,v);}while (0)
+#define crt_addr_port  (crtc_flags & CRTC_IOAS_SET) ? 0x3D4 : 0x3B4
+#define crt_data_port  (crtc_flags & CRTC_IOAS_SET) ? 0x3D5 : 0x3B5
+
+#define crt_read(i,v)  do{                              \
+                            outb (crt_addr_port,i);     \
+                            inb (crt_data_port,v);      \
+                       }while (0)
+
+#define crt_write(i,v) do{                              \
+                            outb (crt_addr_port,i);     \
+                            outb (crt_data_port,v);     \
+                       }while (0)
 
 static U8 row, column,
           crtc_flags, 
@@ -34,8 +42,12 @@ static U16 *vgab;
 
 static void update_cursor ();
 
-/* Display ioctrl */
-void kdisp_ioctl (U8 request, ...)
+/* Display ioctrl
+ * Returns:
+ * On Success, ERR_NONE (0) is returned.
+ * On Failure, k_errorNumber is set and -1 is returned.
+ */
+INT kdisp_ioctl (U8 request, ...)
 {
     va_list l;
     va_start (l, request);
@@ -44,32 +56,47 @@ void kdisp_ioctl (U8 request, ...)
 
     switch (request){
         case DISP_SETATTR:
-            text_attr = va_arg (l,INT);
-            if ((crtc_flags & CRTC_BLINK_ENABLED) == 0) 
-                text_attr &= 0x7F;
+            v = va_arg (l,INT);
+            if (v < 0 || v > 255)
+            {
+                va_end(l);
+                RETURN_ERROR (ERR_INVALID_RANGE, -1);
+            }
+
+            text_attr = (U8)v;
+            if ((crtc_flags & CRTC_BLINK_ENABLED) == 0) text_attr &= 0x7F;
             break;
         case DISP_GETATTR:
             p = va_arg (l,INT *);
-            *p = text_attr;
+            *p = (INT)text_attr;
             break;
         case DISP_SETCOORDS:
             v = va_arg (l,INT);       // ROW
-            row = v;
+            if (v < 0 || v > MAX_VGA_ROWS)
+            {
+                RETURN_ERROR (ERR_INVALID_RANGE, -1);
+            }
+            row = (U8)v;
 
             v = va_arg (l,INT);       // COLUMN
-            column = v;
+            if (v < 0 || v > MAX_VGA_COLUMNS)
+            {
+                RETURN_ERROR (ERR_INVALID_RANGE, -1);
+            }
+            column = (U8)v;
 
             update_cursor ();
             break;
         case DISP_GETCOORDS:
             p = va_arg (l,INT *);       // ROW
-            *p = row;
+            *p = (INT)row;
 
             p = va_arg (l,INT *);       // COLUMN
-            *p = column;
+            *p = (INT)column;
             break;
     };
     va_end (l);
+    return ERR_NONE;
 }
 
 /* Finds the where the next character should go and places the cursor there.*/
@@ -90,8 +117,8 @@ void kdisp_init ()
 
     // ------------------------------------------------------------
     // Set the row and column and defaults.
-    row = h / VGA_COLUMNS;
-    column = h % VGA_COLUMNS;
+    row    = (U8)(h / VGA_COLUMNS);
+    column = (U8)(h % VGA_COLUMNS);
     update_cursor ();
 
     text_attr = LIGHT_GRAY;                 // LIGHT_GRAY on BLACK
@@ -114,18 +141,20 @@ void kdisp_scrollDown ()
 {
     //Copy 2nd line to the 1st line and so on until 24th line
 
-    U16 *p = vgab,                         // Word copied to
-        *n = &vgab[VGA_COLUMNS],           // Word copied from
+    U16 *p = vgab,                           // Word copied to
+        *n = &vgab[VGA_COLUMNS],             // Word copied from
         *e = &vgab[VGA_ROWS * VGA_COLUMNS];  // End byte location.
 
     for (; n < e; n++, p++)
         *p = *n; 
 
     for (; p < n ; p++)
-        *p = (text_attr<<8|' ');
+        *p = (U16)(text_attr<<8|' ');
 
     // Move cursor one row up. Keeps the column same.
-    row -=1;
+    // TODO: Can we not set the row to the last row??
+    if (row > 0)
+        row = (U8)(row - 1);
     column = 0;
     update_cursor ();
 }
@@ -135,13 +164,8 @@ static void update_cursor ()
     // Set the cursor location.
     U16 index = row * VGA_COLUMNS + column;
 
-    crt_write (0xf,index & 0xFF);
-    crt_write (0xe,index>>8);
-    /*outb (0x3D4, 0xf);
-    outb (0x3D5, index & 0xFF);
-
-    outb (0x3D4, 0xe);
-    outb (0x3D5, index>>8);*/
+    crt_write (0xf, index & 0xFF);
+    crt_write (0xe, index>>8);
 }
 
 /* Prints an ASCII character on the VGA text mode frame buffer
@@ -161,7 +185,7 @@ void kdisp_putc (CHAR c)
             break;
         default:
             index = row * VGA_COLUMNS + column;
-            vgab[index] = (text_attr << 8 | c);
+            vgab[index] = (U16)(text_attr << 8 | c);
             column++;
             break;
     }

@@ -29,7 +29,7 @@ struct gdt_des
     U16 base_low;
     U8 base_middle;
     U8 access;
-    U8 limit_high : 4;
+    U8 limit_high:4;
     U8 flags     :4;
     U8 base_high;
 } __attribute__ ((packed));
@@ -55,7 +55,7 @@ void kgdt_write ()
     /*TODO: BUG: gdt could be used before assignemnt.*/
     volatile struct gdt_size s = 
     {
-        .size = sizeof (struct gdt_des) * gdt_count -1,
+        .size     = (U16)(sizeof (struct gdt_des) * gdt_count -1),
         .location = (U32)gdt
     };
 
@@ -79,13 +79,13 @@ void kgdt_edit (U16 gdt_index, U32 base, U32 limit, U8 access, U8 flags)
             gdt_index <= GDT_MAX_COUNT))
             k_panic ("Invalid gdt_index: %u",gdt_index);
 
-    gdt[gdt_index].limit_low = (U16)limit;
-    gdt[gdt_index].base_low = (U16)base;
-    gdt[gdt_index].base_middle = (U8)(base >> 16);
-    gdt[gdt_index].access = access;
-    gdt[gdt_index].limit_high = (limit>>16);
-    gdt[gdt_index].flags = flags;
-    gdt[gdt_index].base_high = (base >> 24);
+    gdt[gdt_index].limit_low   = limit & 0xFFFF;
+    gdt[gdt_index].limit_high  = (limit >> 16) & 0xF;
+    gdt[gdt_index].base_low    = base & 0xFFFF;
+    gdt[gdt_index].base_middle = (U8)(base >> 16) & 0xFF;
+    gdt[gdt_index].base_high   = (U8)(base >> 24) & 0xFF;
+    gdt[gdt_index].access      = access;
+    gdt[gdt_index].flags       = (U8)(flags & 0xF);
 
     // Check is a new GDT has been added or an old one is editted.
     // Increment gdt_count and gdtr.size accordingly

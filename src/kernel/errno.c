@@ -16,8 +16,10 @@ KernelErrorCodes k_errorNumber;
 /* NOTE: In a measure to reduce the kernel binary, we can only create the 
  * below array if DEBUG is defined */
 #if defined (DEBUG)
-CHAR *k_errorText[] = {
-                    "No error",
-                    "Unknown error"
-                 };
+    CHAR *k_errorText[] =
+    {
+      "No error",
+      "Unknown error",
+      "Outside of valid range"
+    };
 #endif

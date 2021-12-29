@@ -27,8 +27,12 @@ typedef enum DisplayControls
     DISP_GETATTR
 } DisplayControls;
 
-/* Display ioctrl */
-void kdisp_ioctl (U8 request, ...);
+/* Display ioctrl
+ * Returns:
+ * On Success, ERR_NONE (0) is returned.
+ * On Failure, k_errorNumber is set and -1 is returned.
+ */
+INT kdisp_ioctl (U8 request, ...);
 
 /* Scrolls down one line. */
 void kdisp_scrollDown ();

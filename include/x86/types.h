@@ -55,7 +55,7 @@
     /* Casts a bit field of n bits to 32 bit UINT. */
     inline U32 CAST_BITN_TO_U32 (U32 t, U32 n) {
         n--;
-        return (U32)(t & ((2 << n) -1));
+        return (U32)(t & (U32)((2 << n) -1));
     }
 
     /* VIRTUAL_ADDRESS:

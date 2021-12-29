@@ -26,7 +26,7 @@ void paging_print ()
            "       ps              = %x, \r\n"
            "       accessed        = %x, \r\n"
            "       cache disabled  = %x, \r\n"
-           "       write - through   = %x, \r\n"
+           "       write-through   = %x, \r\n"
            "       user accessable = %x, \r\n"
            "       write allowed   = %x, \r\n"
            "       present         = %x, \r\n",
@@ -44,7 +44,7 @@ void paging_print ()
            "       ps              = %x, \r\n"
            "       accessed        = %x, \r\n"
            "       cache disabled  = %x, \r\n"
-           "       write - through   = %x, \r\n"
+           "       write-through   = %x, \r\n"
            "       user accessable = %x, \r\n"
            "       write allowed   = %x, \r\n"
            "       present         = %x, \r\n",
@@ -64,7 +64,7 @@ void paging_print ()
            "       dirty           = %x, \r\n"
            "       accessed        = %x, \r\n"
            "       cache disabled  = %x, \r\n"
-           "       write - through   = %x, \r\n"
+           "       write-through   = %x, \r\n"
            "       user accessable = %x, \r\n"
            "       write allowed   = %x, \r\n"
            "       present         = %x, \r\n",

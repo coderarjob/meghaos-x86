@@ -69,7 +69,7 @@ INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
     *dest = '\0';
     size--;
 
-    return originalsize - size;
+    return (INT)(originalsize - size);
 }
 
 static IntTypes s_readtype (const CHAR **fmt, CHAR *c)

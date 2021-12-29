@@ -18,10 +18,10 @@ struct idt_des
 {
     U16 offset_low;
     U16 segment_tss_selector;
-    U8 zeros;
-    U8 type : 5;
-    U8 dpl : 2;
-    U8 p : 1;
+    U8  zeros;
+    U8  type : 5;
+    U8  dpl  : 2;
+    U8  p    : 1;
     U16 offset_high;
 } __attribute__ ((packed));
 
@@ -58,18 +58,21 @@ void kidt_init ()
 }
 
 /* Edits an IDT descriptor */
-void kidt_edit (INT index, void (*func)() , U16 seg_tss_selector, 
-        IDTDescriptorTypes type, U8 dpl)
+void kidt_edit (INT                index,
+                void             (*func)(),
+                U16                seg_tss_selector,
+                IDTDescriptorTypes type,
+                U8                 dpl)
 {
     U32 offset = (U32)func;
 
-    idt[index].offset_low = offset & 0xFFFF;
-    idt[index].offset_high = offset >> 16;
+    idt[index].offset_low           = offset & 0xFFFF;
+    idt[index].offset_high          = (U16)(offset >> 16) & 0xFFFF;
     idt[index].segment_tss_selector = seg_tss_selector;
-    idt[index].type = type;    
-    idt[index].dpl = dpl;
-    idt[index].p = 1;
-    idt[index].zeros = 0;
+    idt[index].type                 = type;
+    idt[index].dpl                  = (U8)(dpl & 0x3);
+    idt[index].p                    = 1;
+    idt[index].zeros                = 0;
 }
 
 /* Writes the IDT structure address and length to the IDTR register.  */

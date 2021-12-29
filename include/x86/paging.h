@@ -27,51 +27,51 @@ inline void* CAST_PA_TO_VA (PHYSICAL_ADDRESS a)
 /* 4 KByte Page table entry */
 typedef struct PageTableEntry
 {
-    INT    present          : 1,
-           write_allowed    : 1,
-           user_accessable  : 1,
-           pwt              : 1,
-           pcw              : 1,
-           accessed         : 1,
-           dirty            : 1,
-           pat              : 1,
-           global_page      : 1,
-           ing2             : 3,
-           page_addr        :20;
+    UINT    present          : 1,
+            write_allowed    : 1,
+            user_accessable  : 1,
+            pwt              : 1,
+            pcw              : 1,
+            accessed         : 1,
+            dirty            : 1,
+            pat              : 1,
+            global_page      : 1,
+            ing2             : 3,
+            page_addr        :20;
 } __attribute__ ((packed)) PageTableEntry;
 
 /* 4 MByte Page Directory entry */
 typedef struct PageDirectoryEntry4MB
 {
-    INT    pagetable_low    :10,
-           zeros            : 5,
-           pagetable_high   : 4,
-           pat              : 1;
-    INT    ing2             : 3,
-           global           : 1,
-           ps_mustbe1       : 1,
-           dirty            : 1,
-           accessed         : 1,
-           pcw              : 1,
-           pwt              : 1,
-           user_accessable  : 1,
-           write_allowed    : 1,
-           present          : 1;
+    UINT    pagetable_low    :10,
+            zeros            : 5,
+            pagetable_high   : 4,
+            pat              : 1,
+            ing2             : 3,
+            global           : 1,
+            ps_mustbe1       : 1,
+            dirty            : 1,
+            accessed         : 1,
+            pcw              : 1,
+            pwt              : 1,
+            user_accessable  : 1,
+            write_allowed    : 1,
+            present          : 1;
 } __attribute__ ((packed)) PageDirectoryEntry4MB;
 
 /* 4 KByte Page Directory entry */
 typedef struct PageDirectoryEntry4KB
 {
-    INT    present          : 1,
-           write_allowed    : 1,
-           user_accessable  : 1,
-           pwt              : 1,
-           pcw              : 1,
-           accessed         : 1,
-           ing0             : 1,
-           ps_mustbe0       : 1,
-           ing2             : 4,
-           pagetable_addr   :20;
+    UINT    present          : 1,
+            write_allowed    : 1,
+            user_accessable  : 1,
+            pwt              : 1,
+            pcw              : 1,
+            accessed         : 1,
+            ing0             : 1,
+            ps_mustbe0       : 1,
+            ing2             : 4,
+            pagetable_addr   :20;
 } __attribute__ ((packed)) PageDirectoryEntry4KB;
 
 #endif // __PAGING_H_X86__
