@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+pushd ~/meghaos-v2/tmp/meghaos
 
 # --------------------------------------------------------------------------
 # Integer types
@@ -218,3 +220,5 @@ P=kerrdes
 F=k_errorText
 find -type f \( -name "*.c" -o -name "*.h" \) \
      -exec sed -i "s/\<$P\>/$F/g" {} \;
+# --------------------------------------------------------------------------
+popd

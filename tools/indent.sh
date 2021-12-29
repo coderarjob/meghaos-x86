@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pushd ~/meghaos-v2/tmp/meghaos
+
 # --------------------------------------------------------------------------
 # Space before every (
 # Note however this rule, does not apply to macro definations. 
@@ -42,3 +44,5 @@ find -type f \( -name "*.c" -o -name "*.h" \) \
     find -type f \( -name "*.c" -o -name "*.h" \) \
          -exec sed -i "s/$E/g" {} \;
     # ----
+# --------------------------------------------------------------------------
+popd
