@@ -14,25 +14,25 @@
 
     #include <types.h>
 
-    struct mem_des
+    typedef struct BootMemoryMapItem
     {
-        u64 baseAddr;
-        u64 length;
-        u32 type;
-    }__attribute__((packed));
+        U64 baseAddr;
+        U64 length;
+        U32 type;
+    }__attribute__ ((packed)) BootMemoryMapItem;
     
-    struct file_des
+    typedef struct BootFileItem
     {
-        u32 startLocation;
-        u16 length;
-    }__attribute__((packed));
+        U32 startLocation;
+        U16 length;
+    }__attribute__ ((packed)) BootFileItem;
 
-    struct boot_info
+    typedef struct BootLoaderInfo
     {
-        u16 filecount;
-        struct file_des files[11];
-        u16 count;
-        struct mem_des items[];
-    }__attribute__((packed));
+        U16 filecount;
+        BootFileItem files[11];
+        U16 count;
+        BootMemoryMapItem items[];
+    }__attribute__ ((packed)) BootLoaderInfo;
 
 #endif //__BOOT_H__

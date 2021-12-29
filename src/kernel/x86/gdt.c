@@ -13,7 +13,7 @@
 ; Bulid 20201019
 ; - DT now resides at a static location set by boot1
 ; - boot1 program sets up the kernel GDT and is fully ready. No longer do the 
-;   kernel needs re-initialize the GDT.
+;   kernel needs re - initialize the GDT.
 ; - GDT resides at location 0x0800 (right after the last IDT entry)
 ; ---------------------------------------------------------------------------
 ; Bulid 20201008
@@ -25,37 +25,38 @@
 
 struct gdt_des
 {
-    u16 limit_low;
-    u16 base_low;
-    u8 base_middle;
-    u8 access;
-    u8 limit_high:4;
-    u8 flags     :4;
-    u8 base_high;
-} __attribute__((packed));
+    U16 limit_low;
+    U16 base_low;
+    U8 base_middle;
+    U8 access;
+    U8 limit_high : 4;
+    U8 flags     :4;
+    U8 base_high;
+} __attribute__ ((packed));
 
 struct gdt_size
 {
-    u16 size;
-    u32 location;
-} __attribute__((packed));
+    U16 size;
+    U32 location;
+} __attribute__ ((packed));
 
 /* -------------------------------------------------------------------------*/
 /* Variables */
 static volatile struct gdt_des *gdt;
-static u16 gdt_count = GDT_MIN_INDEX;
+static U16 gdt_count = GDT_MIN_INDEX;
 /* -------------------------------------------------------------------------*/
 
 /* -------------------------------------------------------------------------*/
 /* Function definations */
 
 /* Writes the GDT structure address and length to the GDTR register.  */
-void kgdt_write()
+void kgdt_write ()
 {
     /*TODO: BUG: gdt could be used before assignemnt.*/
-    volatile struct gdt_size s = {
-        .size = sizeof(struct gdt_des) * gdt_count -1,
-        .location = (u32)gdt
+    volatile struct gdt_size s = 
+    {
+        .size = sizeof (struct gdt_des) * gdt_count -1,
+        .location = (U32)gdt
     };
 
     // NOTE: No need to load the SS, DS, ES or CS registers, as it already
@@ -67,19 +68,20 @@ void kgdt_write()
 
 /* Edits a GDT descriptor in the GDT table.
  * Note: If gdt_index < 3 or > gdt_count or > GDT_MAX_COUNT then an exception 
- * is generated.  */
-void kgdt_edit(u16 gdt_index, u32 base, u32 limit, u8 access, u8 flags)
+ * is generated. */
+void kgdt_edit (U16 gdt_index, U32 base, U32 limit, U8 access, U8 flags)
 { 
     gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
+
     // Valid range is MIN_INDEX < index < gdt_count < GDT_MAX_COUNT
     if (!(  gdt_index >= GDT_MIN_INDEX &&
             gdt_index <= gdt_count     && 
             gdt_index <= GDT_MAX_COUNT))
-            kpanic("Invalid gdt_index: %u",gdt_index);
+            k_panic ("Invalid gdt_index: %u",gdt_index);
 
-    gdt[gdt_index].limit_low = (u16)limit;
-    gdt[gdt_index].base_low = (u16)base;
-    gdt[gdt_index].base_middle = (u8)(base >> 16);
+    gdt[gdt_index].limit_low = (U16)limit;
+    gdt[gdt_index].base_low = (U16)base;
+    gdt[gdt_index].base_middle = (U8)(base >> 16);
     gdt[gdt_index].access = access;
     gdt[gdt_index].limit_high = (limit>>16);
     gdt[gdt_index].flags = flags;

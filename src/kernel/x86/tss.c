@@ -16,45 +16,45 @@
 #define IOMAP_SIZE 0x100        // Covers VGA ports and normal IO ports.
 
 struct tss {
-    u32 prevtask;
-    u32 esp0;
-    u32 ss0;
-    u32 esp1;
-    u32 ss1;
-    u32 esp2;
-    u32 ss2;
-    u32 cr3;
-    u32 eip;
-    u32 eflags;
-    u32 eax;
-    u32 ecx;
-    u32 edx;
-    u32 ebx;
-    u32 esp;
-    u32 ebp;
-    u32 esi;
-    u32 edi;
-    u32 es;
-    u32 cs;
-    u32 ss;
-    u32 ds;
-    u32 fs;
-    u32 gs;
-    u32 ldt_seg;
-    u16 trap;
-    u16 iomap_base;
-    u32 ssp;
-    u8 iomap[IOMAP_SIZE];
-} __attribute__((packed));
+    U32 prevtask;
+    U32 esp0;
+    U32 ss0;
+    U32 esp1;
+    U32 ss1;
+    U32 esp2;
+    U32 ss2;
+    U32 cr3;
+    U32 eip;
+    U32 eflags;
+    U32 eax;
+    U32 ecx;
+    U32 edx;
+    U32 ebx;
+    U32 esp;
+    U32 ebp;
+    U32 esi;
+    U32 edi;
+    U32 es;
+    U32 cs;
+    U32 ss;
+    U32 ds;
+    U32 fs;
+    U32 gs;
+    U32 ldt_seg;
+    U16 trap;
+    U16 iomap_base;
+    U32 ssp;
+    U8 iomap[IOMAP_SIZE];
+} __attribute__ ((packed));
 
 static struct tss tss_entry = {0};
 
 /* Initializes the tss_entry structure, 
  * installs a tss segment in GDT and writes to the Task Register*/
-void ktss_init()
+void ktss_init ()
 {
     // Deny permissions to all IO ports by setting all the bits
-    memset(tss_entry.iomap, 0xFF, IOMAP_SIZE-1);
+    k_memset (tss_entry.iomap, 0xFF, IOMAP_SIZE - 1);
     tss_entry.iomap[29] &=0xFC;     // E9 Debug port
     tss_entry.iomap[122] &=0xcf;    // VGA 3D4 and 3D5 ports
 
@@ -62,7 +62,7 @@ void ktss_init()
     // If the corresponding bit is set, access to that port is denied.
     // iomap area starts at an offset from the start of tss. 
     // In ourcase it starts right at the end of tss_entry.
-    tss_entry.iomap_base = OFFSET_OF(struct tss,iomap); 
+    tss_entry.iomap_base = offsetOf (struct tss,iomap); 
     // Setup defaults to TSS, so that we can return to kernel mode.
     // Setup a proper place for the kernel stack. This is the location the
     // ESP will have when returning to kernel mode from user mode. On a cross
@@ -72,16 +72,16 @@ void ktss_init()
     tss_entry.esp0 = INTEL_32_KSTACK_TOP;
 
     // Install a TSS Segment
-    kgdt_edit(GDT_INDEX_KTSS,
-            (u32)&tss_entry,            // Base in the Physical Linear space.
-            sizeof(struct tss) -1,      // Size of the Segemnt = sizeof(tss)-1
+    kgdt_edit (GDT_INDEX_KTSS,
+            (U32)&tss_entry,            // Base in the Physical Linear space.
+            sizeof (struct tss) -1,      // Size of the Segemnt = sizeof (tss)-1
             0xE9, 0x1);                 // DPL = 3, Scaling is not required.
-    kgdt_write();
+    kgdt_write ();
 
     // Write to TS register
     // The Busy word will get set to indicate that it is the task that is
     // running at the point.
-    u16 tss_seg_selector = GDT_SELECTOR_KTSS;
+    U16 tss_seg_selector = GDT_SELECTOR_KTSS;
     __asm__ volatile ("ltr %0;"
                       : /* no output */ 
                       : "m" (tss_seg_selector));

@@ -10,13 +10,13 @@
 #include <kernel.h>
 
 /* This variable is globally used to set error codes*/
-u32 kerrno;
+KernelErrorCodes k_errorNumber;
 
-/* Error descriptions indexed by kerrno */
+/* Error descriptions indexed by k_errorNumber */
 /* NOTE: In a measure to reduce the kernel binary, we can only create the 
  * below array if DEBUG is defined */
-#if defined(DEBUG)
-char *kerrdes[] = {
+#if defined (DEBUG)
+CHAR *k_errorText[] = {
                     "No error",
                     "Unknown error"
                  };

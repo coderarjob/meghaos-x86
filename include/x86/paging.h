@@ -19,15 +19,15 @@ extern PHYSICAL_ADDRESS g_page_dir,     /* Address of the initial page dir */
                         g_page_table;   /* Address of the initial page table*/
 
 /* Casts a linear mapped physical address to virtual address */
-inline void* CAST_PA_TO_VA(PHYSICAL_ADDRESS a)
+inline void* CAST_PA_TO_VA (PHYSICAL_ADDRESS a)
 {
     return (void *)(0xC0000000 + a.phy_addr);
 }
 
 /* 4 KByte Page table entry */
-struct pte
+typedef struct PageTableEntry
 {
-    int    present          : 1,
+    INT    present          : 1,
            write_allowed    : 1,
            user_accessable  : 1,
            pwt              : 1,
@@ -38,16 +38,16 @@ struct pte
            global_page      : 1,
            ing2             : 3,
            page_addr        :20;
-} __attribute__((packed));
+} __attribute__ ((packed)) PageTableEntry;
 
 /* 4 MByte Page Directory entry */
-struct pde4mb
+typedef struct PageDirectoryEntry4MB
 {
-    int    pagetable_low    :10,
+    INT    pagetable_low    :10,
            zeros            : 5,
            pagetable_high   : 4,
            pat              : 1;
-    int    ing2             : 3,
+    INT    ing2             : 3,
            global           : 1,
            ps_mustbe1       : 1,
            dirty            : 1,
@@ -57,12 +57,12 @@ struct pde4mb
            user_accessable  : 1,
            write_allowed    : 1,
            present          : 1;
-} __attribute__((packed));
+} __attribute__ ((packed)) PageDirectoryEntry4MB;
 
 /* 4 KByte Page Directory entry */
-struct pde4kb
+typedef struct PageDirectoryEntry4KB
 {
-    int    present          : 1,
+    INT    present          : 1,
            write_allowed    : 1,
            user_accessable  : 1,
            pwt              : 1,
@@ -72,6 +72,6 @@ struct pde4kb
            ps_mustbe0       : 1,
            ing2             : 4,
            pagetable_addr   :20;
-} __attribute__((packed));
+} __attribute__ ((packed)) PageDirectoryEntry4KB;
 
 #endif // __PAGING_H_X86__

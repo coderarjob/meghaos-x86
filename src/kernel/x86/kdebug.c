@@ -9,40 +9,40 @@
 */
 #include <kernel.h>
 
-#if  defined(DEBUG)
+#if  defined (DEBUG)
 
 #if (DEBUG_LEVEL & 1)
-static void s_e9puts(const char *string)
+static void s_e9puts (const CHAR *string)
 {
-    char c;
-    while((c = *string++))
-        outb(0xE9, c);
+    CHAR c;
+    while ((c = *string++))
+        outb (0xE9, c);
 }
 #endif
 
-void printk_debug_gs(const char *fmt, ...)
+void kdebug_printf_ndu (const CHAR *fmt, ...)
 {
-    char buffer[MAX_PRINTABLE_STRING_LENGTH];
+    CHAR buffer[MAX_PRINTABLE_STRING_LENGTH];
     va_list l;
 
-    va_start(l,fmt);
-    vsnprintk(buffer, ARRAY_LENGTH(buffer), fmt, l);
-    va_end(l);
+    va_start (l,fmt);
+    kearly_vsnprintf (buffer, ARRAY_LENGTH (buffer), fmt, l);
+    va_end (l);
 
 #if (DEBUG_LEVEL & 1)
     // Print to E9 port 
-    s_e9puts(buffer);
+    s_e9puts (buffer);
 #endif
 
 #if (DEBUG_LEVEL & 2)
     // Prints to the vga buffer
-    int attr;
-    kdisp_ioctl(DISP_GETATTR, &attr);
+    INT attr;
+    kdisp_ioctl (DISP_GETATTR, &attr);
 
-    kdisp_ioctl(DISP_SETATTR, disp_attr(BLACK,DARK_GRAY,0));
-    printk(buffer);
+    kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK,DARK_GRAY,0));
+    kearly_printf (buffer);
 
-    kdisp_ioctl(DISP_SETATTR, attr);
+    kdisp_ioctl (DISP_SETATTR, attr);
 #endif
 }
 

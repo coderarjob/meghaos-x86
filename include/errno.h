@@ -11,14 +11,19 @@
 #define __ERRORNO_H__
 
 /* Error codes that can be set inside the kernel.*/
-enum {ERR_NONE, ERR_UNKNOWN,ERRNO_COUNT};
+typedef enum KernelErrorCodes 
+{
+    ERR_NONE, 
+    ERR_UNKNOWN,
+    ERRNO_COUNT
+} KernelErrorCodes;
 
 /* This variable is globally used to set error codes*/
-extern u32 kerrno;
-/* Error descriptions indexed by kerrno */
-extern char *kerrdes[];
+extern KernelErrorCodes k_errorNumber;
+/* Error descriptions indexed by k_errorNumber */
+extern CHAR *k_errorText[];
 
-/* Displays error description if kerrno != 0 */
-#define kassert_perror() kassert(kerrno == ERR_NONE,kerrdes[kerrno])
+/* Displays error description if k_errorNumber != 0 */
+#define k_assertOnError() k_assert (k_errorNumber == ERR_NONE,k_errorText[k_errorNumber])
 
 #endif // __ERRORNO_H__
