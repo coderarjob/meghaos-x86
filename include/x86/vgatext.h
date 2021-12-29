@@ -12,10 +12,26 @@
 #ifndef __VGA_TEXT_H__
 #define __VGA_TEXT_H__
 
-enum vga_colors {BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHT_GRAY, 
-                  DARK_GRAY, LIGHT_BLUE, LIGHT_GREEN, LIGHT_CYAN, LIGHT_RED, 
-                  PINK, YELLOW, WHITE};
+typedef enum DisplayVgaColors 
+{
+    BLACK,
+    BLUE,
+    GREEN,
+    CYAN,
+    RED,
+    MAGENTA,
+    BROWN,
+    LIGHT_GRAY,
+    DARK_GRAY,
+    LIGHT_BLUE,
+    LIGHT_GREEN,
+    LIGHT_CYAN,
+    LIGHT_RED,
+    PINK,
+    YELLOW,
+    WHITE
+} DisplayVgaColors;
 
-#define disp_attr(bg,fg,b) ((b)<<7|(bg)<<4|(fg))
+#define k_dispAttr(bg,fg,b) ((b)<<7|(bg)<<4|(fg))
 
 #endif // __VGA_TEXT_H__

@@ -18,23 +18,30 @@
     #include <x86/vgatext.h>
 #endif
 
-enum disp_ioctl {DISP_GETCOORDS, 
-                 DISP_SETCOORDS, 
-                 DISP_COORDS_MAX,
-                 DISP_SETATTR, 
-                 DISP_GETATTR};
+typedef enum DisplayControls 
+{
+    DISP_GETCOORDS, 
+    DISP_SETCOORDS, 
+    DISP_COORDS_MAX,
+    DISP_SETATTR, 
+    DISP_GETATTR
+} DisplayControls;
 
-/* Display ioctrl */
-void kdisp_ioctl(u8 request, ...);
+/* Display ioctrl
+ * Returns:
+ * On Success, ERR_NONE (0) is returned.
+ * On Failure, k_errorNumber is set and -1 is returned.
+ */
+INT kdisp_ioctl (U8 request, ...);
 
 /* Scrolls down one line. */
-void kdisp_scrolldown();
+void kdisp_scrollDown ();
 
 /* Finds the where the next character should go and places the cursor there.*/
-void kdisp_init();
+void kdisp_init ();
 
 /* Prints an ASCII character on the VGA text mode frame buffer
  * and increments the pointer to it. */
-void kdisp_putc(char c);
+void kdisp_putc (CHAR c);
 
 #endif // __DISPTEXT_H__

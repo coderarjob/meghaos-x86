@@ -21,9 +21,9 @@
 #endif
 
 /* Copies n bytes from src to dest. Returns dest */
-void *memcpy(void *dest, const void *src, size_t n);
+void *k_memcpy (void *dest, const void *src, size_t n);
 
 /* Fills memory with constant byte */
-void *memset(void *s, int c, size_t n);
+void *k_memset (void *s, INT c, size_t n);
 
 #endif //__MEM_H__

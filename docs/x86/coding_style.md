@@ -20,11 +20,11 @@ _19 December 2021_
    kmm_allocPage (int count);
    ```
 5. Functions that must not be called directly should end with `_ndu` (no direct use).
-6. Static functions with file scope, should begin with `s`.
+6. Static functions with file scope, should begin with `s_`.
 
 **Rational**
 The `k` and the `module` name is a quick way to know the that the function influences the kernel
-space and the module name prevents wierd function name.
+space and the module name prevents weird function name.
 
 ```
 void
@@ -40,7 +40,6 @@ kidt_add(...)
 }
 ```
 
-
 *Restrictions:*
 1. Names starting with with `_` or `__` are reserved.
 2. limits.h reserves names sufficed with `_MAX`.
@@ -54,12 +53,17 @@ Ref: [https://www.gnu.org/software/libc/manual/html_node/Reserved-Names.html](GC
 2. Global kernel variables, must have `k` prefix.
 3. After the `k` prefix, module/file name can be placed, in lower case.
 4. After the `k` prefix and the module name, a `_` separates the actual variable name.
+5. Static global variables with file scope, should begin with `s_`.
 
    Example: 
    ```
    ADDR kmm_page0Location;
    INT  kgdt_location;
    ```
+*Restrictions:*
+1. Names starting with with `_` or `__` are reserved.
+2. limits.h reserves names sufficed with `_MAX`.
+3. Names that end with `_t` are reserved for additional type names.
 
 #### (1.3) typedef
 
@@ -69,20 +73,22 @@ New types are necessary in the following conditions:
 
 Regardless of the intended use of the custom type, following rules must be always followed:
 
-1 All new types that replace standard types, must be written in all UPPERCASE.
-2 All new types that are aliases must be written in UpperCamelCase. 
-3 The new type must not have `_t` postfix. Because such names are reserved by the POSIX standard 
-  and also possibility the gcc compiler.  Exception is type names, which are part of the C99 
-  standard.
+1 All new types that replace standard types, must be written in all *UPPERCASE*.
+2 All new types that are aliases must be written in *UpperCamelCase*.
 4 Always typedef enums and structs.
 5 Names of the new type and the tag (enum and struct) must be the same.
 6 No cryptic/shortened names.
 
-Things to consider:
-1. Instead of beginning a type name with the word 'kernel', start with 'k'.
-2. After the optional k, add the module name and an underscore after it, followed by the actual
-   type name. 
-   The underscore must be placed before the actual noun, if either 'k' or 'module' was used.
+*Restrictions:*
+1. Names starting with with `_` or `__` are reserved.
+2. limits.h reserves names sufficed with `_MAX`.
+3. Names that end with `_t` are reserved for additional type names.
+
+*Things to consider:*
+1. Do not abbreviate the work `kernel` with `k`. Say that need to be said.
+2. Write module/namespace names in full or short form that is understood by all.
+   Instead of `disp_VgaColors`, write `DisplayVgaColors`
+3. Do not use `_` to separate words.
 
 Example:
 
@@ -94,27 +100,29 @@ Example:
     typdef unsigned long int UINT
 #end if
 
-// Instead of KernelErrorCodes.
-typedef enum k_ErrorCodes 
+// Instead of k_ErrorCodes.
+typedef enum KernelErrorCodes
 {
     ERR_NONE,
     ERR_BIOS_FAULT,
     ERR_COUNT
-};
+} KernelErrorCodes;
 
 // Module name written before the type name nown.
-typedef struct util_MatchResult 
+typedef struct UtilityMatchResult 
 {
     UINT         count;
     MatchResult *next
-} util_MatchResult;
+} UtilityMatchResult;
 
 ```
 
 #### (1.4) define
 
 1. All constants are written in Upper case.
-2. Defines that mimic function, should be named as such.
+2. limits.h reserves names sufficed with `_MAX`.
+3. Names starting with with `_` or `__` are reserved.
+4. Defines that mimic function, should be named as such.
 
 ### (2) Style
 #### (2.1) Indentation
@@ -126,7 +134,8 @@ Indentation helps separate out the different blocks. 4 spaces, provide the ideal
 opinion. Indentation of 2 or 8 spaces is too little and too much.
 
 1. Put one single space before ( when calling/defining/declaring a function, after
-   if/while/do/for/switch.
+   if/while/do/for/switch. Exception is macro definition, as the `(` must follow the macro name
+   without any spaces.
 
    Do not however put a space when the previous character is a bracket of some kind.
    Example:
@@ -169,7 +178,8 @@ opinion. Indentation of 2 or 8 spaces is too little and too much.
 #### (2.2) Function definition
 
 1. When defining functions, the return type is placed in a separate line and the function name and 
-   its parameters are placed in the following line. 
+   its parameters are placed in the following line. If a pointer is returned, then the asterisk 
+   stays with the type, not the identifier (opposite to the way we write the parameters).
 
     static unsigned long
     convert (unsigned long long value, 
@@ -209,7 +219,7 @@ this function. Apart from this, I think it looks less cluttered.
 As the above example demonstrates, when one of the argument is a function pointer, the
 parameters-in-separate-lines styles is much cleaner. 
 
-However, this is not practical when the number of arguments are small or makes sense to keep
+However, this is not practical when the number of arguments is small or makes sense to keep
 together.
 
     static void 

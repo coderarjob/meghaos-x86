@@ -40,21 +40,21 @@
 #endif
 
 /* Halts the processor by going into infinite loop */
-#define khalt() for(;;)
+#define k_halt() for (;;)
 
 /* Used to know the offset of a member in a structure type */
-#define OFFSET_OF(type,member) ((size_t)(&((type *)0)->member))
+#define offsetOf(type,member) ((size_t)(&((type *)0)->member))
 
 /* Length of an array in bytes */
-#define ARRAY_LENGTH(ar) (sizeof((ar))/sizeof((ar)[0]))
+#define ARRAY_LENGTH(ar) (sizeof ((ar))/sizeof ((ar)[0]))
 
 /* Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
 /* Printf like function, that prints depending on type*/
-int printk(const char *fmt, ...);
+INT kearly_printf (const CHAR *fmt, ...);
 
-/* Writes formatted output to memory pointed to by the dest char pointer.*/
-int vsnprintk(char *dest, size_t size, const char *fmt, va_list l);
+/* Writes formatted output to memory pointed to by the dest CHAR pointer.*/
+INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
 
 #endif
