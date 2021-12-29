@@ -13,6 +13,7 @@
 
 #include <kernel.h>
 #include <stdarg.h>
+#include <limits.h>
 
 static void usermode_main();
 void __jump_to_usermode(u32 dataselector, 
@@ -147,6 +148,12 @@ void usermode_main()
     //__asm__ volatile ("int 0x40");
 
     printk("\r\nInside usermode..");
+
+    printk("\r\nUINT_MAX %llu\r\nULONG_MAX %llu\r\nULLONG_MAX %llu",
+            (u64)UINT_MAX,
+            (u64)ULONG_MAX,
+            (u64)ULLONG_MAX);
+
     printk("\r\n%u,%x,%o,%s,%%",
                         45789,
                         0xcafeefe,
