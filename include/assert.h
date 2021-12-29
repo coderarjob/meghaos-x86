@@ -30,7 +30,7 @@
  * Displays message `e' in the panic message.
  */
 #define k_assert(t,e) ((t)) ? (void)0 \
-                         : k_panic ("Assertion failed:%s.\r\n % s", #t,e)
+                            : k_panic ("Assertion failed:%s.\r\n%s", #t,e)
 #else
 
 /* These has no effect when DEBUG macro is not defined */
