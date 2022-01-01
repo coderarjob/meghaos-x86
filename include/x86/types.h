@@ -27,6 +27,9 @@
     typedef uint8_t  U8;
     typedef uint16_t U16;
 
+    /* For any environment, UINT and INT will match the native width of
+     * registers. So when fast speed is required, or variabled are platform
+     * independent, use UINT or INT instead of U32 or S32.*/
     typedef uint32_t U32;
     typedef U32      UINT;
     typedef U32      ULONG;
@@ -52,10 +55,9 @@
      */
     typedef uint32_t size_t;
 
-    /* Casts a bit field of n bits to 32 bit UINT. */
-    inline U32 CAST_BITN_TO_U32 (U32 t, U32 n) {
-        n--;
-        return (U32)(t & (U32)((2 << n) -1));
+    /* Casts a bit field of n bits to UINT. */
+    inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
+        return (UINT)(t & (UINT)((1 << n) -1));
     }
 
     /* VIRTUAL_ADDRESS:
