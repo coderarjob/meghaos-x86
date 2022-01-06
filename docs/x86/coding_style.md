@@ -125,6 +125,11 @@ typedef struct UtilityMatchResult
 4. Defines that mimic function, should be named as such.
 
 ### (2) Style
+#### (2.0) Limit on length of lines
+
+1. Maximum lenght of lines in documnet files (.md, .txt) is 100 columns.
+2. Maximum lenght of lines in C and assembly files is 80 columns.
+
 #### (2.1) Indentation
 
 Tabs are 4 characters wide. I set my editor to always expand the tabs to 4 characters.
