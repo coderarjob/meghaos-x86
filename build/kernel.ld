@@ -12,15 +12,18 @@ SECTIONS
     {
         *.o (.text);             
     }
-    .data :
+    .data : ALIGN(8)
     {
         *.o (.data);
+
+        . = ALIGN(8);
         *.o (.rodata*);
-    }
-    .bss :
-    {
+
+        . = ALIGN(8);
         *.o (.bss);
+        *.o (COMMON);
     }
+
     /DISCARD/ : 
     {
         *(.eh_frame);
