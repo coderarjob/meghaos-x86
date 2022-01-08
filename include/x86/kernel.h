@@ -57,11 +57,11 @@ void ktss_init  ();
  * Note: If gdt_index < 3 or > gdt_count or > GDT_MAX_COUNT then an exception 
  * is generated.
  */
-void kgdt_edit (U16 gdt_index, 
-                U32 base, 
-                U32 limit, 
-                 U8 access, 
-                 U8 flags);
+void kgdt_edit (U16 gdt_index,
+                U32 base,
+                U32 limit,
+                U8  access,
+                U8  flags);
 
 /* Writes the GDT structure address and length to the GDTR register.  */
 void kgdt_write ();
@@ -70,10 +70,10 @@ void kgdt_write ();
 void kidt_init ();
 
 /* Edits an IDT descriptor */
-void kidt_edit (               INT index, 
-                              void (*func)(),
-                               U16 seg_tss_selector, 
-                IDTDescriptorTypes type, 
-                                U8 dpl);
+void kidt_edit (INT                index,
+                void             (*func)(),
+                U16                seg_tss_selector,
+                IDTDescriptorTypes type,
+                U8                 dpl);
 
 #endif //__KERNEL_H_x86__

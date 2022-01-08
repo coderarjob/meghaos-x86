@@ -7,23 +7,11 @@
 * ---------------------------------------------------------------------------
 * Dated: 6th October 2020
 ; ---------------------------------------------------------------------------
-; Bulid 20201104
-; - panic is caused if gdt_index < MIN_INDEX or > gdt_count or > MAX_COUNT
-; - gdt_count local var, tracks the current number of gdt entries.
-; Bulid 20201019
-; - DT now resides at a static location set by boot1
-; - boot1 program sets up the kernel GDT and is fully ready. No longer do the 
-;   kernel needs re - initialize the GDT.
-; - GDT resides at location 0x0800 (right after the last IDT entry)
-; ---------------------------------------------------------------------------
-; Bulid 20201008
-; - Initial version with Load GDT complete.
-; ---------------------------------------------------------------------------
 */
 
 #include <kernel.h>
 
-struct gdt_des
+typedef struct GdtDescriptor
 {
     U16 limit_low;
     U16 base_low;
@@ -32,64 +20,73 @@ struct gdt_des
     U8 limit_high:4;
     U8 flags     :4;
     U8 base_high;
-} __attribute__ ((packed));
+} __attribute__ ((packed)) GdtDescriptor;
 
-struct gdt_size
+typedef struct GdtMeta
 {
     U16 size;
     U32 location;
-} __attribute__ ((packed));
+} __attribute__ ((packed)) GdtMeta;
 
 /* -------------------------------------------------------------------------*/
 /* Variables */
-static volatile struct gdt_des *gdt;
-static U16 gdt_count = GDT_MIN_INDEX;
+static volatile GdtDescriptor *s_gdt;
+static          U16            s_gdt_count = MIN_GDT_INDEX;
 /* -------------------------------------------------------------------------*/
 
 /* -------------------------------------------------------------------------*/
 /* Function definations */
 
 /* Writes the GDT structure address and length to the GDTR register.  */
-void kgdt_write ()
+void
+kgdt_write ()
 {
-    /*TODO: BUG: gdt could be used before assignemnt.*/
-    volatile struct gdt_size s = 
+    volatile GdtMeta gdt_size_and_loc =
     {
-        .size     = (U16)(sizeof (struct gdt_des) * gdt_count -1),
-        .location = (U32)gdt
+        .size     = (U16)(sizeof (GdtDescriptor) * s_gdt_count - 1),
+        .location = (U32)s_gdt
     };
+
+    kdebug_printf("GDT {size = 0x%x, location = 0x%x}",
+                   gdt_size_and_loc.size, gdt_size_and_loc.location);
 
     // NOTE: No need to load the SS, DS, ES or CS registers, as it already
     // contains the values needs (from boo1)
     __asm__ ( "lgdt [%0]"
              :
-             :"a" (&s));
+             :"a" (&gdt_size_and_loc));
 }
 
 /* Edits a GDT descriptor in the GDT table.
- * Note: If gdt_index < 3 or > gdt_count or > GDT_MAX_COUNT then an exception 
- * is generated. */
-void kgdt_edit (U16 gdt_index, U32 base, U32 limit, U8 access, U8 flags)
+ * Note: If gdt_index < 3 or > s_gdt_count or > GDT_MAX_COUNT then an panic is
+ * generated.
+ */
+void
+kgdt_edit (U16 gdt_index,
+           U32 base,
+           U32 limit,
+           U8  access,
+           U8  flags)
 { 
-    gdt = (struct gdt_des*)INTEL_32_GDT_LOCATION;
+    s_gdt = (GdtDescriptor *)INTEL_32_GDT_LOCATION;
 
-    // Valid range is MIN_INDEX < index < gdt_count < GDT_MAX_COUNT
-    if (!(  gdt_index >= GDT_MIN_INDEX &&
-            gdt_index <= gdt_count     && 
-            gdt_index <= GDT_MAX_COUNT))
-            k_panic ("Invalid gdt_index: %u",gdt_index);
+    // Valid range is MIN_INDEX < index < s_gdt_count < GDT_MAX_COUNT
+    if (!(gdt_index >= MIN_GDT_INDEX &&
+          gdt_index <= s_gdt_count   &&
+          gdt_index <= MAX_GDT_DESC_COUNT))
+          k_panic ("Invalid gdt_index: %u",gdt_index);
 
-    gdt[gdt_index].limit_low   = limit & 0xFFFF;
-    gdt[gdt_index].limit_high  = (limit >> 16) & 0xF;
-    gdt[gdt_index].base_low    = base & 0xFFFF;
-    gdt[gdt_index].base_middle = (U8)(base >> 16) & 0xFF;
-    gdt[gdt_index].base_high   = (U8)(base >> 24) & 0xFF;
-    gdt[gdt_index].access      = access;
-    gdt[gdt_index].flags       = (U8)(flags & 0xF);
+    s_gdt[gdt_index].limit_low   = limit & 0xFFFF;
+    s_gdt[gdt_index].limit_high  = (limit >> 16) & 0xF;
+    s_gdt[gdt_index].base_low    = base & 0xFFFF;
+    s_gdt[gdt_index].base_middle = (U8)(base >> 16) & 0xFF;
+    s_gdt[gdt_index].base_high   = (U8)(base >> 24) & 0xFF;
+    s_gdt[gdt_index].access      = access;
+    s_gdt[gdt_index].flags       = (U8)(flags & 0xF);
 
-    // Check is a new GDT has been added or an old one is editted.
-    // Increment gdt_count and gdtr.size accordingly
-    if (gdt_index == gdt_count)
-        gdt_count++;
+    // Check if a new GDT entry has been added or an old one is editted.
+    // On next kgdt_write, gdtr.size will be increase.
+    if (gdt_index == s_gdt_count)
+        s_gdt_count++;
 }
 /* -------------------------------------------------------------------------*/
