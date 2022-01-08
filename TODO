@@ -78,50 +78,6 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     NOTE: Seek need not be a separate routine, we can just implement it inside 
     the `LoadFile` routine, and take a `start` location as argument.
 
-# BUGS
- 
-[X] __func__ is giving garbage after paging.s was included.
-    If paging.s is compiled with GAS then __func__ is working 
-    in the kernel.c
-
-    28th Dec 2020
-    Sol: .rodata* section must be before .bss section the KERNEL.ELF file.
-
-[X] %x, %d prints unsigned numbers, but _get_int_arg reads signed intgegers from
-    stack. Assignment of signed integers to unsigned int variable, causes
-    sign extension and this produces large output values.
-    Example:
-    printf("%x",0xC0000000) producing FFFFFFFFC0000000.
-
-    5th Arg 2020
-    Sol: Reading unsigned int variants in va_arg instead of just int, long etc.
-
-
-[X] bug-no-boot-omega:
-    Not able to boot on some native hardware. The screen goes black and after
-    some cursor flickering, it settles someshere in the bottom row. Sometimes
-    there is a Omega character with the cursor in the end.
-    - It faults before passing control to the 2nd stage bootloader.
-    - Setting the VGA mode (to 0x3 Text mode) has no effect on the bug.
-
-    24th Dec 2021
-    Sol: I never set the DS register. Aparently in some system the segment
-    registers are not reset to zero before passing control to the
-    bootloader.
-
-[ ] bug-printk-pagefault-wrong-formatstring
-    If there is a wrong type character, followed by a valid one in the format string. Either wrong
-    output is displayed, or we get a page fault.
-    In the following diagram, the first type character '% ' is worng, when it reaches, '%s', it
-    will wrongly read '12', and interpret it as a string pointer - Thus the page fault.
-
-    Wrote a C program and passed the same arguments to printf. The program segfaults at the printf.
-    However atleast gcc produces warnings when compiling.
-
-    Reproduced by:
-    kearly_printf ("% u, %s", 12, "Arjob");  -> Output: Page fault
-    kearly_printf ("% u, %u", 12, "Arjob");  -> Output: '% u, 12'
-
 # TODOs
  
 [X] Can kernel global variables like errno, etc, lie in the kernel, or be 
