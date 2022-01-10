@@ -7,8 +7,8 @@
 	%define __MOS_INC__
 
 	; Version informations
-	%define     BOOT0_BUILD 	"20200919"
-	%define     BOOT1_BUILD 	"20210825"
+	%define     BOOT0_BUILD 	"20211224"
+	%define     BOOT1_BUILD 	"20220110"
 	%define 	OS_NAME 	    "MEGHA OPERATING SYSTEM V2 - x86"
 
 	; MOS Fixed Memory Locations

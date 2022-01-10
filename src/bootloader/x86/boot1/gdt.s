@@ -22,7 +22,7 @@ gdt32:
         dw      0x0000      ; Base
         db      0x00        ; Base
         db      0x9A        ; Access: System Descriptor, Code, 0 DPL, NC
-        db      0xCF        ; Limit: 0xFF, 
+        db      0xCF        ; Limit: 0xF, AVL = 0 (can be anything)
                             ; Flags: 32Bit address, data, 4GB limit.
         db      0x00        ; Base
 
@@ -33,8 +33,8 @@ gdt32:
         dw      0x0000      ; Base
         db      0x00        ; Base
         db      0x92        ; Access: Data, 0 DPL
-        db      0xCF        ; Limit: 0xFF, 
-                            ; Flags: 32Bit address, data, 4GB limit.
+        db      0xCF        ; Limit: 0xF, AVL = 0 (can be anything)
+                            ; Flags: 32Bit pointer, data, 4GB limit.
         db      0x00        ; Base
 
 .length equ $-gdt32
@@ -54,16 +54,16 @@ gdt16:
         dw      0x0000      ; Base
         db      0x00        ; Base
         db      0x9A        ; Access: System Descriptor, Code, 0 DPL, NC
-        db      0x10        ; Limit: 0xFF, 
-                            ; Flags: 32Bit address, data, 4GB limit.
+        db      0x0F        ; Limit: 0xF, AVL = 0 (can be anything)
+                            ; Flags: 16it address, data, 1MB limit.
         db      0x00        ; Base
 
 .data:  dw      0xFFFF      ; Limit
         dw      0x0000      ; Base
         db      0x00        ; Base
         db      0x92        ; Access: Data, 0 DPL
-        db      0x10        ; Limit: 0xFF, 
-                            ; Flags: 32Bit address, data, 4GB limit.
+        db      0x0F        ; Limit: 0xF, AVL = 0 (can be anything)
+                            ; Flags: 16Bit pointer, data, 1MB limit.
         db      0x00        ; Base
 .length equ $-gdt16
 
@@ -142,6 +142,8 @@ gdt16_meta:
     push eax
 
         ; Disable Protected mode
+        ; More info here: https://wiki.osdev.org/Real_Mode#Switching_from_Protected_Mode_to_Real_Mode
+        ; and http://www.sudleyplace.com/pmtorm.html#RareCircumstances.
         mov eax, cr0
         and eax, ~1
         mov cr0, eax
