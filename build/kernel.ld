@@ -1,26 +1,32 @@
-ENTRY (__kernel_entry)
+ENTRY (g_kernel_entry)
 SECTIONS
 {
-    . = 0x28000;                 /* Kernel is loaded at 0x2800:0x0000 */
-    .text :/*AT(0x0)*/
+    . = 0x100000;                 /* Kernel is loaded at 100000 */
+    .prepage.text : 
     {
-        /* Order of linking .o files is importaint. 
-         * We must link kernel first. The first function in kernel.o must be
-         * __kernel_entry() */
-        build/obj/kernel/x86_paging.o (.text);
+        *.o (.prepage.text);
+    }
+    . += 0xC0000000; 
+
+    .text : AT( ADDR(.text) - 0xC0000000)
+    {
         *.o (.text);             
     }
-    .data :
+    .data : ALIGN(8)
     {
         *.o (.data);
+
+        . = ALIGN(8);
         *.o (.rodata*);
-    }
-    .bss :
-    {
+
+        . = ALIGN(8);
         *.o (.bss);
+        *.o (COMMON);
     }
+
     /DISCARD/ : 
     {
         *(.eh_frame);
+        *(.comment);
     }
 }

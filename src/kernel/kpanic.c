@@ -1,6 +1,6 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Cross Platform kpanic function
+* Megha Operating System V2 - Cross Platform k_panic function
 * ---------------------------------------------------------------------------
 *
 * Dated: 1st November 2020
@@ -9,21 +9,22 @@
 #include <kernel.h>
 #include <stdarg.h>
 
-/* Hook function called from kpanic macro. 
+/* Hook function called from k_panic macro. 
  * Displays an error message on the screen and Halts */
-__attribute__((noreturn)) 
-void __kpanic(const char *s,...)
+__attribute__ ((noreturn)) 
+void k_panic_ndu (const CHAR *s,...)
 {
+    CHAR buffer[MAX_PRINTABLE_STRING_LENGTH];
     va_list l;
-    va_start(l,s);
 
-    kdisp_ioctl(DISP_SETATTR, disp_attr(RED,WHITE,0));
-    printk(PK_ONSCREEN,"\r\nKernel Panic!\n\r");
-    vprintk(PK_ONSCREEN, s,l);
+    va_start (l,s);
+    kearly_vsnprintf (buffer, ARRAY_LENGTH (buffer), s, l);
+    va_end (l);
 
-    printk(PK_DEBUG,"\r\nKernel Panic!\n\r");
-    vprintk(PK_DEBUG, s,l);
-    va_end(l);
+    kdebug_printf ("%s",buffer);
 
-    khalt();
+    kdisp_ioctl (DISP_SETATTR, k_dispAttr (RED,WHITE,0));
+    kearly_printf (buffer);
+
+    k_halt ();
 }

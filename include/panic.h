@@ -1,6 +1,6 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Cross Platform Kernel - kpanic() 
+* Megha Operating System V2 - Cross Platform Kernel - k_panic () 
 *
 * Note:
 * Remember that these header files are for building OS and its utilitites, it
@@ -14,18 +14,18 @@
 
 /* Displays an error message on the screen and Halts */
 #ifdef __C99__
-#define kpanic(s,...) __kpanic(s "\r\nin %s:%d:%s", __VA_ARGS__, \
-                               __FILE__,__LINE__,__func__)
+#define k_panic(s,...) k_panic_ndu ("\r\nKernel Panic!\r\n" s "\r\nin %s:%u:%s" \
+                               ,__VA_ARGS__, __FILE__,__LINE__,__func__)
 #else
-#define kpanic(s,...) __kpanic(s "\r\nin %s:%d", __VA_ARGS__, \
-                               __FILE__, __LINE__)
+#define k_panic(s,...) k_panic_ndu ("\r\nKernel Panic!\r\n" s "\r\nin %s:%u" \
+                               ,__VA_ARGS__, __FILE__,__LINE__)
 #endif // __C99__
 
 /* Displays an error message on the screen and Halts 
  * Note: The attribute here suppresses warning from GCC when used within
  * another `noreturn` function.
  * */
-__attribute__((noreturn))
-void __kpanic(const char *s,...);
+__attribute__ ((noreturn))
+void k_panic_ndu (const CHAR *s,...);
 
 #endif // __KPANIC_H__

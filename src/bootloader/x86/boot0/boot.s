@@ -153,6 +153,23 @@ iret
 ; ******************************************************
 boot_main:	
 
+    ; Start mode 0x3 text mode.
+    mov ax, 0x3
+    int 0x10
+
+    ; Set the data segment register to default.
+    xor ax, ax
+    mov ds, ax
+
+	; install loadFile to IVT
+	mov gs, ax
+	mov [gs:0x30*4], word loadFile
+	mov [gs:0x30*4+2], cs
+
+	; install printstr to IVT
+	mov [gs:0x31*4], word printstr
+	mov [gs:0x31*4+2], cs
+
 	; Setup the Stack
 	; The Stack is 4k in size and starts at location 0x7BFF (0x7C00 -1)
 	cli		                            ; disable interrupts
@@ -167,18 +184,7 @@ boot_main:
 	int 0x13
 	jc failed_drive_error 	            ; drive error
 
-	; install loadFile to IVT
-	xor ax, ax
-	mov gs, ax
-	mov [gs:0x30*4], word loadFile
-	mov [gs:0x30*4+2], cs
-
-	; install printstr to IVT
-	mov [gs:0x31*4], word printstr
-	mov [gs:0x31*4+2], cs
-
 	; Read the directory and search for file
-
 	mov ax, LOADER_SEG
 	mov bx, LOADER_OFF
 	mov dx, bootfile
