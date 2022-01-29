@@ -52,6 +52,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [ ] Virutal memory allocator                  -
 [ ] Various functions like kdisp_ioctl, etc   -
     must implement error reporting.
+    [X] kdisp_ioctl
 [X] Make symbols comply with the C99.         -                 30 Dec 2021
     Symbols beginning with underscore is 
     reserved [7.13]. Rename them.
@@ -60,6 +61,14 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     [X] Members in struct.
     [X] Function names.
 [X] Create/Update the C style guide.          -                 29 Dec 2021
+[-] Instead of just [ER], boot1 should show
+    some error code, that identifies the
+    failure.                                  -                 9 Han 2022 (see notes below)
+    Note: Not done, because there is
+    currently only one souce of error in
+    each of the routimes. Specific error
+    codes will not be benifitial at this
+    time.
 
 # LONG TERM PLANS
 
