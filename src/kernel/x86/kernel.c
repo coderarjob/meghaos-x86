@@ -28,7 +28,8 @@ static void display_system_info ();
  Virtual memory        ->  Physical memory
  0xc0000000 - 0xc03fffff -> 0x000000000000 - 0x0000003fffff
 */
-volatile CHAR *a = (CHAR *)0x00300000;
+//volatile CHAR *a = (CHAR *)0x00300000;
+volatile CHAR *a = (CHAR *)0xc0400000;
 
 __attribute__ ((noreturn)) 
 void __kernel_main ()
@@ -60,14 +61,18 @@ void __kernel_main ()
     // Setup IDT
     kearly_printf ("\r\n[  ]\tIDT setup");
     kidt_init ();
-    kidt_edit (0,div_zero,GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE,0);
-    kidt_edit (14,page_fault,GDT_SELECTOR_KCODE, 
-              IDT_DES_TYPE_32_INTERRUPT_GATE,0);
-    kidt_edit (13,fault_gp,GDT_SELECTOR_KCODE, 
-              IDT_DES_TYPE_32_INTERRUPT_GATE,0);
-    kidt_edit (0x40,sys_dummy,GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE,3);
+
+    kidt_edit (0, div_zero, GDT_SELECTOR_KCODE,
+              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+
+    kidt_edit (14, page_fault, GDT_SELECTOR_KCODE,
+              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+
+    kidt_edit (13, fault_gp,GDT_SELECTOR_KCODE,
+              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+
+    kidt_edit (0x40, sys_dummy, GDT_SELECTOR_KCODE,
+              IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
 
     kearly_printf ("\r[OK]");
 
@@ -162,16 +167,16 @@ void usermode_main ()
             (U64)ULONG_MAX,
             (U64)ULLONG_MAX);
 
-    kearly_printf ("\r\n % u,%x,%o,%s,%%",
+    kearly_printf ("\r\n%u,%x,%o,%s,%%",
                         45789,
                         0xcafeefe,
                         02760,
                         "Hello Arjob");
     U64 var = 0xCF010203040506FF;   
-    kearly_printf ("\r\n %llx",var);
+    kearly_printf ("\r\n%llx",var);
     kearly_printf ("\r\nLocation of __kernel_main = %x",__kernel_main);
 
-    //k_assert (("Nonsense error",1 < 0),"Nonsense");
+    //k_assert (1 < 0,"Nonsense");
     *a = 0;    
 
     while (1);
