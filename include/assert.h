@@ -1,6 +1,6 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Cross Platform Kernel - kassert() and kpanic() 
+* Megha Operating System V2 - Cross Platform Kernel - k_assert () and k_panic () 
 *
 * Note:
 * Remember that these header files are for building OS and its utilitites, it
@@ -12,30 +12,31 @@
 #ifndef __ASSERT_H__
 #define __ASSERT_H__
 
-#if defined(DEBUG)
+#if defined (DEBUG)
 
 /* If expression `t' is false, compiler will generate an error 
  *
  * Note: This workes because an array dimension cannot be negative, which is
  * what the macro expands to when t == false.
  *
- * Note: sizeof(char[!!(t) - 1]) would also have worked, but when t == true, 
+ * Note: sizeof (CHAR[!!(t) - 1]) would also have worked, but when t == true, 
  * the array size will become 0. This gives compiler warning 
  * 'ISO C forbids zero sized array'. To avoid this warning/error, we multiply 
  * by 2.
  */
-#define kstatic_assert(t) ((void)sizeof(char[2*!!(t) - 1]))
+#define k_staticAssert(t) ((void)sizeof (CHAR[2*!!(t) - 1]))
 
-/* If assertion `t' is false, call kpanic() and halts. 
- * Displays message `e' in the panic message*/
-#define kassert(t,e) ((t)) ? (void)0 \
-                         : kpanic("Assertion failed:%s.\r\n%s", #t,e)
+/* If assertion `t' is false, call k_panic () and halts. 
+ * Displays message `e' in the panic message.
+ */
+#define k_assert(t,e) ((t)) ? (void)0 \
+                            : k_panic ("Assertion failed:%s.\r\n%s", #t,e)
 #else
 
 /* These has no effect when DEBUG macro is not defined */
-#define kstatic_assert(t) (void)0
-#define kassert(t,e) (void)0 
+#define k_staticAssert(t) (void)0
+#define k_assert(t,e) (void)0 
 
-#endif // defined(DEBUG)
+#endif // defined (DEBUG)
 
 #endif // __ASSERT_H__

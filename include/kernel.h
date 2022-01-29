@@ -33,26 +33,28 @@
 #include <panic.h>
 #include <assert.h>
 #include <errno.h>
+#include <moslimits.h>
 
 #ifdef __i386__
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
 #endif
 
-enum printk_types { PK_ONSCREEN, PK_DEBUG };
-
 /* Halts the processor by going into infinite loop */
-#define khalt() for(;;)
+#define k_halt() for (;;)
 
 /* Used to know the offset of a member in a structure type */
-#define OFFSET_OF(type,member) ((size_t)(&((type *)0)->member))
+#define offsetOf(type,member) ((size_t)(&((type *)0)->member))
+
+/* Length of an array in bytes */
+#define ARRAY_LENGTH(ar) (sizeof ((ar))/sizeof ((ar)[0]))
 
 /* Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
 /* Printf like function, that prints depending on type*/
-void printk(u8 type, const char *fmt, ...);
+INT kearly_printf (const CHAR *fmt, ...);
 
-/* Prints formatted on screen at the cursor location.*/
-void vprintk(u8 type, const char *fmt, va_list list);
+/* Writes formatted output to memory pointed to by the dest CHAR pointer.*/
+INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
 
 #endif

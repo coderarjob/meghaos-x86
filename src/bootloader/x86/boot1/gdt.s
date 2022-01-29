@@ -7,49 +7,22 @@
 ;
 ;  Note: The loader is a transient program, so no Interrupt routine, System
 ;  calls must be placed in the loader.
-;
-;  Dated: 18th September 2020
-; ---------------------------------------------------------------------------
-;  Change Log
-; ---------------------------------------------------------------------------
-;  Build - 20201019
-;  - Going to add a new GDT segment for a 128 KB kernel stack.
-;  - The Stack will be placed at location 0x08000 offset.
-;  - Segment size: 128 KB
-;  
-;  Build - 20201006
-;  - GDT will reside in the DATA Section of the boot1 program instead of 
-;    0x000:0x800. 
-;    * This is done to prevent having two copies of GDT around, one
-;      at local address space and another at 0:0x800. 
-;    * Also it cannot be a great way of working, as any change in the 
-;      local GDT, will result in copy to the global GDT. 
-;
-;      Having one copy, and it being in the local address space will be the 
-;      standard in the whole kernel.
-;    * Having a local GDT means that KENREL will have a separate GDT, separate
-;      from the one here in boot1 program. And thats good!!
-; ---------------------------------------------------------------------------
-;  Build - 20200919
-;  - Initial version. GDT at location 0x0000:0x0800
 ; ---------------------------------------------------------------------------
 
 ; ---------------------------------------------------------------------------
 ;  Included files
 ; ---------------------------------------------------------------------------
 %include "mos.inc"
-
 ; ---------------------------------------------------------------------------
 ;  Data Section
 ; ---------------------------------------------------------------------------
-
-gdt:    
+gdt32:    
 .null:  times 8 db 0
 .code:  dw      0xFFFF      ; Limit
         dw      0x0000      ; Base
         db      0x00        ; Base
         db      0x9A        ; Access: System Descriptor, Code, 0 DPL, NC
-        db      0xCF        ; Limit: 0xFF, 
+        db      0xCF        ; Limit: 0xF, AVL = 0 (can be anything)
                             ; Flags: 32Bit address, data, 4GB limit.
         db      0x00        ; Base
 
@@ -60,45 +33,158 @@ gdt:
         dw      0x0000      ; Base
         db      0x00        ; Base
         db      0x92        ; Access: Data, 0 DPL
-        db      0xCF        ; Limit: 0xFF, 
-                            ; Flags: 32Bit address, data, 4GB limit.
+        db      0xCF        ; Limit: 0xF, AVL = 0 (can be anything)
+                            ; Flags: 32Bit pointer, data, 4GB limit.
         db      0x00        ; Base
 
-.length equ $-gdt
+.length equ $-gdt32
 
-gdt_meta:
-    .size: dw  gdt.length-1                 ; Size of GDT -1
-    .loc:  dd  (GDT_SEG * 0x10 + GDT_OFF)   ; 0x0000: 0x0800 = 0x0800
+gdt32_meta:
+    .size: dw  gdt32.length-1                 ; Size of GDT -1
+    .loc:  dd  gdt32
 
+gdt32_meta_global:
+    .size: dw  gdt32.length-1                 ; Size of GDT -1
+    .loc:  dd  (GDT_SEG << 4 | GDT_OFF)
+; ---------------------------------------------------------------------------
+gdt16:    
+.null:  times 8 db 0
+
+.code:  dw      0xFFFF      ; Limit
+        dw      0x0000      ; Base
+        db      0x00        ; Base
+        db      0x9A        ; Access: System Descriptor, Code, 0 DPL, NC
+        db      0x0F        ; Limit: 0xF, AVL = 0 (can be anything)
+                            ; Flags: 16it address, data, 1MB limit.
+        db      0x00        ; Base
+
+.data:  dw      0xFFFF      ; Limit
+        dw      0x0000      ; Base
+        db      0x00        ; Base
+        db      0x92        ; Access: Data, 0 DPL
+        db      0x0F        ; Limit: 0xF, AVL = 0 (can be anything)
+                            ; Flags: 16Bit pointer, data, 1MB limit.
+        db      0x00        ; Base
+.length equ $-gdt16
+
+gdt16_meta:
+    .size: dw  gdt16.length-1                 ; Size of GDT -1
+    .loc:  dd  gdt16
+; ---------------------------------------------------------------------------
+;  Macro definations
+; ---------------------------------------------------------------------------
+%macro EnterProtectedMode32 0-1 gdt32_meta
+    push eax
+        ; Load GDT
+        lgdt [%1]
+        
+        ; Setup CR0
+        mov eax, cr0
+        or eax, 1
+        mov cr0, eax
+        
+        jmp %%.clear_prefetch_queue
+        nop
+        nop
+%%.clear_prefetch_queue:
+    
+        ; Note: For some reason an explicit CLI is required here.
+        ;       CLI at the very beginning do not work it seems!
+        cli
+
+        ; Setup segment registers
+        mov eax, 0x10
+        mov ds, eax
+        mov es, eax
+        mov gs, eax
+        mov fs, eax
+        mov ss, eax
+    
+    pop eax
+
+    ; Jump to 32 bit protected mode
+    jmp 0x8:%%.pmode32
+%%.pmode32:
+
+%endmacro
+
+%macro EnterProtectedMode16 0
+    push eax
+
+        ;Load GDT
+        lgdt [gdt16_meta]
+
+        jmp %%clear_prefetch_queue
+        nop
+        nop
+%%clear_prefetch_queue:
+
+        ; Note: For some reason an explicit CLI is required here.
+        ;       CLI at the very beginning do not work it seems!
+        cli
+
+        ; Setup segment registers
+        mov ax, 0x10
+        mov ds, ax
+        mov es, ax
+        mov gs, ax
+        mov fs, ax
+        mov ss, ax
+
+    pop eax
+
+    ; Jump to 16 bit protected mode
+    jmp 0x8:%%pmode16
+%%pmode16:
+%endmacro
+
+%macro EnterRealMode 0
+    push eax
+
+        ; Disable Protected mode
+        ; More info here: https://wiki.osdev.org/Real_Mode#Switching_from_Protected_Mode_to_Real_Mode
+        ; and http://www.sudleyplace.com/pmtorm.html#RareCircumstances.
+        mov eax, cr0
+        and eax, ~1
+        mov cr0, eax
+
+        jmp 0:%%realmode
+%%realmode:
+
+        ; Setup segment registers
+        mov ax, 0
+        mov ds, ax
+        mov es, ax
+        mov gs, ax
+        mov fs, ax
+        mov ss, ax
+   
+   pop eax
+%endmacro
 ; ---------------------------------------------------------------------------
 ;  Code Segment
 ; ---------------------------------------------------------------------------
 
-; ---------------------------------------------------------------------------
-; Load the initial Global Descriptor Table into the GDTR register.
+; Copy the initial Global Descriptor Table to a global location.
 ; The local GDT will be copied to a global location [ 0x0000: 0x0800 ]
 ; Input:
 ;   None
 ; Output:
 ;   None
-load_gdt:
-    push cx
-    cli
+copy_gdt_to_global:
+    pusha
+    push es
 
-    ; Copy GDT to globa location
     mov cx, GDT_SEG
     mov es, cx
-
     mov di, GDT_OFF
-    mov cx, gdt.length
-    mov si, gdt
-    rep movsb
-    
-    ; Load gdtr
-    lgdt [gdt_meta]
 
-    sti
-    pop cx
+    mov cx, gdt32.length
+    mov si, gdt32
+    rep movsb
+
+    pop es
+    popa
     ret
 ; ---------------------------------------------------------------------------
 

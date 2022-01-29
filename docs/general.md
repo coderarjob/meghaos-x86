@@ -81,7 +81,7 @@ another POSIX Operating System.
 In conclusion, I do not want MeghaOS to be completely POSIX complaint. 
 I could have a POSIX layer between applications and kernel, which provides the POSIX functions
 from a library and header files. This layer is going to implement specific POSIX functions when 
-necessory on its own. The kernel syscalls, file system, process model, IPC will not be made with
-the POSIX complaince in mind, so ideas could be taken from POSIX, DOS, WINDOWS as seen fit.
+necessary on its own. The kernel syscalls, file system, process model, IPC will not be made with
+the POSIX compliance in mind, so ideas could be taken from POSIX, DOS, WINDOWS as seen fit.
 
 Need to be visited later on, after process model, file system is implemented.

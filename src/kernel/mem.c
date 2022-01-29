@@ -9,33 +9,33 @@
 #include <kernel.h>
 
 /* Copies n bytes from src to dest. Returns dest */
-void *memcpy(void *dest, const void *src, size_t n)
+void *k_memcpy (void *dest, const void *src, size_t n)
 {
-    u8 *cdest = (u8 *)dest;
-    u8 *csrc = (u8 *)src;
+    U8 *cdest = (U8 *)dest;
+    U8 *csrc = (U8 *)src;
 
     if (cdest > csrc && cdest < csrc + n) {
         // This handles the scenario where destination overlaps the source.
-        cdest += n-1;
-        csrc += n-1;
-        while(n--)
+        cdest += n - 1;
+        csrc += n - 1;
+        while (n--)
             *cdest-- = *csrc--;
     }
     else {
-        while(n--)
+        while (n--)
             *cdest++ = *csrc++;
     }
 
-    return (char *)dest + n;
+    return (CHAR *)dest + n;
 }
 
 /* Fills memory with constant byte */
-void *memset(void *s, int c, size_t n)
+void *k_memset (void *s, INT c, size_t n)
 {
-    u8 *cs = (u8 *)s;
-    u8 ch = (u8)c;
+    U8 *cs = (U8 *)s;
+    U8 ch = (U8)c;
 
-    while(n--)
+    while (n--)
         *cs++ = ch;
 
     return cs;

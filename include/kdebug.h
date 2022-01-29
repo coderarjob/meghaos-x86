@@ -15,10 +15,14 @@
 
 #include <types.h>
 
-/* Prints an ASCII character based on kdebug_putc implementation.
- * When debugging with Qemu, default implementation is to output
- * to 0xE9 port.
+/* Prints formatted string to 0xE9 port and can optionally print to vga
+ * buffer.
  */
-void kdebug_putc(char c);
+#if defined (DEBUG)
+    void kdebug_printf_ndu (const CHAR *fmt, ...);
+    #define kdebug_printf(fmt,...) kdebug_printf_ndu (fmt,__VA_ARGS__)
+#else
+    #define kdebug_printf(fmt,...) (void)0
+#endif
 
 #endif // __KDEBUG_H__
