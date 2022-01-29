@@ -6,10 +6,11 @@ _19 December 2021_
 ### (1) Naming
 #### (1.1) Functions
 
-1. Functions names must be lower Camel case. Do not separate out words with `_`.
+1. Function verb must be lower Camel case. Do not separate out words with `_`.
 2. All global functions, that run within kernel space, must have `k` prefix.
 3. After the `k` prefix, module/file name can be placed, in lower case.
-4. After the `k` prefix and the module name, a `_` separates the actual function name verb.
+4. If module name is written after, 'k', then after the module name, a `_` separates the actual
+   function name verb.
 
    Example: 
    ```
