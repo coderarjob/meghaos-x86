@@ -11,32 +11,27 @@ echo "    [ Compilling x86 Kernel ]    "
 
 nasm -f elf32 src/kernel/x86/usermode.s -g \
      -l $LISTDIR/x86_usermode.lst \
-     -o $K_OBJDIR/x86_usermode.o                                             || exit
+     -o $K_OBJDIR/x86_usermode.o                                        || exit
 
 nasm -f elf32 src/kernel/x86/entry.s -g \
      -l $LISTDIR/x86_entry.lst \
-     -o $K_OBJDIR/x86_entry.o                                                || exit
+     -o $K_OBJDIR/x86_entry.o                                           || exit
 
 # Kernel must must be named kernel.o, as this is hardcoded in kernel.ld
 # NOTE: Must be a way to pass the filename
+FILES=('kernel.c'
+       'vgadisp.c'
+       'tss.c'
+       'gdt.c'
+       'idt.c'
+       'kdebug.c'
+       'paging.c'
+)
 
-$GCC32 -c src/kernel/x86/kernel.c -o $K_OBJDIR/x86_kernel.o                   || exit
-$GCC32 -S src/kernel/x86/kernel.c -o $LISTDIR/x86_kernel.lst  >/dev/null 2>&1 || exit
-
-$GCC32 -c src/kernel/x86/vgadisp.c -o $K_OBJDIR/x86_screen.o                  || exit
-$GCC32 -S src/kernel/x86/vgadisp.c -o $LISTDIR/x86_screen.lst >/dev/null 2>&1 || exit
-
-$GCC32 -c src/kernel/x86/tss.c -o $K_OBJDIR/x86_tss.o                         || exit
-$GCC32 -S src/kernel/x86/tss.c -o $LISTDIR/x86_tss.lst        >/dev/null 2>&1 || exit
-
-$GCC32 -c src/kernel/x86/gdt.c -o $K_OBJDIR/x86_gdt.o                         || exit
-$GCC32 -S src/kernel/x86/gdt.c -o $LISTDIR/x86_gdt.lst        >/dev/null 2>&1 || exit
-
-$GCC32 -c src/kernel/x86/idt.c -o $K_OBJDIR/x86_idt.o                         || exit
-$GCC32 -S src/kernel/x86/idt.c -o $LISTDIR/x86_idt.lst        >/dev/null 2>&1 || exit
-
-$GCC32 -c src/kernel/x86/kdebug.c -o $K_OBJDIR/x86_kdebug.o                   || exit
-$GCC32 -S src/kernel/x86/kdebug.c -o $LISTDIR/x86_kdebug.lst  >/dev/null 2>&1 || exit
-
-$GCC32 -c src/kernel/x86/paging.c -o $K_OBJDIR/x86_paging.o                   || exit
-$GCC32 -S src/kernel/x86/paging.c -o $LISTDIR/x86_paging.lst  >/dev/null 2>&1 || exit
+for fn in ${FILES[@]}
+do
+    FILETILE=${fn%.*}
+    FILEPATH=src/kernel/x86/$fn
+    $GCC32 -c "$FILEPATH" -o $K_OBJDIR/x86_$FILETILE.o                  || exit
+    $GCC32 -S "$FILEPATH" -o $LISTDIR/x86_$FILETILE.lst >/dev/null 2>&1 || exit
+done
