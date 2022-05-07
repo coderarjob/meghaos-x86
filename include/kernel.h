@@ -16,11 +16,11 @@
     #define __C99__
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(UNITTEST)
 #error "You are targetting Linux. Which is wrong!"
 #endif 
 
-#ifndef __i386__
+#if !defined(__i386__) && !(defined(UNITTEST) && ARCH == x86)
 #error "You are not targetting i386."
 #endif
 
@@ -35,7 +35,7 @@
 #include <errno.h>
 #include <moslimits.h>
 
-#ifdef __i386__
+#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
 #endif
 
@@ -53,6 +53,9 @@
 
 /* Printf like function, that prints depending on type*/
 INT kearly_printf (const CHAR *fmt, ...);
+
+/* Writes formatted output to memory pointed to by the dest CHAR pointer.*/
+INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);
 
 /* Writes formatted output to memory pointed to by the dest CHAR pointer.*/
 INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);

@@ -13,7 +13,7 @@
 #ifndef __MOS_LIMITS_H__
 #define __MOS_LIMITS_H__
 
-#ifdef __i386__
+#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/moslimits.h>
 #endif
 

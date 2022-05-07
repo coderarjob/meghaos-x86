@@ -13,7 +13,7 @@
 #ifndef __PORTABLE_TYPES__
 #define __PORTABLE_TYPES__
 
-#ifdef __i386__
+#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/types.h>
 #endif
 

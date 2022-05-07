@@ -16,7 +16,7 @@
 #ifndef __MEM_H__
 #define __MEM_H__
 
-#ifdef __i386__
+#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/memloc.h>
 #endif
 

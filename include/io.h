@@ -13,7 +13,7 @@
 #ifndef __IO_H__
 #define __IO_H__
 
-#ifdef __i386__
+#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/io.h>
 #endif
 

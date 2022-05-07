@@ -14,7 +14,7 @@
 
 #include <types.h>
 
-#ifdef __i386__
+#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/vgatext.h>
 #endif
 
