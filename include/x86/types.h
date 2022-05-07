@@ -13,17 +13,9 @@
 #ifndef __x86_TYPES__
 #define __x86_TYPES__
 
+#include <stddef.h>
 #include <stdint.h>
 
-    /* typedefs produce a more consistent result, for complicated types,
-     * than #define.
-     * Example:
-     *   #define p_t CHAR*
-     *   p_t a,b,c             // a is CHAR *, b,c are CHAR.
-     *
-     *  typedef char* p_t;
-     *  p_t a,b,c              // a,b,c are CHAR* as it should be.
-     */
     typedef uint8_t  U8;
     typedef uint16_t U16;
 
@@ -49,11 +41,6 @@
      */
     typedef unsigned char UCHAR;
     typedef char          CHAR;
-
-    /* Type that can hold the largest addressable memory.
-     * For x86, that is 4GBytes, which an uint32_t type can hold.
-     */
-    typedef uint32_t size_t;
 
     /* Casts a bit field of n bits to UINT. */
     inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
