@@ -41,6 +41,17 @@ INT kearly_printf (const CHAR *fmt, ...)
     return len;
 }
 
+INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
+{
+    va_list l;
+    va_start (l, fmt);
+
+    INT len = kearly_vsnprintf (dest, size, fmt, l);
+    va_end (l);
+
+    return len;
+}
+
 INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
 {
     size_t originalsize = size;
