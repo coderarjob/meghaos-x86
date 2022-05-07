@@ -64,6 +64,9 @@ export GCC32="i686-elf-gcc -std=c99\
               -O1 -fno-unit-at-a-time \
               -D $DEBUG -D DEBUG_LEVEL=$DEBUGLEVEL" 
 
+export NASM32_ELF="nasm -f elf32 -g"
+export NASM32_BIN="nasm -f bin"
+
 # -libgcc is included because of helper functions used by gcc.
 # For example: __udivdi3 function used for division of 64 bit integers.
 # Note: LD_KERNEL LD_FLAGS {*.o files} LD_OPTIONS -o {output elf}. If
@@ -162,6 +165,10 @@ WARNCOUNT_GCC=`grep -c -r "warning:" build/reports/build_warnings.txt`
 WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`
 echo "Total compiler warnings: $WARNCOUNT_GCC"
 echo "Total lint warnings: $WARNCOUNT_LINT"
+
+# ---------------------------------------------------------------------------
+echo "    [ Buliding Unittests ]"
+bash src/unittests/build.sh
 
 # ---------------------------------------------------------------------------
 echo "    [ Done ]"
