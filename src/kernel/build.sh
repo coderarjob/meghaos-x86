@@ -1,14 +1,7 @@
 #!/bin/bash
+# Builds Kernel (Platform independent parts)
 
-# Builds Kernel (Platform dependent and independent parts)
-export K_OBJDIR="$OBJDIR/kernel"
-
-#build path
-if [ -e $K_OBJDIR ]; then
-    rm $K_OBJDIR/* || exit
-else
-    mkdir $K_OBJDIR || exit
-fi
+source functions.sh
 
 # Build the Platform dependent Kernel
 bash src/kernel/x86/build.sh || exit
@@ -16,19 +9,16 @@ bash src/kernel/x86/build.sh || exit
 # Build the Kernel
 echo "    [ Compiling Kernel: Platform independent parts ]    "
 
-FILES=('printk.c'
-       'mem.c'
-       'kpanic.c'
-       'errno.c'
+C_FILES=(
+    'kernel/printk.c'
+    'kernel/mem.c'
+    'kernel/kpanic.c'
+    'kernel/errno.c'
 )
 
-for fn in ${FILES[@]}
-do
-    FILETILE=${fn%.*}
-    FILEPATH=src/kernel/$fn
-    $GCC32 -c "$FILEPATH" -o $K_OBJDIR/$FILETILE.o                     || exit
-    $GCC32 -S "$FILEPATH" -o $LISTDIR/$FILETILE.lst >/dev/null 2>&1    || exit
-done
+compile_cc "$GCC32" $OBJDIR ${C_FILES[@]}
 
-$LD_KERNEL $LD_FLAGS $K_OBJDIR/*.o $LD_OPTIONS -o $OBJDIR/kernel.elf   || exit
+# Link all the object files in the $OBJDIR/kernel tree.
+OBJ_FILES=`find $OBJDIR/kernel -name "*.o"`
+$LD_KERNEL $LD_FLAGS $OBJ_FILES $LD_OPTIONS -o $OBJDIR/kernel.elf      || exit
 $OBJCOPY -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt               || exit

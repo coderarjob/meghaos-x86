@@ -1,4 +1,15 @@
-#!/bin/sh
+#!/bin/bash
+
+if [ $# -gt 0 ] && [ "$1" = "unittests" ]; then
+    for fn in build/bin/unittests/*; do
+        echo -e -n "==================================\n"
+        echo -e -n "Test: $fn\n"
+        echo -e -n "----------------------------------\n"
+        ./$fn
+        echo -e -n "\n"
+    done
+    exit 0
+fi
 
 OPTS="$@"
 RAMMB=5
