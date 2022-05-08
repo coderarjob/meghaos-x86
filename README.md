@@ -2,25 +2,25 @@
 
 A general purpose x86 Operating System that runs of a 1.44 MiB floppy and requires 1.44 MiB of RAM.
 
-MeghaOS is completely written from scratch and primarily a learning project, the goal for MeghaOS is
+MeghaOS is completely written from scratch and primarily a learning project. The goal for MeghaOS is
 to provide an environment to do experiments with the computer and to play around.
 
 Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
 changed by the rider.
 
 I want the system to be stable but not totally locked down to the programmer. The OS will run in
-x86 Protected Mode with Virtual Memory to ensure that one process cannot not touch memory used by
-another processes. The kernel will provide ways for the programmer to interact with the computer
+x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory used by
+another process. The kernel will provide ways for the programmer to interact with the computer
 safely and change parts of the kernel easily.
 
 ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
 
-This is the second iteration of the operating system that I am trying to build. The first was a
-Real Mode OS, intended to run on a 8086 processor.
+This is the second iteration of an operating system that I am building. The first was a Real Mode
+OS, intended to run on a 8086 processor. It was written entirely in assembly language, because of
+the lack of proper higher level language compilers for the 8086 processor.
 
-The first version was written entirely in assembly language, because of the lack of proper higher
-level language compilers for the 8086 processor. The current, second version, targets the 80386
-processor and the former unavailability of tools is no longer there, and is thus most written in C.
+The current, second version, targets the 80386 processor and the former unavailability of tools is
+no longer there, and is thus most written in C.
 
 PS: OpenWatcom is a great C compiler if you want to target 8086. However, I wanted to stick with
 something more standard and more common.
@@ -34,10 +34,10 @@ The end product will be ready for a programmer but not for general use.
 - [X] GDT and TSS setup enter to protected mode.
 - [X] Higher-Half page mapping
 - [X] Jumping to User mode (Privilege Level 3) from Kernel mode.
-- [-] Interrupt handlers for CPU Exceptions: GPF and PF handlers working.
+- [ ] Interrupt handlers for CPU Exceptions: GPF and PF handlers working. **(incomplete)**
 - [X] Basic Kernel mode C functions for printing on screen etc.
 - [X] Unittesting framework to test parts of the OS on host computer.
-- [ ] Memory management: Physical page allocation.
+- [ ] Memory management: Physical page allocation. **(developing)**
 - [ ] Memory management: Virtual page allocation.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] User mode processes
@@ -73,8 +73,11 @@ well as the unittests.
 
 ## Running on host computer.
 
-Can be run on natively on any x86, x86_64 computer, or on any emulator like Qemu for VirtualBox. If
-you have Qemu, just run `./run.sh`.
+Can be run on natively on any x86, x86\_64 computer. Flash a pendrive with the floppy image and
+boot from it.
+
+You can also run it on on an emulator like Qemu for VirtualBox.
+If you have Qemu, just run `./run.sh`.
 
 To run the unittests do run `./run.sh unittests`.
 
@@ -83,19 +86,19 @@ To run the unittests do run `./run.sh unittests`.
 ### Git Branches
 
 The `master` branch have the latest changes. Merges from a feature or hotfix branches all go into
-the `master` branch. After some significant milestone, I will tag a commit, so you can check those
+the `master` branch. After a significant milestone, I will tag a commit, so you can check those
 if you do not want the very latest, but do not know why you would not.
 
 * Master  - Current development branch where all the feature and hotfix branches merge into.
-* Feature - Lives temporarily and named like `feature-bootloader`.
+* Feature - Lives temporarily for a feature or non specific development.
 * Hotfix  - Lives temporarily and named like `hotfix-ls-segfault`.
 
 ```
-                      HotFix   Masterp      Feature
-                        |        |           |
-                        |        |           |
-                        |        |           |
-                        |<------>|<--------->|
+HotFix   Master       Feature
+  |        |           |
+  |        |           |
+  |        |           |
+  |<------>|<--------->|
 ```
 
 ### Semantic Versioning Scheme:
@@ -105,9 +108,9 @@ if you do not want the very latest, but do not know why you would not.
 
    Example: `1.2.19-200909.1-dev`
 
-2. Build is in the format: `<year><month><day>.<build_minor>`
+2. `build` is in the format: `<year><month><day>.<build_minor>`.
 
-3. Release types are : `dev`, `alpha`
+3. `releasetype` are : `dev`, `alpha`.
 
 4. |Version| Reason for change                                     |
    |-------|-------------------------------------------------------|
@@ -115,5 +118,5 @@ if you do not want the very latest, but do not know why you would not.
    |Minor  | Increments when backward compatibility is maintained. |
    |Patch  | Bug fixes, that does not break backward compatibility.|
 
-5. Whenever the left or middle digit changes, the digits to the right is also reset.
+5. Whenever the left or middle digit changes, the digits to the right is reset to zero.
    * 1.2.14  -->  1.3.0  --> 2.0.0
