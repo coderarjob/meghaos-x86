@@ -48,19 +48,14 @@ The end product will be ready for a programmer but not for general use.
 
 ## Design goals
 
-1. Small modular kernel. Modules and drivers can be selected and loaded during booting. As and when
-   needed, any modules can be replaced or disabled.
-2. Target is the x86 architecture, but can be ported easily to other architectures. To do this
-   MeghaOS will not use and depend completely on architecture specific features.
-3. Can be used without a fixed storage device. After the OS and its tools are loaded into RAM,
-   user can work completely from RAM.
-4. New file systems and devices can easily accessed with VFS, DEVFS.
-5. Simpler configuration interface.
+1. MeghaOS will be used mostly for education and research, so it should be possible to replace
+   parts of the OS or to turn off / replace some its features. Such configurations can be set
+   when the building the OS.
+2. Sophistication is fronded upon. A simpler solution is always preferred.
+3. Target is the x86 architecture, but can be ported easily to other architectures. To do this
+   MeghaOS should not use or depend heavily on architecture specific features.
 
 ## Building MeghaOS
-
-After the below perquisites are met, just run `./build.sh`. This will build the floppy image, as
-well as the unittests.
 
 ### Prerequisites
 
@@ -75,9 +70,12 @@ well as the unittests.
 1. gcc and binutils 8.3 or higher.
 2. gcc-multilib if host computer processor is anything other than x86.
 
+After the perquisites are met, just run `./build.sh`. This will build the floppy image, as
+well as the unittests.
+
 ## Running on host computer.
 
-Can be run natively on any x86, x86\_64 computer. Flash a pendrive with the floppy image and boot
+To run the OS natively on a x86 or a86_64 machine, flash a pendrive with the floppy image and boot
 from it.
 
 You can also run it on an emulator like Qemu or VirtualBox.  If you have Qemu, just run `./run.sh`.
@@ -85,6 +83,25 @@ You can also run it on an emulator like Qemu or VirtualBox.  If you have Qemu, j
 To run the unittests run `./run.sh unittests`.
 
 ## Development Specifics
+
+Development is progressed in small increments. They are tested and refined overtime.
+
+Stages:
+1. Development starts with few ideas and a runnable prototype is made. This is a stage of heavy
+   development as the core ideas are tested and refined. Initial Unittests and documentation are
+   created at this stage.
+2. Refinement of the software. In some cases, parts of the software may have to be rewritten.
+   Further unittests and documentation are created or modified. The end product is a more stable
+   runnable software.
+3. Almost same as stage 2. But fewer major change is expected.
+
+```
+                   release 1    release 2    release 3
+                     /            /           /
+development >-------|------------|-----------|--->
+                1        2            3
+
+```
 
 ### Git Branches
 
