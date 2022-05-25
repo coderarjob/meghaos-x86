@@ -21,9 +21,9 @@ typedef enum IntTypes
 } IntTypes;
 
 static void s_prnstr (const CHAR *str);
-static void s_itoa (CHAR **dest, size_t *size, U64 num, U32 base);
-static bool s_convert (CHAR **dest, size_t *size, IntTypes inttype, CHAR c, 
-                      va_list *l);
+static void s_itoa (CHAR **dest, S64 *size, U64 num, U32 base);
+static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c,
+                       va_list *l);
 static IntTypes s_readtype (const CHAR **fmt, CHAR *c);
 static U64 s_readint (IntTypes inttype, va_list *l);
 
@@ -52,12 +52,13 @@ INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
     return len;
 }
 
-INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
+INT kearly_vsnprintf (CHAR *dest, size_t sz, const CHAR *fmt, va_list l)
 {
-    size_t originalsize = size;
+    size_t originalsize = sz;
+    S64 size = sz;
 
     CHAR c;
-    while ((c = *fmt) && size > 1)
+    while ((c = *fmt))
     {
         bool isliteral = true;
         const CHAR *prevfmt = fmt;
@@ -68,9 +69,10 @@ INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
             isliteral = s_convert (&dest, &size, inttype, c, &l);
         }
 
-        while (prevfmt <= fmt && size > 1 && isliteral)
+        while (prevfmt <= fmt && isliteral)
         {
-            *dest++ = *prevfmt++;
+            if (size > 1) *dest++ = *prevfmt;
+            prevfmt++;
             size--;
         }
 
@@ -78,8 +80,6 @@ INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
     }
 
     *dest = '\0';
-    size--;
-
     return (INT)(originalsize - size);
 }
 
@@ -115,8 +115,8 @@ static U64 s_readint (IntTypes inttype, va_list *l)
     }
     return value;
 }
-static bool s_convert (CHAR **dest, size_t *size, IntTypes inttype, CHAR c, 
-                      va_list *l)
+static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c,
+                       va_list *l)
 {
     U64 intvalue;
     CHAR *stringvalue;
@@ -142,9 +142,10 @@ static bool s_convert (CHAR **dest, size_t *size, IntTypes inttype, CHAR c,
             break;
         case 's':
             stringvalue = va_arg (*l, CHAR *);
-            while (*stringvalue && *size > 1)
+            while (*stringvalue)
             {
-                *(*dest)++ = *stringvalue++;
+                if (*size > 1) *(*dest)++ = *stringvalue;
+                stringvalue++;
                 (*size)--;
             }
             break;
@@ -160,7 +161,7 @@ static bool s_convert (CHAR **dest, size_t *size, IntTypes inttype, CHAR c,
     return isliteral;
 }
 /* Displays a 64 bit number in various representation on the screen.  */
-static void s_itoa (CHAR **dest, size_t *size, U64 num, U32 base) 
+static void s_itoa (CHAR **dest, S64 *size, U64 num, U32 base)
 {
     CHAR *chars = "0123456789ABCDEF";
 
@@ -174,9 +175,9 @@ static void s_itoa (CHAR **dest, size_t *size, U64 num, U32 base)
     }while (num > 0);
 
     // Display the characters in output in reverse order.
-    while (i-- && *size > 1) 
+    while (i--)
     {
-        *(*dest)++ = output[i];
+        if (*size > 1) *(*dest)++ = output[i];
         (*size)--;
     }
 }

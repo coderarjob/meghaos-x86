@@ -71,7 +71,7 @@ TEST(kearly_snprintf, limit_check_overflow_literal)
 #define MESSAGE "Hello world"
     CHAR d[8];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), MESSAGE);
-    EQ_SCALAR(ret, ERR_OVERFLOW);
+    EQ_SCALAR(ret, 11);
     EQ_STRING(d, "Hello w");
     END();
 }
@@ -81,7 +81,7 @@ TEST(kearly_snprintf, limit_check_overflow_string_format)
     CHAR *message = "Hello world";
     CHAR d[8];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%s", message);
-    EQ_SCALAR(ret, ERR_OVERFLOW);
+    EQ_SCALAR(ret, 11);
     EQ_STRING(d, "Hello w");
     END();
 }
@@ -91,7 +91,7 @@ TEST(kearly_snprintf, limit_check_overflow_unsigned_int)
     INT num = 0xFF012EA;
     CHAR d[4];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%x", num);
-    EQ_SCALAR(ret, ERR_OVERFLOW);
+    EQ_SCALAR(ret, 7);
     EQ_STRING(d, "FF0");
     END();
 }
@@ -102,7 +102,7 @@ TEST(kearly_snprintf, limit_check_overflow_mixed)
     CHAR d[15];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "Hello %s %x",
                                                    "World", num);
-    EQ_SCALAR(ret, ERR_OVERFLOW);
+    EQ_SCALAR(ret, 19);
     EQ_STRING(d, "Hello World FF");
     END();
 }

@@ -15,6 +15,7 @@ typedef enum KernelErrorCodes
 {
     ERR_UNKNOWN         = -100,
     ERR_INVALID_RANGE   =  -99,
+    ERR_OVERFLOW        =  -98,
     ERR_NONE            =    0
 } KernelErrorCodes;
 
