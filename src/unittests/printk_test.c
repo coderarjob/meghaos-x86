@@ -86,7 +86,7 @@ TEST(kearly_snprintf, limit_check_overflow_string_format)
     END();
 }
 
-TEST(kearly_snprintf, limit_check_overflow_unsigend_int)
+TEST(kearly_snprintf, limit_check_overflow_unsigned_int)
 {
     INT num = 0xFF012EA;
     CHAR d[4];
@@ -126,7 +126,7 @@ int main()
     unsigned_int_octal_format();
     limit_check_overflow_literal();
     limit_check_overflow_string_format();
-    limit_check_overflow_unsigend_int();
+    limit_check_overflow_unsigned_int();
     limit_check_overflow_mixed();
     limit_check_empty_string();
     limit_check_at_edge();

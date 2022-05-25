@@ -17,6 +17,7 @@ FUT_WOPTS=$UNITTEST_WOPTS
 
 # Note: Requires gcc-multilib package if compiling on a x86_64 machine.
 UNITTEST_CC="gcc -std=c99                   \
+                 -g                         \
                  -m32                       \
                  -march=i386                \
                  $UT_WOPTS                  \
