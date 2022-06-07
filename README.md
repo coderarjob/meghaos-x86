@@ -16,9 +16,9 @@ computer and change parts of it easily.
 
 ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
 
-This is the second iteration of an operating system that I am building. The first was a Real Mode
-OS, intended to run on a 8086 processor. It was written entirely in assembly language, because of
-the lack of proper higher level language compilers for the 8086 processor.
+This is the second iteration. The first OS was targetted to run on the 8086 processor. It was
+written entirely in assembly language, because of a lack of proper higher level language compilers
+for the 8086 processor.
 
 The current, second version, targets the 80386 processor and the former unavailability of tools is
 no longer there, and is thus mostly written in C.
@@ -69,6 +69,10 @@ The end product will be ready for a programmer but not for general use.
 
 1. gcc and binutils 8.3 or higher.
 2. gcc-multilib if host computer processor is anything other than x86.
+
+### Prerequisites: Code coverage report
+1. gcc and gcov library 8.3 or higher.
+1. lcov and genhtml package.
 
 After the perquisites are met, just run `./build.sh`. This will build the floppy image, as
 well as the unittests.
