@@ -168,7 +168,7 @@ echo "Total lint warnings: $WARNCOUNT_LINT"
 
 # ---------------------------------------------------------------------------
 echo "    [ Buliding Unittests ]"
-bash src/unittests/build.sh
+bash src/unittests/build.sh || exit
 
 # ---------------------------------------------------------------------------
 echo "    [ Done ]"
