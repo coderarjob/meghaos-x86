@@ -15,6 +15,16 @@ TEST(kearly_snprintf, no_vargs)
     END();
 }
 
+TEST(kearly_snprintf, unsigned_int_bit_format)
+{
+    INT num = 0xFF01;
+    CHAR d[MAX_PRINTABLE_STRING_LENGTH];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%b", num);
+    EQ_SCALAR(ret, 16);
+    EQ_STRING(d, "1111111100000001");
+    END();
+}
+
 TEST(kearly_snprintf, unsigned_int_decimal_format)
 {
     INT num = 1045;
@@ -42,6 +52,25 @@ TEST(kearly_snprintf, unsigned_int_octal_format)
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%o", num);
     EQ_SCALAR(ret, 4);
     EQ_STRING(d, "7210");
+    END();
+}
+
+TEST(kearly_snprintf, unsigned_long_hex_format)
+{
+    U32 num = 0xCF010203;
+    CHAR d[MAX_PRINTABLE_STRING_LENGTH];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%lx", num);
+    EQ_SCALAR(ret, 8);
+    EQ_STRING(d, "CF010203");
+    END();
+}
+TEST(kearly_snprintf, unsigned_long_long_hex_format)
+{
+    U64 num = 0xCF010203040506FF;
+    CHAR d[MAX_PRINTABLE_STRING_LENGTH];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%llx", num);
+    EQ_SCALAR(ret, 16);
+    EQ_STRING(d, "CF010203040506FF");
     END();
 }
 
@@ -107,6 +136,34 @@ TEST(kearly_snprintf, limit_check_overflow_mixed)
     END();
 }
 
+TEST(kearly_snprintf, percent_symbol)
+{
+    CHAR d[MAX_PRINTABLE_STRING_LENGTH];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "100%%");
+    EQ_SCALAR(ret, 4);
+    EQ_STRING(d, "100%");
+    END();
+}
+
+TEST(kearly_snprintf, wrong_format)
+{
+    CHAR d[MAX_PRINTABLE_STRING_LENGTH];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "Hello %arjob");
+    EQ_SCALAR(ret, 12);
+    EQ_STRING(d, "Hello %arjob");
+    END();
+}
+
+TEST(kearly_snprintf, string_literal)
+{
+    // %a is not a valid format. snprintf should treat this to be a literal.
+    CHAR d[MAX_PRINTABLE_STRING_LENGTH];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "Arjob 0x10A");
+    EQ_SCALAR(ret, 11);
+    EQ_STRING(d, "Arjob 0x10A");
+    END();
+}
+
 TEST(kearly_snprintf, memory_overlap)
 {
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
@@ -124,6 +181,12 @@ int main()
     unsigned_int_hex_format();
     unsigned_int_decimal_format();
     unsigned_int_octal_format();
+    unsigned_long_long_hex_format();
+    unsigned_long_hex_format();
+    unsigned_int_bit_format();
+    percent_symbol();
+    string_literal();
+    wrong_format();
     limit_check_overflow_literal();
     limit_check_overflow_string_format();
     limit_check_overflow_unsigned_int();
