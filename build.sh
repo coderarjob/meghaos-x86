@@ -170,5 +170,20 @@ echo "Total lint warnings: $WARNCOUNT_LINT"
 echo "    [ Buliding Unittests ]"
 bash src/unittests/build.sh || exit
 
+echo "    [ Buliding Coverage report ]"
+
+LCOV_AVAILABLE=`which lcov`
+GENHTML_AVAILABLE=`which genhtml`
+
+if [ ! -e "$LCOV_AVAILABLE" ] || [ ! -e "$GENHTML_AVAILABLE" ]; then
+    echo "Cannot find lcov and genhtml. Skipping report generation."
+else
+    ./run.sh unittests > /dev/null 2>&1
+    lcov --capture --directory . \
+         --output-file build/coverage/capture.data > /dev/null  || exit
+    genhtml build/coverage/capture.data \
+            -o build/coverage/report > /dev/null                || exit
+fi
+
 # ---------------------------------------------------------------------------
 echo "    [ Done ]"
