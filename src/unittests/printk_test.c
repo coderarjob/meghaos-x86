@@ -147,6 +147,7 @@ TEST(kearly_snprintf, percent_symbol)
 
 TEST(kearly_snprintf, wrong_format)
 {
+    // %a is not a valid format. snprintf should treat this to be a literal.
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "Hello %arjob");
     EQ_SCALAR(ret, 12);
@@ -156,7 +157,6 @@ TEST(kearly_snprintf, wrong_format)
 
 TEST(kearly_snprintf, string_literal)
 {
-    // %a is not a valid format. snprintf should treat this to be a literal.
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "Arjob 0x10A");
     EQ_SCALAR(ret, 11);
