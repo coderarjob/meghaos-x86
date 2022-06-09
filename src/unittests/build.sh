@@ -44,6 +44,7 @@ LD_UNITTEST_FLAGS="-lgcov"
 UNITTESTS=(
     "c99_conformance"
     "printk"
+    "mem"
 )
 
 # Adds tests specific to the current architecture.
@@ -71,6 +72,12 @@ get_arch_independent_test_definition()
                         {
                             SRC=('kernel/printk.c'
                                  'unittests/printk_test.c'
+                                 'unittests/unittest.c')
+                        };;
+        mem)
+                        {
+                            SRC=('kernel/mem.c'
+                                 'unittests/mem_test.c'
                                  'unittests/unittest.c')
                         };;
         *) return 1;;
