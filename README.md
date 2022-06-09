@@ -71,11 +71,12 @@ The end product will be ready for a programmer but not for general use.
 2. gcc-multilib if host computer processor is anything other than x86.
 
 ### Prerequisites: Code coverage report
-1. gcc and gcov library 8.3 or higher.
-1. lcov and genhtml package.
 
-After the perquisites are met, just run `./build.sh`. This will build the floppy image, as
-well as the unittests.
+1. gcc and gcov library 8.3 or higher.
+2. lcov and genhtml package.
+
+After the perquisites are met, just run `./build.sh`. This will build the floppy image,
+the unittests and code coverage report.
 
 ## Running on host computer.
 
@@ -85,6 +86,10 @@ from it.
 You can also run it on an emulator like Qemu or VirtualBox.  If you have Qemu, just run `./run.sh`.
 
 To run the unittests run `./run.sh unittests`.
+
+## Code coverage report
+
+You will find the report in build/coverage/report/index.html.
 
 ## Development Specifics
 
