@@ -1,9 +1,9 @@
 # MEGHA OPERATING SYSTEM V2 - x86
 
 A general purpose 32 bit Operating System that runs of a 1.44 MiB floppy and requires 1.44 MiB of
-RAM, for the Intel x86 processor architecture.
+RAM.
 
-MeghaOS is completely written from scratch and is primarily a learning project. The goal for
+MeghaOS is written completely from scratch and is primarily a learning project. The goal for
 MeghaOS is to provide an environment to do experiments with the computer and to play around.
 
 Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
@@ -11,13 +11,13 @@ changed by the rider.
 
 I want the system to be stable but not totally locked down to the programmer. The OS will run in
 x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory used by
-another process. The kernel will provide ways for the programmer to safely interact with the
-computer and change parts of it easily.
+another. The kernel will provide ways for the programmer to safely interact with the computer and 
+change parts of it easily.
 
 ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
 
-This is the second iteration. The first OS was targetted to run on the 8086 processor. It was
-written entirely in assembly language, because of a lack of proper higher level language compilers
+This is the second iteration. The first OS was targeted to run on the 8086 processor. It was
+written entirely in assembly language, due of a lack of proper higher level language compilers
 for the 8086 processor.
 
 The current, second version, targets the 80386 processor and the former unavailability of tools is
@@ -48,12 +48,12 @@ The end product will be ready for a programmer but not for general use.
 
 ## Design goals
 
-1. MeghaOS will be used mostly for education and research, so it should be possible to replace
+1. MeghaOS will be used mostly for education and research, so it will be possible to replace
    parts of the OS or to turn off / replace some its features. Such configurations can be set
    when the building the OS.
 2. Sophistication is fronded upon. A simpler solution is always preferred.
-3. Target is the x86 architecture, but can be ported easily to other architectures. To do this
-   MeghaOS should not use or depend heavily on architecture specific features.
+3. Current target is the x86 architecture, but can be ported easily to other architectures. For
+   this MeghaOS should not use or depend heavily on architecture specific features.
 
 ## Building MeghaOS
 
@@ -61,8 +61,8 @@ The end product will be ready for a programmer but not for general use.
 
 1. Requires Linux environment. May also be possible on WSL.
 1. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
-   Use `tools/build_i686_gcc.sh` to configure and install. Add the installation path to the $PATH
-   variable.
+   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Add the installation 
+   path to the $PATH variable.
 2. nasm assembler version 2.15.05 or higher.
 
 ### Prerequisites: Unittests
@@ -89,11 +89,11 @@ To run the unittests run `./run.sh unittests`.
 
 ## Code coverage report
 
-You will find the report in build/coverage/report/index.html.
+You will find the report in `build/coverage/report/index.html`.
 
 ## Development Specifics
 
-Development is progressed in small increments. They are tested and refined overtime.
+Development of each part/feature is done in small increments. They are tested and refined overtime.
 
 Stages:
 1. Development starts with few ideas and a runnable prototype is made. This is a stage of heavy
