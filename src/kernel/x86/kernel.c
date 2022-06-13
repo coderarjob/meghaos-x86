@@ -34,14 +34,6 @@ volatile CHAR *a = (CHAR *)0xc0400000;
 __attribute__ ((noreturn)) 
 void __kernel_main ()
 {
-    /* Required because:
-     * 1. kearly_vsnprintf casts difference of two size_t to an INT.*/
-    k_staticAssert(sizeof(size_t) == sizeof(INT));
-
-    /* Required because:
-     * 1. According to C99 standard, size_t must be atleast the size of long int. */
-    k_staticAssert(sizeof(size_t) >= sizeof(LONG));
-
     kdisp_init ();
     kearly_printf ("\r\n[OK]\tPaging enabled.");
 
