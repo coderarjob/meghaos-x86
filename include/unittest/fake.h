@@ -132,12 +132,6 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 
 // =======================[ FAKE FUNCTION DECLARATION ]========================
 // ----------------------------------------------------------------------------
-// Macros to craete fake function declarations
-// ----------------------------------------------------------------------------
-#define FK_DECLARE_FUNC_NAME_0(rt, f)           rt f()
-#define FK_DECLARE_FUNC_NAME_1(rt, f, pt1)      rt f(pt1 a)
-#define FK_DECLARE_FUNC_NAME_2(rt, f, pt1, pt2) rt f(pt1 a, pt2 b)
-// ----------------------------------------------------------------------------
 // Helper macros
 // ----------------------------------------------------------------------------
 #define FK_DECLARE_STRUCT_START(f)  typedef struct FK_STRUCT_TAG(f) {         \
@@ -177,7 +171,7 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // ----------------------------------------------------------------------------
 #define FK_DECLARE_STRUCT_0(rt, f)                                            \
     FK_DECLARE_STRUCT_START(f);                                               \
-        FK_STRUCT_FIELD.g(OUT, rt, *ret);                                     \
+        FK_STRUCT_FIELD(OUT, rt, *ret);                                       \
     FK_DECLARE_STRUCT_END(f)
 // ------
 #define FK_DECLARE_STRUCT_1(rt, f, pd1, pt1)                                  \
@@ -196,27 +190,21 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // Complete fake function and structure declarations
 // ----------------------------------------------------------------------------
 #define DECLARE_FUNC_VOID_0(f)                                                \
-    FK_DECLARE_STRUCT_VOID_0(f);                                              \
-    FK_DECLARE_FUNC_NAME_0(void, f)
+    FK_DECLARE_STRUCT_VOID_0(f)
 // ------
 #define DECLARE_FUNC_VOID_1(f, pd1, pt1)                                      \
-    FK_DECLARE_STRUCT_VOID_1(f, pd1, pt1);                                    \
-    FK_DECLARE_FUNC_NAME_1(void, f, pt1)
+    FK_DECLARE_STRUCT_VOID_1(f, pd1, pt1)
 // ------
 #define DECLARE_FUNC_VOID_2(f, pd1, pt1, pd2, pt2)                            \
-    FK_DECLARE_STRUCT_VOID_2(f, pd1, pt1, pd2, pt2);                          \
-    FK_DECLARE_FUNC_NAME_2(void, f, pt1, pt2)
+    FK_DECLARE_STRUCT_VOID_2(f, pd1, pt1, pd2, pt2)
 // ----------------------------------------------------------------------------
 #define DECLARE_FUNC_0(rt, f)                                                 \
-    FK_DECLARE_STRUCT_0(rt, f);                                               \
-    FK_DECLARE_FUNC_NAME_0(rt, f)
+    FK_DECLARE_STRUCT_0(rt, f)
 // ------
 #define DECLARE_FUNC_1(rt, f, pd1, pt1)                                       \
-    FK_DECLARE_STRUCT_1(rt, f, pd1, pt1);                                     \
-    FK_DECLARE_FUNC_NAME_1(rt, f, pt1)
+    FK_DECLARE_STRUCT_1(rt, f, pd1, pt1)
 // ------
 #define DECLARE_FUNC_2(rt, f, pd1, pt1, pd2, pt2)                             \
-    FK_DECLARE_STRUCT_2(rt, f, pd1, pt1, pd2, pt2);                           \
-    FK_DECLARE_FUNC_NAME_2(rt, f, pt1, pt2)
+    FK_DECLARE_STRUCT_2(rt, f, pd1, pt1, pd2, pt2)
 // ----------------------------------------------------------------------------
 #endif

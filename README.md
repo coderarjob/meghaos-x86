@@ -1,112 +1,145 @@
 # MEGHA OPERATING SYSTEM V2 - x86
 
-Well let me keep things straigt here. I am moving Megha from being a Real Mode
-Operating System to a full 32 bit Protected Mode OS. Why you ask?
+A general purpose 32 bit Operating System that runs of a 1.44 MiB floppy and requires 1.44 MiB of
+RAM.
 
-The idea first came, because while creating the ABI for Real Mode Megha, the
-minimum it seems it can be run on is on a 386 - not a 8086. So if I am
-building an OS that uses some features of a 386, why run in Real Mode, when the
-processor has so much more to offer.
+MeghaOS is written completely from scratch and is primarily a learning project. The goal for
+MeghaOS is to provide an environment to do experiments with the computer and to play around.
 
-|            Reason               |  Minimum Architecture    |
-|---------------------------------|--------------------------|
-|  PUSHA, POPA                    |         80186             |
-|  IMUL with immediate value      |         80186             |
-|  Use of GS, FS registers by Applications and in Kernel.  |  80386  | 
-|  Application can use 32 bit registers. |  80386  |
-|  ENTER, LEAVE instructions      |            80186             |
+Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
+changed by the rider.
 
-Note: FS, GS and 32 bit registers is not used by the Kernel, but the
-applicaiton programs that will be written in C and compiled most likely with
-GCC. Thus it is the 386 that is the minimum requirement. I could have used
-OpenWatcom compiler and that would have worked, but that may force me to stay
-using a compiler that is really not the Standard - it will take me away from
-GCC or other modern compilers, when I am also trying to find a job here.
+I want the system to be stable but not totally locked down to the programmer. The OS will run in
+x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory used by
+another. The kernel will provide ways for the programmer to safely interact with the computer and 
+change parts of it easily.
 
-So it is going to be a PROTECTED MODE Operaing System, with parts made in C
-rather than with only Assembly. It will also help is producing a protable code
-- Will help to port Megha to other Processor Atchitecture much easily, than if
-  the whole OS is written is Assembly.
+![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
 
-## Advantages:
-    1. To be able to stay with the C language, now that I am trying to find a
-       Job in that language. I tend to forget stuff very quickly, once out of
-       sight.
-    2. Protable Code. Megha could be transfered to ARM with much less
-       challenge.
-    3. Being in Protected Mode, C compilers will behave less strange, and GCC,
-       GDB can be used.
+This is the second iteration. The first OS was targeted to run on the 8086 processor. It was
+written entirely in assembly language, due of a lack of proper higher level language compilers
+for the 8086 processor.
 
-## Design of the Megha will still have the same Goals 
-    - To be Modular and easy to replace parts of it. 
-    - Kernel as small as possible with the basics.
-    - Drivers etc, will be an extension of the OS, not part of the Kernel
-      Maybe loaded by the SHELL.
+The current, second version, targets the 80386 processor and the former unavailability of tools is
+no longer there, and is thus mostly written in C.
 
-      SMELLS OF MICRO KERNEL. BUT CAN WE DO WITHOUT SIGNALS?
+PS: OpenWatcom is a great C compiler, if you want to target 8086. However, I wanted to stick with
+something more standard and more common.
 
 The end product will be ready for a programmer but not for general use.
 
-## Features:
-1. Small modular kernel
-2. Modules will be loaded from a text file by the Shell
-3. FAT12 Filesystem
-4. Kernel will have API for 
-   * TSR programs
-   * Adding IRQ handler routines.
-   * SIGNALS
-5. Keyboard, VGA drivers will be loaded by the SHELL and will not be part of
-   the kernel. As and when needed, any modules can be replaced or disabled.
-6. Will target x86 Protected Mode.
-7. VFS, DEVFS and ROM DISKS (Not priority now)
+## Roadmap
 
-## Kernel design goals
-1. Megha is not to use too much x86 specific features, because that will make
-   porting difficult. 
+- [X] 1st stage bootloader installing FAT12 Real mode routines and loading 2nd stage loader.
+- [X] 2nd stage bootloader loading the kernel and other modules.
+- [X] GDT and TSS setup and entering protected mode.
+- [X] Higher-Half page mapping.
+- [X] Jumping to User mode (Privilege Level 3) from Kernel mode.
+- [ ] Handlers for CPU Exceptions and basic interrupts.                **(incomplete)**
+- [X] Basic Kernel mode C functions for printing on screen etc.
+- [X] Unittesting framework to test parts of the OS on host computer.
+- [ ] Memory management: Physical page allocation.                     **(developing)**
+- [ ] Memory management: Virtual page allocation.
+- [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
+- [ ] User mode processes capable of doing system calls.
+- [ ] Keyboard driver.
+- [ ] VESA VGA driver.
+- [ ] Rudimentary shell.
 
-## Git Branches
-* Master  - Current Release. With Release tags, that mark the different commits.
-* Develop - Current Develop branch, where all the feature branches will be
-            created and merged into.
-* Feature - Lives temporarily and named like `feature-bootloader`.
+## Design goals
+
+1. MeghaOS will be used mostly for education and research, so it will be possible to replace
+   parts of the OS or to turn off / replace some its features. Such configurations can be set
+   when the building the OS.
+2. Sophistication is fronded upon. A simpler solution is always preferred.
+3. Current target is the x86 architecture, but can be ported easily to other architectures. For
+   this MeghaOS should not use or depend heavily on architecture specific features.
+
+## Building MeghaOS
+
+### Prerequisites
+
+1. Requires Linux environment. May also be possible on WSL.
+1. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
+   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Add the installation 
+   path to the $PATH variable.
+2. nasm assembler version 2.15.05 or higher.
+
+### Prerequisites: Unittests
+
+1. gcc and binutils 8.3 or higher.
+2. gcc-multilib if host computer processor is anything other than x86.
+
+### Prerequisites: Code coverage report
+
+1. gcc and gcov library 8.3 or higher.
+2. lcov and genhtml package.
+
+After the perquisites are met, just run `./build.sh`. This will build the floppy image,
+the unittests and code coverage report.
+
+## Running on host computer.
+
+To run the OS natively on a x86 or a86_64 machine, flash a pendrive with the floppy image and boot
+from it.
+
+You can also run it on an emulator like Qemu or VirtualBox.  If you have Qemu, just run `./run.sh`.
+
+To run the unittests run `./run.sh unittests`.
+
+## Code coverage report
+
+You will find the report in `build/coverage/report/index.html`.
+
+## Development Specifics
+
+Development of each part/feature is done in small increments. They are tested and refined overtime.
+
+Stages:
+1. Development starts with few ideas and a runnable prototype is made. This is a stage of heavy
+   development as the core ideas are tested and refined. Initial Unittests and documentation are
+   created at this stage.
+2. Refinement of the software. In some cases, parts of the software may have to be rewritten.
+   Further unittests and documentation are created or modified. The end product is a more stable
+   runnable software.
+3. Almost same as stage 2. But fewer major change is expected.
+
+```
+                   release 1    release 2    release 3
+                     /            /           /
+development >-------|------------|-----------|--->
+                1        2            3
+
+```
+
+### Git Branches
+
+The `master` branch have all the latest changes. Merges from feature or hotfix branches all go into
+the `master` branch. After a significant milestone, I will tag a commit, so you can check these
+if you do not want the very latest.
+
+* Master  - Current development branch where all the feature and hotfix branches merge into.
+* Feature - Lives temporarily for a feature or non specific development.
 * Hotfix  - Lives temporarily and named like `hotfix-ls-segfault`.
+
 ```
-            *HotFix   Master   Develop     *Feature
-               |        |           |           |
-               |        |           |           |
-               |        |<--------->|           |
-               |<------>|           |<--------->|
+HotFix   Master       Feature
+  |        |           |
+  |        |           |
+  |        |           |
+  |<------>|<--------->|
 ```
-
-## Releases and Versioning:
-We are going to follow Semantic Versioning Scheme (https://semver.org/).
-
-1. Every commit in the Master branch must have a tag, and this will be the
-   release version.
-
-   * If there is _merge from a hotfix branch_, then we increment the 
-     _right most digit_ of the version. 
-
-   * If there is _merge from the develop branch_, then we increment the
-     _middle_ digit of the version.
-
-   * Set appropriate `releasetype` in the tag.
-
-   * Must mention the `build` of the Develop/Hotfix branch being merged.
-
-2. Every merge on the develop branch from a feature branch then must have a 
-   tag, and this will be the bulid version. 
-   * `releasetype` must not be set. 
 
 ### Semantic Versioning Scheme:
 
 1. Version will be structured:   
-    `major.minor.patch-build.buildminor-releasetype`
-   * Example: `1.2.19-200909.1-dev`
+    `major.minor.patch-build.-releasetype`
 
-2. Build is in the format: `<year><month><day>.<build_minor>`
+   Example: `1.2.19-200909.1-dev`
 
-3. Release types are : `dev`, `alpha`
+2. `build` is in the format: `<year><month><day>.<build_minor>`.
+
+3. `releasetype` are : `dev`, `alpha`.
 
 4. |Version| Reason for change                                     |
    |-------|-------------------------------------------------------|
@@ -114,21 +147,5 @@ We are going to follow Semantic Versioning Scheme (https://semver.org/).
    |Minor  | Increments when backward compatibility is maintained. |
    |Patch  | Bug fixes, that does not break backward compatibility.|
 
-5. Whenever the left or middle digit changes, we reset the digits to the right.
+5. Whenever the left or middle digit changes, the digits to the right is reset to zero.
    * 1.2.14  -->  1.3.0  --> 2.0.0
-
-6. If a feature or bug fix breaks backward compatibility we should wait and
-   collect some more of such fixes and then do a *Major* release.
-
-### Example:
-
-    |-----------------------|------------|--------------------------|
-    |Merge from             |  Merge to  |   Tag                    |
-    |-----------------------|------------|--------------------------|
-    |kernel/basic/bootloader| Develop    |  201104.0                |
-    |kernel/basic/gdt       | Develop    |  201104.1                |
-    |kernel/basic/console   | Develop    |  201107.0                |
-    |Develop                | Master     |  0.1.0.201107.0-dev      |
-    |kernel/basic/idt       | Develop    |  201108.0                |
-    |Develop                | Master     |  0.2.0.201108.0-dev      |
-    |-----------------------|------------|--------------------------|

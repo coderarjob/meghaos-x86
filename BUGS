@@ -90,6 +90,8 @@
 
     By ignoring the .bss section, we are storing page dir and page table at wrong locations,
     overlapping the addresses in the .bss section.
+
+    Note: The 'Free' section results from the alignment of page directory to 4KB boundary.
     
     Scenario 2:
     ==========
@@ -108,7 +110,7 @@
     =========
     8th Jan 2022
     Problems in both the above two scenarios stem from the fact, that the bootloader does not know
-    the true end of the kenrel size. The .bss section and its alignment, are both unknown, and 
+    the true end of the kenrel. The .bss section size and its alignment, are both unknown, and 
     cannot be known from a flat binary.
 
     For the bootloader, the options are the following:
@@ -119,12 +121,13 @@
        size. This means, to link all the .bss sections into .data section of the final elf kernel.
 
     Of these two solutions, I am going with the 2nd one. What is the rational?
+
     1. Simplicity. Implementing ELF or a.out loader in the bootloader in assembly will be time 
-       consuming. I do not think such I can handle such complexity and do not forget testing. 
+       consuming. I do not think I can handle such complexity and do not forget testing. 
        Further more, I want bootloader to be as simple as possible.
     2. Moving the .bss into the .data means, the end binary size will increase.
        * Size with .bss in the .bss section: 6668 Bytes
-       * Size with .bss included in .data  :
+       * Size with .bss included in .data  : 7088 Bytes
        
        This is not too much of a concern, because, after the memory management is ready, almost 
        all the large allocations, will be allocated dynamically and thus no longer will use space 

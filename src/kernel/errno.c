@@ -20,6 +20,7 @@ KernelErrorCodes k_errorNumber;
     {
       "No error",
       "Unknown error",
-      "Outside of valid range"
+      "Outside of valid range",
+      "Overflow"
     };
 #endif

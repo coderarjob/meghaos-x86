@@ -1,95 +1,122 @@
 #!/bin/bash
 
+# Parent script that setups up the global variables and builds both
+# architecture dependent and independent unittests. Independent tests are build
+# in this script. Architecture specific tests are added and build rules are
+# implemented in a separate script, specific for that architecture.
+
+# If a test depends on a platform specific mock file, then that file is added
+# using a separate script specific for that architecture.
+# ---------------------------------------------------------------------------
+
 source functions.sh
+source src/mock/build-${ARCH}.sh
+source src/unittests/$ARCH/build.sh
 
 # ---------------------------------------------------------------------------
-FUT_OBJDIR="$OBJDIR/fut"
-
 UNITTEST_BINDIR="build/bin/unittests"
+UNITTEST_OBJDIR="build/obj/unittests"
 
 UNITTEST_WOPTS="-Wpedantic   \
                 -Wpadded     \
                 -Wall        \
                 -Wextra      \
                 -Wconversion"
-MOCK_WOPTS=$UNITTEST_WOPTS
-FUT_WOPTS=$UNITTEST_WOPTS
 
 # Note: Requires gcc-multilib package if compiling on a x86_64 machine.
 UNITTEST_CC="gcc -std=c99                   \
+                 -g                         \
                  -m32                       \
                  -march=i386                \
+                 --coverage                 \
                  $UT_WOPTS                  \
                  $GCC_INCPATH               \
                  -D UNITTEST                \
                  -D ARCH=$ARCH              \
                  -D $DEBUG                  \
                  -D DEBUG_LEVEL=$DEBUGLEVEL"
-MOCK_CC=$UNITTEST_CC
-FUT_CC=$UNITTEST_CC
 
 LD_UNITTEST="gcc -m32"
-LD_MOCK=$LD_UNITTEST
-LD_FUT=$LD_UNITTEST
+LD_UNITTEST_FLAGS="-lgcov"
 
+# ---------------------------------------------------------------------------
+# Architecture independent Unit tests
+UNITTESTS=(
+    "c99_conformance"
+    "printk"
+    "mem"
+)
+
+# Adds tests specific to the current architecture.
+add_arch_specific_tests ${UNITTESTS[@]}      # Adds to $UNITTESTS array
 
 # ---------------------------------------------------------------------------
 # Clean and create directories
-DIRS=(
-    "$UNITTEST_BINDIR"
-)
 
-for dir in ${DIRS[@]}
+rm    -fr "$UNITTEST_BINDIR"   || exit
+rm    -fr "$UNITTEST_OBJDIR"   || exit
+mkdir -p  "$UNITTEST_BINDIR"   || exit
+
+# ---------------------------------------------------------------------------
+get_arch_independent_test_definition()
+{
+    local TEST=$1
+
+    case $test in
+        c99_conformance)
+                        {
+                            SRC=('unittests/c99_conformance_test.c'
+                                 'unittests/unittest.c')
+                        };;
+        printk)
+                        {
+                            SRC=('kernel/printk.c'
+                                 'unittests/printk_test.c'
+                                 'unittests/unittest.c')
+                        };;
+        mem)
+                        {
+                            SRC=('kernel/mem.c'
+                                 'unittests/mem_test.c'
+                                 'unittests/unittest.c')
+                        };;
+        *) return 1;;
+    esac
+}
+
+# ---------------------------------------------------------------------------
+# Builds each unittest. Rules for architecture independent tests are taken from
+# 'get_arch_independent_test_defination()' function. Rules for architecture
+# dependent tests are taken from 'get_arch_dependent_test_definition()'
+# function.
+
+# A test name is matched first with the independent tests, if there is no match
+# then, and only then the tests are considered architecture dependent, and
+# checked for such a rule.
+for test in ${UNITTESTS[@]}
 do
-    rm    -fr "$dir"   || exit
-    mkdir -p  "$dir"   || exit
+    echo -e "\tTEST: $test"
+
+    get_arch_independent_test_definition $test || {
+            get_arch_dependent_test_definition $test || {
+                    echo "$test" test is not defined.
+                    exit
+                }
+    }
+
+    add_mock_source $test ${SRC[@]}    # Adds to $SRC array.
+
+    TESTOBJDIR="$UNITTEST_OBJDIR/$test"
+    compile_cc "$UNITTEST_CC" "$TESTOBJDIR" "${SRC[@]}"
 done
 
 # ---------------------------------------------------------------------------
-# Test Dependencies
-BASE_UNITTEST=('unittests/unittest.c')
+# Link object files for each test
 
-C99_CONFORMANCE_TEST_FUT=()
-C99_CONFORMANCE_TEST_MOCK=()
-C99_CONFORMANCE_TEST_UNITTEST=('unittests/c99_conformance_test.c')
-
-PRINTK_TEST_FUT=('kernel/printk.c')
-PRINTK_TEST_MOCK=('mock/kernel/x86/vgadisp.c')
-PRINTK_TEST_UNITTEST=('unittests/printk_test.c')
-
-# ---------------------------------------------------------------------------
-# Compile mock, FUT and unittest C files.
-MOCK_FILES=(
-    $C99_CONFORMANCE_TEST_MOCK
-    $PRINTK_TEST_MOCK
-)
-
-FUT_FILES=(
-    $C99_CONFORMANCE_TEST_FUT
-    $PRINTK_TEST_FUT
-
-)
-
-UNITTEST_FILES=(
-    $BASE_UNITTEST
-    $C99_CONFORMANCE_TEST_UNITTEST
-    $PRINTK_TEST_UNITTEST
-)
-
-compile_cc "$MOCK_CC" "$OBJDIR" "${MOCK_FILES[@]}"
-compile_cc "$FUT_CC" "$FUT_OBJDIR" "${FUT_FILES[@]}"
-compile_cc "$UNITTEST_CC" "$OBJDIR" "${UNITTEST_FILES[@]}"
-
-# ---------------------------------------------------------------------------
-# Link individual tests
-link_unittest_add_file "$FUT_OBJDIR" "$C99_CONFORMANCE_TEST_FUT"
-link_unittest_add_file "$OBJDIR"     "$C99_CONFORMANCE_TEST_MOCK"
-link_unittest_add_file "$OBJDIR"     "$C99_CONFORMANCE_TEST_UNITTEST"
-link_unittest_add_file "$OBJDIR"     "$BASE_UNITTEST"
-link_unittest "$LD_UNITTEST" "$UNITTEST_BINDIR/c99_conformance_test"
-
-link_unittest_add_file "$FUT_OBJDIR" "$PRINTK_TEST_FUT"
-link_unittest_add_file "$OBJDIR"     "$PRINTK_TEST_MOCK"
-link_unittest_add_file "$OBJDIR"     "$PRINTK_TEST_UNITTEST"
-link_unittest_add_file "$OBJDIR" "$BASE_UNITTEST"
-link_unittest "$LD_UNITTEST" "$UNITTEST_BINDIR/printk_test"
+for test in ${UNITTESTS[@]}
+do
+    TESTOBJDIR="$UNITTEST_OBJDIR/$test"
+    OBJ_FILES=`find "$TESTOBJDIR" -name "*.o"`
+    $LD_UNITTEST $OBJ_FILES $LD_UNITTEST_FLAGS \
+                 -o "$UNITTEST_BINDIR/${test}_test" || exit
+done

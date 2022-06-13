@@ -42,7 +42,7 @@ __compile()
         local LISTFILE=$OUTPATH/$SRC_FTILE.lst
 
         local T_FILENAME=${TRANSLATOR%%\ *}      # Get executable file name
-        echo -e "\t$T_FILENAME: $INFILE -> $OBJFILE"
+        echo -e "\t$T_FILENAME: $INFILE"
 
         mkdir -p $OUTPATH                                               || exit
         $CFUNC "$TRANSLATOR" "$INFILE" "$OBJFILE" "$LISTFILE"           || exit
@@ -65,8 +65,8 @@ __compile_cc()
     local OBJ_FILE=$3
     local LIST_FILE=$4
 
-    $CC -c "$IN_FILE" -o "$OBJ_FILE"                                    || exit
     $CC -S "$IN_FILE" -o "$LIST_FILE" >/dev/null 2>&1                   || exit
+    $CC -c "$IN_FILE" -o "$OBJ_FILE"                                    || exit
 }
 
 # ----------------------------------------------------------------------------
