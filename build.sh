@@ -117,12 +117,13 @@ bash src/kernel/build.sh  2>"$REPORTSDIR/build_warnings.txt"
 
 # If build fails, build_warnings.txt will contain errors, as well as warnings,
 # otherwise will contain warnings only.
-# In that former case, we dump the last few lines of the file and exit.
+# In case of build failure, the whole file is printed.
 if [ $? -ne 0 ]; then
-    grep --color=always -B2 -i Error "$REPORTSDIR/build_warnings.txt"
+    cat "$REPORTSDIR/build_warnings.txt"
     rm "$REPORTSDIR/build_warnings.txt"
     exit
 fi
+
 # ---------------------------------------------------------------------------
 # Build the floppy image
 echo "    [ Creating disk image ]    "

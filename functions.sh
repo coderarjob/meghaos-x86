@@ -65,7 +65,13 @@ __compile_cc()
     local OBJ_FILE=$3
     local LIST_FILE=$4
 
-    $CC -S "$IN_FILE" -o "$LIST_FILE" >/dev/null 2>&1                   || exit
+    # Because the same files are compiled twice, (once for the list files and
+    # another time the actual object files are created), any warning will
+    # appear twice. To prevent this, all output is purged when generating the
+    # list files.
+    # However, this means errors will also not be shown. To remedy this, the
+    # 2nd compilation step will always occur. Not the ideal solution, I know.
+    $CC -S "$IN_FILE" -o "$LIST_FILE" > /dev/null 2>&1
     $CC -c "$IN_FILE" -o "$OBJ_FILE"                                    || exit
 }
 
