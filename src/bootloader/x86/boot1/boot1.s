@@ -22,9 +22,6 @@
     pop si
 %endmacro
 
-%define HIGH(x,b) ((x)>>(b))
-%define LOW(x,b) ((x) & ((1<<b)-1))
-
 ; ******************************************************
 ; INCLUDE FILES
 ; ******************************************************
@@ -35,26 +32,6 @@
 ; ******************************************************
 ; DATA
 ; ******************************************************
-struc mem_des_t
-            .BaseAddrLow   : resd 1
-            .BaseAddrHigh  : resd 1
-            .LengthLow     : resd 1
-            .LengthHigh    : resd 1
-            .Type          : resd 1
-endstruc
-
-struc file_des_t
-            .StartLocation : resd 1
-            .Length        : resw 1
-endstruc
-
-struc boot_info_t
-            .file_count    : resw 1
-            .file_dec_items: resb file_des_t_size * MAX_FILES_COUNT
-            .mem_des_count : resw 1
-            .mem_des_items : resb mem_des_t_size
-endstruc
-
 files:       db     KERNEL_FILE  , "KERNEL.FLT",0,0,0
              db     0
 
@@ -114,12 +91,12 @@ _start:
     pop eax
 
     ; Check if the amount of free memory is >= 4MB
-    cmp eax, HIGH(MEM_AVL_MIN,32)                  ; 4 MiB
-    ja .ne1                                        ; HIGH(AVRAM) > HIGH(4MB)
+    cmp eax, HIGH_BITS(MIN_MEM_REQ,32)            ; 4 MiB
+    ja .ne1                                       ; HIGH(AVRAM) > HIGH(4MB)
     jb failed                                     ; HIGH(AVRAM) < HIGH(4MB)
-    cmp ebx, LOW(MEM_AVL_MIN,32)                   ; HIGH(AVRAM) = HIGH(4MB)
+    cmp ebx, LOW_BITS(MIN_MEM_REQ,32)             ; HIGH(AVRAM) = HIGH(4MB)
     jb failed                                     ; LOW(AVRAM) < LOW(4MB)
-.ne1:                                              ; AVRAM >= 4MB
+.ne1:                                             ; AVRAM >= 4MB
     printString msg_success
 
     ; -------- [ A20 Gate Enabling ] -----------

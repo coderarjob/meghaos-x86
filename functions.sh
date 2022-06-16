@@ -92,7 +92,7 @@ __compile_nasm()
     local OBJ_FILE=$3
     local LIST_FILE=$4
 
-    $ASM "$IN_FILE" -l "$LIST_FILE" -o "$OBJ_FILE"                       || exit
+    $ASM "$IN_FILE" $NASM_INCPATH -l "$LIST_FILE" -o "$OBJ_FILE"     || exit
 }
 
 # ----------------------------------------------------------------------------
