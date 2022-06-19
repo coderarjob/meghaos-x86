@@ -11,11 +11,15 @@ if [ $# -gt 0 ] && [ "$1" = "unittests" ]; then
     exit 0
 fi
 
-OPTS="$@"
 RAMMB=5
+OPTS="-m $RAMMB"
+
+if [ $# -gt 0 ]; then
+    OPTS="$@"
+fi
+
 qemu-system-i386 $OPTS -fda ./build/diskimage/x86/mos.flp \
                          -boot a                          \
-                         -m $RAMMB                        \
                          -cpu 486                         \
                          -debugcon stdio                  \
                          -no-reboot                       \
