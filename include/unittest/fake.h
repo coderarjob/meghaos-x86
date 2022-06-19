@@ -60,9 +60,10 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // ----------------------------------------------------------------------------
 // Macros to craete fake function declarations
 // ----------------------------------------------------------------------------
-#define FK_DEFINE_FUNC_BODY_0(rt, f)           rt f()
-#define FK_DEFINE_FUNC_BODY_1(rt, f, pt1)      rt f(pt1 a)
-#define FK_DEFINE_FUNC_BODY_2(rt, f, pt1, pt2) rt f(pt1 a, pt2 b)
+#define FK_DEFINE_FUNC_BODY_0(rt, f)                rt f()
+#define FK_DEFINE_FUNC_BODY_1(rt, f, pt1)           rt f(pt1 a)
+#define FK_DEFINE_FUNC_BODY_2(rt, f, pt1, pt2)      rt f(pt1 a, pt2 b)
+#define FK_DEFINE_FUNC_BODY_3(rt, f, pt1, pt2, pt3) rt f(pt1 a, pt2 b, pt3 c)
 // ----------------------------------------------------------------------------
 // Helper Macros
 // ----------------------------------------------------------------------------
@@ -105,6 +106,15 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
         FK_PARAM_SET(f, pd2, b);                                              \
         FK_INCREMENT_INVOKE_COUNT(f);                                         \
     }
+// ------
+#define DEFINE_FUNC_VOID_3(f, pd1, pt1, pd2, pt2, pd3, pt3)                   \
+    FK_DEFINE_FUNC_STRUCT(f);                                                 \
+    FK_DEFINE_FUNC_BODY_3(void, f, pt1, pt2, pt3) {                           \
+        FK_PARAM_SET(f, pd1, a);                                              \
+        FK_PARAM_SET(f, pd2, b);                                              \
+        FK_PARAM_SET(f, pd3, c);                                              \
+        FK_INCREMENT_INVOKE_COUNT(f);                                         \
+    }
 // ----------------------------------------------------------------------------
 #define DEFINE_FUNC_0(rt, f)                                                  \
     FK_DEFINE_FUNC_STRUCT(f);                                                 \
@@ -121,11 +131,21 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
         FK_RETURN(f);                                                         \
     }
 // ------
-#define DEFINE_FUNC_(rt, f, pd1, pt1, pd2, pt2)                               \
+#define DEFINE_FUNC_2(rt, f, pd1, pt1, pd2, pt2)                              \
     FK_DEFINE_FUNC_STRUCT(f);                                                 \
-    FK_DEFINE_FUNC_BODY_2(void, f, pt1, pt2) {                                \
+    FK_DEFINE_FUNC_BODY_2(rt, f, pt1, pt2) {                                  \
         FK_PARAM_SET(f, pd1, a);                                              \
         FK_PARAM_SET(f, pd2, b);                                              \
+        FK_INCREMENT_INVOKE_COUNT(f);                                         \
+        FK_RETURN(f);                                                         \
+    }
+// ------
+#define DEFINE_FUNC_3(rt, f, pd1, pt1, pd2, pt2, pd3, pt3)                    \
+    FK_DEFINE_FUNC_STRUCT(f);                                                 \
+    FK_DEFINE_FUNC_BODY_3(rt, f, pt1, pt2, pt3) {                             \
+        FK_PARAM_SET(f, pd1, a);                                              \
+        FK_PARAM_SET(f, pd2, b);                                              \
+        FK_PARAM_SET(f, pd3, c);                                              \
         FK_INCREMENT_INVOKE_COUNT(f);                                         \
         FK_RETURN(f);                                                         \
     }
@@ -168,6 +188,13 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
         FK_STRUCT_FIELD(pd1, pt1, a);                                         \
         FK_STRUCT_FIELD(pd2, pt2, b);                                         \
     FK_DECLARE_STRUCT_END(f)
+// ------
+#define FK_DECLARE_STRUCT_VOID_3(f, pd1, pt1, pd2, pt2, pd3, pt3)             \
+    FK_DECLARE_STRUCT_START(f);                                               \
+        FK_STRUCT_FIELD(pd1, pt1, a);                                         \
+        FK_STRUCT_FIELD(pd2, pt2, b);                                         \
+        FK_STRUCT_FIELD(pd3, pt3, c);                                         \
+    FK_DECLARE_STRUCT_END(f)
 // ----------------------------------------------------------------------------
 #define FK_DECLARE_STRUCT_0(rt, f)                                            \
     FK_DECLARE_STRUCT_START(f);                                               \
@@ -186,6 +213,14 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
         FK_STRUCT_FIELD(pd1, pt1, a);                                         \
         FK_STRUCT_FIELD(pd2, pt2, b);                                         \
     FK_DECLARE_STRUCT_END(f)
+// ------
+#define FK_DECLARE_STRUCT_3(rt, f, pd1, pt1, pd2, pt2, pd3, pt3)              \
+    FK_DECLARE_STRUCT_START(f);                                               \
+        FK_STRUCT_FIELD(OUT, rt, *ret);                                       \
+        FK_STRUCT_FIELD(pd1, pt1, a);                                         \
+        FK_STRUCT_FIELD(pd2, pt2, b);                                         \
+        FK_STRUCT_FIELD(pd3, pt3, c);                                         \
+    FK_DECLARE_STRUCT_END(f)
 // ----------------------------------------------------------------------------
 // Complete fake function and structure declarations
 // ----------------------------------------------------------------------------
@@ -197,6 +232,9 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // ------
 #define DECLARE_FUNC_VOID_2(f, pd1, pt1, pd2, pt2)                            \
     FK_DECLARE_STRUCT_VOID_2(f, pd1, pt1, pd2, pt2)
+// ------
+#define DECLARE_FUNC_VOID_3(f, pd1, pt1, pd2, pt2, pd3, pt3)                  \
+    FK_DECLARE_STRUCT_VOID_3(f, pd1, pt1, pd2, pt2, pd3, pt3)
 // ----------------------------------------------------------------------------
 #define DECLARE_FUNC_0(rt, f)                                                 \
     FK_DECLARE_STRUCT_0(rt, f)
@@ -206,5 +244,8 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // ------
 #define DECLARE_FUNC_2(rt, f, pd1, pt1, pd2, pt2)                             \
     FK_DECLARE_STRUCT_2(rt, f, pd1, pt1, pd2, pt2)
+// ------
+#define DECLARE_FUNC_3(rt, f, pd1, pt1, pd2, pt2, pd3, pt3)                   \
+    FK_DECLARE_STRUCT_3(rt, f, pd1, pt1, pd2, pt2, pd3, pt3)
 // ----------------------------------------------------------------------------
 #endif
