@@ -34,6 +34,8 @@ volatile CHAR *a = (CHAR *)0xc0400000;
 __attribute__ ((noreturn)) 
 void __kernel_main ()
 {
+    kpmm_init ();
+
     kdisp_init ();
     kearly_printf ("\r\n[OK]\tPaging enabled.");
 

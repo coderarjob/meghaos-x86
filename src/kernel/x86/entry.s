@@ -14,14 +14,16 @@ extern __kernel_main
 global g_kernel_entry
 global g_page_dir
 global g_page_table
+global g_pab
 
 %include "mos.inc"
 ; ---------------------------------------------------------------------------
 ; Data Section
 ; ---------------------------------------------------------------------------
 section .bss nobits alloc
-g_page_dir  : resd 1
+g_page_dir:   resd 1
 g_page_table: resd 1
+g_pab:        resd 1
 
 ; ---------------------------------------------------------------------------
 ; Text Section
@@ -39,6 +41,10 @@ g_kernel_entry:
     ; Page table is placed 4KB from the Page directory.
         add eax, 0x1000
         mov [PHY(g_page_table)], eax
+
+    ; Page allocation bitmap is placed after the Page table.
+        add eax, 0x1000
+        mov [PHY(g_pab)], eax
     ; --
 
     call s_fill_pd

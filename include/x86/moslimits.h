@@ -27,4 +27,10 @@
     /* Maximum number of IDT entries */
     #define MAX_IDT_DESC_COUNT              256
 
+    /* Maximum size of PAB possible */
+    #define MAX_PAB_SIZE_BYTES              4096
+
+    /* Current size of PAB array */
+    #define PAB_SIZE_BYTES                  64
+
 #endif // __MOS_LIMITS_H_X86__

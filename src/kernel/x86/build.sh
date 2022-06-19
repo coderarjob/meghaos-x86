@@ -19,6 +19,7 @@ C_FILES=(
     'kernel/x86/idt.c'
     'kernel/x86/kdebug.c'
     'kernel/x86/paging.c'
+    'kernel/x86/pmm.c'
 )
 
 compile_nasm "$NASM32_ELF" "$OBJDIR" ${ASM_FILES[@]}
