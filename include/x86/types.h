@@ -15,6 +15,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
     typedef uint8_t  U8;
     typedef uint16_t U16;
