@@ -30,13 +30,13 @@
     /* PAB and addressable RAM */
 
     // Calculates number of bytes from page frame count 'fc'.
-    #define FRAME_BYTES(fc) (fc) * (CNF_PAGE_FRAME_SIZE_BYTES)
+    #define PAGEFRAMES_TO_BYTES(fc) (fc) * (CONFIG_PAGE_FRAME_SIZE_BYTES)
 
     // Calculates number of page frames from byte count 'b'.
-    #define BYTES_FRAME(b)  (b) / (CNF_PAGE_FRAME_SIZE_BYTES)
+    #define BYTES_TO_PAGEFRAMES(b)  (b) / (CONFIG_PAGE_FRAME_SIZE_BYTES)
 
-    #define MAX_PAB_SIZE_BYTES              CNF_PAGE_FRAME_SIZE_BYTES
-    #define MAX_RAM_BYTES                   FRAME_BYTES(MAX_PAB_SIZE_BYTES * 8)
-    #define MIN_PAB_SIZE_BYTES              BYTES_FRAME(CNF_MIN_RAM_BYTES /8)
+    #define PAB_SIZE_BYTES                  CONFIG_PAGE_FRAME_SIZE_BYTES
+    #define MAX_ADDRESSABLE_BYTE            (PAGEFRAMES_TO_BYTES(PAB_SIZE_BYTES * 8) - 1)
+    #define MAX_ADDRESSABLE_PAGE            ((PAB_SIZE_BYTES * 8) - 1)
 
 #endif // __MOS_LIMITS_H_X86__

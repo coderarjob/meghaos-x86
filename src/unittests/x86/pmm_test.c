@@ -4,7 +4,7 @@
 
 void* CAST_PA_TO_VA (PHYSICAL_ADDRESS a);
 
-static U8 pab[MAX_PAB_SIZE_BYTES] = {0xFF};
+static U8 pab[PAB_SIZE_BYTES] = {0xFF};
 PHYSICAL_ADDRESS g_pab;
 
 TEST(PMM, init)

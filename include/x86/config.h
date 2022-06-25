@@ -13,8 +13,8 @@
     #define MB 1024 * KB
     #define GB 1024 * MB
 
-    #define CNF_PAGE_FRAME_SIZE_BYTES    4 * KB
-    #define CNF_MIN_RAM_BYTES            2 * MB
-    #define CNF_VGA_DISPLAY              "80x50"
+    #define CONFIG_PAGE_FRAME_SIZE_BYTES    4 * KB
+    #define CONFIG_MIN_RAM_BYTES            2 * MB
+    #define CONFIG_VGA_DISPLAY              "80x50"
 
 #endif // MOS_CONFIG_X86_H
