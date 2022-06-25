@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <moslimits.h>
+#include <config.h>
 
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */

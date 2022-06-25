@@ -27,10 +27,16 @@
     /* Maximum number of IDT entries */
     #define MAX_IDT_DESC_COUNT              256
 
-    /* Maximum size of PAB possible */
-    #define MAX_PAB_SIZE_BYTES              4096
+    /* PAB and addressable RAM */
 
-    /* Current size of PAB array */
-    #define PAB_SIZE_BYTES                  64
+    // Calculates number of bytes from page frame count 'fc'.
+    #define FRAME_BYTES(fc) (fc) * (CNF_PAGE_FRAME_SIZE_BYTES)
+
+    // Calculates number of page frames from byte count 'b'.
+    #define BYTES_FRAME(b)  (b) / (CNF_PAGE_FRAME_SIZE_BYTES)
+
+    #define MAX_PAB_SIZE_BYTES              CNF_PAGE_FRAME_SIZE_BYTES
+    #define MAX_RAM_BYTES                   FRAME_BYTES(MAX_PAB_SIZE_BYTES * 8)
+    #define MIN_PAB_SIZE_BYTES              BYTES_FRAME(CNF_MIN_RAM_BYTES /8)
 
 #endif // __MOS_LIMITS_H_X86__
