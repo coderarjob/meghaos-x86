@@ -32,8 +32,8 @@ void kpmm_init ()
     // If less RAM is available than MAX_ADDRESSABLE_BYTE, then mark this excess as NOT FREE in
     // PAB.
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    PHYSICAL_ADDRESS systemRAM = PHYSICAL_ADDRESS(kboot_calculateAvailableMemory (bootloaderinfo));
-    USYSINT length_bytes = MAX_ADDRESSABLE_BYTE - systemRAM.phy_addr;
+    USYSINT systemRAM = kboot_calculateAvailableMemory (bootloaderinfo);
+    USYSINT length_bytes = MAX_ADDRESSABLE_BYTE - systemRAM;
     kpmm_alloc (NULL, length_bytes + 1, PMM_FIXED, systemRAM);
 }
 
@@ -52,8 +52,7 @@ void kpmm_init ()
  * @return true         No error. Allocation was successful.
  * @return false        Out of Memory. Allocation was not successful. k_errorNumber is set.
  **************************************************************************************************/
-bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, USYSINT byteCount, PMMAllocationTypes type
-                , PHYSICAL_ADDRESS start)
+bool kpmm_alloc (PHYSICAL *allocated, USYSINT byteCount, PMMAllocationTypes type, PHYSICAL start)
 {
     UINT startPageFrame = 0;
     bool found = false;
@@ -68,7 +67,7 @@ bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, USYSINT byteCount, PMMAllocationTy
             found = s_isPagesFree (startPageFrame, pageFrameCount);
         break;
     case PMM_FIXED:
-        startPageFrame = BYTES_TO_PAGEFRAMES (start.phy_addr);
+        startPageFrame = BYTES_TO_PAGEFRAMES (start.val);
         found = s_isPagesFree (startPageFrame, pageFrameCount);
         break;
     default:
@@ -85,7 +84,7 @@ bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, USYSINT byteCount, PMMAllocationTy
     s_allocateDeallocateRange (startAddress, frameCount, true);
 
     if ((type == PMM_AUTOMATIC || (type == PMM_FIXED && allocated != NULL)))
-        (*allocated).phy_addr = startAddress;
+        (*allocated).val = startAddress;
 
     RETURN_ERROR (ERR_NONE, true);
 notfound:
