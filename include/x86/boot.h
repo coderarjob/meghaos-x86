@@ -24,17 +24,17 @@
 
     BootLoaderInfo* kboot_getCurrentBootLoaderInfo ();
 
-    U16 kboot_getBootLoaderInfoFilesCount (BootLoaderInfo *bli);
-    BootFileItem* kboot_getBootLoaderInfoBootFileItem (BootLoaderInfo *bli, INT index);
-    BootMemoryMapItem* kboot_getBootLoaderInfoBootMemoryMapItem (BootLoaderInfo *bli, INT index);
-    U16 kboot_getBootLoaderInfoBootMemoryMapItemCount (BootLoaderInfo *bli);
+    U16 kboot_getBootLoaderInfoFilesCount (BootLoaderInfo const* bli);
+    BootFileItem* kboot_getBootLoaderInfoBootFileItem (BootLoaderInfo const* bli, INT index);
+    BootMemoryMapItem* kboot_getBootLoaderInfoBootMemoryMapItem (BootLoaderInfo const* bli, INT index);
+    U16 kboot_getBootLoaderInfoBootMemoryMapItemCount (BootLoaderInfo const* bli);
 
-    U16 kboot_getBootFileItemFileLength (BootFileItem *bfi);
-    U32 kboot_getBootFileItemStartLocation (BootFileItem *bfi);
+    U16 kboot_getBootFileItemFileLength (BootFileItem const* bfi);
+    U32 kboot_getBootFileItemStartLocation (BootFileItem const* bfi);
 
-    BootMemoryMapTypes kboot_getBootMemoryMapItemType (BootMemoryMapItem *bmmi);
-    U64 kboot_getBootMemoryMapItemLengthBytes (BootMemoryMapItem *bmmi);
-    U64 kboot_getBootMemoryMapItemBaseAddress (BootMemoryMapItem *bmmi);
+    BootMemoryMapTypes kboot_getBootMemoryMapItemType (BootMemoryMapItem const* bmmi);
+    U64 kboot_getBootMemoryMapItemLengthBytes (BootMemoryMapItem const* bmmi);
+    U64 kboot_getBootMemoryMapItemBaseAddress (BootMemoryMapItem const* bmmi);
 
-    ULLONG kboot_calculateAvailableMemory (BootLoaderInfo *bli);
+    ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli);
 #endif //BOOT_H

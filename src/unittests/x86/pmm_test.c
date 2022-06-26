@@ -21,10 +21,9 @@ void reset()
     resetBootFake();
 }
 
-/* Fake Defination for k_panic_ndu. At present, meghatest does not support varidac parameters. */
-void k_panic_ndu (const CHAR *s,...)
-{
-}
+/* Fake Defination. At present, meghatest does not support varidac parameters. */
+void k_panic_ndu (const CHAR *s,...) { }
+void kdebug_printf_ndu (const CHAR *fmt, ...) { }
 
 int main()
 {
