@@ -4,7 +4,7 @@ export ARCH=x86
 export DEBUG=DEBUG
 # DEBUG LEVEL BITS
 # x x x x x x [Screen] [E9]
-export DEBUGLEVEL=2
+export DEBUGLEVEL=1
 LINK_USING_LD=1
 
 if [ $# -ge 1 ]; then ARCH=$1; fi

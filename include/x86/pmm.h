@@ -13,12 +13,11 @@ extern PHYSICAL_ADDRESS g_pab; /* Address of Page Allocation Bitmap array */
 
 typedef enum PMMAllocationTypes
 {
-    AUTOMATIC,
-    FIXED
+    PMM_AUTOMATIC,
+    PMM_FIXED
 } PMMAllocationTypes;
 
 void kpmm_init ();
-PHYSICAL_ADDRESS kpmm_alloc (INT size,
-                             PMMAllocationTypes type,
-                             PHYSICAL_ADDRESS start);
+bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, UINT pageFrameCount, PMMAllocationTypes type,
+                PHYSICAL_ADDRESS start);
 #endif // PMM_H_X86
