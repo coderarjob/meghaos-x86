@@ -7,6 +7,7 @@
 *  TODO: Functions should not throw asserts, they must set k_errorNumber and return.
 *  TODO: Need to check if use of 'last byte/page' and 'byte/page' count concepts are used correctly.
 *  TODO: Should responsibility of aligning bytesCount lie with the caller??
+*  TODO: CAST_PA_TO_VA inline function is not testable. Do something. Macro??
 */
 
 #include <kernel.h>
