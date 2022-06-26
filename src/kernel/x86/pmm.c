@@ -12,7 +12,7 @@ static void s_allocatedPage (UINT pageFrame);
 static void s_freePage (UINT pageFrame);
 static bool s_isPageAllocated (UINT pageFrame);
 static bool s_isPagesFree (UINT startPageFrame, UINT count);
-static void s_allocateDeallocateRange (USYSINT phStartAddress, USYSINT byteCount, bool allocate);
+static void s_allocateDeallocateRange (USYSINT startAddress, USYSINT byteCount, bool allocate);
 
 static U8 *s_pab = NULL;
 
@@ -34,9 +34,23 @@ void kpmm_init ()
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     USYSINT systemRAM = kboot_calculateAvailableMemory (bootloaderinfo);
     USYSINT length_bytes = MAX_ADDRESSABLE_BYTE - systemRAM;
-    kpmm_alloc (NULL, length_bytes + 1, PMM_FIXED, systemRAM);
+    kpmm_alloc (NULL, &length_bytes, PMM_FIXED, systemRAM);
 }
 
+
+/***************************************************************************************************
+ * Deallocates specified pages starting from the specified physical location.
+ *
+ * @param startAddress  Physical memory location of the first page. Assert is thrown if not aligned 
+ *                      to CONFIG_PAGE_FRAME_SIZE_BYTES bytes.
+ * @param byteCount     Number of bytes to deallocate. Assert is thrown if not aligned to 
+ *                      CONFIG_PAGE_FRAME_SIZE_BYTES bytes.
+ * @return true         No error. Deallocation was successful.
+ * @return false        Deallocation was not successful. k_errorNumber is set.
+ **************************************************************************************************/
+bool kpmm_free (PHYSICAL startAddress, USYSINT byteCount)
+{
+}
 
 /***************************************************************************************************
  * Searches the PAB and allocated the specified number of consecutive free physical pages.
@@ -44,7 +58,8 @@ void kpmm_init ()
  * @param allocated     If successful, holds the allocated physical address. If type is PMM_FIXED,
  *                      this can be NULL.
  * @param byteCount     Number of bytes to allocate. Will be rounded to the next nearest multiple
- *                      of CONFIG_PAGE_FRAME_SIZE_BYTES.
+ *                      of CONFIG_PAGE_FRAME_SIZE_BYTES. The variable is modified to the aligned 
+ *                      byteCount.
  * @param type          PMM_AUTOMATIC to automatically find a suitable physical address.
  * @param type          PMM_FXED to allocate the specified number of bytes at the specified address.
  * @param start         Physical address where allocation will be attempted if type is PMM_FIXED.
@@ -52,13 +67,13 @@ void kpmm_init ()
  * @return true         No error. Allocation was successful.
  * @return false        Out of Memory. Allocation was not successful. k_errorNumber is set.
  **************************************************************************************************/
-bool kpmm_alloc (PHYSICAL *allocated, USYSINT byteCount, PMMAllocationTypes type, PHYSICAL start)
+bool kpmm_alloc (PHYSICAL *allocated, USYSINT *byteCount, PMMAllocationTypes type, PHYSICAL start)
 {
     UINT startPageFrame = 0;
     bool found = false;
 
-    byteCount = ALIGN (byteCount, CONFIG_PAGE_FRAME_SIZE_BYTES);
-    UINT pageFrameCount = BYTES_TO_PAGEFRAMES (byteCount);
+    *byteCount = ALIGN (*byteCount, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    UINT pageFrameCount = BYTES_TO_PAGEFRAMES (*byteCount);
 
     switch (type)
     {
@@ -97,30 +112,30 @@ notfound:
  * CEILING (byteCount / CONFIG_PAGE_FRAME_SIZE_BYTES) pages of memory starting from 'startAddress'
  * will be marked as wither Allocated or Free.
  *
- * @param phStartAddress    Physical address where the allocation must begin. If not aligned to
+ * @param startAddress      Physical address where the allocation must begin. If not aligned to
  *                          CONFIG_PAGE_FRAME_SIZE_BYTES, assertion is generated.
  * @param byteCount         Number of bytes to allocate. Will be rounded to the next nearest
  *                          multiple of CONFIG_PAGE_FRAME_SIZE_BYTES.
  * @param allocate          true to Allocate, false to deallocate.
  * @return nothing
  **************************************************************************************************/
-static void s_allocateDeallocateRange (USYSINT phStartAddress, USYSINT byteCount, bool allocate)
+static void s_allocateDeallocateRange (USYSINT startAddress, USYSINT byteCount, bool allocate)
 {
     byteCount = ALIGN (byteCount, CONFIG_PAGE_FRAME_SIZE_BYTES);
 
-    USYSINT phEndAddress = phStartAddress + byteCount - 1;
-    UINT phStartPage = BYTES_TO_PAGEFRAMES (phStartAddress);
-    UINT phEndPage = BYTES_TO_PAGEFRAMES (phEndAddress);
+    USYSINT endAddress = startAddress + byteCount - 1;
+    UINT startPage = BYTES_TO_PAGEFRAMES (startAddress);
+    UINT endPage = BYTES_TO_PAGEFRAMES (endAddress);
 
     kdebug_printf ("\r\n%s 0x%px bytes starting physical address 0x%px."
                     , (allocate) ? "Allocating" : "Freeing"
-                    , phStartAddress, byteCount);
+                    , byteCount, startAddress);
 
-    k_assert (IS_ALIGNED (phStartAddress, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not aligned.");
-    k_assert (phEndAddress <= MAX_ADDRESSABLE_BYTE, "Out of range");
+    k_assert (IS_ALIGNED (startAddress, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not aligned.");
+    k_assert (endAddress <= MAX_ADDRESSABLE_BYTE, "Out of range");
 
-    for (UINT pageFrame = phStartPage
-            ; pageFrame <= phEndPage
+    for (UINT pageFrame = startPage
+            ; pageFrame <= endPage
             ; pageFrame++)
     {
         (allocate) ? s_allocatedPage (pageFrame)
