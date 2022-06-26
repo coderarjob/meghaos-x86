@@ -18,6 +18,6 @@ typedef enum PMMAllocationTypes
 } PMMAllocationTypes;
 
 void kpmm_init ();
-bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, UINT pageFrameCount, PMMAllocationTypes type,
-                PHYSICAL_ADDRESS start);
+bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, USYSINT byteCount, PMMAllocationTypes type
+                 ,PHYSICAL_ADDRESS start);
 #endif // PMM_H_X86

@@ -27,15 +27,14 @@ static U8 *s_pab = NULL;
 void kpmm_init ()
 {
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
-    k_memset (s_pab, 0xFF, PAB_SIZE_BYTES);
+    k_memset (s_pab, 0x00, PAB_SIZE_BYTES);
 
     // If less RAM is available than MAX_ADDRESSABLE_BYTE, then mark this excess as NOT FREE in
     // PAB.
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    USYSINT availableRAMBytes = kboot_calculateAvailableMemory (bootloaderinfo);
-    USYSINT length_bytes = MAX_ADDRESSABLE_BYTE - availableRAMBytes;
-    //kpmm_alloc (NULL, length_bytes, PMM_FIXED, availableRAMBytes);
-    s_allocateDeallocateRange (availableRAMBytes, length_bytes, true);
+    PHYSICAL_ADDRESS systemRAM = PHYSICAL_ADDRESS(kboot_calculateAvailableMemory (bootloaderinfo));
+    USYSINT length_bytes = MAX_ADDRESSABLE_BYTE - systemRAM.phy_addr;
+    kpmm_alloc (NULL, length_bytes + 1, PMM_FIXED, systemRAM);
 }
 
 
@@ -53,8 +52,8 @@ void kpmm_init ()
  * @return true         No error. Allocation was successful.
  * @return false        Out of Memory. Allocation was not successful. k_errorNumber is set.
  **************************************************************************************************/
-bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, USYSINT byteCount , PMMAllocationTypes type,
-                PHYSICAL_ADDRESS start)
+bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, USYSINT byteCount, PMMAllocationTypes type
+                , PHYSICAL_ADDRESS start)
 {
     UINT startPageFrame = 0;
     bool found = false;
@@ -82,8 +81,8 @@ bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, USYSINT byteCount , PMMAllocationT
 
     // Free pages found. Now Allocate them.
     USYSINT startAddress = PAGEFRAMES_TO_BYTES (startPageFrame);
-    USYSINT length_frames = PAGEFRAMES_TO_BYTES (pageFrameCount);
-    s_allocateDeallocateRange (startAddress, length_frames, true);
+    USYSINT frameCount = PAGEFRAMES_TO_BYTES (pageFrameCount);
+    s_allocateDeallocateRange (startAddress, frameCount, true);
 
     if ((type == PMM_AUTOMATIC || (type == PMM_FIXED && allocated != NULL)))
         (*allocated).phy_addr = startAddress;
@@ -96,8 +95,8 @@ notfound:
 /***************************************************************************************************
  * Marks physical memory pages as either Allocated or Free in PAB.
  *
- * CEILING (length / CONFIG_PAGE_FRAME_SIZE_BYTES) pages of memory starting from 'startAddress' will
- * be marked as wither Allocated or Free.
+ * CEILING (byteCount / CONFIG_PAGE_FRAME_SIZE_BYTES) pages of memory starting from 'startAddress'
+ * will be marked as wither Allocated or Free.
  *
  * @param phStartAddress    Physical address where the allocation must begin. If not aligned to
  *                          CONFIG_PAGE_FRAME_SIZE_BYTES, assertion is generated.
@@ -113,6 +112,10 @@ static void s_allocateDeallocateRange (USYSINT phStartAddress, USYSINT byteCount
     USYSINT phEndAddress = phStartAddress + byteCount - 1;
     UINT phStartPage = BYTES_TO_PAGEFRAMES (phStartAddress);
     UINT phEndPage = BYTES_TO_PAGEFRAMES (phEndAddress);
+
+    kdebug_printf ("\r\n%s 0x%px bytes starting physical address 0x%px."
+                    , (allocate) ? "Allocating" : "Freeing"
+                    , phStartAddress, byteCount);
 
     k_assert (IS_ALIGNED (phStartAddress, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not aligned.");
     k_assert (phEndAddress <= MAX_ADDRESSABLE_BYTE, "Out of range");
@@ -140,13 +143,14 @@ static bool s_isPagesFree (UINT startPageFrame, UINT count)
     for (UINT i = 0 ; i < count && isFree; i++)
         isFree = !s_isPageAllocated (i + startPageFrame);
 
-    return isFree == false;
+    return isFree;
 }
 
 /***************************************************************************************************
  * Checks if a physical page frame is allocated.
  *
- * @param pageFrame Physical page frame to check.
+ * @param pageFrame Physical page frame to check. A warning is generated if pageFrame is larger than
+ *                  the maximum addressable page frame.
  * @return true     if the page frame is allocated.
  * @return false    if the page frame is free.
  **************************************************************************************************/
@@ -154,6 +158,14 @@ static bool s_isPageAllocated (UINT pageFrame)
 {
     UINT byteIndex = (pageFrame / 8);
     UINT bitIndex = (pageFrame % 8);
+
+    // Any page beyond what can be addressed via the PAB is treated as not free.
+    if (byteIndex >= PAB_SIZE_BYTES)
+    {
+        kdebug_printf ("\r\nW: Trying to access inaccessible frame: %u", pageFrame);
+        return true;
+    }
+
     return s_pab[byteIndex] & (U8)(1U << bitIndex);
 }
 
@@ -171,6 +183,9 @@ static void s_freePage (UINT pageFrame)
 
     UINT byteIndex = (pageFrame / 8);
     UINT bitIndex = (pageFrame % 8);
+
+    k_assert (byteIndex < PAB_SIZE_BYTES, "PAB index overflow");
+
     s_pab[byteIndex] &= (U8)(~(1U << bitIndex));
 }
 
@@ -184,9 +199,12 @@ static void s_freePage (UINT pageFrame)
  **************************************************************************************************/
 static void s_allocatedPage (UINT pageFrame)
 {
-    k_assert (s_isPageAllocated (pageFrame), "Double allocation");
+    k_assert (!s_isPageAllocated (pageFrame), "Double allocation");
 
     UINT byteIndex = (pageFrame / 8);
     UINT bitIndex = (pageFrame % 8);
+
+    k_assert (byteIndex < PAB_SIZE_BYTES, "PAB index overflow");
+
     s_pab[byteIndex] |= (U8)(1U << bitIndex);
 }
