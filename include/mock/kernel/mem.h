@@ -7,4 +7,5 @@
 DECLARE_FUNC_3(void *, k_memcpy, IN, void *, IN, const void *, IN, size_t);
 DECLARE_FUNC_3(void *, k_memset, IN, void *, IN, INT, IN, size_t);
 
+void resetMemFake();
 #endif //MEM_FAKE_H
