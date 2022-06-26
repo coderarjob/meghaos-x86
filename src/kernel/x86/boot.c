@@ -13,13 +13,13 @@ BootLoaderInfo* kboot_getCurrentBootLoaderInfo ()
     return mi;
 }
 
-U16 kboot_getBootLoaderInfoFilesCount (BootLoaderInfo *bli)
+U16 kboot_getBootLoaderInfoFilesCount (BootLoaderInfo const* bli)
 {
     k_assert (bli, "BootLoaderInfo is NULL");
     return bli->filecount;
 }
 
-BootFileItem* kboot_getBootLoaderInfoBootFileItem (BootLoaderInfo *bli, INT index)
+BootFileItem* kboot_getBootLoaderInfoBootFileItem (BootLoaderInfo const* bli, INT index)
 {
     k_assert (bli, "BootLoaderInfo is NULL");
     k_assert (index >= 0, "Index Invalid");
@@ -28,13 +28,13 @@ BootFileItem* kboot_getBootLoaderInfoBootFileItem (BootLoaderInfo *bli, INT inde
     return &bli->files[index];
 }
 
-U16 kboot_getBootLoaderInfoBootMemoryMapItemCount (BootLoaderInfo *bli)
+U16 kboot_getBootLoaderInfoBootMemoryMapItemCount (BootLoaderInfo const* bli)
 {
     k_assert (bli, "BootLoaderInfo is NULL");
     return bli->count;
 }
 
-BootMemoryMapItem* kboot_getBootLoaderInfoBootMemoryMapItem (BootLoaderInfo *bli, INT index)
+BootMemoryMapItem* kboot_getBootLoaderInfoBootMemoryMapItem (BootLoaderInfo const* bli, INT index)
 {
     k_assert (bli, "BootLoaderInfo is NULL");
     k_assert (index >= 0, "Index Invalid");
@@ -43,37 +43,37 @@ BootMemoryMapItem* kboot_getBootLoaderInfoBootMemoryMapItem (BootLoaderInfo *bli
     return &bli->items[index];
 }
 
-U32 kboot_getBootFileItemStartLocation (BootFileItem *bfi)
+U32 kboot_getBootFileItemStartLocation (BootFileItem const* bfi)
 {
     k_assert (bfi, "BootFileItem is NULL");
     return bfi->startLocation;
 }
 
-U16 kboot_getBootFileItemFileLength (BootFileItem *bfi)
+U16 kboot_getBootFileItemFileLength (BootFileItem const* bfi)
 {
     k_assert (bfi, "BootFileItem is NULL");
     return bfi->length;
 }
 
-U64 kboot_getBootMemoryMapItemBaseAddress (BootMemoryMapItem *bmmi)
+U64 kboot_getBootMemoryMapItemBaseAddress (BootMemoryMapItem const* bmmi)
 {
     k_assert (bmmi, "BootMemoryMapItem is NULL");
     return bmmi->baseAddr;
 }
 
-U64 kboot_getBootMemoryMapItemLengthBytes (BootMemoryMapItem *bmmi)
+U64 kboot_getBootMemoryMapItemLengthBytes (BootMemoryMapItem const* bmmi)
 {
     k_assert (bmmi, "BootMemoryMapItem is NULL");
     return bmmi->length;
 }
 
-BootMemoryMapTypes kboot_getBootMemoryMapItemType (BootMemoryMapItem *bmmi)
+BootMemoryMapTypes kboot_getBootMemoryMapItemType (BootMemoryMapItem const* bmmi)
 {
     k_assert (bmmi, "BootMemoryMapItem is NULL");
     return (BootMemoryMapTypes)bmmi->type;
 }
 
-ULLONG kboot_calculateAvailableMemory (BootLoaderInfo *bli)
+ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli)
 {
     k_assert (bli, "BootLoaderInfo is NULL");
 

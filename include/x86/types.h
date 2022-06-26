@@ -56,17 +56,19 @@
      * virtual addresses as this type cannot be cast to any other pointer, not
      * even void * explicitly.
 
-     * Use the 'PHYSICAL_ADDRESS' macro for initializing variables or function
-     * parameters of type PHYSICAL_ADDRESS.
+     * Use the 'PHYSICAL' macro for initializing variables or function
+     * parameters of type PHYSICAL.
 
      * Example:
-     * PHYSICAL_ADDRESS vga = PHYSICAL_ADDRESS (0xB8000);
-     * Read it as, the 'vga' variable of type PHYSICAL_ADDRESS holds the
+     * PHYSICAL vga = PHYSICAL (0xB8000);
+     * Read it as, the 'vga' variable of type PHYSICAL holds the
      * physical address 0xB8000. So think of this type as a pointer
      * implementation.
      */
-    typedef
-    struct { USYSINT phy_addr; } __attribute__ ((packed)) PHYSICAL_ADDRESS;
+    typedef union
+    {
+        USYSINT val;
+    } __attribute__ ((__transparent_union__, packed)) PHYSICAL;
 
-    #define PHYSICAL_ADDRESS(address) {.phy_addr = address}
+    #define PHYSICAL(address) {.val = address}
 #endif // __x86_TYPES__

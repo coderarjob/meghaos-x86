@@ -9,7 +9,7 @@
 
 #include <kernel.h>
 
-extern PHYSICAL_ADDRESS g_pab; /* Address of Page Allocation Bitmap array */
+extern PHYSICAL g_pab; /* Address of Page Allocation Bitmap array */
 
 typedef enum PMMAllocationTypes
 {
@@ -18,6 +18,6 @@ typedef enum PMMAllocationTypes
 } PMMAllocationTypes;
 
 void kpmm_init ();
-bool kpmm_alloc (PHYSICAL_ADDRESS *allocated, UINT pageFrameCount, PMMAllocationTypes type,
-                PHYSICAL_ADDRESS start);
+bool kpmm_alloc (PHYSICAL *allocated, USYSINT *byteCount, PMMAllocationTypes type, PHYSICAL start);
+bool kpmm_free (PHYSICAL startAddress, USYSINT byteCount);
 #endif // PMM_H_X86
