@@ -28,11 +28,6 @@
 #define UNITTESTS_FAKE
 #include <string.h>
 
-typedef enum FK_FUNC_OUTPUT_TYPE_TAG {
-    STATIC = 0,         // Output does not vary with each invocation.
-    DYNAMIC             // Output may varies with each invocation.
-} FK_FUNC_OUTPUT_TYPE;
-
 void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 
 /*
@@ -79,10 +74,9 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 
 #define FK_PARAM_SET(f, pd, p) FK_PARAM_ ## pd ## _SET(f, p)
 // ------
+// If Static, output the first element or NULL.
 #define FK_RETURN(f)                                                          \
-    return (FK_STRUCT_VAR(f).type == STATIC)                                  \
-           ? FK_STRUCT_VAR(f).ret[0]  /* Output the first element. */         \
-           : FK_STRUCT_VAR(f).ret[FK_STRUCT_VAR(f).invoke_count - 1]
+    return FK_STRUCT_VAR(f).ret
 // ----------------------------------------------------------------------------
 // Complete fake function definations
 // ----------------------------------------------------------------------------
@@ -155,8 +149,7 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // Helper macros
 // ----------------------------------------------------------------------------
 #define FK_DECLARE_STRUCT_START(f)  typedef struct FK_STRUCT_TAG(f) {         \
-                                        int invoke_count;                     \
-                                        FK_FUNC_OUTPUT_TYPE type
+                                        int invoke_count;
 
 // -----
 #define FK_DECLARE_STRUCT_END(f)  } FK_STRUCT_TAG(f);                         \
@@ -198,25 +191,25 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // ----------------------------------------------------------------------------
 #define FK_DECLARE_STRUCT_0(rt, f)                                            \
     FK_DECLARE_STRUCT_START(f);                                               \
-        FK_STRUCT_FIELD(OUT, rt, *ret);                                       \
+        FK_STRUCT_FIELD(OUT, rt, ret);                                        \
     FK_DECLARE_STRUCT_END(f)
 // ------
 #define FK_DECLARE_STRUCT_1(rt, f, pd1, pt1)                                  \
     FK_DECLARE_STRUCT_START(f);                                               \
-        FK_STRUCT_FIELD(OUT, rt, *ret);                                       \
+        FK_STRUCT_FIELD(OUT, rt, ret);                                        \
         FK_STRUCT_FIELD(pd1, pt1, a);                                         \
     FK_DECLARE_STRUCT_END(f)
 // ------
 #define FK_DECLARE_STRUCT_2(rt, f, pd1, pt1, pd2, pt2)                        \
     FK_DECLARE_STRUCT_START(f);                                               \
-        FK_STRUCT_FIELD(OUT, rt, *ret);                                       \
+        FK_STRUCT_FIELD(OUT, rt, ret);                                        \
         FK_STRUCT_FIELD(pd1, pt1, a);                                         \
         FK_STRUCT_FIELD(pd2, pt2, b);                                         \
     FK_DECLARE_STRUCT_END(f)
 // ------
 #define FK_DECLARE_STRUCT_3(rt, f, pd1, pt1, pd2, pt2, pd3, pt3)              \
     FK_DECLARE_STRUCT_START(f);                                               \
-        FK_STRUCT_FIELD(OUT, rt, *ret);                                       \
+        FK_STRUCT_FIELD(OUT, rt, ret);                                        \
         FK_STRUCT_FIELD(pd1, pt1, a);                                         \
         FK_STRUCT_FIELD(pd2, pt2, b);                                         \
         FK_STRUCT_FIELD(pd3, pt3, c);                                         \
