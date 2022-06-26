@@ -53,8 +53,12 @@
 #define IS_ALIGNED(a, n) ((a) & ((n) - 1)) == 0
 
 /* If 'a' is not already aligned to 'n', returns next aligned number */
-#define ALIGN(a, n) IS_ALIGNED((a),(n)) ? (a)                   \
-                                        : (((a) / (n)) + 1) * n
+#define ALIGN_UP(a, n) IS_ALIGNED((a),(n)) ? (a)                   \
+                                           : (((a) / (n)) + 1) * n
+
+/* If 'a' is not already aligned to 'n', returns previous aligned number */
+#define ALIGN_DOWN(a, n) IS_ALIGNED((a),(n)) ? (a)                   \
+                                             : ((a) / (n))  * n
 
 /* Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
