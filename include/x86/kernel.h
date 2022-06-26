@@ -20,6 +20,7 @@
 #include <x86/paging.h>
 #include <x86/gdt.h>
 #include <x86/idt.h>
+#include <x86/pmm.h>
 
 /* Initializes the tss_entry structure, installs a tss segment in GDT */
 void ktss_init  ();

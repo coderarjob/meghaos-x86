@@ -53,13 +53,14 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [ ] Various functions like kdisp_ioctl, etc   -
     must implement error reporting.
     [X] kdisp_ioctl
-[X] Make symbols comply with the C99.         -                 30 Dec 2021
+[ ] Make symbols comply with the C99.         -                 30 Dec 2021
     Symbols beginning with underscore is 
     reserved [7.13]. Rename them.
     [X] Macros in header files.
     [X] Variable names in C source.
     [X] Members in struct.
     [X] Function names.
+    [ ] Guard Macros in header files.
 [X] Create/Update the C style guide.          -                 29 Dec 2021
 [-] Instead of just [ER], boot1 should show
     some error code, that identifies the
@@ -69,6 +70,20 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     each of the routimes. Specific error
     codes will not be benifitial at this
     time.
+[ ] Configuration header files for C and
+    assembly.                                 -
+[ ] Script to auto generate the config
+    headers simultaneously for C and
+    assembly.                                 -
+[ ] There is a need to document the types
+    declared for MeghaOS like INT, LONG etc.
+    These do need to conform with C99, but
+    can be different from the compiler 
+    versions. LONG for example must be 32 
+    bits or more, but always large enough
+    to hold the largest addresses in the 
+    architecture.                             -
+
 
 # LONG TERM PLANS
 

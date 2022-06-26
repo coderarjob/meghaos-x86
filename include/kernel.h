@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <moslimits.h>
+#include <config.h>
 
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
@@ -47,6 +48,13 @@
 
 /* Length of an array in bytes */
 #define ARRAY_LENGTH(ar) (sizeof ((ar))/sizeof ((ar)[0]))
+
+/* Checks if 'a' is aligned to 'n' */
+#define IS_ALIGNED(a, n) ((a) & ((n) - 1)) == 0
+
+/* If 'a' is not already aligned to 'n', returns next aligned number */
+#define ALIGN(a, n) IS_ALIGNED((a),(n)) ? (a)                   \
+                                        : (((a) / (n)) + 1) * n
 
 /* Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")

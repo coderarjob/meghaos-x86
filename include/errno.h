@@ -7,17 +7,19 @@
 * Dated: 9th November 2020
 */
 
-#ifndef __ERRORNO_H__
-#define __ERRORNO_H__
+#ifndef ERRORNO_H
+#define ERRORNO_H
 
 /* Error codes that can be set inside the kernel.*/
 typedef enum KernelErrorCodes 
 {
-    ERR_UNKNOWN         = -100,
-    ERR_INVALID_RANGE   =  -99,
-    ERR_OVERFLOW        =  -98,
-    ERR_NONE            =    0
+    ERR_NONE            =    0,
+    ERR_UNKNOWN,
+    ERR_INVALID_RANGE,
+    ERR_OVERFLOW,
+    ERR_PMM_OUT_OF_MEM,
 } KernelErrorCodes;
+
 
 /* This variable is globally used to set error codes*/
 extern KernelErrorCodes k_errorNumber;
@@ -33,4 +35,4 @@ extern CHAR *k_errorText[];
 /* Displays error description if k_errorNumber != 0 */
 #define k_assertOnError() k_assert (k_errorNumber == ERR_NONE,k_errorText[k_errorNumber])
 
-#endif // __ERRORNO_H__
+#endif // ERRORNO_H

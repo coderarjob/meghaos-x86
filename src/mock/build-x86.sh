@@ -26,5 +26,11 @@ function add_mock_source()
                     export SRC=( $SRC_ARRAY
                                 'mock/kernel/x86/vgadisp.c')
                 };;
+        pmm)    {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/kernel/mem.c'
+                                 'mock/kernel/x86/boot.c'
+                               )
+                };;
     esac
 }

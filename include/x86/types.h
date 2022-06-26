@@ -15,6 +15,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
     typedef uint8_t  U8;
     typedef uint16_t U16;
@@ -42,6 +43,9 @@
     typedef unsigned char UCHAR;
     typedef char          CHAR;
 
+    /* Large enough to hold the largest address possible on a 32 bit system */
+    typedef U32           USYSINT;
+
     /* Casts a bit field of n bits to UINT. */
     inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
         return (UINT)(t & (UINT)((1 << n) -1));
@@ -62,7 +66,7 @@
      * implementation.
      */
     typedef
-    struct { size_t phy_addr; } __attribute__ ((packed)) PHYSICAL_ADDRESS;
+    struct { USYSINT phy_addr; } __attribute__ ((packed)) PHYSICAL_ADDRESS;
 
     #define PHYSICAL_ADDRESS(address) {.phy_addr = address}
 #endif // __x86_TYPES__

@@ -34,6 +34,8 @@ volatile CHAR *a = (CHAR *)0xc0400000;
 __attribute__ ((noreturn)) 
 void __kernel_main ()
 {
+    kpmm_init ();
+
     kdisp_init ();
     kearly_printf ("\r\n[OK]\tPaging enabled.");
 
@@ -54,17 +56,10 @@ void __kernel_main ()
     kearly_printf ("\r\n[  ]\tIDT setup");
     kidt_init ();
 
-    kidt_edit (0, div_zero, GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-
-    kidt_edit (14, page_fault, GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-
-    kidt_edit (13, fault_gp,GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-
-    kidt_edit (0x40, sys_dummy, GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
+    kidt_edit (0, div_zero, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (14, page_fault, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (13, fault_gp,GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (0x40, sys_dummy, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
 
     kearly_printf ("\r[OK]");
 
@@ -78,36 +73,49 @@ void __kernel_main ()
     // Jump to user mode
     kearly_printf ("\r\nJumping to User mode..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,CYAN,0));
-    __jump_to_usermode (GDT_SELECTOR_UDATA, 
-                       GDT_SELECTOR_UCODE,
-                       &usermode_main);
+    __jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
     
 }
 
 void display_system_info ()
 {
-    BootLoaderInfo *mi = (BootLoaderInfo*)BOOT_INFO_LOCATION;
+    BootLoaderInfo *mi = kboot_getCurrentBootLoaderInfo ();
+    UINT loadedFilesCount = (UINT)kboot_getBootLoaderInfoFilesCount (mi);
 
     kdebug_printf ("%s","\r\nLoaded kernel files:");
-    for (INT i = 0; i < mi->filecount; i++){
-        BootFileItem file = mi->files[i];
+    for (INT i = 0; i < loadedFilesCount; i++){
+        BootFileItem* file = kboot_getBootLoaderInfoBootFileItem (mi, i);
+        UINT startLocation = (UINT)kboot_getBootFileItemStartLocation (file);
+        UINT length_bytes = (UINT)kboot_getBootFileItemFileLength (file);
+
         kdebug_printf ("\r\n* file: Start = %x, Length = %x",
-                file.startLocation, file.length);
+                startLocation, length_bytes);
     }
 
+
+    UINT memoryMapItemCount = kboot_getBootLoaderInfoBootMemoryMapItemCount (mi);
     kdebug_printf ("%s","\r\nBIOS Memory map:"); 
     U64 available_memory = 0;
-    for (INT i = 0; i < mi->count; i++)
+    for (INT i = 0; i < memoryMapItemCount; i++)
     {
-        BootMemoryMapItem item = mi->items[i];
-        available_memory += item.length;
+        BootMemoryMapItem* item = kboot_getBootLoaderInfoBootMemoryMapItem (mi, i);
+        U64 baseAddress = kboot_getBootMemoryMapItemBaseAddress (item);
+        U64 length_bytes = kboot_getBootMemoryMapItemLengthBytes (item);
+        PMMAllocationTypes type = kboot_getBootMemoryMapItemType (item);
+
+        available_memory += length_bytes;
         kdebug_printf ("\r\n* map: Start = %llx, Length = %llx, Type = %u",
-                         item.baseAddr, item.length, item.type);
+                         baseAddress, length_bytes, type);
     }
 
-    kdebug_printf ("\r\nKernel files loaded: %u", mi->filecount);
-    kdebug_printf ("\r\nAvailable memory: %u KiB",available_memory/1024);
+    kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
+    kdebug_printf ("\r\nAvailable RAM bytes: %u KiB",available_memory/1024);
+
+    UINT availablePageCount = BYTES_TO_PAGEFRAMES (available_memory);
+    kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
+
+    kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE);
 }
 
 __attribute__ ((noreturn))

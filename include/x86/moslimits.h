@@ -27,4 +27,16 @@
     /* Maximum number of IDT entries */
     #define MAX_IDT_DESC_COUNT              256
 
+    /* PAB and addressable RAM */
+
+    // Calculates number of bytes from page frame count 'fc'.
+    #define PAGEFRAMES_TO_BYTES(fc) (fc) * (CONFIG_PAGE_FRAME_SIZE_BYTES)
+
+    // Calculates number of page frames from byte count 'b'.
+    #define BYTES_TO_PAGEFRAMES(b)  (b) / (CONFIG_PAGE_FRAME_SIZE_BYTES)
+
+    #define PAB_SIZE_BYTES                  CONFIG_PAGE_FRAME_SIZE_BYTES
+    #define MAX_ADDRESSABLE_BYTE            (PAGEFRAMES_TO_BYTES(PAB_SIZE_BYTES * 8) - 1)
+    #define MAX_ADDRESSABLE_PAGE            ((PAB_SIZE_BYTES * 8) - 1)
+
 #endif // __MOS_LIMITS_H_X86__

@@ -129,7 +129,11 @@ typedef struct UtilityMatchResult
 #### (2.0) Limit on length of lines
 
 1. Maximum lenght of lines in documnet files (.md, .txt) is 100 columns.
-2. Maximum lenght of lines in C and assembly files is 80 columns.
+2. Maximum lenght of lines in assembly files is 80 columns.
+3. Maximum lenght of lines in C files is 100 columns.
+
+The Rational for 100 columns limit for C files instead of 80 is to allow for more descriptive
+function names and to fit more parameters in one line.
 
 #### (2.1) Indentation
 

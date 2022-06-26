@@ -21,6 +21,7 @@ KernelErrorCodes k_errorNumber;
       "No error",
       "Unknown error",
       "Outside of valid range",
-      "Overflow"
+      "Overflow",
+      "Out of physical pages"
     };
 #endif
