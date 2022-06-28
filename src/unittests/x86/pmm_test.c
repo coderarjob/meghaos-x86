@@ -4,8 +4,10 @@
 #include <mock/kernel/x86/boot.h>
 
 static U8 pab[PAB_SIZE_BYTES];
+
 KernelErrorCodes k_errorNumber;
-PHYSICAL g_pab = PHYSICAL (pab);
+char *k_errorText[] = {};
+PHYSICAL g_pab = PHYSICAL ((USYSINT)pab);
 
 /* Fake Defination. At present, meghatest does not support varidac parameters. */
 void k_panic_ndu (const CHAR *s,...) { }
@@ -22,12 +24,12 @@ TEST(PMM, alloc_fixed)
     USYSINT bytesCount = 1;
     PHYSICAL startAddress = PHYSICAL (0);
 
-    bool success = kpmm_alloc (NULL, &bytesCount, PMM_FIXED, startAddress);
+    INT success = kpmm_alloc (NULL, bytesCount, PMM_FIXED, startAddress);
 
     EQ_SCALAR (bytesCount, CONFIG_PAGE_FRAME_SIZE_BYTES);
     EQ_SCALAR (pab[0], 0x1);
     EQ_SCALAR (pab[1], 0x0);
-    EQ_SCALAR (success, true);
+    EQ_SCALAR (success, EXIT_SUCCESS);
     END();
 }
 
