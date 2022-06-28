@@ -145,8 +145,7 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
  * @param type          PMM_FXED to allocate the specified number of bytes at the specified address.
  * @param start         Physical address where allocation will be attempted if type is PMM_FIXED.
  *                      Omitted otherwise.
- * @return              If successful, the number of pages allocated is returned. Should be equal to
- *                      pageCount.
+ * @return              If successful, returns EXIT_SUCCESS.
  * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                      1. ERR_OUT_OF_MEM   - Could not find the required number of free
  *                                            consecutive pages.
@@ -165,6 +164,8 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
         {
             found = s_isPagesFree (startPageFrame, pageCount);
         }
+
+        --startPageFrame; // undoing the last increment.
         break;
     case PMM_FIXED:
         if (IS_ALIGNED (start.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
@@ -191,7 +192,7 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
     if ((type == PMM_AUTOMATIC || (type == PMM_FIXED && allocated != NULL)))
         (*allocated).val = startAddress;
 
-    return pageCount;
+    return EXIT_SUCCESS;
 exitOutOfMemory:
     RETURN_ERROR (ERR_OUT_OF_MEM, EXIT_FAILURE);
 exitError:
