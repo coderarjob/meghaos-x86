@@ -46,29 +46,4 @@
     /* Large enough to hold the largest address possible on a 32 bit system */
     typedef U32           USYSINT;
 
-    /* Casts a bit field of n bits to UINT. */
-    inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
-        return (UINT)(t & (UINT)((1 << n) -1));
-    }
-
-    /* VIRTUAL_ADDRESS:
-     * 32 bit Physical address. This type will prevent mixing physical and
-     * virtual addresses as this type cannot be cast to any other pointer, not
-     * even void * explicitly.
-
-     * Use the 'PHYSICAL' macro for initializing variables or function
-     * parameters of type PHYSICAL.
-
-     * Example:
-     * PHYSICAL vga = PHYSICAL (0xB8000);
-     * Read it as, the 'vga' variable of type PHYSICAL holds the
-     * physical address 0xB8000. So think of this type as a pointer
-     * implementation.
-     */
-    typedef union
-    {
-        USYSINT val;
-    } __attribute__ ((__transparent_union__, packed)) PHYSICAL;
-
-    #define PHYSICAL(address) {.val = address}
 #endif // __x86_TYPES__

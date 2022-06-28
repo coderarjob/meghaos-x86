@@ -110,12 +110,12 @@ void display_system_info ()
     }
 
     kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
-    kdebug_printf ("\r\nAvailable RAM bytes: %u KiB",available_memory/1024);
+    kdebug_printf ("\r\nAvailable RAM bytes: %llx bytes",available_memory);
 
-    UINT availablePageCount = BYTES_TO_PAGEFRAMES (available_memory);
+    UINT availablePageCount = BYTES_TO_PAGEFRAMES_CEILING (available_memory);
     kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
 
-    kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE);
+    kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE_COUNT);
 }
 
 __attribute__ ((noreturn))

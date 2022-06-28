@@ -43,33 +43,28 @@
 /* Halts the processor by going into infinite loop */
 #define k_halt() for (;;)
 
-/* Used to know the offset of a member in a structure type */
+/** Used to know the offset of a member in a structure type */
 #define offsetOf(type,member) ((size_t)(&((type *)0)->member))
 
-/* Length of an array in bytes */
+/** Length of an array in bytes */
 #define ARRAY_LENGTH(ar) (sizeof ((ar))/sizeof ((ar)[0]))
 
-/* Checks if 'a' is aligned to 'n' */
+/** Checks if 'a' is aligned to 'n' */
 #define IS_ALIGNED(a, n) ((a) & ((n) - 1)) == 0
 
 /* If 'a' is not already aligned to 'n', returns next aligned number */
-#define ALIGN_UP(a, n) IS_ALIGNED((a),(n)) ? (a)                   \
-                                           : (((a) / (n)) + 1) * n
+#define ALIGN_UP(a, n) (IS_ALIGNED((a),(n)) ? (a)                   \
+                                            : (((a) / (n)) + 1) * (n))
 
-/* If 'a' is not already aligned to 'n', returns previous aligned number */
-#define ALIGN_DOWN(a, n) IS_ALIGNED((a),(n)) ? (a)                   \
-                                             : ((a) / (n))  * n
+/** If 'a' is not already aligned to 'n', returns previous aligned number */
+#define ALIGN_DOWN(a, n) (IS_ALIGNED((a),(n)) ? (a)                   \
+                                              : ((a) / (n))  * (n))
 
-/* Magic break point used by bochs emulator*/
+/** Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
-/* Printf like function, that prints depending on type*/
 INT kearly_printf (const CHAR *fmt, ...);
-
-/* Writes formatted output to memory pointed to by the dest CHAR pointer.*/
 INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);
-
-/* Writes formatted output to memory pointed to by the dest CHAR pointer.*/
 INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
 
 #endif
