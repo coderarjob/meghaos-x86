@@ -22,6 +22,10 @@ KernelErrorCodes k_errorNumber;
       "Unknown error",
       "Outside of valid range",
       "Overflow",
-      "Out of physical pages"
+      "Out of physical pages",
+      "Double free",
+      "Double allocation",
+      "Byte alignment is wrong"
+      "Byte is outside addressable range."
     };
 #endif
