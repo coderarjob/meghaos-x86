@@ -103,10 +103,10 @@ INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
  *              written  to  the final string if enough space had been available.
  *              A return value of size or more means that the output was truncated
  **************************************************************************************************/
-INT kearly_vsnprintf (CHAR *dest, size_t sz, const CHAR *fmt, va_list l)
+INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
 {
-    size_t originalsize = sz;
-    S64 size = sz;
+    size_t originalsize = size;
+    S64 size_left = size;
 
     CHAR c;
     while ((c = *fmt))
@@ -117,21 +117,21 @@ INT kearly_vsnprintf (CHAR *dest, size_t sz, const CHAR *fmt, va_list l)
         if (c == '%')
         {
             IntTypes inttype = s_readtype (&fmt, &c);
-            isliteral = s_convert (&dest, &size, inttype, c, &l);
+            isliteral = s_convert (&dest, &size_left, inttype, c, &l);
         }
 
         while (prevfmt <= fmt && isliteral)
         {
-            if (size > 1) *dest++ = *prevfmt;
+            if (size_left > 1) *dest++ = *prevfmt;
             prevfmt++;
-            size--;
+            size_left--;
         }
 
         fmt++;
     }
 
     *dest = '\0';
-    return (INT)(originalsize - size);
+    return (INT)(originalsize - size_left);
 }
 
 static IntTypes s_readtype (const CHAR **fmt, CHAR *c)
