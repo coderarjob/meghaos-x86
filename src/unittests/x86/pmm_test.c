@@ -15,7 +15,7 @@ void* CAST_PA_TO_VA (PHYSICAL a);
 void k_panic_ndu (const CHAR *s,...) { }
 void kdebug_printf_ndu (const CHAR *fmt, ...) { }
 
-TEST(PMM, autoalloc_overflow)
+TEST(PMM, autoalloc_out_of_memory)
 {
     // Clear PAB.
     memset (pab, 0,PAB_SIZE_BYTES);
@@ -177,13 +177,31 @@ TEST(PMM, alloc_free_fixed_misaligned_address)
     EQ_SCALAR (success, EXIT_FAILURE);
     EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
 
-    // Allocating 1 page at byte 1. Should throw ERR_WRONG_ALIGNMENT.
+    // Freeing 1 page at byte 1. Should throw ERR_WRONG_ALIGNMENT.
     success = kpmm_free (startAddress, 1);
 
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
     EQ_SCALAR (success, EXIT_FAILURE);
     EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
+    END();
+}
+
+TEST(PMM, double_free)
+{
+    // Clear PAB.
+    memset (pab, 0,PAB_SIZE_BYTES);
+
+    // Freeing 1 page at byte 0. Already freed, so will fail.
+    USYSINT startAddress = 0;
+    INT success;
+
+    success = kpmm_free (startAddress, 1);
+
+    EQ_SCALAR (pab[0], 0x0);
+    EQ_SCALAR (pab[1], 0x0);
+    EQ_SCALAR (k_errorNumber, ERR_DOUBLE_FREE);
+    EQ_SCALAR (success, EXIT_FAILURE);
     END();
 }
 
@@ -249,7 +267,8 @@ int main()
     alloc_fixed_past_last_page();
     alloc_auto();
     autoalloc_free_autoalloc();
-    autoalloc_overflow();
+    autoalloc_out_of_memory();
     alloc_auto_last_page();
     double_allocate();
+    double_free();
 }
