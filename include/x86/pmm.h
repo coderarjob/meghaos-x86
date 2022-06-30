@@ -18,14 +18,14 @@ typedef enum PMMAllocationTypes
 } PMMAllocationTypes;
 
 // Calculates number of bytes from page frame count 'fc'.
-#define PAGEFRAMES_TO_BYTES(fc) (fc) * (CONFIG_PAGE_FRAME_SIZE_BYTES)
+#define PAGEFRAMES_TO_BYTES(fc) ((fc) * (CONFIG_PAGE_FRAME_SIZE_BYTES))
 
 /** Number of complete page frames from at-most 'b' number of bytes. */
-#define BYTES_TO_PAGEFRAMES_FLOOR(b)  (b) / (CONFIG_PAGE_FRAME_SIZE_BYTES)
+#define BYTES_TO_PAGEFRAMES_FLOOR(b)  ((b) / (CONFIG_PAGE_FRAME_SIZE_BYTES))
 
 /** Number of complete page frames from at-least 'b' number of bytes. */
 #define BYTES_TO_PAGEFRAMES_CEILING(b)  \
-    ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES) / (CONFIG_PAGE_FRAME_SIZE_BYTES)
+    (ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES) / CONFIG_PAGE_FRAME_SIZE_BYTES)
 
 void kpmm_init ();
 INT kpmm_free (PHYSICAL startAddress, UINT pageCount);
