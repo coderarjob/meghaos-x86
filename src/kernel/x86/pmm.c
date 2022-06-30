@@ -281,9 +281,9 @@ static INT s_set (UINT pageFrame, bool alloc)
     UINT mask = (U8)(1U << bitIndex);
 
     if (alloc)
-        s_pab[byteIndex] |= mask;
+        s_pab[byteIndex] |= (U8)mask;
     else
-        s_pab[byteIndex] &= ~mask;
+        s_pab[byteIndex] &= (U8)~mask;
     return EXIT_SUCCESS;
 }
 
