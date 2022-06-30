@@ -149,6 +149,8 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
  *                      1. ERR_OUT_OF_MEM   - Could not find the required number of free
  *                                            consecutive pages.
  *                      2. ERR_WRONG_ALIGNMENT - 'start' is not aligned to page boundary.
+ *                      3. ERR_DOUBLE_ALLOC - All or part of specified memory is already allocated.
+ *                                            This error is only thrown for FIXED allocations.
  **************************************************************************************************/
 INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PHYSICAL start)
 {
@@ -180,7 +182,8 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
     }
 
     // Not enough free pages found.
-    if (found == FALSE) goto exitOutOfMemory;
+    if (found == FALSE && type == PMM_FIXED) goto exitDoubleAllocation;
+    if (found == FALSE && type == PMM_AUTOMATIC) goto exitOutOfMemory;
     if (found == EXIT_FAILURE) goto exitError;
 
     // Free pages found. Now Allocate them.
@@ -192,6 +195,8 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
         (*allocated).val = startAddress;
 
     return EXIT_SUCCESS;
+exitDoubleAllocation:
+    RETURN_ERROR (ERR_DOUBLE_ALLOC, EXIT_FAILURE);
 exitOutOfMemory:
     RETURN_ERROR (ERR_OUT_OF_MEM, EXIT_FAILURE);
 exitError:
