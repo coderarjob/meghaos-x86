@@ -162,7 +162,7 @@ void kdisp_scrollDown ()
 static void update_cursor ()
 {
     // Set the cursor location.
-    U16 index = row * VGA_COLUMNS + column;
+    INT index = row * VGA_COLUMNS + column;
 
     crt_write (0xf, index & 0xFF);
     crt_write (0xe, index>>8);
@@ -172,7 +172,7 @@ static void update_cursor ()
  * and increments the pointer to it. */
 void kdisp_putc (CHAR c)
 {
-    U16 index;
+    INT index;
     switch (c){
         case '\r':
             column = 0;

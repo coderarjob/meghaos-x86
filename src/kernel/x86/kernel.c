@@ -81,7 +81,7 @@ void __kernel_main ()
 void display_system_info ()
 {
     BootLoaderInfo *mi = kboot_getCurrentBootLoaderInfo ();
-    UINT loadedFilesCount = (UINT)kboot_getBootLoaderInfoFilesCount (mi);
+    INT loadedFilesCount = kboot_getBootLoaderInfoFilesCount (mi);
 
     kdebug_printf ("%s","\r\nLoaded kernel files:");
     for (INT i = 0; i < loadedFilesCount; i++){
@@ -94,7 +94,7 @@ void display_system_info ()
     }
 
 
-    UINT memoryMapItemCount = kboot_getBootLoaderInfoBootMemoryMapItemCount (mi);
+    INT memoryMapItemCount = kboot_getBootLoaderInfoBootMemoryMapItemCount (mi);
     kdebug_printf ("%s","\r\nBIOS Memory map:"); 
     U64 available_memory = 0;
     for (INT i = 0; i < memoryMapItemCount; i++)
@@ -112,7 +112,7 @@ void display_system_info ()
     kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
     kdebug_printf ("\r\nAvailable RAM bytes: %llx bytes",available_memory);
 
-    UINT availablePageCount = BYTES_TO_PAGEFRAMES_CEILING (available_memory);
+    UINT availablePageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (available_memory);
     kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
 
     kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE_COUNT);

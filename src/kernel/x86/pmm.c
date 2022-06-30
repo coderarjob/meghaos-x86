@@ -56,8 +56,8 @@ void kpmm_init ()
 static void s_markFreeMemory ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    UINT mmapCount = kboot_getBootLoaderInfoBootMemoryMapItemCount (bootloaderinfo);
-    for (int i = 0; i < mmapCount; i++)
+    INT mmapCount = kboot_getBootLoaderInfoBootMemoryMapItemCount (bootloaderinfo);
+    for (INT i = 0; i < mmapCount; i++)
     {
         BootMemoryMapItem* memmap = kboot_getBootLoaderInfoBootMemoryMapItem (bootloaderinfo, i);
         BootMemoryMapTypes type = kboot_getBootMemoryMapItemType (memmap);
@@ -73,7 +73,7 @@ static void s_markFreeMemory ()
                                                                : MAX_ADDRESSABLE_BYTE;
 
         // Actual number of bytes we can free without crossing the max addressable range.
-        USYSINT lengthBytes_possible = endAddress - startAddress  + 1;
+        USYSINT lengthBytes_possible = (USYSINT)(endAddress - startAddress  + 1);
         UINT pageFrameCount = BYTES_TO_PAGEFRAMES_FLOOR (lengthBytes_possible);
 
         kdebug_printf ("\r\nI: Freeing startAddress: %px, byteCount: %px, pageFrames: %u."
@@ -96,8 +96,8 @@ static void s_markFreeMemory ()
 static void s_markMemoryOccupiedByModuleFiles ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    UINT filesCount = kboot_getBootLoaderInfoFilesCount (bootloaderinfo);
-    for (int i = 0; i < filesCount; i++)
+    INT filesCount = kboot_getBootLoaderInfoFilesCount (bootloaderinfo);
+    for (INT i = 0; i < filesCount; i++)
     {
         BootFileItem* fileinfo = kboot_getBootLoaderInfoBootFileItem (bootloaderinfo, i);
         USYSINT startAddress = (USYSINT)kboot_getBootFileItemStartLocation (fileinfo);
@@ -117,8 +117,7 @@ static void s_markMemoryOccupiedByModuleFiles ()
  * @param startAddress  Physical memory location of the first page. Error is generated if not a
  *                      aligned to page boundary.
  * @param pageCount     Number of page frames to deallocate.
- * @return              If successful, the number of pages freed is returned. Should be equal to
- *                      pageCount.
+ * @return              If successful, returns EXIT_SUCCESS.
  * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                      1. ERR_WRONG_ALIGNMENT  - startAddress not aligned to page boundary.
  **************************************************************************************************/
@@ -132,7 +131,7 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
     if (s_allocateDeallocatePages (startPageFrame, pageCount, false) == EXIT_FAILURE)
         return EXIT_FAILURE;
 
-    return pageCount;
+    return EXIT_SUCCESS;
 }
 
 /***************************************************************************************************
