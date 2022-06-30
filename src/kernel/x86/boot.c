@@ -25,7 +25,7 @@ BootFileItem* kboot_getBootLoaderInfoBootFileItem (BootLoaderInfo const* bli, IN
     k_assert (index >= 0, "Index Invalid");
     k_assert (index < bli->filecount, "Index invalid");
 
-    return &bli->files[index];
+    return (BootFileItem *)&bli->files[index];
 }
 
 U16 kboot_getBootLoaderInfoBootMemoryMapItemCount (BootLoaderInfo const* bli)
@@ -40,7 +40,7 @@ BootMemoryMapItem* kboot_getBootLoaderInfoBootMemoryMapItem (BootLoaderInfo cons
     k_assert (index >= 0, "Index Invalid");
     k_assert (index < bli->count, "Index invalid");
 
-    return &bli->items[index];
+    return (BootMemoryMapItem *)&bli->items[index];
 }
 
 U32 kboot_getBootFileItemStartLocation (BootFileItem const* bfi)
@@ -77,7 +77,7 @@ ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli)
 {
     k_assert (bli, "BootLoaderInfo is NULL");
 
-    UINT mapCount = bli->count;
+    INT mapCount = bli->count;
     U64 length_bytes = 0;
 
     for (INT i = 0; i < mapCount; i++)
