@@ -13,13 +13,12 @@
 
 #include <kernel.h>
 
-static INT s_allocatedPage (UINT pageFrame);
-static INT s_freePage (UINT pageFrame);
-static INT s_isPageAllocated (UINT pageFrame);
 static INT s_isPagesFree (UINT startPageFrame, UINT count);
 static INT s_allocateDeallocatePages (UINT startPageFrame, UINT frameCount, bool allocate);
 static void s_markMemoryOccupiedByModuleFiles ();
 static void s_markFreeMemory ();
+static INT s_get (UINT pageFrame);
+static INT s_set (UINT pageFrame, bool alloc);
 
 static U8 *s_pab = NULL;
 
@@ -160,11 +159,8 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
     switch (type)
     {
     case PMM_AUTOMATIC:
-        for ( ; found == FALSE && startPageFrame < MAX_ADDRESSABLE_PAGE_COUNT
-              ; startPageFrame++)
-        {
+        for ( ; found == FALSE && startPageFrame < MAX_ADDRESSABLE_PAGE_COUNT; startPageFrame++)
             found = s_isPagesFree (startPageFrame, pageCount);
-        }
 
         --startPageFrame; // undoing the last increment.
         break;
@@ -182,9 +178,8 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
     }
 
     // Not enough free pages found.
-    if (found == FALSE && type == PMM_FIXED) goto exitDoubleAllocation;
-    if (found == FALSE && type == PMM_AUTOMATIC) goto exitOutOfMemory;
-    if (found == EXIT_FAILURE) goto exitError;
+    if (found == EXIT_FAILURE) goto exitFailure;
+    if (found == FALSE) goto exitError;
 
     // Free pages found. Now Allocate them.
     if (s_allocateDeallocatePages (startPageFrame, pageCount, true) == EXIT_FAILURE)
@@ -195,11 +190,9 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
         (*allocated).val = startAddress;
 
     return EXIT_SUCCESS;
-exitDoubleAllocation:
-    RETURN_ERROR (ERR_DOUBLE_ALLOC, EXIT_FAILURE);
-exitOutOfMemory:
-    RETURN_ERROR (ERR_OUT_OF_MEM, EXIT_FAILURE);
 exitError:
+    RETURN_ERROR ((type == PMM_FIXED) ? ERR_DOUBLE_ALLOC : ERR_OUT_OF_MEM, EXIT_FAILURE);
+exitFailure:
     return EXIT_FAILURE;
 }
 
@@ -216,24 +209,37 @@ exitError:
  * @return                  On Success, EXIT_SUCCESS is returned.
  * @return                  If failure EXIT_FAILURE is returned. k_errorNumber is set with
  *                          error code.
+ *                          1. ERR_DOUBLE_ALLOC - A page frame is already allocated.
+ *                          2. ERR_DOUBLE_FREE - A page frame is already free.
  **************************************************************************************************/
 static INT s_allocateDeallocatePages (UINT startPageFrame, UINT frameCount, bool allocate)
 {
-    kdebug_printf ("\r\n%s 0x%px bytes starting physical address 0x%px."
+    kdebug_printf ("\r\nI: %s 0x%px bytes starting physical address 0x%px."
                     , (allocate) ? "Allocating" : "Freeing"
                     , PAGEFRAMES_TO_BYTES(frameCount), PAGEFRAMES_TO_BYTES(startPageFrame));
 
-    INT success = EXIT_SUCCESS;
     UINT endPageFrame = startPageFrame + frameCount - 1;
     for (UINT pageFrame = startPageFrame
-            ; pageFrame <= endPageFrame && success == EXIT_SUCCESS
+            ; pageFrame <= endPageFrame
             ; pageFrame++)
     {
-        success = (allocate) ? s_allocatedPage (pageFrame)
-                             : s_freePage (pageFrame);
+        INT bit;
+        if ((bit = s_get (pageFrame)) < 0)
+                goto exitFailure;
+
+        if (allocate && bit == 1)
+            RETURN_ERROR (ERR_DOUBLE_ALLOC, EXIT_FAILURE);
+
+        if (!allocate && bit == 0)
+            RETURN_ERROR (ERR_DOUBLE_FREE, EXIT_FAILURE);
+
+        if (s_set (pageFrame, allocate) < 0)
+            goto exitFailure;
     }
 
-    return success;
+    return EXIT_SUCCESS;
+exitFailure:
+    return EXIT_FAILURE;
 }
 
 /***************************************************************************************************
@@ -252,21 +258,44 @@ static INT s_isPagesFree (UINT startPageFrame, UINT count)
 {
     INT isAllocated = 0;
     for (UINT i = 0 ; i < count && isAllocated == 0; i++)
-        isAllocated = s_isPageAllocated (i + startPageFrame);
+        isAllocated = s_get (i + startPageFrame);
 
     return (isAllocated < 0) ? -1 : !isAllocated;
 }
 
 /***************************************************************************************************
- * Checks if a physical page frame is allocated.
+ * Sets/Clears corresponding page frame bit in PAB.
  *
- * @param pageFrame Physical page frame to check. First page frame is 0.
- * @return          Returns FALSE is page is free.
- * @return          Returns TRUE is page is not free.
+ * @param pageFrame Physical page frame to change. First page frame is 0.
+ * @return          On Success, EXIT_SUCCESS is returned.
  * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                  1. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
  **************************************************************************************************/
-static INT s_isPageAllocated (UINT pageFrame)
+static INT s_set (UINT pageFrame, bool alloc)
+{
+    if (pageFrame > MAX_ADDRESSABLE_PAGE)
+        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
+
+    UINT byteIndex = (pageFrame / 8);
+    UINT bitIndex = (pageFrame % 8);
+    UINT mask = (U8)(1U << bitIndex);
+
+    if (alloc)
+        s_pab[byteIndex] |= (U8)mask;
+    else
+        s_pab[byteIndex] &= (U8)~mask;
+    return EXIT_SUCCESS;
+}
+
+/***************************************************************************************************
+ * Gets corresponding page frame bit from PAB.
+ *
+ * @param pageFrame Physical page frame to query. First page frame is 0.
+ * @return          On Success, returns 0 is page frame is free, 1 otherwise.
+ * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
+ *                  1. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
+ **************************************************************************************************/
+static INT s_get (UINT pageFrame)
 {
     if (pageFrame > MAX_ADDRESSABLE_PAGE)
         RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
@@ -275,52 +304,4 @@ static INT s_isPageAllocated (UINT pageFrame)
     UINT bitIndex = (pageFrame % 8);
 
     return (s_pab[byteIndex] & (U8)(1U << bitIndex)) >> bitIndex;
-}
-
-/***************************************************************************************************
- * Marks a physical page frame as free.
- *
- * @param pageFrame Physical page frame to free. First page frame is 0.
- * @return          On Success, EXIT_SUCCESS is returned.
- * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
- *                  1. ERR_DOUBLE_FREE - Page frame already free.
- *                  2. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
- **************************************************************************************************/
-static INT s_freePage (UINT pageFrame)
-{
-    if (pageFrame > MAX_ADDRESSABLE_PAGE)
-        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
-
-    if (!s_isPageAllocated (pageFrame))
-        RETURN_ERROR (ERR_DOUBLE_FREE, EXIT_FAILURE);
-
-    UINT byteIndex = (pageFrame / 8);
-    UINT bitIndex = (pageFrame % 8);
-
-    s_pab[byteIndex] &= (U8)(~(1U << bitIndex));
-    return EXIT_SUCCESS;
-}
-
-/***************************************************************************************************
- * Marks a physical page frame as allocated.
- *
- * @param pageFrame Physical page frame to allocate. First page frame is 0.
- * @return          On Success, EXIT_SUCCESS is returned.
- * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
- *                  1. ERR_DOUBLE_ALLOC - Page frame is already allocated.
- *                  2. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
- **************************************************************************************************/
-static INT s_allocatedPage (UINT pageFrame)
-{
-    if (pageFrame > MAX_ADDRESSABLE_PAGE)
-        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
-
-    if (s_isPageAllocated (pageFrame))
-        RETURN_ERROR (ERR_DOUBLE_ALLOC, EXIT_FAILURE);
-
-    UINT byteIndex = (pageFrame / 8);
-    UINT bitIndex = (pageFrame % 8);
-
-    s_pab[byteIndex] |= (U8)(1U << bitIndex);
-    return EXIT_SUCCESS;
 }
