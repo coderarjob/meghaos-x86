@@ -50,7 +50,7 @@
 #define ARRAY_LENGTH(ar) (sizeof ((ar))/sizeof ((ar)[0]))
 
 /** Checks if 'a' is aligned to 'n' */
-#define IS_ALIGNED(a, n) ((a) & ((n) - 1)) == 0
+#define IS_ALIGNED(a, n) (((a) & ((n) - 1)) == 0)
 
 /* If 'a' is not already aligned to 'n', returns next aligned number */
 #define ALIGN_UP(a, n) (IS_ALIGNED((a),(n)) ? (a)                   \
