@@ -4,8 +4,8 @@
 #include <unittest/fake.h>
 #include <kernel.h>
 
-DECLARE_FUNC_3(void *, k_memcpy, IN, void *, IN, const void *, IN, size_t);
-DECLARE_FUNC_3(void *, k_memset, IN, void *, IN, INT, IN, size_t);
+DECLARE_FUNC(void *, k_memcpy, void *, const void *, size_t);
+DECLARE_FUNC(void *, k_memset, void *, INT, size_t);
 
 void resetMemFake();
 #endif //MEM_FAKE_H

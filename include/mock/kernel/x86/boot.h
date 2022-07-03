@@ -5,23 +5,23 @@
 #include <kernel.h>
 #include <boot_struct.h>
 
-DECLARE_FUNC_0 (BootLoaderInfo *, kboot_getCurrentBootLoaderInfo);
-DECLARE_FUNC_1 (U16, kboot_getBootLoaderInfoFilesCount, IN, BootLoaderInfo const*);
-DECLARE_FUNC_1 (ULLONG, kboot_calculateAvailableMemory, IN, BootLoaderInfo const*);
-DECLARE_FUNC_2 (BootFileItem*
-               , kboot_getBootLoaderInfoBootFileItem
-               , IN, BootLoaderInfo const*
-               , IN, INT);
-DECLARE_FUNC_2 (BootMemoryMapItem*
-               , kboot_getBootLoaderInfoBootMemoryMapItem
-               , IN, BootLoaderInfo const*
-               , IN, INT);
-DECLARE_FUNC_1 (U16, kboot_getBootLoaderInfoBootMemoryMapItemCount, IN, BootLoaderInfo const*);
-DECLARE_FUNC_1 (U16, kboot_getBootFileItemFileLength, IN, BootFileItem const*);
-DECLARE_FUNC_1 (U32, kboot_getBootFileItemStartLocation, IN, BootFileItem const*);
-DECLARE_FUNC_1 (BootMemoryMapTypes, kboot_getBootMemoryMapItemType, IN, BootMemoryMapItem const*);
-DECLARE_FUNC_1 (U64, kboot_getBootMemoryMapItemLengthBytes, IN, BootMemoryMapItem const*);
-DECLARE_FUNC_1 (U64, kboot_getBootMemoryMapItemBaseAddress, IN, BootMemoryMapItem const*);
+DECLARE_FUNC (BootLoaderInfo *, kboot_getCurrentBootLoaderInfo);
+DECLARE_FUNC (U16, kboot_getBootLoaderInfoFilesCount, BootLoaderInfo const*);
+DECLARE_FUNC (ULLONG, kboot_calculateAvailableMemory, BootLoaderInfo const*);
+DECLARE_FUNC (BootFileItem*
+             , kboot_getBootLoaderInfoBootFileItem
+             , BootLoaderInfo const*
+             , INT);
+DECLARE_FUNC (BootMemoryMapItem*
+             , kboot_getBootLoaderInfoBootMemoryMapItem
+             , BootLoaderInfo const*
+             , INT);
+DECLARE_FUNC (U16, kboot_getBootLoaderInfoBootMemoryMapItemCount, BootLoaderInfo const*);
+DECLARE_FUNC (U16, kboot_getBootFileItemFileLength, BootFileItem const*);
+DECLARE_FUNC (U32, kboot_getBootFileItemStartLocation, BootFileItem const*);
+DECLARE_FUNC (BootMemoryMapTypes, kboot_getBootMemoryMapItemType, BootMemoryMapItem const*);
+DECLARE_FUNC (U64, kboot_getBootMemoryMapItemLengthBytes, BootMemoryMapItem const*);
+DECLARE_FUNC (U64, kboot_getBootMemoryMapItemBaseAddress, BootMemoryMapItem const*);
 
 void resetBootFake();
 #endif //BOOT_FAKE_X86_H
