@@ -176,6 +176,8 @@ void usermode_main ()
     kearly_printf ("\r\n%llx",var);
     kearly_printf ("\r\nLocation of __kernel_main = %x",__kernel_main);
 
+    void *pab = CAST_PA_TO_VA (g_pab);
+    kearly_printf ("\r\nLocation of pab = %x",pab);
     //k_assert (1 < 0,"Nonsense");
     *a = 0;    
 

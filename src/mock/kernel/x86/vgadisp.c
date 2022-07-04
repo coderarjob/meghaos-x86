@@ -2,7 +2,7 @@
 #include <unittest/fake.h>
 #include <kernel.h>
 
-DEFINE_FUNC_VOID_1(kdisp_putc, IN, CHAR);
+DEFINE_FUNC_VOID_1(kdisp_putc, CHAR);
 DEFINE_FUNC_VOID_0(kdisp_scrollDown);
 DEFINE_FUNC_VOID_0(kdisp_init);
 
