@@ -170,7 +170,7 @@ __load_kernel_and_ramdisks:
             mov es, ebx
             mov ds, ebx
 
-            mov esi, (FILE_BUFF_SEG << 4 | FILE_BUFF_OFF) 
+            mov esi, FILE_BUFF_MEM
             mov edi, [.copy_dest_location]
 
             rep movsb

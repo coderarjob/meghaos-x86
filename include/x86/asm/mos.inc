@@ -8,16 +8,23 @@
 
     ; Helper macros
     ; ------------------------------------------------------------------------
-    %define HIGH_BITS(a,b) (a) >> (b)
-    %define LOW_BITS(a,b)  (a) & ((1 << (b)) -1)
+    %define HIGH_BITS(a,b) ((a) >> (b))
+    %define LOW_BITS(a,b)  ((a) & ((1 << (b)) -1))
 
     ; Creates constants for segment and offset values from the given address.
-    ; %1    - Label         (name for the memory location)
-    ; %2    - 32 bit address (name for the memory location)
+    ; %1    - Label          (name for the memory location)
+    ; %2    - 32 bit address (16 bits segment _ 16 bits offset)
+    %macro SEG_MEM_LOC 2
+        %1_SEG      EQU     HIGH_BITS(%2,16)
+        %1_OFF      EQU     LOW_BITS(%2,16)
+        %1_MEM      EQU     (%1_SEG << 4) + %1_OFF
+    %endmacro
+
+    ; Creates memory constant for non segmented memory address.
+    ; %1    - Label          (name for the memory location)
+    ; %2    - 32 bit address
     %macro MEM_LOC 2
         %1_MEM      EQU     %2
-        %1_SEG      EQU     HIGH_BITS(%2, 16)
-        %1_OFF      EQU     LOW_BITS(%2, 16)
     %endmacro
 
     ; Macros to calculate Physical from higher half mapped Virutal addresses
@@ -28,15 +35,18 @@
 	; Version informations
     ; ------------------------------------------------------------------------
 	%define     BOOT0_BUILD 	"20211224"
-	%define     BOOT1_BUILD 	"20220617"
+	%define     BOOT1_BUILD 	"20220710"
 	%define 	OS_NAME 	    "MEGHA OPERATING SYSTEM V2 - x86"
 
 	; MOS Fixed Memory Locations
     ; ------------------------------------------------------------------------
-	MEM_LOC     GDT,              0x0000_0800  ; 256 interupts *8 = 0x800
-	MEM_LOC     BOOT_INFO,        0x0000_1800
-	MEM_LOC     LOADER,           0x0000_8000  ; 7C00h + 512 + 512 = 8000h
-	MEM_LOC     FILE_BUFF,        0x2800_0000  ; 0000:8000h + 128KB = 28000
+    ; Segmented Memories          SEG   : OFF
+	SEG_MEM_LOC     GDT,          0x0000_0800  ; 256 interupts *8 = 0x800
+	SEG_MEM_LOC     BOOT_INFO,    0x0000_1800
+	SEG_MEM_LOC     LOADER,       0x0000_8000  ; 7C00h + 512 + 512 = 8000h
+	SEG_MEM_LOC     FILE_BUFF,    0x2800_0000  ; 0000:8000h + 128KB = 28000
+
+    ; Non segmented Memories
 	MEM_LOC     KERNEL_STACK_TOP, 0x0002_7FFF  ; Stack is 128 KB in size
 	MEM_LOC     KERNEL_IMG,       0x0010_0000  ; Kernel image is copied here.
 
