@@ -13,7 +13,8 @@ extern PHYSICAL g_pab; /* Address of Page Allocation Bitmap array */
 
 typedef enum PMMAllocationTypes
 {
-    PMM_AUTOMATIC,
+    PMM_DMA,
+    PMM_NORMAL,
     PMM_FIXED
 } PMMAllocationTypes;
 

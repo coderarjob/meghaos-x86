@@ -60,6 +60,12 @@
 #define ALIGN_DOWN(a, n) (IS_ALIGNED((a),(n)) ? (a)                   \
                                               : ((a) / (n))  * (n))
 
+/** Maximum of two integers. If equal, returns 'b' */
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
+/** Minimum of two integers. If equal, returns 'b' */
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+
 /** Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 

@@ -4,11 +4,8 @@
 *
 * Methods to allocate and free physical pages.
 * --------------------------------------------------------------------------------------------------
-*  TODO: Functions should not throw asserts, they must set k_errorNumber and return. [Done]
 *  TODO: Need to check if use of 'last byte/page' and 'byte/page' count concepts are used correctly.
-*  TODO: Should responsibility of aligning bytesCount lie with the caller?? [DONE]
-*  TODO: CAST_PA_TO_VA inline function is not testable. Do something. Macro??
-*  TODO: Consider the case where there is more RAM than the MAX supported by the PAB size. [Done]
+*  TODO: Make allocation and deallocation atomic.
 */
 
 #include <kernel.h>
@@ -40,6 +37,9 @@ void kpmm_init ()
 
     // Mark memory already occupied by the modules.
     s_markMemoryOccupiedByModuleFiles();
+
+    USYSINT addr = 0;
+    kpmm_alloc (NULL, 1, PMM_FIXED, addr);
 }
 
 /***************************************************************************************************
@@ -136,12 +136,13 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
 /***************************************************************************************************
  * Searches the PAB and allocated the specified number of consecutive free physical pages.
  *
- * @param allocated     If successful, holds the allocated physical address. If type is PMM_FIXED,
+ * @Output allocated     If successful, holds the allocated physical address. If type is PMM_FIXED,
  *                      this can be NULL.
- * @param pageCount     Number of byte frames to allocate.
- * @param type          PMM_AUTOMATIC to automatically find a suitable physical address.
- * @param type          PMM_FXED to allocate the specified number of bytes at the specified address.
- * @param start         Physical address where allocation will be attempted if type is PMM_FIXED.
+ * @Input pageCount     Number of byte frames to allocate.
+ * @Input type          PMM_DMA to allocate enough free physical pages suitable for DMA.
+ * @Input type          PMM_NORMAL to allocate enough free physical pages anywhere in memory.
+ * @Input type          PMM_FXED to allocate enough free physical pages at the specified address.
+ * @Input start         Pages will be allocated from this physical address, for PMM_FIXED type.
  *                      Omitted otherwise.
  * @return              If successful, returns EXIT_SUCCESS.
  * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
@@ -158,20 +159,30 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
 
     switch (type)
     {
-    case PMM_AUTOMATIC:
-        for ( ; found == FALSE && startPageFrame < MAX_ADDRESSABLE_PAGE_COUNT; startPageFrame++)
-            found = s_isPagesFree (startPageFrame, pageCount);
+    case PMM_DMA:
+    case PMM_NORMAL:
+        {
+            UINT maxPageCount = (type == PMM_NORMAL) ? MAX_ADDRESSABLE_PAGE_COUNT
+                                                     : MAX_DMA_ADDRESSABLE_PAGE_COUNT;
 
-        --startPageFrame; // undoing the last increment.
-        break;
+            k_assert (maxPageCount <= MAX_ADDRESSABLE_PAGE_COUNT, "Outside addressable range");
+
+            for ( ; found == FALSE && startPageFrame < maxPageCount; startPageFrame++)
+                found = s_isPagesFree (startPageFrame, pageCount);
+
+            --startPageFrame; // undoing the last increment.
+            break;
+        }
     case PMM_FIXED:
-        if (IS_ALIGNED (start.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
-            RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
+        {
+            if (IS_ALIGNED (start.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
+                RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
 
-        /* Note: As 'start' is already aligned, both floor or ceiling are same here. */
-        startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
-        found = s_isPagesFree (startPageFrame, pageCount);
-        break;
+            /* Note: As 'start' is already aligned, both floor or ceiling are same here. */
+            startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
+            found = s_isPagesFree (startPageFrame, pageCount);
+            break;
+        }
     default:
         // Should not be here.
         k_assert (false, "Should not be here. Invalid Allocation Type");
@@ -186,7 +197,7 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
         goto exitError;
 
     USYSINT startAddress = PAGEFRAMES_TO_BYTES (startPageFrame);
-    if ((type == PMM_AUTOMATIC || (type == PMM_FIXED && allocated != NULL)))
+    if ((type != PMM_FIXED || (type == PMM_FIXED && allocated != NULL)))
         (*allocated).val = startAddress;
 
     return EXIT_SUCCESS;
@@ -260,7 +271,7 @@ static INT s_isPagesFree (UINT startPageFrame, UINT count)
     for (UINT i = 0 ; i < count && isAllocated == 0; i++)
         isAllocated = s_get (i + startPageFrame);
 
-    return (isAllocated < 0) ? -1 : !isAllocated;
+    return (isAllocated < 0) ? EXIT_FAILURE : !isAllocated;
 }
 
 /***************************************************************************************************
