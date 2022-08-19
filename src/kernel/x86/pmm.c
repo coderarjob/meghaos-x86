@@ -113,9 +113,9 @@ static void s_markMemoryOccupiedByModuleFiles ()
 /***************************************************************************************************
  * Deallocates specified pages starting from the specified physical location.
  *
- * @param startAddress  Physical memory location of the first page. Error is generated if not a
+ * @Input startAddress  Physical memory location of the first page. Error is generated if not a
  *                      aligned to page boundary.
- * @param pageCount     Number of page frames to deallocate.
+ * @Input pageCount     Number of page frames to deallocate.
  * @return              If successful, returns EXIT_SUCCESS.
  * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                      1. ERR_WRONG_ALIGNMENT  - startAddress not aligned to page boundary.
@@ -136,7 +136,7 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
 /***************************************************************************************************
  * Searches the PAB and allocated the specified number of consecutive free physical pages.
  *
- * @Output allocated     If successful, holds the allocated physical address. If type is PMM_FIXED,
+ * @Output allocated    If successful, holds the allocated physical address. If type is PMM_FIXED,
  *                      this can be NULL.
  * @Input pageCount     Number of byte frames to allocate.
  * @Input type          PMM_DMA to allocate enough free physical pages suitable for DMA.
@@ -213,10 +213,10 @@ exitFailure:
  * 'frameCount' pages of memory starting from 'startPageFrame' will be either marked as Allocated
  * or Free.
  *
- * @param startPageFrame    Physical page where the allocation must begin. First page frame is 0.
- * @param frameCount        Number of page frames to allocate. Out of Memory is generated if more
+ * @Input startPageFrame    Physical page where the allocation must begin. First page frame is 0.
+ * @Input frameCount        Number of page frames to allocate. Out of Memory is generated if more
  *                          pages are requested than are free.
- * @param allocate          true to Allocate, false to deallocate.
+ * @Input allocate          true to Allocate, false to deallocate.
  * @return                  On Success, EXIT_SUCCESS is returned.
  * @return                  If failure EXIT_FAILURE is returned. k_errorNumber is set with
  *                          error code.
@@ -256,8 +256,8 @@ exitFailure:
 /***************************************************************************************************
  * Checks if 'count' number of consecutive frames are free.
  *
- * @param startPageFrame    Physical page frame to start the check from. First page frame is 0.
- * @param count             Number of consecutive page frames that need to be free.
+ * @Input startPageFrame    Physical page frame to start the check from. First page frame is 0.
+ * @Input count             Number of consecutive page frames that need to be free.
  * @return                  Returns TRUE if required number of free pages were found at the physical
  *                          location.
  * @return                  Returns FALSE if required number of free pages were not found at the
@@ -277,7 +277,7 @@ static INT s_isPagesFree (UINT startPageFrame, UINT count)
 /***************************************************************************************************
  * Sets/Clears corresponding page frame bit in PAB.
  *
- * @param pageFrame Physical page frame to change. First page frame is 0.
+ * @Input pageFrame Physical page frame to change. First page frame is 0.
  * @return          On Success, EXIT_SUCCESS is returned.
  * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                  1. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
@@ -301,7 +301,7 @@ static INT s_set (UINT pageFrame, bool alloc)
 /***************************************************************************************************
  * Gets corresponding page frame bit from PAB.
  *
- * @param pageFrame Physical page frame to query. First page frame is 0.
+ * @Input pageFrame Physical page frame to query. First page frame is 0.
  * @return          On Success, returns 0 is page frame is free, 1 otherwise.
  * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                  1. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
