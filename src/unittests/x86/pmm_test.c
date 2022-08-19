@@ -24,14 +24,14 @@ TEST(PMM, autoalloc_out_of_memory)
     PHYSICAL startAddress;
     INT success;
 
-    success = kpmm_alloc (&startAddress, MAX_ADDRESSABLE_PAGE_COUNT, PMM_AUTOMATIC, (USYSINT)0);
+    success = kpmm_alloc (&startAddress, MAX_ADDRESSABLE_PAGE_COUNT, PMM_NORMAL, (USYSINT)0);
     EQ_SCALAR (startAddress.val, 0);
     EQ_SCALAR (pab[0], 0xFF);
     EQ_SCALAR (pab[4095], 0xFF);
     EQ_SCALAR (success, EXIT_SUCCESS);
 
     // Allocating 1 more page. Should fail as there are no free pages.
-    success = kpmm_alloc (&startAddress, 1, PMM_AUTOMATIC, (USYSINT)0);
+    success = kpmm_alloc (&startAddress, 1, PMM_NORMAL, (USYSINT)0);
     EQ_SCALAR (k_errorNumber, ERR_OUT_OF_MEM);
     EQ_SCALAR (success, EXIT_FAILURE);
     END();
@@ -45,7 +45,7 @@ TEST(PMM, autoalloc_free_autoalloc)
     // Allocating 3 pages. Address should be allocated automatically. 
     PHYSICAL startAddress;
 
-    INT success = kpmm_alloc (&startAddress, 3, PMM_AUTOMATIC, (USYSINT)0);
+    INT success = kpmm_alloc (&startAddress, 3, PMM_NORMAL, (USYSINT)0);
 
     EQ_SCALAR (startAddress.val, 0);
     EQ_SCALAR (pab[0], 0x07);
@@ -53,7 +53,7 @@ TEST(PMM, autoalloc_free_autoalloc)
     EQ_SCALAR (success, EXIT_SUCCESS);
 
     // Allocating 3 pages again. Address should be allocated automatically. 
-    success = kpmm_alloc (&startAddress, 3, PMM_AUTOMATIC, (USYSINT)0);
+    success = kpmm_alloc (&startAddress, 3, PMM_NORMAL, (USYSINT)0);
 
     EQ_SCALAR (startAddress.val, 3 * 4096);
     EQ_SCALAR (pab[0], 0x3F);
@@ -67,7 +67,7 @@ TEST(PMM, autoalloc_free_autoalloc)
     EQ_SCALAR (success, EXIT_SUCCESS);
 
     // Allocating 3 pages again. Address should be allocated automatically. 
-    success = kpmm_alloc (&startAddress, 3, PMM_AUTOMATIC, (USYSINT)0);
+    success = kpmm_alloc (&startAddress, 3, PMM_NORMAL, (USYSINT)0);
 
     EQ_SCALAR (startAddress.val, 6 * 4096);
     EQ_SCALAR (pab[0], 0xE7);
@@ -86,7 +86,7 @@ TEST(PMM, alloc_auto)
     USYSINT pagesCount = 3;
     PHYSICAL startAddress;
 
-    INT success = kpmm_alloc (&startAddress, pagesCount, PMM_AUTOMATIC, (USYSINT)0);
+    INT success = kpmm_alloc (&startAddress, pagesCount, PMM_NORMAL, (USYSINT)0);
 
     EQ_SCALAR (startAddress.val, 0);
     EQ_SCALAR (pab[0], 0x07);
@@ -94,7 +94,7 @@ TEST(PMM, alloc_auto)
     EQ_SCALAR (success, EXIT_SUCCESS);
 
     // Allocating 3 pages again. Address should be allocated automatically. 
-    success = kpmm_alloc (&startAddress, pagesCount, PMM_AUTOMATIC, (USYSINT)0);
+    success = kpmm_alloc (&startAddress, pagesCount, PMM_NORMAL, (USYSINT)0);
 
     EQ_SCALAR (startAddress.val, 3 * 4096);
     EQ_SCALAR (pab[0], 0x3F);
@@ -130,14 +130,14 @@ TEST(PMM, alloc_auto_last_page)
     PHYSICAL startAddress;
     INT success;
 
-    success = kpmm_alloc (&startAddress, MAX_ADDRESSABLE_PAGE_COUNT - 1, PMM_AUTOMATIC, (USYSINT)0);
+    success = kpmm_alloc (&startAddress, MAX_ADDRESSABLE_PAGE_COUNT - 1, PMM_NORMAL, (USYSINT)0);
     EQ_SCALAR (startAddress.val, 0);
     EQ_SCALAR (pab[0], 0xFF);
     EQ_SCALAR (pab[4095], 0x7F);
     EQ_SCALAR (success, EXIT_SUCCESS);
 
     // Allocating 1 more page.
-    success = kpmm_alloc (&startAddress, 1, PMM_AUTOMATIC, (USYSINT)0);
+    success = kpmm_alloc (&startAddress, 1, PMM_NORMAL, (USYSINT)0);
     EQ_SCALAR (pab[0], 0xFF);
     EQ_SCALAR (pab[4095], 0xFF);
     EQ_SCALAR (success, EXIT_SUCCESS);
