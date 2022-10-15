@@ -41,7 +41,7 @@ get_arch_dependent_test_definition()
 {
     local TEST=$1
 
-    case $test in
+    case $TEST in
           pmm) {
                 export SRC=( 'kernel/x86/pmm.c'
                              'unittests/x86/pmm_test.c'

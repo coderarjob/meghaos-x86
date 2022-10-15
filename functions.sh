@@ -140,38 +140,3 @@ compile_nasm()
 
     __compile "$ASM" "__compile_nasm" "$OBJ_PATH" "$SRC_FILES"
 }
-
-# ----------------------------------------------------------------------------
-# link_unittest_add_file
-# Adds C files, whose corresponding object files need to be linked.
-#
-# $1   - Path to the directory for obj and list files.
-#        Relative to MOS_ROOT_PATH dir.
-# $2   - Flies to compile. Relative to SRC_ROOT dir.
-link_unittest_add_file()
-{
-    local OBJ_PATH=$1
-    local FILES=$2
-
-    for fn in ${FILES[@]}; do
-        local SRC_FTILE=${fn%.*}              # Remove extension.
-        local OBJ_FILE=$OBJ_PATH/$SRC_FTILE.o # Path to object file
-        GLOBAL_MOS_BUILD_OBJ_FILES=("${GLOBAL_MOS_BUILD_OBJ_FILES[@]}" "$OBJ_FILE")
-    done
-}
-
-# ----------------------------------------------------------------------------
-# link_unittest
-# Calls the Linker program with the appropriate arguments. This links all the
-# previously added object files (using link_unittest_add_file) into an
-# executable. Later it also clears the global object file list.
-# $1   - Linker argumnets.
-# $2   - Test executable filename
-link_unittest()
-{
-    local LD=$1
-    local EXE_PATH=$2
-
-    $LD "${GLOBAL_MOS_BUILD_OBJ_FILES[@]}" -o "$EXE_PATH"
-    GLOBAL_MOS_BUILD_OBJ_FILES=()       # Clear the array.
-}

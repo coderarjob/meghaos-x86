@@ -21,7 +21,7 @@ function add_mock_source()
     local TEST=$1       ; shift
     local SRC_ARRAY=$@
 
-    case $test in
+    case $TEST in
         printk) {
                     export SRC=( $SRC_ARRAY
                                 'mock/kernel/x86/vgadisp.c')
