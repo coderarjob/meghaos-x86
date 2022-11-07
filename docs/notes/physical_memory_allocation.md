@@ -7,24 +7,19 @@ Here is a dry run of both the freeing and allocation procedures.
 
 First things first - Few basics and system configurations.
 ```
-PAB_SIZE_BYTES               =  4096 bytes/pab
-
-MAX_ADDRESSABLE_PAGE_COUNT   =  4096 bytes/pab × 8 pages/byte
-                             => 32768 pages/pab
-
-MAX_ADDRESSABLE_PAGE (index) = MAX_ADDRESSABLE_PAGE_COUNT - 1
-                             => 32767 pages/pab
-
-As each page is one bit in PAB. Number of bits in pab = 32768.
-PAB_SIZE_BITS                =  32768 bits/pab
-
-
-MAX_ADDRESSABLE_BYTE_COUNT   =  MAX_ADDRESSABLE_PAGE_COUNT pages/pab × 4096 bytes/page
-                             => 134217728 bytes/pab
-
-MAX_ADDRESSABLE_BYTE (index) = MAX_ADDRESSABLE_BYTE_COUNT - 1
-                             => 134217727 byte
-
+Macro name                     Value(DEC)  Value(Hex)  Unit  Calculation
+---------------------------    ----------- ---------- ---- ------------------------------------------
+PAB_SIZE_BYTES                 4096        0x1000     byte
+MAX_ADDRESSABLE_PAGE_COUNT     32768       0x8000     page PAB_SIZE_BYTES * 8 bytes/page
+MAX_ADDRESSABLE_BYTE_COUNT     134217728   0x8000000  byte MAX_ADDRESSABLE_PAGE_COUNT * PAB_SIZE_BYTES
+MAX_ADDRESSABLE_BYTE           134217727   0x7FFFFFF  byte MAX_ADDRESSABLE_BYTE_COUNT - 1
+MAX_ADDRESSABLE_PAGE           32767       0x7FFF     page MAX_ADDRESSABLE_PAGE_COUNT - 1
+MAX_DMA_BYTE_COUNT             16777216    0x1000000  byte Fixed 16 MiB
+MAX_DMA_PAGE_COUNT             4096        0x1000     page MAX_DMA_BYTE_COUNT / PAB_SIZE_BYTES
+MAX_DMA_ADDRESSABLE_BYTE_COUNT 16777216    0x1000000  byte Min(MAX_DMA_BYTE_COUNT, MAX_ADDRESSABLE_BYTE_COUNT)
+MAX_DMA_ADDRESSABLE_PAGE_COUNT 4096        0x1000     page Min(MAX_DMA_PAGE_COUNT, MAX_ADDRESSABLE_PAGE_COUNT)
+MAX_DMA_ADDRESSABLE_BYTE       16777215    0xFFFFFF   byte MAX_DMA_ADDRESSABLE_BYTE_COUNT - 1
+MAX_DMA_ADDRESSABLE_PAGE       4095        0xFFF      page MAX_DMA_ADDRESSABLE_PAGE_COUNT - 1
 ```
 
 ```
@@ -41,7 +36,6 @@ F0000    10000    2
 100000   3E0000   1
 4E0000   20000    2
 FFFC0000 40000    2
-
 ```
 
 **TODO:** RAM size calculation is wrong. It should be one below.
@@ -73,78 +67,76 @@ So Page frame 13 is Bit 5 Byte 1.
 
 ```
 
-### Freeing memory - Steps.
+### Initialization
 
-#### 1. s_markFreeMemory
+In the beginning, all the pages are marked allocated (written 1 to every bit in PAB). Then pages are
+marked free based on the BIOS memory map (those with status 1).
 
-Free is a coservative process. We will never free at most the input byte count.
+The pages where the kernel modules are loaded (by boot1), are then marked allocated. As these
+modules, including the Kernel image is loaded at 0x100000, allocated pages start from
+`pageFrameIndex` = 256 i.e `(0x100000/4096)`. 
 
-**Input:**
-* : Byte count: 0x9FC00 bytes. Location/start address = 0.
-
-**Procedure:**
-* Page frame count = floor(0x9FC00/4096) pages.
-                   => 159 pages.    <-- This is count.
-
-#### 2. kpmm_free
-
-**Input:**
-* Start Address = 0, Page Count = 159.
-
-**Procedure:**
-* start page frame = floor(0/4096)
-                   => 0 page        <-- This is the start page index (into PAB).
-
-#### 3. s_allocateDeallocatePages
-
-**Input:**
-* Start page frame = 0, page frame count = 159, allocate = false (not allocating, freeing)
-
-**Procedure:**
-* end page frame = 0 + 159 - 1
-                 => 158             <-- This is the end page index (into PAB).
-* From 0 to 158 (including 158), call `s_freePage`.
-
-#### 4. s_freePage (first call)
-
-**Input:**
-* Page frame index = 0
-
-**Procedure:**
-* PAB Byte index = 0 / 8
-                 => 0.
-* PAB but index = 0 % 8
-                => 0.
-
-This clears 0th bit in PAB[0].
-
-#### 4. s_freePage (last call)
-
-**Input:**
-* Page frame index = 158
-
-**Procedure:**
-* PAB Byte index = floor(158 / 8)
-                 => 19.
-* PAB but index = 158 % 8
-                => 6.
-
-This clears 6th bit in PAB[19].
-
-### End result
-
-This clears bit 0:0 (bit 0, of byte 0) till 19:6 (bit 6, of byte 19). That is only the bit 7 of byte
-19 will be set. This is exactly what we see here.
+Taking an example:
+The Kernel today is of size 0x2BE8, so a 3 pages need to be allocated (after rounding up).
 
 ```
-0xc0105000:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+page frame index = 256
+byte index       = 256 / 8 = 0x20
+bit index        = 256 % 8 = 0x00
+
+0xc0105000:     0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
 0xc0105008:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
 0xc0105010:     0x00    0x00    0x00    0x80    0xff    0xff    0xff    0xff
 0xc0105018:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
-0xc0105020:     0x07    0x00    0x00    0x00    0x00    0x00    0x00    0x00
-0xc0105028:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
-0xc0105030:     0x00    0x00
+0xc0105020:    [0x07]   0x00    0x00    0x00    0x00    0x00    0x00    0x00
 ```
+
+Notice the value 0x07, for the 3 pages allocated.
+
+**TODO:** The initialization up to this point is complete. But now I must allocate for the Kernel 
+Stack, VGA Buffer and Boot Info structures.
+
+Note that the very first page of PAB is set, this is to mark allocated memory for the IDT and GDT.
+It is only temporary, later on almost every allocations; from Stack, IDT, GDT etc will be done 
+dynamically using the Virtual Memory Manager.
+
+### Steps: Page allocation
+
+Use the `kpmm_alloc` to allocate consecutive physical pages. When `PMM_NORMAL` or `PMM_DMA` is
+passed, it will search the PAB for the first block of memory large enough for all the pages,
+otherwise when `PMM_FIXED` is passed, the physical pages are allocated starting from the page
+aligned physical address that was also passed in.
+
+The PAB is always of size `PAB_SIZE_BYTES`, irrespective of the actual amount of physical
+RAM in the system. This determines the maximum RAM that MeghaOS can access. With `PAB_SIZE_BYTES` 
+of 4096, the maximum RAM that MeghaOS can access is **128 MiB** (This is the
+`MAX_ADDRESSABLE_PAGE_COUNT`).
+
+So in systems which less that `MAX_ADDRESSABLE_BYTE_COUNT` bytes of RAM, the rest of the PAB will 
+always be set. **MeghaOS must never allocate memory that is not present or it cannot access.**
+
+DMA hardware has a limitation. It may only be able to access `MAX_DMA_BYTE_COUNT` bytes. In x86
+systems this is 16 MiB. So in systems which less that `MAX_DMA_BYTE_COUNT` bytes of RAM,
+`PMM_NORMAL` and `PMM_DMA` allocate in the same range. 
+
+On success `EXIT_SUCCESS` is returned, and the physical address is returned in the `allocated`
+parameter. This address is always page aligned.
+
+On error `EXIT_FAILURE` is returned. The exact cause of the error can found by reading the
+`k_errorNumber` global variable.
+
+### Steps: Page de-allocation
+
+Use the `kpmm_free` to deallocate continuous physical pages. The first argument is a page aligned
+physical address, the second is number of pages to free.
+
+Here deallocation is means that the bit representing the page in PAB is unset.
+
+On success `EXIT_SUCCESS` is returned, and the physical address is returned in the `allocated`
+parameter. This address is always page aligned.
+
+On error `EXIT_FAILURE` is returned. The exact cause of the error can found by reading the
+`k_errorNumber` global variable.
 
 ------------------------------------------------------------------------------
 _20 July 2022__
