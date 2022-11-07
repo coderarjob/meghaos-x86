@@ -11,7 +11,7 @@
 #include <kernel.h>
 
 static INT s_isPagesFree (UINT startPageFrame, UINT count);
-static INT s_allocateDeallocatePages (UINT startPageFrame, UINT frameCount, bool allocate);
+static INT s_managePages (UINT startPageFrame, UINT frameCount, bool allocate);
 static void s_markMemoryOccupiedByModuleFiles ();
 static void s_markFreeMemory ();
 static INT s_get (UINT pageFrame);
@@ -127,7 +127,7 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
 
     /* Note: As startAddress is already aligned, both floor or ceiling are same here. */
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (startAddress.val);
-    if (s_allocateDeallocatePages (startPageFrame, pageCount, false) == EXIT_FAILURE)
+    if (s_managePages (startPageFrame, pageCount, false) == EXIT_FAILURE)
         return EXIT_FAILURE;
 
     return EXIT_SUCCESS;
@@ -143,7 +143,7 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
  * @Input type          PMM_NORMAL to allocate enough free physical pages anywhere in memory.
  * @Input type          PMM_FXED to allocate enough free physical pages at the specified address.
  * @Input start         Pages will be allocated from this physical address, for PMM_FIXED type.
- *                      Omitted otherwise.
+ *                      omitted otherwise. Must be page aligned.
  * @return              If successful, returns EXIT_SUCCESS.
  * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                      1. ERR_OUT_OF_MEM   - Could not find the required number of free
@@ -193,7 +193,7 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
     if (found == FALSE) goto exitError;
 
     // Free pages found. Now Allocate them.
-    if (s_allocateDeallocatePages (startPageFrame, pageCount, true) == EXIT_FAILURE)
+    if (s_managePages (startPageFrame, pageCount, true) == EXIT_FAILURE)
         goto exitError;
 
     USYSINT startAddress = PAGEFRAMES_TO_BYTES (startPageFrame);
@@ -223,7 +223,7 @@ exitFailure:
  *                          1. ERR_DOUBLE_ALLOC - A page frame is already allocated.
  *                          2. ERR_DOUBLE_FREE - A page frame is already free.
  **************************************************************************************************/
-static INT s_allocateDeallocatePages (UINT startPageFrame, UINT frameCount, bool allocate)
+static INT s_managePages (UINT startPageFrame, UINT frameCount, bool allocate)
 {
     kdebug_printf ("\r\nI: %s 0x%px bytes starting physical address 0x%px."
                     , (allocate) ? "Allocating" : "Freeing"
