@@ -3,6 +3,40 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 
 # TASKS                                      Estimated       Actual
 
+[ ] Document BOOTINFO struct                  - 03 Feb 2021
+[ ] Basic keyboard IRQ                        - 18 Nov 2020
+    handler (demo)
+[ ] GP handler                                - 16 Nov 2020
+[ ] Page fault handler in asm                 - 26 Jan 2021
+[ ] RAMDISK (INITRD.0) creation
+    in build.sh
+[X] Physical memory allocator                 -
+    [ ] Lock to protect the PAB.              -
+[ ] Virutal memory allocator                  -
+[ ] Various functions like kdisp_ioctl, etc   -
+    must implement error reporting.
+    [X] kdisp_ioctl
+[ ] Make symbols comply with the C99.         -                 30 Dec 2021
+    Symbols beginning with underscore is
+    reserved [7.13]. Rename them.
+    [X] Macros in header files.
+    [X] Variable names in C source.
+    [X] Members in struct.
+    [X] Function names.
+    [ ] Guard Macros in header files.
+[ ] Configuration header files for C and
+    assembly.                                 -
+[ ] Script to auto generate the config
+    headers simultaneously for C and
+    assembly.                                 -
+[ ] There is a need to document the types
+    declared for MeghaOS like INT, LONG etc.
+    These do need to conform with C99, but
+    can be different from the compiler
+    versions. LONG for example must be 32
+    bits or more, but always large enough
+    to hold the largest addresses in the
+    architecture.                             -
 [X] GDT and LDT concept                       - 25 Aug 2020
 [X] IDT and TSS read                          - 01 Sep 2020
 [X] Test Protected mode entry                 - 03 Sep 2020
@@ -27,14 +61,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] Document IDT for later                    - 30 Jun 2021     28 Jun 2021
 [X] Document Call Gates                       - 30 Jun 2021     28 Jun 2021
 [X] Document Paging                           - 24 Jul 2021     24 Jul 2021
-[ ] Document BOOTINFO struct                  - 03 Feb 2021
-[ ] Basic keyboard ISQ                        - 18 Nov 2020
-    handler (demo)                            
-[ ] GP handler                                - 16 Nov 2020
-[ ] Page fault handler in asm                 - 26 Jan 2021
 [X] Higher half kernel implement              - 31 Jan 2021     28 Aug 2021
-[ ] RAMDISK (INITRD.0) creation 
-    in build.sh
 [X] BOOT1 to load Kernel and INITRD.0         -                 25 Aug 2021
 [X] Create a tools folder, with scripts to    -
     build gcc cross-compiler.
@@ -48,19 +75,6 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     Correct option is selected based on 
     compiler flags and stage at which 
     the OS is currently.
-[ ] Physical memory allocator                 -
-[ ] Virutal memory allocator                  -
-[ ] Various functions like kdisp_ioctl, etc   -
-    must implement error reporting.
-    [X] kdisp_ioctl
-[ ] Make symbols comply with the C99.         -                 30 Dec 2021
-    Symbols beginning with underscore is 
-    reserved [7.13]. Rename them.
-    [X] Macros in header files.
-    [X] Variable names in C source.
-    [X] Members in struct.
-    [X] Function names.
-    [ ] Guard Macros in header files.
 [X] Create/Update the C style guide.          -                 29 Dec 2021
 [-] Instead of just [ER], boot1 should show
     some error code, that identifies the
@@ -70,20 +84,6 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     each of the routimes. Specific error
     codes will not be benifitial at this
     time.
-[ ] Configuration header files for C and
-    assembly.                                 -
-[ ] Script to auto generate the config
-    headers simultaneously for C and
-    assembly.                                 -
-[ ] There is a need to document the types
-    declared for MeghaOS like INT, LONG etc.
-    These do need to conform with C99, but
-    can be different from the compiler 
-    versions. LONG for example must be 32 
-    bits or more, but always large enough
-    to hold the largest addresses in the 
-    architecture.                             -
-
 
 # LONG TERM PLANS
 
