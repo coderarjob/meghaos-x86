@@ -119,9 +119,13 @@ static void s_markMemoryOccupiedByModuleFiles ()
  * @return              If successful, returns EXIT_SUCCESS.
  * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
  *                      1. ERR_WRONG_ALIGNMENT  - startAddress not aligned to page boundary.
+ *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
  **************************************************************************************************/
 INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
 {
+    if (pageCount == 0)
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, EXIT_FAILURE);
+
     if (IS_ALIGNED (startAddress.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
 
@@ -151,11 +155,15 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
  *                      2. ERR_WRONG_ALIGNMENT - 'start' is not aligned to page boundary.
  *                      3. ERR_DOUBLE_ALLOC - All or part of specified memory is already allocated.
  *                                            This error is only thrown for FIXED allocations.
+ *                      4. ERR_INVALID_ARGUMENT - pageCount is zero.
  **************************************************************************************************/
 INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PHYSICAL start)
 {
     UINT startPageFrame = 0;
     INT found = FALSE;
+
+    if (pageCount == 0)
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, EXIT_FAILURE);
 
     switch (type)
     {
@@ -229,6 +237,8 @@ static INT s_managePages (UINT startPageFrame, UINT frameCount, bool allocate)
                     , (allocate) ? "Allocating" : "Freeing"
                     , PAGEFRAMES_TO_BYTES(frameCount), PAGEFRAMES_TO_BYTES(startPageFrame));
 
+    k_assert (frameCount > 0, "Page frame count cannot be zero.");
+
     UINT endPageFrame = startPageFrame + frameCount - 1;
     for (UINT pageFrame = startPageFrame
             ; pageFrame <= endPageFrame
@@ -267,6 +277,8 @@ exitFailure:
  **************************************************************************************************/
 static INT s_isPagesFree (UINT startPageFrame, UINT count)
 {
+    k_assert (count > 0, "Page frame count cannot be zero.");
+
     INT isAllocated = 0;
     for (UINT i = 0 ; i < count && isAllocated == 0; i++)
         isAllocated = s_get (i + startPageFrame);

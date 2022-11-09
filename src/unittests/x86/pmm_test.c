@@ -15,6 +15,40 @@ void* CAST_PA_TO_VA (PHYSICAL a);
 void k_panic_ndu (const CHAR *s,...) { }
 void kdebug_printf_ndu (const CHAR *fmt, ...) { }
 
+TEST(PMM, zero_page_allocation)
+{
+    U8 shadow_pab[PAB_SIZE_BYTES];
+
+    memset (pab, 0,PAB_SIZE_BYTES);        // Clear PAB
+    memset (shadow_pab, 0,PAB_SIZE_BYTES); // Same state as PAB
+
+    USYSINT address = 0xCAFEBABE;
+    INT success = kpmm_alloc (&address, 0, PMM_NORMAL, (USYSINT)0);
+
+    // alloc must have failed immediately, so the must not change the 'address' and PAB.
+    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (address, 0xCAFEBABE);
+    EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
+    END();
+}
+
+TEST(PMM, zero_page_freeing)
+{
+    U8 shadow_pab[PAB_SIZE_BYTES];
+
+    memset (pab, 0xFF,PAB_SIZE_BYTES);          // Mark whole PAB as allocated.
+    memset (shadow_pab, 0xFF, PAB_SIZE_BYTES);  // Same state as PAB.
+
+    INT success = kpmm_free ((USYSINT)0, 0);
+
+    // free must not do anything.
+    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
+    END();
+}
+
 TEST(PMM, autoalloc_out_of_memory)
 {
     // Clear PAB.
@@ -271,4 +305,6 @@ int main()
     alloc_auto_last_page();
     double_allocate();
     double_free();
+    zero_page_freeing();
+    zero_page_allocation();
 }

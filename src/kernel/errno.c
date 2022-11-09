@@ -26,6 +26,7 @@ KernelErrorCodes k_errorNumber;
       "Double free",
       "Double allocation",
       "Byte alignment is wrong"
-      "Byte is outside addressable range."
+      "Byte is outside addressable range.",
+      "Invalid argument."
     };
 #endif

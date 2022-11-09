@@ -21,7 +21,8 @@ typedef enum KernelErrorCodes
     ERR_DOUBLE_FREE,
     ERR_DOUBLE_ALLOC,
     ERR_WRONG_ALIGNMENT,
-    ERR_OUTSIDE_ADDRESSABLE_RANGE
+    ERR_OUTSIDE_ADDRESSABLE_RANGE,
+    ERR_INVALID_ARGUMENT
 } KernelErrorCodes;
 
 /* This variable is globally used to set error codes*/
