@@ -167,22 +167,21 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
 
     switch (type)
     {
-    case PMM_DMA:
-    case PMM_NORMAL:
-        {
-            UINT maxPageCount = (type == PMM_NORMAL) ? MAX_ADDRESSABLE_PAGE_COUNT
-                                                     : MAX_DMA_ADDRESSABLE_PAGE_COUNT;
+        case PMM_DMA:
+        case PMM_NORMAL:
+            {
+                UINT maxPageCount = (type == PMM_NORMAL) ? MAX_ADDRESSABLE_PAGE_COUNT
+                                                         : MAX_DMA_ADDRESSABLE_PAGE_COUNT;
 
-            k_assert (maxPageCount <= MAX_ADDRESSABLE_PAGE_COUNT, "Outside addressable range");
+                k_assert (maxPageCount <= MAX_ADDRESSABLE_PAGE_COUNT, "Outside addressable range");
 
-            for ( ; found == FALSE && startPageFrame < maxPageCount; startPageFrame++)
-                found = s_isPagesFree (startPageFrame, pageCount);
+                for ( ; found == FALSE && startPageFrame < maxPageCount; startPageFrame++)
+                    found = s_isPagesFree (startPageFrame, pageCount);
 
-            --startPageFrame; // undoing the last increment.
-            break;
-        }
-    case PMM_FIXED:
-        {
+                --startPageFrame; // undoing the last increment.
+                break;
+            }
+        case PMM_FIXED:
             if (IS_ALIGNED (start.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
                 RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
 
@@ -190,28 +189,31 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
             startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
             found = s_isPagesFree (startPageFrame, pageCount);
             break;
-        }
-    default:
-        // Should not be here.
-        k_assert (false, "Should not be here. Invalid Allocation Type");
+        default:
+            k_assert (false, "Should not be here. Invalid Allocation Type");
     }
 
-    // Not enough free pages found.
-    if (found == EXIT_FAILURE) goto exitFailure;
-    if (found == FALSE) goto exitError;
+    switch (found)
+    {
+        case TRUE:
+            // Free pages found. Now Allocate them.
+            if (s_managePages (startPageFrame, pageCount, true) == EXIT_SUCCESS)
+                if (type != PMM_FIXED && allocated != NULL)
+                    (*allocated).val = PAGEFRAMES_TO_BYTES (startPageFrame);
 
-    // Free pages found. Now Allocate them.
-    if (s_managePages (startPageFrame, pageCount, true) == EXIT_FAILURE)
-        goto exitError;
+            return EXIT_SUCCESS;
+            break;
+        case FALSE:
+            // Not enough number of free pages were found.
+            RETURN_ERROR ((type == PMM_FIXED) ? ERR_DOUBLE_ALLOC : ERR_OUT_OF_MEM, EXIT_FAILURE);
+            break;
+        case EXIT_FAILURE:
+            break;
+        default:
+            k_assert (false, "Should not be here.");
+            break;
+    }
 
-    USYSINT startAddress = PAGEFRAMES_TO_BYTES (startPageFrame);
-    if ((type != PMM_FIXED || (type == PMM_FIXED && allocated != NULL)))
-        (*allocated).val = startAddress;
-
-    return EXIT_SUCCESS;
-exitError:
-    RETURN_ERROR ((type == PMM_FIXED) ? ERR_DOUBLE_ALLOC : ERR_OUT_OF_MEM, EXIT_FAILURE);
-exitFailure:
     return EXIT_FAILURE;
 }
 
