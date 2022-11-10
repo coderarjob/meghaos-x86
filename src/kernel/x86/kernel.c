@@ -102,7 +102,7 @@ void display_system_info ()
         BootMemoryMapItem* item = kboot_getBootLoaderInfoBootMemoryMapItem (mi, i);
         U64 baseAddress = kboot_getBootMemoryMapItemBaseAddress (item);
         U64 length_bytes = kboot_getBootMemoryMapItemLengthBytes (item);
-        PMMAllocationTypes type = kboot_getBootMemoryMapItemType (item);
+        BootMemoryMapTypes type = kboot_getBootMemoryMapItemType (item);
 
         available_memory += length_bytes;
         kdebug_printf ("\r\n* map: Start = %llx, Length = %llx, Type = %u",
