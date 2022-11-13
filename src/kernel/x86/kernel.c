@@ -81,28 +81,28 @@ void __kernel_main ()
 void display_system_info ()
 {
     BootLoaderInfo *mi = kboot_getCurrentBootLoaderInfo ();
-    INT loadedFilesCount = kboot_getBootLoaderInfoFilesCount (mi);
+    INT loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
 
     kdebug_printf ("%s","\r\nLoaded kernel files:");
     for (INT i = 0; i < loadedFilesCount; i++){
-        BootFileItem* file = kboot_getBootLoaderInfoBootFileItem (mi, i);
-        UINT startLocation = (UINT)kboot_getBootFileItemStartLocation (file);
-        UINT length_bytes = (UINT)kboot_getBootFileItemFileLength (file);
+        BootFileItem* file = kBootLoaderInfo_getFileItem (mi, i);
+        UINT startLocation = (UINT)kBootFileItem_getStartLocation (file);
+        UINT length_bytes = (UINT)kBootFileItem_getLength (file);
 
         kdebug_printf ("\r\n* file: Start = %x, Length = %x",
                 startLocation, length_bytes);
     }
 
 
-    INT memoryMapItemCount = kboot_getBootLoaderInfoBootMemoryMapItemCount (mi);
+    INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
     kdebug_printf ("%s","\r\nBIOS Memory map:"); 
     U64 available_memory = 0;
     for (INT i = 0; i < memoryMapItemCount; i++)
     {
-        BootMemoryMapItem* item = kboot_getBootLoaderInfoBootMemoryMapItem (mi, i);
-        U64 baseAddress = kboot_getBootMemoryMapItemBaseAddress (item);
-        U64 length_bytes = kboot_getBootMemoryMapItemLengthBytes (item);
-        BootMemoryMapTypes type = kboot_getBootMemoryMapItemType (item);
+        BootMemoryMapItem* item = kBootLoaderInfo_getMemoryMapItem (mi, i);
+        U64 baseAddress = kBootMemoryMapItem_getBaseAddress (item);
+        U64 length_bytes = kBootMemoryMapItem_getLength (item);
+        BootMemoryMapTypes type = kBootMemoryMapItem_getType (item);
 
         available_memory += length_bytes;
         kdebug_printf ("\r\n* map: Start = %llx, Length = %llx, Type = %u",
