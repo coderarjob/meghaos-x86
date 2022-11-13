@@ -55,16 +55,16 @@ void kpmm_init ()
 static void s_markFreeMemory ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    INT mmapCount = kboot_getBootLoaderInfoBootMemoryMapItemCount (bootloaderinfo);
+    INT mmapCount = kBootLoaderInfo_getMemoryMapItemCount (bootloaderinfo);
     for (INT i = 0; i < mmapCount; i++)
     {
-        BootMemoryMapItem* memmap = kboot_getBootLoaderInfoBootMemoryMapItem (bootloaderinfo, i);
-        BootMemoryMapTypes type = kboot_getBootMemoryMapItemType (memmap);
+        BootMemoryMapItem* memmap = kBootLoaderInfo_getMemoryMapItem (bootloaderinfo, i);
+        BootMemoryMapTypes type = kBootMemoryMapItem_getType (memmap);
 
         if (type != MMTYPE_FREE) continue;
 
-        USYSINT startAddress = (USYSINT)kboot_getBootMemoryMapItemBaseAddress (memmap);
-        USYSINT lengthBytes = (USYSINT)kboot_getBootMemoryMapItemLengthBytes (memmap);
+        USYSINT startAddress = (USYSINT)kBootMemoryMapItem_getBaseAddress (memmap);
+        USYSINT lengthBytes = (USYSINT)kBootMemoryMapItem_getLength (memmap);
 
         // Check if addressing more than Addressable. Cap it to Max Addressable if so.
         ULLONG endAddress = startAddress + lengthBytes - 1;
@@ -95,12 +95,12 @@ static void s_markFreeMemory ()
 static void s_markMemoryOccupiedByModuleFiles ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    INT filesCount = kboot_getBootLoaderInfoFilesCount (bootloaderinfo);
+    INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
     for (INT i = 0; i < filesCount; i++)
     {
-        BootFileItem* fileinfo = kboot_getBootLoaderInfoBootFileItem (bootloaderinfo, i);
-        USYSINT startAddress = (USYSINT)kboot_getBootFileItemStartLocation (fileinfo);
-        USYSINT lengthBytes = (USYSINT)kboot_getBootFileItemFileLength (fileinfo);
+        BootFileItem* fileinfo = kBootLoaderInfo_getFileItem (bootloaderinfo, i);
+        USYSINT startAddress = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
+        USYSINT lengthBytes = (USYSINT)kBootFileItem_getLength (fileinfo);
         UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
 
         kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."

@@ -1,8 +1,23 @@
 MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 ------------------------------------------------------------------------------
 
-# TASKS                                      Estimated       Actual
+# TASKS                                         Estimated       Actual
 
+[ ] Remove the transparent union for PHYSICAL -
+    Type matching must be rigid to be useful.
+
+[ ] Treat physical page 0 as a NULL page.     -
+    PMM will never allocate this page and
+    thus no Virtual Memory can be assigned
+    to this page.
+    This physical address will be treated
+    as an invalid (out of range) address by
+    both PMM and VMM. So can be helpful
+        * To track down bugs, as any access
+        to this address, means something is
+        not properly initialized. Without
+        this NULL page, such errors are
+        hard to track down.
 [ ] Document BOOTINFO struct                  - 03 Feb 2021
 [ ] Basic keyboard IRQ                        - 18 Nov 2020
     handler (demo)
@@ -37,6 +52,9 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     bits or more, but always large enough
     to hold the largest addresses in the
     architecture.                             -
+[X] Rename the accessor methods in boot.c to  - 11 Nov 2022     11 Nov 2022
+    the following format:
+    k<Boot Structure Name>_get<Field Name>
 [X] GDT and LDT concept                       - 25 Aug 2020
 [X] IDT and TSS read                          - 01 Sep 2020
 [X] Test Protected mode entry                 - 03 Sep 2020
