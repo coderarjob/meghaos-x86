@@ -3,6 +3,16 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 
 # TASKS                                         Estimated       Actual
 
+[-] Check the effect on kernel binary size,   -
+    if the boot opaque types were removed.
+    PMM or the Kernel accesses fields
+    directly.
+    I think these opaque types should remain,
+    the accessor methods are a good place to
+    place asserts and other checks. And these
+    checks are invaluable in finding and
+    preventing bugs.
+
 [ ] Remove the transparent union for PHYSICAL -
     Type matching must be rigid to be useful.
 
