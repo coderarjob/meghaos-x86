@@ -41,13 +41,13 @@
 	; MOS Fixed Memory Locations
     ; ------------------------------------------------------------------------
     ; Segmented Memories          SEG   : OFF
-	SEG_MEM_LOC     GDT,          0x0000_0800  ; 256 interupts *8 = 0x800
-	SEG_MEM_LOC     BOOT_INFO,    0x0000_1800
+	SEG_MEM_LOC     GDT,          0x0000_1800  ; 256 interupts *8 = 0x800
+	SEG_MEM_LOC     BOOT_INFO,    0x0000_2800  ; 1 KB is size.
 	SEG_MEM_LOC     LOADER,       0x0000_8000  ; 7C00h + 512 + 512 = 8000h
-	SEG_MEM_LOC     FILE_BUFF,    0x2800_0000  ; 0000:8000h + 128KB = 28000
+	SEG_MEM_LOC     FILE_BUFF,    0x1800_0000  ; 0000:8000h + 64KB = 18000
 
     ; Non segmented Memories
-	MEM_LOC     KERNEL_STACK_TOP, 0x0002_7FFF  ; Stack is 128 KB in size
+	MEM_LOC     KERNEL_STACK_TOP, 0x0004_3BFF  ; Stack is 256 KB in size
 	MEM_LOC     KERNEL_IMG,       0x0010_0000  ; Kernel image is copied here.
 
     ; Constants
