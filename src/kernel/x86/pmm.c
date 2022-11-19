@@ -10,12 +10,13 @@
 
 #include <kernel.h>
 
-static INT s_isPagesFree (UINT startPageFrame, UINT count);
-static INT s_managePages (UINT startPageFrame, UINT frameCount, bool allocate);
+static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA);
+static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA);
+static INT s_get (UINT pageFrame, bool isDMA);
+static void s_set (UINT pageFrame, bool alloc, bool isDMA);
+static UINT s_getMaxPageCount (bool isDMA);
 static void s_markMemoryOccupiedByModuleFiles ();
 static void s_markFreeMemory ();
-static INT s_get (UINT pageFrame);
-static INT s_set (UINT pageFrame, bool alloc);
 
 static U8 *s_pab = NULL;
 
@@ -37,9 +38,6 @@ void kpmm_init ()
 
     // Mark memory already occupied by the modules.
     s_markMemoryOccupiedByModuleFiles();
-
-    USYSINT addr = 0;
-    kpmm_alloc (NULL, 1, PMM_FIXED, addr);
 }
 
 /***************************************************************************************************
@@ -66,6 +64,15 @@ static void s_markFreeMemory ()
         USYSINT startAddress = (USYSINT)kBootMemoryMapItem_getBaseAddress (memmap);
         USYSINT lengthBytes = (USYSINT)kBootMemoryMapItem_getLength (memmap);
 
+        // Handle the case where the start address is within the 1st page. As access to this page is
+        // not allowed, we need to move start location to the start of 2nd page frame and adjust the
+        // length, so that the end address of this block remains the same.
+        if (startAddress < CONFIG_PAGE_FRAME_SIZE_BYTES)
+        {
+            lengthBytes -= (CONFIG_PAGE_FRAME_SIZE_BYTES - startAddress); // adjust length
+            startAddress = CONFIG_PAGE_FRAME_SIZE_BYTES;    // Start allocation from 2nd page
+        }
+
         // Check if addressing more than Addressable. Cap it to Max Addressable if so.
         ULLONG endAddress = startAddress + lengthBytes - 1;
         endAddress = (endAddress < MAX_ADDRESSABLE_BYTE_COUNT) ? endAddress
@@ -77,7 +84,7 @@ static void s_markFreeMemory ()
 
         kdebug_printf ("\r\nI: Freeing startAddress: %px, byteCount: %px, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_free (startAddress, pageFrameCount) == EXIT_FAILURE)
+        if (kpmm_free (createPhysical (startAddress), pageFrameCount) == false)
             k_assertOnError ();
     }
 }
@@ -105,9 +112,8 @@ static void s_markMemoryOccupiedByModuleFiles ()
 
         kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_alloc (NULL , pageFrameCount, PMM_FIXED, startAddress) == EXIT_FAILURE)
+        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == false)
             k_assertOnError ();
-
     }
 }
 /***************************************************************************************************
@@ -116,105 +122,123 @@ static void s_markMemoryOccupiedByModuleFiles ()
  * @Input startAddress  Physical memory location of the first page. Error is generated if not a
  *                      aligned to page boundary.
  * @Input pageCount     Number of page frames to deallocate.
- * @return              If successful, returns EXIT_SUCCESS.
- * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
+ * @return              If successful, returns true;
+ * @return              If failure false is returned. k_errorNumber is set with error code.
  *                      1. ERR_WRONG_ALIGNMENT  - startAddress not aligned to page boundary.
  *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
+ *                      3. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
+ *                                                         range.
  **************************************************************************************************/
-INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
+bool kpmm_free (PHYSICAL startAddress, UINT pageCount)
 {
     if (pageCount == 0)
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, EXIT_FAILURE);
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
+    // Check if address is within the max addressable range.
+    USYSINT allocation_end_byte = startAddress.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
+
+    if (allocation_end_byte >= MAX_ADDRESSABLE_BYTE_COUNT)
+        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
+
+    // Check alignment of the address. Must be aligned to page boundary.
     if (IS_ALIGNED (startAddress.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
-        RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
 
-    /* Note: As startAddress is already aligned, both floor or ceiling are same here. */
+    // Note: As startAddress is already aligned, both floor or ceiling are same here.
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (startAddress.val);
-    if (s_managePages (startPageFrame, pageCount, false) == EXIT_FAILURE)
-        return EXIT_FAILURE;
 
-    return EXIT_SUCCESS;
+    // DMA addressing range does not determine freeing. FALSE if passed here becuuse we want free to
+    // deallocate any address.
+    s_managePages (startPageFrame, pageCount, false, FALSE);
+
+    return true;
 }
 
 /***************************************************************************************************
- * Searches the PAB and allocated the specified number of consecutive free physical pages.
+ * Tries to allocates pages starting at the physical address that is provided.
  *
- * @Output allocated    If successful, holds the allocated physical address. If type is PMM_FIXED,
- *                      this can be NULL.
  * @Input pageCount     Number of byte frames to allocate.
- * @Input type          PMM_DMA to allocate enough free physical pages suitable for DMA.
- * @Input type          PMM_NORMAL to allocate enough free physical pages anywhere in memory.
- * @Input type          PMM_FXED to allocate enough free physical pages at the specified address.
- * @Input start         Pages will be allocated from this physical address, for PMM_FIXED type.
- *                      omitted otherwise. Must be page aligned.
- * @return              If successful, returns EXIT_SUCCESS.
- * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
+ * @Input isDMA         Is allocating from the DMA memory range.
+ * @Input start         Pages will be allocated from this physical address.Must be page aligned.
+ * @return              If successful, returns true.
+ * @return              If failure false is returned. k_errorNumber is set with error code.
+ *                      1. ERR_WRONG_ALIGNMENT - 'start' is not aligned to page boundary.
+ *                      2. ERR_DOUBLE_ALLOC - All or part of specified memory is already allocated.
+ *                                            This error is only thrown for FIXED allocations.
+ *                      3. ERR_INVALID_ARGUMENT - pageCount is zero.
+ *                      4. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
+ *                                                         range.
+ **************************************************************************************************/
+bool kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA)
+{
+    if (pageCount == 0)
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+
+    // Check if address is within the max addressable range.
+    USYSINT max_addressable_byte_count = s_getMaxPageCount (isDMA) * CONFIG_PAGE_FRAME_SIZE_BYTES;
+    USYSINT allocation_end_byte = start.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
+    if (allocation_end_byte >= max_addressable_byte_count)
+        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
+
+    // Check alignment of the address. Must be aligned to page boundary.
+    if (IS_ALIGNED (start.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
+
+    // Note: Because the address is aligned to page boundary, Floor or ceiling are the same.
+    UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
+
+    // Check if all the pages can be allocated at the provided location.
+    bool found = s_isPagesFree (startPageFrame, pageCount, isDMA);
+
+    // Free pages were not found. But there was no error.
+    if (found == FALSE)
+        RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
+
+    // Free pages found. Now Allocate them.
+    s_managePages (startPageFrame, pageCount, true, isDMA);
+
+    return true;
+}
+
+/***************************************************************************************************
+ * Tries to allocates pages starting at the physical address that is provided.
+ *
+ * @Input pageCount     Number of byte frames to allocate.
+ * @Input isDMA         Is allocating from the DMA memory range.
+ * @return              If successful, returns the allocated physical address.
+ * @return              If failure PHYSICAL_NULL is returned. k_errorNumber is set with error code.
  *                      1. ERR_OUT_OF_MEM   - Could not find the required number of free
  *                                            consecutive pages.
- *                      2. ERR_WRONG_ALIGNMENT - 'start' is not aligned to page boundary.
- *                      3. ERR_DOUBLE_ALLOC - All or part of specified memory is already allocated.
- *                                            This error is only thrown for FIXED allocations.
- *                      4. ERR_INVALID_ARGUMENT - pageCount is zero.
+ *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
  **************************************************************************************************/
-INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PHYSICAL start)
+PHYSICAL kpmm_alloc (UINT pageCount, bool isDMA)
 {
-    UINT startPageFrame = 0;
+    if (pageCount == 0)
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, PHYSICAL_NULL);
+
+    UINT startPageFrame = 1;
     INT found = FALSE;
 
-    if (pageCount == 0)
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, EXIT_FAILURE);
+    // Search PAB for a suitable location.
+    UINT maxPageFrame = s_getMaxPageCount (isDMA) - pageCount;
+    for (; found == FALSE && startPageFrame <= maxPageFrame; startPageFrame++)
+        found = s_isPagesFree (startPageFrame, pageCount, isDMA);
 
-    switch (type)
+    --startPageFrame; // undoing the last increment.
+
+    // Free pages were not found. But there was no error.
+    if (found == FALSE)
+        RETURN_ERROR (ERR_OUT_OF_MEM, PHYSICAL_NULL);
+
+    // Free pages found. Now Allocate them.
+    if (found == TRUE)
     {
-        case PMM_DMA:
-        case PMM_NORMAL:
-            {
-                UINT maxPageCount = (type == PMM_NORMAL) ? MAX_ADDRESSABLE_PAGE_COUNT
-                                                         : MAX_DMA_ADDRESSABLE_PAGE_COUNT;
-
-                k_assert (maxPageCount <= MAX_ADDRESSABLE_PAGE_COUNT, "Outside addressable range");
-
-                for ( ; found == FALSE && startPageFrame < maxPageCount; startPageFrame++)
-                    found = s_isPagesFree (startPageFrame, pageCount);
-
-                --startPageFrame; // undoing the last increment.
-                break;
-            }
-        case PMM_FIXED:
-            if (IS_ALIGNED (start.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
-                RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
-
-            /* Note: As 'start' is already aligned, both floor or ceiling are same here. */
-            startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
-            found = s_isPagesFree (startPageFrame, pageCount);
-            break;
-        default:
-            k_assert (false, "Should not be here. Invalid Allocation Type");
+        s_managePages (startPageFrame, pageCount, true, isDMA);
+        return createPhysical (PAGEFRAMES_TO_BYTES (startPageFrame));
     }
 
-    switch (found)
-    {
-        case TRUE:
-            // Free pages found. Now Allocate them.
-            if (s_managePages (startPageFrame, pageCount, true) == EXIT_SUCCESS)
-                if (type != PMM_FIXED && allocated != NULL)
-                    (*allocated).val = PAGEFRAMES_TO_BYTES (startPageFrame);
-
-            return EXIT_SUCCESS;
-            break;
-        case FALSE:
-            // Not enough number of free pages were found.
-            RETURN_ERROR ((type == PMM_FIXED) ? ERR_DOUBLE_ALLOC : ERR_OUT_OF_MEM, EXIT_FAILURE);
-            break;
-        case EXIT_FAILURE:
-            break;
-        default:
-            k_assert (false, "Should not be here.");
-            break;
-    }
-
-    return EXIT_FAILURE;
+    // There was an error in either s_isPagesFree or s_managePages
+    return PHYSICAL_NULL;
 }
 
 /***************************************************************************************************
@@ -227,13 +251,9 @@ INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PH
  * @Input frameCount        Number of page frames to allocate. Out of Memory is generated if more
  *                          pages are requested than are free.
  * @Input allocate          true to Allocate, false to deallocate.
- * @return                  On Success, EXIT_SUCCESS is returned.
- * @return                  If failure EXIT_FAILURE is returned. k_errorNumber is set with
- *                          error code.
- *                          1. ERR_DOUBLE_ALLOC - A page frame is already allocated.
- *                          2. ERR_DOUBLE_FREE - A page frame is already free.
+ * @return                  On failure panic is triggered.
  **************************************************************************************************/
-static INT s_managePages (UINT startPageFrame, UINT frameCount, bool allocate)
+static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA)
 {
     kdebug_printf ("\r\nI: %s 0x%px bytes starting physical address 0x%px."
                     , (allocate) ? "Allocating" : "Freeing"
@@ -241,28 +261,8 @@ static INT s_managePages (UINT startPageFrame, UINT frameCount, bool allocate)
 
     k_assert (frameCount > 0, "Page frame count cannot be zero.");
 
-    UINT endPageFrame = startPageFrame + frameCount - 1;
-    for (UINT pageFrame = startPageFrame
-            ; pageFrame <= endPageFrame
-            ; pageFrame++)
-    {
-        INT bit;
-        if ((bit = s_get (pageFrame)) < 0)
-                goto exitFailure;
-
-        if (allocate && bit == 1)
-            RETURN_ERROR (ERR_DOUBLE_ALLOC, EXIT_FAILURE);
-
-        if (!allocate && bit == 0)
-            RETURN_ERROR (ERR_DOUBLE_FREE, EXIT_FAILURE);
-
-        if (s_set (pageFrame, allocate) < 0)
-            goto exitFailure;
-    }
-
-    return EXIT_SUCCESS;
-exitFailure:
-    return EXIT_FAILURE;
+    for (UINT pageFrame = startPageFrame ; frameCount-- > 0; pageFrame++)
+        s_set (pageFrame, allocate, isDMA);
 }
 
 /***************************************************************************************************
@@ -274,32 +274,37 @@ exitFailure:
  *                          location.
  * @return                  Returns FALSE if required number of free pages were not found at the
  *                          physical location.
- * @return                  If failure EXIT_FAILURE is returned. k_errorNumber is set with
- *                          error code.
+ * @return                  On failure panic is triggered.
  **************************************************************************************************/
-static INT s_isPagesFree (UINT startPageFrame, UINT count)
+static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA)
 {
     k_assert (count > 0, "Page frame count cannot be zero.");
 
     INT isAllocated = 0;
     for (UINT i = 0 ; i < count && isAllocated == 0; i++)
-        isAllocated = s_get (i + startPageFrame);
+        isAllocated = s_get (i + startPageFrame, isDMA);
 
-    return (isAllocated < 0) ? EXIT_FAILURE : !isAllocated;
+    return isAllocated == 0;
 }
 
 /***************************************************************************************************
  * Sets/Clears corresponding page frame bit in PAB.
  *
  * @Input pageFrame Physical page frame to change. First page frame is 0.
- * @return          On Success, EXIT_SUCCESS is returned.
- * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
- *                  1. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
+ * @return          If failure panic is triggered.
  **************************************************************************************************/
-static INT s_set (UINT pageFrame, bool alloc)
+static void s_set (UINT pageFrame, bool alloc, bool isDMA)
 {
-    if (pageFrame > MAX_ADDRESSABLE_PAGE)
-        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
+    if (pageFrame == 0)
+        k_panic ("Invalid access: Page %u", pageFrame);
+
+    INT allocated = s_get (pageFrame, isDMA);
+
+    if (allocated && alloc)
+        k_panic ("Double allocation: Page %u", pageFrame);
+
+    if (!allocated && !alloc)
+        k_panic ("Double free: Page %u", pageFrame);
 
     UINT byteIndex = (pageFrame / 8);
     UINT bitIndex = (pageFrame % 8);
@@ -309,7 +314,6 @@ static INT s_set (UINT pageFrame, bool alloc)
         s_pab[byteIndex] |= (U8)mask;
     else
         s_pab[byteIndex] &= (U8)~mask;
-    return EXIT_SUCCESS;
 }
 
 /***************************************************************************************************
@@ -317,16 +321,34 @@ static INT s_set (UINT pageFrame, bool alloc)
  *
  * @Input pageFrame Physical page frame to query. First page frame is 0.
  * @return          On Success, returns 0 is page frame is free, 1 otherwise.
- * @return          If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
- *                  1. ERR_OUTSIDE_ADDRESSABLE_RANGE - Outside memory addressable by PAB.
+ * @return          If failure panic is triggered.
  **************************************************************************************************/
-static INT s_get (UINT pageFrame)
+static INT s_get (UINT pageFrame, bool isDMA)
 {
-    if (pageFrame > MAX_ADDRESSABLE_PAGE)
-        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
+    if (pageFrame == 0)
+        k_panic ("Invalid access: Page %u", pageFrame);
+
+    if (pageFrame > s_getMaxPageCount (isDMA))
+        k_panic ("Access outside range. Page %u", pageFrame);
 
     UINT byteIndex = (pageFrame / 8);
     UINT bitIndex = (pageFrame % 8);
+    UINT mask = (U8)(1U << bitIndex);
 
-    return (s_pab[byteIndex] & (U8)(1U << bitIndex)) >> bitIndex;
+    return (s_pab[byteIndex] & (U8)mask) >> bitIndex;
+}
+
+/***************************************************************************************************
+ * Returs the largest page frame count, for the input provided.
+ *
+ * @Input isDMA     Queried for DMA.
+ * @return          Gets the maximum page frame count for DMA hardware. Otherwise returns the
+ *                  maximum page frame count supported by the PAB.
+ **************************************************************************************************/
+static UINT s_getMaxPageCount (bool isDMA)
+{
+    UINT maxPageCount = (isDMA) ? MAX_DMA_ADDRESSABLE_PAGE_COUNT: MAX_ADDRESSABLE_PAGE_COUNT;
+    k_assert (maxPageCount <= MAX_ADDRESSABLE_PAGE_COUNT, "Page outside addressable range");
+
+    return maxPageCount;
 }

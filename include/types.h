@@ -37,8 +37,18 @@ inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
 typedef union
 {
     USYSINT val;
-} __attribute__ ((__transparent_union__, packed)) PHYSICAL;
+} __attribute__ ((packed)) PHYSICAL;
 
 #define PHYSICAL(address) {.val = address}
+#define PHYSICAL_NULL createPhysical(0)
+
+static inline PHYSICAL createPhysical (USYSINT address) {
+    PHYSICAL p = {.val = address};
+    return p;
+}
+
+static inline bool isPhysicalNull (PHYSICAL address) {
+    return address.val == 0;
+}
 
 #endif // __PORTABLE_TYPES__

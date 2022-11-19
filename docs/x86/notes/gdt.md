@@ -1,6 +1,38 @@
 ## Megha Operating System V2 - x86
 ## GDT entries
 ------------------------------------------------------------------------------
+_15 November 2022_
+
+Revised physical memory map
+
+1. First 4096 bytes is NULL page. The bytes here should be untouched, neither
+   read or written to. I might initialize this page with 0xDEADBEEF, which will
+   help identifying if something reads or writes this to this portion of memory.
+
+2. Guard pages around the initial kernel stack. The stack may be moved and
+   allocated dynamically later after Virtual Memory Manager is in place.
+
+### Memory Layout after boot1
+* 0x000000  - 0x000FFF    -   Guard Null Page
+* 0x001000  - 0x0017FF    -   IDT               2   KB (256 IDT entries)
+* 0x001800  - 0x0027FF    -   GDT               4   KB (512 GDT entries)
+* 0x002800  - 0x002BFF    -   Boot Info         1   KB
+* 0x002C00  - 0x003BFF    -   Guard Null page   4   KB
+* 0x003C00  - 0x007BFF    -   Free             10   KB
+* 0x007c00  - 0x007FFF    -   boot0             1   KB
+* 0x008000  - 0x017FFF    -   boot1            64   KB (Maximum boot1 size)
+* 0x018000  - 0x027FFF    -   boot1 buffer     64   KB
+* 0x003C00  - 0x043BFF    -   kernel stack    256   KB (boo1 space reused)
+* 0x043C00  - 0x044BFF    -   Guard Null page   4   KB
+* 0x100000  - 0x110000    -   kernel           64   KB (Maximum kernel size)
+
+The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine.
+It can load files at most 64 KB in size.
+
+The 1 KB for Boot Info structure is arbitarily large. The 1 KB is size should be
+large for any x86-64 systems.
+
+------------------------------------------------------------------------------
 _23st October 2020_
 
 Where to keep the GDT? Two possible options:
