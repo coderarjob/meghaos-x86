@@ -10,19 +10,21 @@
 #ifndef ERRORNO_H
 #define ERRORNO_H
 
+#include <types.h>
+
 /* Error codes that can be set inside the kernel.*/
 typedef enum KernelErrorCodes 
 {
     ERR_NONE                        =    0,
-    ERR_UNKNOWN,
-    ERR_INVALID_RANGE,
-    ERR_OVERFLOW,
-    ERR_OUT_OF_MEM,
-    ERR_DOUBLE_FREE,
-    ERR_DOUBLE_ALLOC,
-    ERR_WRONG_ALIGNMENT,
-    ERR_OUTSIDE_ADDRESSABLE_RANGE,
-    ERR_INVALID_ARGUMENT
+    ERR_UNKNOWN                     =    1,
+    ERR_INVALID_RANGE               =    2,
+    ERR_OVERFLOW                    =    3,
+    ERR_OUT_OF_MEM                  =    4,
+    ERR_DOUBLE_FREE                 =    5,
+    ERR_DOUBLE_ALLOC                =    6,
+    ERR_WRONG_ALIGNMENT             =    7,
+    ERR_OUTSIDE_ADDRESSABLE_RANGE   =    8,
+    ERR_INVALID_ARGUMENT            =    9
 } KernelErrorCodes;
 
 /* This variable is globally used to set error codes*/
@@ -31,11 +33,11 @@ extern KernelErrorCodes k_errorNumber;
 extern CHAR *k_errorText[];
 
 /* Can be used to set the k_errorNumber global and return from a function */
-#define RETURN_ERROR(errno, rval)                                                          \
-            do {                                                                           \
-                   kdebug_printf ("\r\nE: Error %x at %s:%u.", errno, __FILE__, __LINE__); \
-                   k_errorNumber = errno;                                                  \
-                   return rval;                                                            \
+#define RETURN_ERROR(errno, rval)                                                            \
+            do {                                                                             \
+                   kdebug_printf ("\r\nE: Error 0x%x at %s:%u.", errno, __FILE__, __LINE__); \
+                   k_errorNumber = errno;                                                    \
+                   return rval;                                                              \
                 }while(0)
 
 #define EXIT_SUCCESS  0

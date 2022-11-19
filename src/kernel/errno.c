@@ -25,8 +25,8 @@ KernelErrorCodes k_errorNumber;
       "Out of physical pages",
       "Double free",
       "Double allocation",
-      "Byte alignment is wrong"
+      "Byte alignment is wrong",
       "Byte is outside addressable range.",
-      "Invalid argument."
+      "Invalid argument.",
     };
 #endif
