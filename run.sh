@@ -18,9 +18,8 @@ run_test_by_name()
 # -----------------------------------------------------------------------------
 
 TEST_DIR="./build/bin/unittests"
-RUNMODE='UNKNOWN'
+RUNMODE='QEMU'
 
-[[ $# -eq 0 ]]                             && RUNMODE='QEMU'
 [[ $# -gt 0 ]] && [[ "$1" = "unittests" ]] && RUNMODE='TESTS'
 [[ $# -gt 1 ]] && [[ "$1" = "unittests" ]] && RUNMODE='ONE_TEST'
 
