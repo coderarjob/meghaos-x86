@@ -11,13 +11,6 @@
 
 extern PHYSICAL g_pab; /* Address of Page Allocation Bitmap array */
 
-typedef enum PMMAllocationTypes
-{
-    PMM_DMA,
-    PMM_NORMAL,
-    PMM_FIXED
-} PMMAllocationTypes;
-
 // Calculates number of bytes from page frame count 'fc'.
 #define PAGEFRAMES_TO_BYTES(fc) ((fc) * (CONFIG_PAGE_FRAME_SIZE_BYTES))
 
@@ -30,5 +23,6 @@ typedef enum PMMAllocationTypes
 
 void kpmm_init ();
 INT kpmm_free (PHYSICAL startAddress, UINT pageCount);
-INT kpmm_alloc (PHYSICAL *allocated, UINT pageCount, PMMAllocationTypes type, PHYSICAL start);
+PHYSICAL kpmm_alloc (UINT pageCount, bool isDMA);
+INT kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA);
 #endif // PMM_H_X86
