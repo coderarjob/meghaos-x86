@@ -22,7 +22,7 @@ extern PHYSICAL g_pab; /* Address of Page Allocation Bitmap array */
     (ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES) / CONFIG_PAGE_FRAME_SIZE_BYTES)
 
 void kpmm_init ();
-INT kpmm_free (PHYSICAL startAddress, UINT pageCount);
+bool kpmm_free (PHYSICAL startAddress, UINT pageCount);
 PHYSICAL kpmm_alloc (UINT pageCount, bool isDMA);
-INT kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA);
+bool kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA);
 #endif // PMM_H_X86

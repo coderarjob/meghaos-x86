@@ -61,7 +61,7 @@ TEST(PMM, alloc_fixed_zero_pages)
 
     // alloc_At must fail immediately.
     INT success = kpmm_allocAt (createPhysical(4096), 0, FALSE);
-    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
     END();
@@ -82,7 +82,7 @@ TEST(PMM, autoalloc_zero_pages)
 
     // alloc_At must fail immediately.
     INT success = kpmm_allocAt (addr, 0, FALSE);
-    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
     END();
@@ -98,7 +98,7 @@ TEST(PMM, free_zero_pages)
     INT success = kpmm_free (createPhysical(0), 0);
 
     // free must not do anything.
-    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
     END();
@@ -176,7 +176,7 @@ TEST(PMM, autoalloc_free_autoalloc)
     INT success = kpmm_free (startAddress, 2);
     EQ_SCALAR (pab[0], 0x4E);
     EQ_SCALAR (pab[1], 0x00);
-    EQ_SCALAR (success, EXIT_SUCCESS);
+    EQ_SCALAR (success, true);
 
     // Allocating 3 pages again. Address should be allocated automatically. 
     printf ("\n:: Allocating 3 pages");
@@ -185,7 +185,7 @@ TEST(PMM, autoalloc_free_autoalloc)
     EQ_SCALAR (startAddress.val, 7 * 4096);
     EQ_SCALAR (pab[0], 0xCE);
     EQ_SCALAR (pab[1], 0x03);
-    EQ_SCALAR (success, EXIT_SUCCESS);
+    EQ_SCALAR (success, true);
 
     END();
 }
@@ -201,7 +201,7 @@ TEST(PMM, alloc_fixed_past_last_page)
 
     INT success = kpmm_allocAt (startAddress, pagesCount, FALSE);
     EQ_SCALAR (panic_invoked, false);
-    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
     END();
 }
@@ -241,7 +241,7 @@ TEST(PMM, alloc_fixed_last_dma_page)
     EQ_SCALAR (pab[512], 0x00);
     EQ_SCALAR (pab[4094], 0x00);
     EQ_SCALAR (pab[4095], 0x00);        // Last addressable non-DMA pages. Should be free.
-    EQ_SCALAR (success, EXIT_SUCCESS);
+    EQ_SCALAR (success, true);
     END();
 }
 
@@ -257,7 +257,7 @@ TEST(PMM, alloc_fixed_last_page)
     INT success = kpmm_allocAt (startAddress, pagesCount, FALSE);
     EQ_SCALAR (pab[4094], 0x0);
     EQ_SCALAR (pab[4095], 0x80);
-    EQ_SCALAR (success, EXIT_SUCCESS);
+    EQ_SCALAR (success, true);
     END();
 }
 
@@ -273,7 +273,7 @@ TEST(PMM, alloc_free_fixed_misaligned_address)
     INT success = kpmm_allocAt (startAddress, 1, FALSE);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
-    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
 
     // Freeing 1 page at byte 1. Should throw ERR_WRONG_ALIGNMENT.
@@ -281,7 +281,7 @@ TEST(PMM, alloc_free_fixed_misaligned_address)
     success = kpmm_free (startAddress, 1);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
-    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
     END();
 }
@@ -313,7 +313,7 @@ TEST(PMM, double_fixed_allocate)
     INT success = kpmm_allocAt (addr, 1, FALSE);
     EQ_SCALAR (pab[0], 0x2);
     EQ_SCALAR (pab[1], 0x0);
-    EQ_SCALAR (success, EXIT_FAILURE);
+    EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_DOUBLE_ALLOC);
     END();
 }
@@ -330,7 +330,7 @@ TEST(PMM, alloc_fixed_2nd_page)
 
     EQ_SCALAR (pab[0], 0x2);
     EQ_SCALAR (pab[1], 0x0);
-    EQ_SCALAR (success, EXIT_SUCCESS);
+    EQ_SCALAR (success, true);
     END();
 }
 
@@ -343,11 +343,7 @@ TEST(PMM, alloc_fixed_1st_page)
     PHYSICAL startAddress = createPhysical(0);
 
     INT success = kpmm_allocAt (startAddress, 1, FALSE);
-
-    EQ_SCALAR (pab[0], 0x0);
-    EQ_SCALAR (pab[1], 0x0);
-    EQ_SCALAR (success, EXIT_FAILURE);
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (panic_invoked, true);
     END();
 }
 
@@ -360,11 +356,7 @@ TEST(PMM, free_1st_page)
     PHYSICAL startAddress = createPhysical(0);
 
     INT success = kpmm_free (startAddress, 1);
-    EQ_SCALAR (pab[0], 0x0);
-    EQ_SCALAR (pab[1], 0x0);
-    EQ_SCALAR (success, EXIT_FAILURE);
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
-
+    EQ_SCALAR (panic_invoked, true);
     END();
 }
 

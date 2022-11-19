@@ -84,7 +84,7 @@ static void s_markFreeMemory ()
 
         kdebug_printf ("\r\nI: Freeing startAddress: %px, byteCount: %px, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_free (createPhysical (startAddress), pageFrameCount) == EXIT_FAILURE)
+        if (kpmm_free (createPhysical (startAddress), pageFrameCount) == false)
             k_assertOnError ();
     }
 }
@@ -112,7 +112,7 @@ static void s_markMemoryOccupiedByModuleFiles ()
 
         kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == EXIT_FAILURE)
+        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == false)
             k_assertOnError ();
     }
 }
@@ -122,25 +122,27 @@ static void s_markMemoryOccupiedByModuleFiles ()
  * @Input startAddress  Physical memory location of the first page. Error is generated if not a
  *                      aligned to page boundary.
  * @Input pageCount     Number of page frames to deallocate.
- * @return              If successful, returns EXIT_SUCCESS.
- * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
+ * @return              If successful, returns true;
+ * @return              If failure false is returned. k_errorNumber is set with error code.
  *                      1. ERR_WRONG_ALIGNMENT  - startAddress not aligned to page boundary.
  *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
+ *                      3. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
+ *                                                         range.
  **************************************************************************************************/
-INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
+bool kpmm_free (PHYSICAL startAddress, UINT pageCount)
 {
-    if (pageCount == 0 || isPhysicalNull (startAddress))
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, EXIT_FAILURE);
+    if (pageCount == 0)
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = startAddress.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
 
     if (allocation_end_byte >= MAX_ADDRESSABLE_BYTE_COUNT)
-        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
+        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
     if (IS_ALIGNED (startAddress.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
-        RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
 
     // Note: As startAddress is already aligned, both floor or ceiling are same here.
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (startAddress.val);
@@ -149,7 +151,7 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
     // deallocate any address.
     s_managePages (startPageFrame, pageCount, false, FALSE);
 
-    return EXIT_SUCCESS;
+    return true;
 }
 
 /***************************************************************************************************
@@ -158,8 +160,8 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
  * @Input pageCount     Number of byte frames to allocate.
  * @Input isDMA         Is allocating from the DMA memory range.
  * @Input start         Pages will be allocated from this physical address.Must be page aligned.
- * @return              If successful, returns EXIT_SUCCESS.
- * @return              If failure EXIT_FAILURE is returned. k_errorNumber is set with error code.
+ * @return              If successful, returns true.
+ * @return              If failure false is returned. k_errorNumber is set with error code.
  *                      1. ERR_WRONG_ALIGNMENT - 'start' is not aligned to page boundary.
  *                      2. ERR_DOUBLE_ALLOC - All or part of specified memory is already allocated.
  *                                            This error is only thrown for FIXED allocations.
@@ -167,20 +169,20 @@ INT kpmm_free (PHYSICAL startAddress, UINT pageCount)
  *                      4. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
  *                                                         range.
  **************************************************************************************************/
-INT kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA)
+bool kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA)
 {
-    if (pageCount == 0 || isPhysicalNull (start))
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, EXIT_FAILURE);
+    if (pageCount == 0)
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
     // Check if address is within the max addressable range.
     USYSINT max_addressable_byte_count = s_getMaxPageCount (isDMA) * CONFIG_PAGE_FRAME_SIZE_BYTES;
     USYSINT allocation_end_byte = start.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
     if (allocation_end_byte >= max_addressable_byte_count)
-        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, EXIT_FAILURE);
+        RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
     if (IS_ALIGNED (start.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false)
-        RETURN_ERROR (ERR_WRONG_ALIGNMENT, EXIT_FAILURE);
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
 
     // Note: Because the address is aligned to page boundary, Floor or ceiling are the same.
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
@@ -190,12 +192,12 @@ INT kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA)
 
     // Free pages were not found. But there was no error.
     if (found == FALSE)
-        RETURN_ERROR (ERR_DOUBLE_ALLOC, EXIT_FAILURE);
+        RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
 
     // Free pages found. Now Allocate them.
     s_managePages (startPageFrame, pageCount, true, isDMA);
 
-    return EXIT_SUCCESS;
+    return true;
 }
 
 /***************************************************************************************************
