@@ -1,7 +1,125 @@
 ## Megha Operating System V2 - x86
 ## Physical Memory allocation
 ------------------------------------------------------------------------------
-_29 July 2022__
+__19 Nov 2022__
+
+Making physical addresses 0x0000 an invalid address has several benefits.
+* This makes the 0x0000 address perfect for initializing variables.
+* Functions can return this address to indicate an error.
+
+Note that only the 0x0000 address is invalid, but the whole 1st page can not not be used
+(allocated/freed) by PMM. This is because
+* `kpmm_alloc` only returns page aligned addresses, as 0x0000 is invlaid, the first valid address it
+  can return is 0x1000 - Start of the 2nd page.
+* `kpmm_allocAt` and `kpmm_free` only accepts page aligned addresses, as 0x0000 is invlaid, the
+   first address it accepts is 0x1000 - Start of the 2nd page.
+
+### Modifying PAB based on BootInfo items
+
+#### Before
+
+##### Console log
+```
+I: Freeing startAddress: 0, byteCount: 9FC00, pageFrames: 159.
+I: Freeing 0x9F000 bytes starting physical address 0x0.
+I: Freeing startAddress: 100000, byteCount: 3E0000, pageFrames: 992.
+I: Freeing 0x3E0000 bytes starting physical address 0x100000.
+I: Allocate startAddress: 100000, byteCount: 2CC8, pageFrames: 3.
+I: Allocating 0x3000 bytes starting physical address 0x100000.
+I: Allocating 0x1000 bytes starting physical address 0x0.
+GDT {size = 0x1F, location = 0xC0000800}
+GDT {size = 0x2F, location = 0xC0000800}
+IDT {limit = 0x7FF, location = 0xC0000000}
+```
+
+##### PAB Dump
+
+```
+0xc0105000:     0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0105008:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0105010:     0x00    0x00    0x00    0x80    0xff    0xff    0xff    0xff
+0xc0105018:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
+0xc0105020:     0x07    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+```
+#### After
+
+One sideeffect of this, is now we have to handle the case where a BootInfo item starts at location
+0. The case can be seen below.
+
+The first BootInfo item shows a free block of 0x9FC00 bytes, starting at location 0. Now as
+location 0x0000 is not valid, calling `kalloc_free (0x0000, 0x9FC000, false)` will cause error.
+
+What I do in this case, is to change the start address to the beginning of the next page, (i.e.
+0x1000) and decrease length by the same amount as the increase in the start address.
+
+Calculations are as follows:
+
+```
+    Given 'start' and 'length'
+
+    if (start < 4096)
+        start_mod = 0x1000
+        delta_start = 0x1000 - start
+        length_mod = length - delta_start
+
+        // If the whole block lies within the 1st page, then we skip
+        if (length_mod <= 0) continue
+
+```
+
+##### Examples
+
+```
+                    Start   Length   End
+                    ------- -------- -------
+BootInfo Item[0]    0x0000  0x9FC00  0x9FC00
+Modified            0x1000  0x9EC00  0x9FC00
+
+                    Start   Length   End
+                    ------- -------- -------
+BootInfo Item[0]    0x0100  0x9FC00  0x9FD00
+Modified            0x1000  0x9ED00  0x9FD00
+
+                    Start   Length   End
+                    ------- -------- -------
+BootInfo Item[0]    0x0100  0x00C00  0x00D00
+Modified            0x1000 -0x00300     -       Skipping
+
+                    Start   Length   End
+                    ------- -------- -------
+BootInfo Item[0]    0x0FFF  0x00001  0x01000
+Modified            0x1000  0x00000     -       Skipping
+```
+
+##### Console log
+
+```
+I: Freeing startAddress: 1000, byteCount: 9EC00, pageFrames: 158.
+I: Freeing 0x9E000 bytes starting physical address 0x1000.
+I: Freeing startAddress: 100000, byteCount: 3E0000, pageFrames: 992.
+I: Freeing 0x3E0000 bytes starting physical address 0x100000.
+I: Allocate startAddress: 100000, byteCount: 2DA8, pageFrames: 3.
+I: Allocating 0x3000 bytes starting physical address 0x100000.
+GDT {size = 0x1F, location = 0xC0001800}
+GDT {size = 0x2F, location = 0xC0001800}
+IDT {limit = 0x7FF, location = 0xC0001000}
+```
+
+##### PAB dump
+
+The end effect on the PAB is the same - same pages are marked allocated. Here is a dump of the PAB
+and will match exactly the dump from previous (see below).
+
+```
+0xc0105000:     0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0105008:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0105010:     0x00    0x00    0x00    0x80    0xff    0xff    0xff    0xff
+0xc0105018:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
+0xc0105020:     0x07    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+```
+
+------------------------------------------------------------------------------
+__29 July 2022__
 
 Here is a dry run of both the freeing and allocation procedures.
 
