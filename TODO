@@ -13,10 +13,10 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     checks are invaluable in finding and
     preventing bugs.
 
-[ ] Remove the transparent union for PHYSICAL -
+[X] Remove the transparent union for PHYSICAL - 19 Nov 2022
     Type matching must be rigid to be useful.
 
-[ ] Treat physical page 0 as a NULL page.     -
+[X] Treat physical page 0 as a NULL page.     - 19 Nov 2022
     PMM will never allocate this page and
     thus no Virtual Memory can be assigned
     to this page.
