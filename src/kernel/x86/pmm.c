@@ -129,7 +129,7 @@ static void s_markMemoryOccupiedByModuleFiles ()
  *                      3. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
  *                                                         range.
  **************************************************************************************************/
-bool kpmm_free (PHYSICAL startAddress, UINT pageCount)
+bool kpmm_free (Physical startAddress, UINT pageCount)
 {
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
@@ -169,7 +169,7 @@ bool kpmm_free (PHYSICAL startAddress, UINT pageCount)
  *                      4. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
  *                                                         range.
  **************************************************************************************************/
-bool kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA)
+bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
 {
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
@@ -211,7 +211,7 @@ bool kpmm_allocAt (PHYSICAL start, UINT pageCount, bool isDMA)
  *                                            consecutive pages.
  *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
  **************************************************************************************************/
-PHYSICAL kpmm_alloc (UINT pageCount, bool isDMA)
+Physical kpmm_alloc (UINT pageCount, bool isDMA)
 {
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, PHYSICAL_NULL);

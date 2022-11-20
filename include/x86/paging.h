@@ -15,11 +15,11 @@
 #ifndef __PAGING_H_X86__
 #define __PAGING_H_X86__
 
-extern PHYSICAL g_page_dir,     /* Address of the initial page dir */
+extern Physical g_page_dir,     /* Address of the initial page dir */
                         g_page_table;   /* Address of the initial page table*/
 
 /* Casts a linear mapped physical address to virtual address */
-static inline void* CAST_PA_TO_VA (PHYSICAL a)
+static inline void* CAST_PA_TO_VA (Physical a)
 {
 #if !defined(UNITTEST)
     return (void *)(0xC0000000 + a.val);

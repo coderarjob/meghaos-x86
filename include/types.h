@@ -29,25 +29,25 @@ inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
  * This type will prevent mixing physical and virtual addresses and may be also lessen the need for
  * Hungarian notations.
  *
- * For ease of use, any variable of type USYSINT can be passed to a function expecting PHYSICAL
+ * For ease of use, any variable of type USYSINT can be passed to a function expecting Physical
  * without any case (because of transparent union).
 
- * Use the 'PHYSICAL' macro for initializing variables or function parameters of type PHYSICAL.
+ * Use the 'Physical' macro for initializing variables or function parameters of type Physical.
  */
 typedef union
 {
     USYSINT val;
-} __attribute__ ((packed)) PHYSICAL;
+} __attribute__ ((packed)) Physical;
 
 #define PHYSICAL(address) {.val = address}
 #define PHYSICAL_NULL createPhysical(0)
 
-static inline PHYSICAL createPhysical (USYSINT address) {
-    PHYSICAL p = {.val = address};
+static inline Physical createPhysical (USYSINT address) {
+    Physical p = {.val = address};
     return p;
 }
 
-static inline bool isPhysicalNull (PHYSICAL address) {
+static inline bool isPhysicalNull (Physical address) {
     return address.val == 0;
 }
 
