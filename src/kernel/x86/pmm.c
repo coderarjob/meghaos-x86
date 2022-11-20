@@ -65,13 +65,16 @@ static void s_markFreeMemory ()
         USYSINT lengthBytes = (USYSINT)kBootMemoryMapItem_getLength (memmap);
 
         // Handle the case where the start address is within the 1st page. As access to this page is
-        // not allowed, we need to move start location to the start of 2nd page frame and adjust the
-        // length, so that the end address of this block remains the same.
+        // not allowed, we need to move start location to the start of 2nd page frame and decrease
+        // the length, so that the end address of this block remains the same.
         if (startAddress < CONFIG_PAGE_FRAME_SIZE_BYTES)
         {
             lengthBytes -= (CONFIG_PAGE_FRAME_SIZE_BYTES - startAddress); // adjust length
             startAddress = CONFIG_PAGE_FRAME_SIZE_BYTES;    // Start allocation from 2nd page
         }
+
+        // Handles the case which can result in lengthBytes to be negative or zero.
+        if (lengthBytes <= 0) continue;
 
         // Check if addressing more than Addressable. Cap it to Max Addressable if so.
         ULLONG endAddress = startAddress + lengthBytes - 1;
