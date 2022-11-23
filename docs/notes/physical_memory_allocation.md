@@ -3,7 +3,8 @@
 ------------------------------------------------------------------------------
 __19 Nov 2022__
 
-Making physical addresses 0x0000 an invalid address has several benefits.
+With the latest change to the PMM, the physical address 0x0000 is now invalid. Think of it as `NULL`
+for PMM.  Making physical addresses 0x0000 an invalid address has several benefits.
 * This makes the 0x0000 address perfect for initializing variables.
 * Functions can return this address to indicate an error.
 
@@ -16,7 +17,8 @@ Note that only the 0x0000 address is invalid, but the whole 1st page can not not
 
 ### Modifying PAB based on BootInfo items
 
-#### Before
+One sideeffect of making 0x0000 an invalid address, is now we have to handle the case where a
+BootInfo item starts at location 0. The case can be seen below.
 
 ##### Console log
 ```
@@ -32,22 +34,22 @@ GDT {size = 0x2F, location = 0xC0000800}
 IDT {limit = 0x7FF, location = 0xC0000000}
 ```
 
-##### PAB Dump
-
-```
-0xc0105000:     0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
-0xc0105008:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
-0xc0105010:     0x00    0x00    0x00    0x80    0xff    0xff    0xff    0xff
-0xc0105018:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
-0xc0105020:     0x07    0x00    0x00    0x00    0x00    0x00    0x00    0x00
-```
-#### After
-
-One sideeffect of this, is now we have to handle the case where a BootInfo item starts at location
-0. The case can be seen below.
-
 The first BootInfo item shows a free block of 0x9FC00 bytes, starting at location 0. Now as
 location 0x0000 is not valid, calling `kalloc_free (0x0000, 0x9FC000, false)` will cause error.
+
+##### Console log: Before
+
+```
+I: Freeing startAddress: 1000, byteCount: 9EC00, pageFrames: 158.
+I: Freeing 0x9E000 bytes starting physical address 0x1000.
+I: Freeing startAddress: 100000, byteCount: 3E0000, pageFrames: 992.
+I: Freeing 0x3E0000 bytes starting physical address 0x100000.
+I: Allocate startAddress: 100000, byteCount: 2DA8, pageFrames: 3.
+I: Allocating 0x3000 bytes starting physical address 0x100000.
+GDT {size = 0x1F, location = 0xC0001800}
+GDT {size = 0x2F, location = 0xC0001800}
+IDT {limit = 0x7FF, location = 0xC0001000}
+```
 
 What I do in this case, is to change the start address to the beginning of the next page, (i.e.
 0x1000) and decrease length by the same amount as the increase in the start address.
@@ -91,24 +93,20 @@ BootInfo Item[0]    0x0FFF  0x00001  0x01000
 Modified            0x1000  0x00000     -       Skipping
 ```
 
-##### Console log
-
-```
-I: Freeing startAddress: 1000, byteCount: 9EC00, pageFrames: 158.
-I: Freeing 0x9E000 bytes starting physical address 0x1000.
-I: Freeing startAddress: 100000, byteCount: 3E0000, pageFrames: 992.
-I: Freeing 0x3E0000 bytes starting physical address 0x100000.
-I: Allocate startAddress: 100000, byteCount: 2DA8, pageFrames: 3.
-I: Allocating 0x3000 bytes starting physical address 0x100000.
-GDT {size = 0x1F, location = 0xC0001800}
-GDT {size = 0x2F, location = 0xC0001800}
-IDT {limit = 0x7FF, location = 0xC0001000}
-```
-
-##### PAB dump
+##### PAB dump: After
 
 The end effect on the PAB is the same - same pages are marked allocated. Here is a dump of the PAB
 and will match exactly the dump from previous (see below).
+
+```
+0xc0105000:     0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0105008:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0105010:     0x00    0x00    0x00    0x80    0xff    0xff    0xff    0xff
+0xc0105018:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
+0xc0105020:     0x07    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+```
+
+##### PAB Dump: Before
 
 ```
 0xc0105000:     0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
