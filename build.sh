@@ -4,7 +4,7 @@ export ARCH=x86
 export DEBUG=DEBUG
 # DEBUG LEVEL BITS
 # x x x x x x [Screen] [E9]
-export DEBUGLEVEL=1
+export DEBUGLEVEL=3
 LINK_USING_LD=1
 
 if [ $# -ge 1 ]; then ARCH=$1; fi
@@ -46,7 +46,9 @@ WOPTS="-Wpedantic \
        -Wpadded \
        -Wall \
        -Wextra \
-       -Wconversion"
+       -Wconversion \
+       -Wdangling-else \
+       -Werror"
 
 export GCC32="i686-elf-gcc -std=c99\
               -g \
