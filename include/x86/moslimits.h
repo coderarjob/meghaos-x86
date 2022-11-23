@@ -14,19 +14,19 @@
 #define __MOS_LIMITS_H_X86__
 #include <kernel.h>
 
-#define MAX_VGA_COLUMNS                 80
-#define MAX_VGA_ROWS                    50
+#define MAX_VGA_COLUMNS                 80U
+#define MAX_VGA_ROWS                    50U
 
 #define MAX_PRINTABLE_STRING_LENGTH     MAX_VGA_COLUMNS * MAX_VGA_ROWS
 
 /* Minimum index that can be editted in Kernel. */
-#define MIN_GDT_INDEX                   3
+#define MIN_GDT_INDEX                   3U
 
 /* Number of GDT entries in memory */
-#define MAX_GDT_DESC_COUNT              512
+#define MAX_GDT_DESC_COUNT              512U
 
 /* Maximum number of IDT entries */
-#define MAX_IDT_DESC_COUNT              256
+#define MAX_IDT_DESC_COUNT              256U
 
 /* PAB and addressable RAM */
 #define PAB_SIZE_BYTES                  CONFIG_PAGE_FRAME_SIZE_BYTES
@@ -37,7 +37,7 @@
 #define MAX_ADDRESSABLE_PAGE            (MAX_ADDRESSABLE_PAGE_COUNT - 1)
 
 /* DMA Limit */
-#define MAX_DMA_BYTE_COUNT              (16 * MB)
+#define MAX_DMA_BYTE_COUNT              (16U * MB)
 #define MAX_DMA_PAGE_COUNT              (BYTES_TO_PAGEFRAMES_FLOOR(MAX_DMA_BYTE_COUNT))
 
 #define MAX_DMA_ADDRESSABLE_PAGE_COUNT  (MIN (MAX_ADDRESSABLE_PAGE_COUNT, MAX_DMA_PAGE_COUNT))
