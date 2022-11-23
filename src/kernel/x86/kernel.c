@@ -178,6 +178,10 @@ void usermode_main ()
 
     void *pab = CAST_PA_TO_VA (g_pab);
     kearly_printf ("\r\nLocation of pab = %x",pab);
+
+
+    USYSINT num = 0xFF012EA;
+    kearly_printf ("\r\nNum is = %px", num);
     //k_assert (1 < 0,"Nonsense");
     *a = 0;    
 

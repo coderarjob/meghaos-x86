@@ -1,4 +1,5 @@
 #include <unittest/unittest.h>
+#include <mock/kernel/x86/vgadisp.h>
 #include <kernel.h>
 #include <string.h>
 #include <stdio.h>
@@ -175,6 +176,67 @@ TEST(kearly_snprintf, memory_overlap)
     END();
 }
 
+TEST(kearly_snprintf, pointer_literal)
+{
+    USYSINT num = 0xFF012EA;
+    CHAR d[8];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%px", num);
+    EQ_SCALAR(ret, 7);
+    EQ_STRING(d, "FF012EA");
+    END();
+}
+
+// -------------------------------------------------------------------------------------------------
+// Handler functions for fake kdisp_putc function.
+// Used in the following tests: printk_test_disp_initialized, printk_test_disp_not_initialized
+// -------------------------------------------------------------------------------------------------
+static U16 vgab [10];
+void kdisp_putc_hander (CHAR c)
+{
+    static UINT index = 0;
+    vgab [index++] = (U16)((0x0FF << 8) | (UINT)c); // attribute of 0xFF (arbitary value)
+}
+// -------------------------------------------------------------------------------------------------
+
+TEST(kearly_snprintf, printk_test_disp_initialized)
+{
+    kdisp_isInitialized_fake.ret = true;
+    kdisp_putc_fake.handler = kdisp_putc_hander;
+
+    USYSINT num = 0xABC;
+
+    // Bytes must be in little endian order. The exp_output has bytes as bytes will appear in vgab
+    // in memory.
+    U8 exp_output[6] = {'A', 0xFF,      // 0xFF is the attribute.
+                        'B', 0xFF,      // 0xFF is the attribute.
+                        'C', 0xFF};     // 0xFF is the attribute.
+
+    INT ret = kearly_printf ("%px", num);
+    EQ_SCALAR(ret, 3);
+    EQ_MEM (exp_output, vgab, ARRAY_LENGTH(exp_output));
+    END();
+}
+
+TEST(kearly_snprintf, printk_test_disp_not_initialized)
+{
+    kdisp_isInitialized_fake.ret = false;
+    kdisp_putc_fake.handler = kdisp_putc_hander;
+
+    // Nothing should be printed, as display is not initialized.
+    U8 exp_output[6] = {};
+
+    INT ret = kearly_printf ("%s", "Hello");
+    EQ_SCALAR(ret, 0);
+    EQ_MEM (exp_output, vgab, ARRAY_LENGTH(exp_output));
+    END();
+}
+
+void reset()
+{
+    resetVgaDisp();
+    memset (vgab, 0, ARRAY_LENGTH (vgab));
+}
+
 int main()
 {
     no_vargs();
@@ -194,4 +256,7 @@ int main()
     limit_check_empty_string();
     limit_check_at_edge();
     memory_overlap();
+    pointer_literal();
+    printk_test_disp_initialized();
+    printk_test_disp_not_initialized();
 }

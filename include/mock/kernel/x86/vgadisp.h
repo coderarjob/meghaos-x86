@@ -9,4 +9,5 @@ DECLARE_FUNC_VOID(kdisp_scrollDown);
 DECLARE_FUNC_VOID(kdisp_init);
 DECLARE_FUNC(bool, kdisp_isInitialized);
 
+void resetVgaDisp();
 #endif // VGADISP_FAKE_H
