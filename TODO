@@ -13,10 +13,10 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     checks are invaluable in finding and
     preventing bugs.
 
-[X] Remove the transparent union for PHYSICAL - 19 Nov 2022
+[X] Remove the transparent union for PHYSICAL -                 19 Nov 2022
     Type matching must be rigid to be useful.
 
-[X] Treat physical page 0 as a NULL page.     - 19 Nov 2022
+[X] Treat physical page 0 as a NULL page.     -                 19 Nov 2022
     PMM will never allocate this page and
     thus no Virtual Memory can be assigned
     to this page.
@@ -28,6 +28,11 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
         not properly initialized. Without
         this NULL page, such errors are
         hard to track down.
+[X] Functions should return EXIT_SUCCESS,     -                 23 Nov 2022
+    EXIT_FAILURE, on Success and Failure.
+    Not ERR_NONE, on Success, and -1 on
+    failure.
+    Issue first seen in kdisp module.
 [ ] Document BOOTINFO struct                  - 03 Feb 2021
 [ ] Basic keyboard IRQ                        - 18 Nov 2020
     handler (demo)
