@@ -44,4 +44,7 @@ void kdisp_init ();
  * and increments the pointer to it. */
 void kdisp_putc (CHAR c);
 
+/* Returns status of vga text display initialization.*/
+bool kdisp_isInitialized ();
+
 #endif // __DISPTEXT_H__

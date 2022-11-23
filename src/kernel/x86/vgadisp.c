@@ -34,11 +34,9 @@
                             outb (crt_data_port,v);     \
                        }while (0)
 
-static U8 row, column,
-          crtc_flags, 
-          text_attr;
-
+static U8 row, column, crtc_flags, text_attr;
 static U16 *vgab;
+static bool is_initialized;
 
 static void update_cursor ();
 
@@ -135,6 +133,10 @@ void kdisp_init ()
     // 3. Check if blink is enabled.
     crt_read (0x10,v);
     if (v >> 3 & 1) crtc_flags |= CRTC_BLINK_ENABLED;
+
+    // ------------------------------------------------------------
+    // Initialization is done.
+    is_initialized = true;
 }
 
 void kdisp_scrollDown ()
@@ -199,4 +201,14 @@ void kdisp_putc (CHAR c)
         kdisp_scrollDown ();
 
     update_cursor ();
+}
+
+/***************************************************************************************************
+ * Returns status of text display initialization.
+ *
+ * @return true if kdisp_init has been called.
+ **************************************************************************************************/
+bool kdisp_isInitialized ()
+{
+    return is_initialized;
 }

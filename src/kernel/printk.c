@@ -38,6 +38,9 @@ static U64 s_readint (IntTypes inttype, va_list *l);
  **************************************************************************************************/
 INT kearly_printf (const CHAR *fmt, ...)
 {
+    if (kdisp_isInitialized() == false)
+        return 0;
+
     va_list l;
     va_start (l, fmt);
 
