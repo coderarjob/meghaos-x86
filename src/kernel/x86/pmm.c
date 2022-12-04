@@ -62,18 +62,26 @@ static void s_markFreeMemory ()
 
         if (type != MMTYPE_FREE) continue;
 
-        USYSINT startAddress = (USYSINT)kBootMemoryMapItem_getBaseAddress (memmap);
-        USYSINT lengthBytes = (USYSINT)kBootMemoryMapItem_getLength (memmap);
+        U64 startAddress = kBootMemoryMapItem_getBaseAddress (memmap);
+        U64 lengthBytes = kBootMemoryMapItem_getLength (memmap);
 
-        // Handles the case which can result in lengthBytes is zero
-        if (lengthBytes == 0) continue;
+        // Skip, if length is zero or start address of the section is beyond the addressable
+        // range. Now this is not an error, because on systems with more RAM than
+        // MAX_ADDRESSABLE_BYTE, Memory map from BIOS will have sections that is entirely outside
+        // the addressable range.
+        if (lengthBytes == 0 || startAddress > MAX_ADDRESSABLE_BYTE) continue;
 
-        // Handle the case where the start address is within the 1st page. As access to this page is
-        // not allowed, we need to move start location to the start of 2nd page frame and decrease
-        // the length, so that the end address of this block remains the same.
+        // Check if addressing more than Addressable. Cap it to Max Addressable if so.
+        U64 endAddress = startAddress + lengthBytes - 1;
+        if (endAddress > MAX_ADDRESSABLE_BYTE)
+            lengthBytes = MAX_ADDRESSABLE_BYTE_COUNT - startAddress + 1;
+
+        // As access to this page is not allowed, if the start address is within the 1st page, we
+        // need to move start location to the start of 2nd page frame and decrease the length by the
+        // same amount.
         if (startAddress < CONFIG_PAGE_FRAME_SIZE_BYTES)
         {
-            USYSINT distance = CONFIG_PAGE_FRAME_SIZE_BYTES - startAddress; // bytes till 2nd page.
+            U64 distance = CONFIG_PAGE_FRAME_SIZE_BYTES - startAddress; // bytes till 2nd page.
 
             // Section starts within the 1st page, and end within the 1st page as well.
             // Thus we skip this section.
@@ -84,17 +92,14 @@ static void s_markFreeMemory ()
             startAddress = CONFIG_PAGE_FRAME_SIZE_BYTES;    // Start allocation from 2nd page
         }
 
-        // Check if addressing more than Addressable. Cap it to Max Addressable if so.
-        ULLONG endAddress = startAddress + lengthBytes - 1;
-        endAddress = (endAddress < MAX_ADDRESSABLE_BYTE_COUNT) ? endAddress : MAX_ADDRESSABLE_BYTE;
+        // At this point, start and end address is within the addressable range.
 
         // Actual number of bytes we can free without crossing the max addressable range.
-        USYSINT lengthBytes_possible = (USYSINT)(endAddress - startAddress  + 1);
-        UINT pageFrameCount = BYTES_TO_PAGEFRAMES_FLOOR (lengthBytes_possible);
+        UINT pageFrameCount = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)lengthBytes);
 
-        kdebug_printf ("\r\nI: Freeing startAddress: %px, byteCount: %px, pageFrames: %u."
+        kdebug_printf ("\r\nI: Freeing startAddress: %llx, byteCount: %llx, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_free (createPhysical (startAddress), pageFrameCount) == false)
+        if (kpmm_free (createPhysical ((USYSINT)startAddress), pageFrameCount) == false)
             k_assertOnError ();
     }
 }
@@ -258,9 +263,10 @@ Physical kpmm_alloc (UINT pageCount, bool isDMA)
  **************************************************************************************************/
 static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA)
 {
-    kdebug_printf ("\r\nI: %s 0x%px bytes starting physical address 0x%px."
+    kdebug_printf ("\r\nI: %s starting physical address 0x%px, length 0x%px bytes ."
                     , (allocate) ? "Allocating" : "Freeing"
-                    , PAGEFRAMES_TO_BYTES(frameCount), PAGEFRAMES_TO_BYTES(startPageFrame));
+                    , PAGEFRAMES_TO_BYTES(startPageFrame)
+                    , PAGEFRAMES_TO_BYTES(frameCount));
 
     k_assert (frameCount > 0, "Page frame count cannot be zero.");
 
