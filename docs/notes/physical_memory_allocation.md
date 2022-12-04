@@ -8,7 +8,7 @@ for PMM.  Making physical addresses 0x0000 an invalid address has several benefi
 * This makes the 0x0000 address perfect for initializing variables.
 * Functions can return this address to indicate an error.
 
-Note that only the 0x0000 address is invalid, but the whole 1st page can not not be used
+Note that only the 0x0000 address is invalid, but the whole 1st page can not now be used
 (allocated/freed) by PMM. This is because
 * `kpmm_alloc` only returns page aligned addresses, as 0x0000 is invlaid, the first valid address it
   can return is 0x1000 - Start of the 2nd page.
@@ -52,7 +52,7 @@ IDT {limit = 0x7FF, location = 0xC0001000}
 ```
 
 What I do in this case, is to change the start address to the beginning of the next page, (i.e.
-0x1000) and decrease length by the same amount as the increase in the start address.
+0x1000) and decrease length by the same amount to keep the end address same.
 
 Calculations are as follows:
 
