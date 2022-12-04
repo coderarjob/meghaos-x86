@@ -15,10 +15,11 @@ static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, 
 static INT s_get (UINT pageFrame, bool isDMA);
 static void s_set (UINT pageFrame, bool alloc, bool isDMA);
 static UINT s_getMaxPageCount (bool isDMA);
-static void s_markMemoryOccupiedByModuleFiles ();
 static void s_markFreeMemory ();
 
 static U8 *s_pab = NULL;
+
+static bool s_isInitialized = false;
 
 /***************************************************************************************************
  * Initializes PAB array.
@@ -36,8 +37,8 @@ void kpmm_init ()
     // Mark free memory.
     s_markFreeMemory ();
 
-    // Mark memory already occupied by the modules.
-    s_markMemoryOccupiedByModuleFiles();
+    // PMM is now initialized
+    s_isInitialized = true;
 }
 
 /***************************************************************************************************
@@ -64,22 +65,28 @@ static void s_markFreeMemory ()
         USYSINT startAddress = (USYSINT)kBootMemoryMapItem_getBaseAddress (memmap);
         USYSINT lengthBytes = (USYSINT)kBootMemoryMapItem_getLength (memmap);
 
+        // Handles the case which can result in lengthBytes is zero
+        if (lengthBytes == 0) continue;
+
         // Handle the case where the start address is within the 1st page. As access to this page is
         // not allowed, we need to move start location to the start of 2nd page frame and decrease
         // the length, so that the end address of this block remains the same.
         if (startAddress < CONFIG_PAGE_FRAME_SIZE_BYTES)
         {
-            lengthBytes -= (CONFIG_PAGE_FRAME_SIZE_BYTES - startAddress); // adjust length
+            USYSINT distance = CONFIG_PAGE_FRAME_SIZE_BYTES - startAddress; // bytes till 2nd page.
+
+            // Section starts within the 1st page, and end within the 1st page as well.
+            // Thus we skip this section.
+            if (lengthBytes <= distance) continue;
+
+            // Section starts within the 1st page, but goes beyond the 1st page.
+            lengthBytes -= distance;                        // adjust length
             startAddress = CONFIG_PAGE_FRAME_SIZE_BYTES;    // Start allocation from 2nd page
         }
 
-        // Handles the case which can result in lengthBytes to be negative or zero.
-        if (lengthBytes <= 0) continue;
-
         // Check if addressing more than Addressable. Cap it to Max Addressable if so.
         ULLONG endAddress = startAddress + lengthBytes - 1;
-        endAddress = (endAddress < MAX_ADDRESSABLE_BYTE_COUNT) ? endAddress
-                                                               : MAX_ADDRESSABLE_BYTE;
+        endAddress = (endAddress < MAX_ADDRESSABLE_BYTE_COUNT) ? endAddress : MAX_ADDRESSABLE_BYTE;
 
         // Actual number of bytes we can free without crossing the max addressable range.
         USYSINT lengthBytes_possible = (USYSINT)(endAddress - startAddress  + 1);
@@ -93,34 +100,15 @@ static void s_markFreeMemory ()
 }
 
 /***************************************************************************************************
- * Marks pages occupied by module files as occupied.
- *
- * It consults the bootloader structures and it marks memory occupied by module files.
- * If memory map length is not aligned, memory is marked allocated, till the next page boundary.
- * This means length is aligned to the next multiple of CONFIG_PAGE_FRAME_SIZE_BYTES.
- *
- * @return nothing
- * @error   On failure, processor is halted.
- **************************************************************************************************/
-static void s_markMemoryOccupiedByModuleFiles ()
-{
-    BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
-    for (INT i = 0; i < filesCount; i++)
-    {
-        BootFileItem* fileinfo = kBootLoaderInfo_getFileItem (bootloaderinfo, i);
-        USYSINT startAddress = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
-        USYSINT lengthBytes = (USYSINT)kBootFileItem_getLength (fileinfo);
-        UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
-
-        kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
-                        , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == false)
-            k_assertOnError ();
-    }
-}
-/***************************************************************************************************
  * Deallocates specified pages starting from the specified physical location.
+ *
+ * Note: free can be used even before PAB is initialized. This is to solve the chicken and egg
+ * problem where to initialize PAB one needs to at least call free or alloc functions. May be there
+ * is a better solution.
+ *
+ * Important: Calling free before PAB initialization, is undefined behaviour. To remedy, before
+ * calling free, initialize the PAB to some known state - kpmm_init for example initializes the PAB
+ * with all ones.
  *
  * @Input startAddress  Physical memory location of the first page. Error is generated if not a
  *                      aligned to page boundary.
@@ -160,6 +148,9 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
 /***************************************************************************************************
  * Tries to allocates pages starting at the physical address that is provided.
  *
+ * Note: This function can only be called once PMM is initialized. This is because it reads PAB to
+ * make verify if the there are enough free pages at the provided address.
+ *
  * @Input pageCount     Number of byte frames to allocate.
  * @Input isDMA         Is allocating from the DMA memory range.
  * @Input start         Pages will be allocated from this physical address.Must be page aligned.
@@ -174,6 +165,9 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
  **************************************************************************************************/
 bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
 {
+    if (!kpmm_isInitialized())
+        k_panic ("%s", "Called before PMM initialization.");
+
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
@@ -206,6 +200,9 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
 /***************************************************************************************************
  * Tries to allocates pages starting at the physical address that is provided.
  *
+ * Note: This function can only be called once PMM is initialized. This is because it reads PAB to
+ * make find pages which can be allocated.
+ *
  * @Input pageCount     Number of byte frames to allocate.
  * @Input isDMA         Is allocating from the DMA memory range.
  * @return              If successful, returns the allocated physical address.
@@ -216,6 +213,9 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
  **************************************************************************************************/
 Physical kpmm_alloc (UINT pageCount, bool isDMA)
 {
+    if (!kpmm_isInitialized())
+        k_panic ("%s", "Called before PMM initialization.");
+
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, PHYSICAL_NULL);
 
@@ -354,4 +354,16 @@ static UINT s_getMaxPageCount (bool isDMA)
     k_assert (maxPageCount <= MAX_ADDRESSABLE_PAGE_COUNT, "Page outside addressable range");
 
     return maxPageCount;
+}
+
+/***************************************************************************************************
+ * Returns status of PAB array initializes .
+ *
+ * PAB initialization is complete after kpmm_init has finished execution and there is no error.
+ *
+ * @return      true if PAB array was initialized and PMM is ready. False otherwise.
+ **************************************************************************************************/
+bool kpmm_isInitialized ()
+{
+    return s_isInitialized;
 }

@@ -23,6 +23,7 @@ static void sys_dummy ();
 static void fault_gp ();
 static void page_fault ();
 static void display_system_info ();
+static void s_markMemoryOccupiedByModuleFiles ();
 
 /*
  Virtual memory        ->  Physical memory
@@ -35,6 +36,9 @@ __attribute__ ((noreturn))
 void __kernel_main ()
 {
     kpmm_init ();
+
+    // Mark memory already occupied by the modules.
+    s_markMemoryOccupiedByModuleFiles();
 
     kdisp_init ();
     kearly_printf ("\r\n[OK]\tPaging enabled.");
@@ -116,6 +120,34 @@ void display_system_info ()
     kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
 
     kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE_COUNT);
+}
+
+/***************************************************************************************************
+ * Marks pages occupied by module files as occupied.
+ *
+ * It consults the bootloader structures and it marks memory occupied by module files.
+ * If memory map length is not aligned, memory is marked allocated, till the next page boundary.
+ * This means length is aligned to the next multiple of CONFIG_PAGE_FRAME_SIZE_BYTES.
+ *
+ * @return nothing
+ * @error   On failure, processor is halted.
+ **************************************************************************************************/
+static void s_markMemoryOccupiedByModuleFiles ()
+{
+    BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
+    INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
+    for (INT i = 0; i < filesCount; i++)
+    {
+        BootFileItem* fileinfo = kBootLoaderInfo_getFileItem (bootloaderinfo, i);
+        USYSINT startAddress = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
+        USYSINT lengthBytes = (USYSINT)kBootFileItem_getLength (fileinfo);
+        UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
+
+        kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
+                        , startAddress, lengthBytes, pageFrameCount);
+        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == false)
+            k_assertOnError ();
+    }
 }
 
 __attribute__ ((noreturn))

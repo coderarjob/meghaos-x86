@@ -25,4 +25,5 @@ void kpmm_init ();
 bool kpmm_free (Physical startAddress, UINT pageCount);
 Physical kpmm_alloc (UINT pageCount, bool isDMA);
 bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA);
+bool kpmm_isInitialized ();
 #endif // PMM_H_X86
