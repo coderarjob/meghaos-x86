@@ -28,9 +28,13 @@ static bool s_isInitialized = false;
  * used by the BIOS or APIC etc and are free to be used by the OS.
  *
  * @return nothing
+ * @error   Panics if called after initialization.
  **************************************************************************************************/
 void kpmm_init ()
 {
+    if (kpmm_isInitialized())
+        k_panic ("%s", "Called after PMM initialization.");
+
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
     k_memset (s_pab, 0xFF, PAB_SIZE_BYTES);
 
@@ -167,6 +171,7 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
  *                      3. ERR_INVALID_ARGUMENT - pageCount is zero.
  *                      4. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
  *                                                         range.
+ * @error               Panics if called before initialization.
  **************************************************************************************************/
 bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
 {
@@ -215,6 +220,7 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
  *                      1. ERR_OUT_OF_MEM   - Could not find the required number of free
  *                                            consecutive pages.
  *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
+ * @error               Panics if called before initialization.
  **************************************************************************************************/
 Physical kpmm_alloc (UINT pageCount, bool isDMA)
 {
@@ -259,7 +265,8 @@ Physical kpmm_alloc (UINT pageCount, bool isDMA)
  * @Input frameCount        Number of page frames to allocate. Out of Memory is generated if more
  *                          pages are requested than are free.
  * @Input allocate          true to Allocate, false to deallocate.
- * @return                  On failure panic is triggered.
+ * @return                  Nothing
+ * @error                   On failure panic is triggered.
  **************************************************************************************************/
 static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA)
 {
@@ -283,7 +290,8 @@ static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, 
  *                          location.
  * @return                  Returns FALSE if required number of free pages were not found at the
  *                          physical location.
- * @return                  On failure panic is triggered.
+ * @return                  Nothing
+ * @error                   On failure panic is triggered.
  **************************************************************************************************/
 static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA)
 {
@@ -300,7 +308,8 @@ static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA)
  * Sets/Clears corresponding page frame bit in PAB.
  *
  * @Input pageFrame Physical page frame to change. First page frame is 0.
- * @return          If failure panic is triggered.
+ * @return                  Nothing
+ * @error                   On failure panic is triggered.
  **************************************************************************************************/
 static void s_set (UINT pageFrame, bool alloc, bool isDMA)
 {
@@ -330,7 +339,7 @@ static void s_set (UINT pageFrame, bool alloc, bool isDMA)
  *
  * @Input pageFrame Physical page frame to query. First page frame is 0.
  * @return          On Success, returns 0 is page frame is free, 1 otherwise.
- * @return          If failure panic is triggered.
+ * @error           On failure panic is triggered.
  **************************************************************************************************/
 static INT s_get (UINT pageFrame, bool isDMA)
 {
