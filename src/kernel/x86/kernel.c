@@ -24,6 +24,7 @@ static void fault_gp ();
 static void page_fault ();
 static void display_system_info ();
 static void s_markMemoryOccupiedByModuleFiles ();
+static void s_dumpPab ();
 
 /*
  Virtual memory        ->  Physical memory
@@ -35,13 +36,14 @@ volatile CHAR *a = (CHAR *)0xc0400000;
 __attribute__ ((noreturn)) 
 void __kernel_main ()
 {
+    kdisp_init ();
+    kearly_printf ("\r\n[OK]\tPaging enabled.");
+
+    // Initilaize Physical Memory Manger
     kpmm_init ();
 
     // Mark memory already occupied by the modules.
     s_markMemoryOccupiedByModuleFiles();
-
-    kdisp_init ();
-    kearly_printf ("\r\n[OK]\tPaging enabled.");
 
     // TSS setup
     kearly_printf ("\r\n[  ]\tTSS setup.");
@@ -69,10 +71,12 @@ void __kernel_main ()
 
     // Display available memory
     display_system_info ();
+
     
+    s_dumpPab();
     // Paging information
-    extern void paging_print ();
-    paging_print ();
+    //extern void paging_print ();
+    //paging_print ();
 
     // Jump to user mode
     kearly_printf ("\r\nJumping to User mode..");
@@ -80,6 +84,20 @@ void __kernel_main ()
     __jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
     
+}
+
+void s_dumpPab ()
+{
+    U8 *s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
+    UINT bytes = 60;
+
+    while (bytes)
+    {
+        kdebug_printf ("\r\n%x:", s_pab);
+        for (int i = 0; i < 8 && bytes; bytes--, i++, s_pab++)
+            kdebug_printf ("\t%x ", *s_pab);
+    }
+
 }
 
 void display_system_info ()
