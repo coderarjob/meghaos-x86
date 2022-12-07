@@ -20,4 +20,5 @@
     boot1               :
     Initial Paging      :
     GDT, IDT, TSS       :
-    MemoryAllocation    :
+    Physical Memory     : x86/manual/physical_memory_mamager.md
+    Manager

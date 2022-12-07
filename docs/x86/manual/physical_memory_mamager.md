@@ -98,17 +98,7 @@ kernel, the virtual address of PAB will thus be 0xC0106000.
 
 ### PAB initialization
 
-The first step is to mark every page as allocated (by writting 1 to every bit in PAB). Then pages
-are marked free based on the BIOS memory map (those with status 1).
-
-At this point PMM is said to be initialized.
-
-Physical address zero is special, access to that location causes panic and processor is halted. So
-care is taken when freeing (as part of initialization) a section that starts at physical location 0.
-
-You can skip the below and go straight to to #PAB state after initialization section.
-
-#### System Into (for the demonstration below)
+**System Info:**
 
 ```
 RAM Reported        = 4F0000 bytes  (5056 KiB)
@@ -126,67 +116,133 @@ F0000    10000    2
 FFFC0000 40000    2
 ```
 
-#### Handling address 0 when Initializing PAB
+#### Procedure
 
-The 1st memory map entry is a section which is of size 0x9FC00 bytes and starts at 0.
-Now as location 0x0000 is not valid, calling `kalloc_free (0x0000, 0x9FC000, false)` will cause
-error.
+```
+    PAB_SIZE_BYTES  = 4096
+    PAGE_SIZE_BYTES = 1024
 
-What I do in this case, is to change the start address to the beginning of the next page, (i.e.
-0x1000) and decrease length by the same amount to keep the end address same.
+    kpmm_init ->
+        memcpy (pab, 0xFF, PAB_SIZE_BYTES)
 
-As you see from the memory map above, the 1st map entry
+        for each item in memory_map_items
+            if (item.type != Free) then continue
+
+            start  = item.baseAddr
+            length = item.length
+
+            if (start < PAGE_SIZE_BYTES) then
+                adjust (&start, &length)
+
+            pages = To_Pages (ALIGN_DOWN (length, PAGE_SIZE_BYTES))
+            kpmm_free (start, pages, NON_DMA);
+```
+
+#### Step 1
+
+Whole PAB is initialized to 0xFF. This marks every physical page as allocated (note that memory the
+PAB covers can differ from the amount of RAM the system actually has).
+
+#### Step 2
+
+##### Processing memory map entry #1
+
+Now the memory map entries are consulted and free memory is marked as such in the PAB.
+
+```
+memory map entry #0:
+
+Start    Length  Type
+-------- ------- ------
+0        9FC00    1
+```
+
+###### Step 2.1 - Handle byte address zero
+
+Note that the `baseAddr` is `0x0000`, which is the `NULL` address.
+
+Physical address zero is special, access to that location causes panic and processor is halted. So
+before this can be passed to `kpmm_free`, the `baseAddr` and `length` are modified - `baseAddr` has
+is now `0x1000` (start of the 2nd page) and `length` is decreased by the same amount to keep the end
+address same (see below section for more details).
 
 Calculations are as follows:
 
 ```
-    Given 'start' and 'length'
+    kpmm_init (start, length) ->
+        if (start < 4096)
+            distance = 0x1000 - start
 
-    if (start < 4096)
-        distance = 0x1000 - start
+            // If the whole block lies within the 1st page, then we skip
+            if (length <= distance) continue
 
-        // If the whole block lies within the 1st page, then we skip
-        if (length <= distance) continue
-
-        start_mod = 0x1000
-        length_mod = length - delta_start
+            *start  = 0x1000
+            *length = length - delta_start
 ```
 
-##### Examples
+Post adjustment (see below section) the base and length values come as follows.
 
 ```
-        Original    Modified
-        ----------  -----------
-Start  | 0x0000     0x1000
-Length | 0x9FC00    0x9EC00
-End    | 0x9FC00    0x9FC00
-        ----------  -----------
-Start  | 0x0100        -            <-- Skipped as the whole section is within the 1st page.
-Length | 0x00C00       -
-End    | 0x00D00       -
-        ----------  -----------
-Start  | 0x0FFF        -            <-- Skipped as the whole section is within the 1st page.
-Length | 0x0001        -
-End    | 0x1000        -
-        ----------  -----------
-Start  | 0x0FFF     0x1000
-Length | 0x0002     0x0001
-End    | 0x1001     0x1001
+memory map entry #0 (adjusted):
+    baseAddr:   0x01000
+    length  :   0x9EC00
 ```
 
-#### PAB state after initialization
+###### Step 2.2 - Alignment to page boundary
 
-As an example, I will take the first memory map (one below).
+`kpmm_free` takes two major parameters, one a page aligned start address and number of pages to free
+from that address.
+
+* The `baseAddr` is already aligned,
+* We need to convert the `length in bytes` to `length in pages`.
+
+The `length` is first `down aligned` to make it aligned to page boundary, then a simple division by
+`PAGE_SIZE_BYTES` will yield the number of pages.
 
 ```
-        Original    Modified
-        ----------  -----------
-Start  | 0x0000     0x1000
-Length | 0x9FC00    0x9EC00
-End    | 0x9FC00    0x9FC00
+    start       :   0x01000
+    length      :   0x9EC00
+    aligned     :   0x9E000   <--- align_down (length, PAGE_SIZE_BYTES)
+    num pages   :       158   <--- aligned / PAGE_SIZE_BYTES
+
+    kpmm_free (0x1000, 158, NO_DRM)
 ```
 
-The calculation for the values in the 'Modified' column is explained above. The
+This will make changes to PAB to indicate that `158 pages` (`0x9E000` bytes) starting at physical
+address `0x1000` are free.
+
+###### Step 2.3 - kpmm_free
+
+Each bit in PAB represents one page. So before we can mark these free areas in PAB, the bit which
+represents the pages need to be calculated. So here they are.
+
+```
+PAB byte   = page / 8
+PAB bit    = page % 8
+num pages  = length / PAGE_SIZE_BYTES
+end addr   = start addr + num pages * PAGE_SIZE_BYTES - 1
+
+start addr = 0x01000
+num pages  =     158
+end addr   = 0x9EFFF
+
+
+argument  address   page   PAB byte   PAB bit
+                    index  index      index
+--------- -------   -----  ---------  --------
+start     0x01000      1     0         1 --------> bit 1 (0 indexed) of byte 0 in PAB
+end       0x9EFFF    158    19         6 --------> bit 6             of byte 19 in PAB
+```
+
+Thus in order to mark free memory starting at address `0x1000` and ending at address `0x9DFFF`, the
+PAB is cleared from `Bit 1 of Byte 0` until `Bit 6 of Byte 19`.
+
+* `byte 19` is `0xC0106000 + 19 = 0xC0106013`.
+
+This checks out as memory starting from address `0xC0106000:1` until (and including) `0xC0106013:6`
+is set to `0x0`.
+
+Below is the dump of PAB after initialization.
 
 ```
 0xc0106000:     0x01    0x00    0x00    0x00    0x00    0x00    0x00    0x00
@@ -194,6 +250,51 @@ The calculation for the values in the 'Modified' column is explained above. The
 0xc0106010:     0x00    0x00    0x00    0x80    0xff    0xff    0xff    0xff
 0xc0106018:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
 0xc0106020:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+....
+0xc0106090:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0106098:     0x00    0x00    0x00    0x00    0xff    0xff    0xff    0xff
+0xc01060a0:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
+0xc01060a8:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
+0xc01060b0:     0xff    0xff    0xff    0xff
+...
+0xc0106ff0:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
+0xc0106ff8:     0xff    0xff    0xff    0xff    0xff    0xff    0xff    0xff
+0xc0107000:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+0xc0107008:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
+```
+##### PAB state after processing memory map entry #4
+
+```
+Memory map entry[3]:
+
+Start    Length  Type
+-------- ------- ------
+100000   3E0000   1
 ```
 
-5 MB of memory, which is
+```
+PAB byte   = page / 8
+PAB bit    = page % 8
+num pages  = length / PAGE_SIZE_BYTES
+end addr   = start addr + num pages * PAGE_SIZE_BYTES - 1
+
+start addr = 0x100000
+length     = 0x3E0000       <--- already aligned
+num pages  =      992
+end addr   = 0x4DFFFF
+
+argument  address   page   PAB byte   PAB bit
+                    index  index      index
+--------- --------  -----  ---------  --------
+start     0x100000   256    32        0 --------> bit 0 of byte 32 in PAB
+end       0x4DFFFF  1247   155        7 --------> bit 7 of byte 157 in PAB
+```
+
+Thus in order to mark free memory starting at address `0x100000` and ending at address `0x4DFFFF`
+the PAB is cleared from `Bit 0 of Byte 32` until (and including) `Bit 7 of Byte 155`.
+
+* `byte  32` is `0xC0106000 + 32  = 0xC0106020`.
+* `byte 155` is `0xC0106000 + 155 = 0xC010609B`.
+
+This checks out as memory starting from address `0xC0106020:0` until (and including) `0xC010609B:7`
+is set to `0x0`.
