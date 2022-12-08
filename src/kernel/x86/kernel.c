@@ -88,6 +88,7 @@ void __kernel_main ()
 
 void s_dumpPab ()
 {
+#if DEBUG
     U8 *s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
     UINT bytes = 60;
 
@@ -97,11 +98,12 @@ void s_dumpPab ()
         for (int i = 0; i < 8 && bytes; bytes--, i++, s_pab++)
             kdebug_printf ("\t%x ", *s_pab);
     }
-
+#endif // DEBUG
 }
 
 void display_system_info ()
 {
+#if DEBUG
     BootLoaderInfo *mi = kboot_getCurrentBootLoaderInfo ();
     INT loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
 
@@ -138,8 +140,8 @@ void display_system_info ()
     kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
 
     kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE_COUNT);
+#endif // DEBUG
 }
-
 /***************************************************************************************************
  * Marks pages occupied by module files as occupied.
  *
