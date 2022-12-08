@@ -98,26 +98,6 @@ kernel, the virtual address of PAB will thus be 0xC0106000.
 
 ### PAB initialization
 
-**System Info:**
-
-```
-RAM Reported        = 4F0000 bytes  (5056 KiB)
-Page count          = 1264
-
-Memory map:
-
-Start    Length  Type
--------- ------- ------
-0        9FC00    1
-9FC00    400      2
-F0000    10000    2
-100000   3E0000   1
-4E0000   20000    2
-FFFC0000 40000    2
-```
-
-#### Procedure
-
 ```
     PAB_SIZE_BYTES  = 4096
     PAGE_SIZE_BYTES = 1024
@@ -145,9 +125,27 @@ PAB covers can differ from the amount of RAM the system actually has).
 
 #### Step 2
 
-##### Processing memory map entry #1
-
 Now the memory map entries are consulted and free memory is marked as such in the PAB.
+
+**System Info:**
+
+```
+RAM Reported        = 4F0000 bytes  (5056 KiB)
+Page count          = 1264
+
+Memory map:
+
+Start    Length  Type
+-------- ------- ------
+0        9FC00    1
+9FC00    400      2
+F0000    10000    2
+100000   3E0000   1
+4E0000   20000    2
+FFFC0000 40000    2
+```
+
+##### Processing memory map entry #1
 
 ```
 memory map entry #0:
@@ -169,7 +167,7 @@ address same (see below section for more details).
 Calculations are as follows:
 
 ```
-    kpmm_init (start, length) ->
+    adjust (start, length) ->
         if (start < 4096)
             distance = 0x1000 - start
 
@@ -211,7 +209,11 @@ The `length` is first `down aligned` to make it aligned to page boundary, then a
 This will make changes to PAB to indicate that `158 pages` (`0x9E000` bytes) starting at physical
 address `0x1000` are free.
 
-###### Step 2.3 - kpmm_free
+In the end we call `kpmm_free (0x1000, 158, NO_DRM)`. 
+
+### kpmm_free
+
+Below is a continuation of the above example - the call was `kpmm_free (0x1000, 158, NO_DRM)`. 
 
 Each bit in PAB represents one page. So before we can mark these free areas in PAB, the bit which
 represents the pages need to be calculated. So here they are.
@@ -237,10 +239,10 @@ end       0x9EFFF    158    19         6 --------> bit 6             of byte 19 
 Thus in order to mark free memory starting at address `0x1000` and ending at address `0x9DFFF`, the
 PAB is cleared from `Bit 1 of Byte 0` until `Bit 6 of Byte 19`.
 
-* `byte 19` is `0xC0106000 + 19 = 0xC0106013`.
+`byte 19` is `0xC0106000 + 19 = 0xC0106013`.
 
-This checks out as memory starting from address `0xC0106000:1` until (and including) `0xC0106013:6`
-is set to `0x0`.
+In the PAB dump below, memory starting from address `0xC0106000:1` until (and including)
+`0xC0106013:6` is set to `0x0`.
 
 Below is the dump of PAB after initialization.
 
@@ -263,6 +265,9 @@ Below is the dump of PAB after initialization.
 0xc0107008:     0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00
 ```
 ##### PAB state after processing memory map entry #4
+
+The steps are same as before, but due to the values in this entry, the **adjustment for zero
+address** and **length alignment** are not required.
 
 ```
 Memory map entry[3]:
@@ -298,3 +303,15 @@ the PAB is cleared from `Bit 0 of Byte 32` until (and including) `Bit 7 of Byte 
 
 This checks out as memory starting from address `0xC0106020:0` until (and including) `0xC010609B:7`
 is set to `0x0`.
+
+### kpmm_alloc[At]
+
+```
+    PAB_SIZE_BYTES  = 4096
+    PAGE_SIZE_BYTES = 1024
+
+    kpmm_alloc (num_pages) ->
+        num_pages = align_up (num_pages, PAGE_SIZE_BYTES)
+        start = find_free_memory (num_pages)
+        kpmm_allocAt (start, num_pages)
+```
