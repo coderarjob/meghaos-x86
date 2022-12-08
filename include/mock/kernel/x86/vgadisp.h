@@ -4,8 +4,10 @@
 #include <unittest/fake.h>
 #include <kernel.h>
 
-DECLARE_FUNC_VOID_1(kdisp_putc, IN, CHAR);
-DECLARE_FUNC_VOID_0(kdisp_scrollDown);
-DECLARE_FUNC_VOID_0(kdisp_init);
+DECLARE_FUNC_VOID(kdisp_putc, CHAR);
+DECLARE_FUNC_VOID(kdisp_scrollDown);
+DECLARE_FUNC_VOID(kdisp_init);
+DECLARE_FUNC(bool, kdisp_isInitialized);
 
+void resetVgaDisp();
 #endif // VGADISP_FAKE_H

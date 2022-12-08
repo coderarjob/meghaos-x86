@@ -58,11 +58,26 @@ rm    -fr "$UNITTEST_OBJDIR"   || exit
 mkdir -p  "$UNITTEST_BINDIR"   || exit
 
 # ---------------------------------------------------------------------------
+# get_arch_independent_test_definition
+# Returns a list of source files for building an architecture independent tests.
+# The files which are added depends on the name of the test.
+# Output is the put into a global $SRC array.
+# Note: Mock files are added separately by the parent caller function.
+#
+# $1   - Name of the test.
+#
+# Example:
+# ```
+#  printk) {
+#              export SRC=( 'kernel/printk.c' 'unittests/printk_test.c'
+#                           'unittests/unittest.c')
+#          };;
+# ```
 get_arch_independent_test_definition()
 {
     local TEST=$1
 
-    case $test in
+    case $TEST in
         c99_conformance)
                         {
                             SRC=('unittests/c99_conformance_test.c'
@@ -86,7 +101,7 @@ get_arch_independent_test_definition()
 
 # ---------------------------------------------------------------------------
 # Builds each unittest. Rules for architecture independent tests are taken from
-# 'get_arch_independent_test_defination()' function. Rules for architecture
+# 'get_arch_independent_test_definition()' function. Rules for architecture
 # dependent tests are taken from 'get_arch_dependent_test_definition()'
 # function.
 

@@ -1,12 +1,11 @@
 /*
-* -----------------------------------------------------------------------------
+* --------------------------------------------------------------------------------------------------
 * Megha Operating System V2 - Cross platform Kernel - Platform independent 
 * kearly_printf type of functions.
 *
-* This is not and never going to be a full featured VGA text mode driver.
-* Functions here will be limited to prints or printf like functions.
-* NOTE: Actual VGA driver will be a server in User Mode.
-* -----------------------------------------------------------------------------
+* This is not and never going to be a full featured VGA text mode driver. Functions here will be
+* limited to prints or printf like functions.
+* --------------------------------------------------------------------------------------------------
 *
 * Dated: 5th September 2021
 */
@@ -17,18 +16,31 @@
 
 typedef enum IntTypes 
 {
-    INTEGER, LONGINT, LONGLONGINT
+    INTEGER, LONGINT, LONGLONGINT, ADDRESS
 } IntTypes;
 
 static void s_prnstr (const CHAR *str);
 static void s_itoa (CHAR **dest, S64 *size, U64 num, U32 base);
-static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c,
-                       va_list *l);
+static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c, va_list *l);
 static IntTypes s_readtype (const CHAR **fmt, CHAR *c);
 static U64 s_readint (IntTypes inttype, va_list *l);
 
+/***************************************************************************************************
+ * Prints on screen the arguments in the format specified.
+ *
+ * @param fmt   Pointer to a string, with or without conversion attributes for the arguments.
+ *              Conversion attributes are given in the following format:
+ *                  %[ type modifiers : l|ll|p ] [ conversions: u|x|o|s|%  ]
+ *
+ *              For format details, see description for `kearly_vsnprintf`.
+ * @param ...   Arguments for each conversion specification.
+ * @return      For description for `kearly_vsnprintf`.
+ **************************************************************************************************/
 INT kearly_printf (const CHAR *fmt, ...)
 {
+    if (kdisp_isInitialized() == false)
+        return 0;
+
     va_list l;
     va_start (l, fmt);
 
@@ -41,6 +53,17 @@ INT kearly_printf (const CHAR *fmt, ...)
     return len;
 }
 
+/***************************************************************************************************
+ * Writes to a string pointer the arguments in the format specified.
+ *
+ * @param fmt   Pointer to a string, with or without conversion attributes for the arguments.
+ *              Conversion attributes are given in the following format:
+ *                  %[ type modifiers : l|ll|p ] [ conversions: u|x|o|s|%  ]
+ *
+ *              For format details, see description for `kearly_vsnprintf`.
+ * @param ...   Arguments for each conversion specification.
+ * @return      For description for `kearly_vsnprintf`.
+ **************************************************************************************************/
 INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
 {
     va_list l;
@@ -52,10 +75,41 @@ INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
     return len;
 }
 
-INT kearly_vsnprintf (CHAR *dest, size_t sz, const CHAR *fmt, va_list l)
+/***************************************************************************************************
+ * Writes to a string pointer (dest) the arguments in the format specified.
+ *
+ * @param dest  Pointer to a string, where the output will be written.
+ * @param sz    Size of the string in bytes.
+ * @param fmt   Pointer to a string, with or without conversion attributes for the arguments.
+ *              Conversion attributes are given in the following format:
+ *                  %[ type modifiers : l|ll|p ] [ conversions: u|x|o|s|%  ]
+ *
+ *              Type Modifiers   Function
+ *              ---------------  -----------------------------------------------------------
+ *              %l              Treats argument as a LONG integer.
+ *              %llu            Treats argument as a LONG LONG integer.
+ *              %p              Treats argument as a USYSINT (system address or large integer).
+ *
+ *              Conversions      Function
+ *              ---------------  -----------------------------------------------------------
+ *              %s               Treats argument a pointer to a char *.
+ *              %u               Prints argument in base 10. Default type is UINT.
+ *              %o               Prints argument in base 8. Default type is UINT.
+ *              %x               Prints argument in base 16. Default type is UINT.
+ *              %%               Prints a %.
+ *
+ * @param l     Arguments for each conversion specification.
+ * @return      Upon successful return, these functions return the number of characters printed
+ *              (excluding the null byte used to end output to strings).
+ * @return      If the output was truncated due to the size (sz) limit, then the return value is
+ *              the number of characters (excluding the terminating null byte) which would have been
+ *              written  to  the final string if enough space had been available.
+ *              A return value of size or more means that the output was truncated
+ **************************************************************************************************/
+INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
 {
-    size_t originalsize = sz;
-    S64 size = sz;
+    size_t originalsize = size;
+    S64 size_left = size;
 
     CHAR c;
     while ((c = *fmt))
@@ -66,21 +120,21 @@ INT kearly_vsnprintf (CHAR *dest, size_t sz, const CHAR *fmt, va_list l)
         if (c == '%')
         {
             IntTypes inttype = s_readtype (&fmt, &c);
-            isliteral = s_convert (&dest, &size, inttype, c, &l);
+            isliteral = s_convert (&dest, &size_left, inttype, c, &l);
         }
 
         while (prevfmt <= fmt && isliteral)
         {
-            if (size > 1) *dest++ = *prevfmt;
+            if (size_left > 1) *dest++ = *prevfmt;
             prevfmt++;
-            size--;
+            size_left--;
         }
 
         fmt++;
     }
 
     *dest = '\0';
-    return (INT)(originalsize - size);
+    return (INT)(originalsize - size_left);
 }
 
 static IntTypes s_readtype (const CHAR **fmt, CHAR *c)
@@ -90,6 +144,8 @@ static IntTypes s_readtype (const CHAR **fmt, CHAR *c)
     {
         if (*c == 'l')
             inttype = (inttype == INTEGER) ? LONGINT : LONGLONGINT;
+        else if (*c == 'p')
+            inttype = ADDRESS;
         else
             break;
     }
@@ -109,14 +165,16 @@ static U64 s_readint (IntTypes inttype, va_list *l)
         case LONGLONGINT:
             value = va_arg (*l, U64);
             break;
+        case ADDRESS:
+            value = va_arg (*l, USYSINT);
+            break;
         default:
             value = 0xCAFEBABE189;
             break;
     }
     return value;
 }
-static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c,
-                       va_list *l)
+static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c, va_list *l)
 {
     U64 intvalue;
     CHAR *stringvalue;
@@ -160,6 +218,7 @@ static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c,
 
     return isliteral;
 }
+
 /* Displays a 64 bit number in various representation on the screen.  */
 static void s_itoa (CHAR **dest, S64 *size, U64 num, U32 base)
 {

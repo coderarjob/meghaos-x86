@@ -15,6 +15,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
     typedef uint8_t  U8;
     typedef uint16_t U16;
@@ -42,27 +43,7 @@
     typedef unsigned char UCHAR;
     typedef char          CHAR;
 
-    /* Casts a bit field of n bits to UINT. */
-    inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
-        return (UINT)(t & (UINT)((1 << n) -1));
-    }
+    /* Large enough to hold the largest address possible on a 32 bit system */
+    typedef U32           USYSINT;
 
-    /* VIRTUAL_ADDRESS:
-     * 32 bit Physical address. This type will prevent mixing physical and
-     * virtual addresses as this type cannot be cast to any other pointer, not
-     * even void * explicitly.
-
-     * Use the 'PHYSICAL_ADDRESS' macro for initializing variables or function
-     * parameters of type PHYSICAL_ADDRESS.
-
-     * Example:
-     * PHYSICAL_ADDRESS vga = PHYSICAL_ADDRESS (0xB8000);
-     * Read it as, the 'vga' variable of type PHYSICAL_ADDRESS holds the
-     * physical address 0xB8000. So think of this type as a pointer
-     * implementation.
-     */
-    typedef
-    struct { size_t phy_addr; } __attribute__ ((packed)) PHYSICAL_ADDRESS;
-
-    #define PHYSICAL_ADDRESS(address) {.phy_addr = address}
 #endif // __x86_TYPES__

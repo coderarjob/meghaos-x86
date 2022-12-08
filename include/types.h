@@ -17,4 +17,38 @@
     #include <x86/types.h>
 #endif
 
+#define TRUE  1
+#define FALSE 0
+
+/* Casts a bit field of n bits to UINT. */
+inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
+    return (UINT)(t & (UINT)((1 << n) -1));
+}
+
+/** Specific type to store Physical addresses.
+ * This type will prevent mixing physical and virtual addresses and may be also lessen the need for
+ * Hungarian notations.
+ *
+ * For ease of use, any variable of type USYSINT can be passed to a function expecting Physical
+ * without any case (because of transparent union).
+
+ * Use the 'Physical' macro for initializing variables or function parameters of type Physical.
+ */
+typedef union
+{
+    USYSINT val;
+} __attribute__ ((packed)) Physical;
+
+#define PHYSICAL(address) {.val = address}
+#define PHYSICAL_NULL createPhysical(0)
+
+static inline Physical createPhysical (USYSINT address) {
+    Physical p = {.val = address};
+    return p;
+}
+
+static inline bool isPhysicalNull (Physical address) {
+    return address.val == 0;
+}
+
 #endif // __PORTABLE_TYPES__

@@ -1,38 +1,40 @@
 /*
-* ---------------------------------------------------------------------------
+* --------------------------------------------------------------------------------------------------
 * Megha Operating System V2 - x86 Bootloader 
 *
-* Contains structures and methods that is used to get information from
-* bootloder.
-* ---------------------------------------------------------------------------
-*
-* Dated: 6th January 2020
+* Contains abstract structure declarations and methods that is used to get information from the
+* bootloader.
+* --------------------------------------------------------------------------------------------------
 */
 
-#ifndef __BOOT_H__
-#define __BOOT_H__
+#ifndef BOOT_H
+#define BOOT_H
 
     #include <types.h>
-
-    typedef struct BootMemoryMapItem
+    typedef enum BootMemoryMapTypes
     {
-        U64 baseAddr;
-        U64 length;
-        U32 type;
-    }__attribute__ ((packed)) BootMemoryMapItem;
-    
-    typedef struct BootFileItem
-    {
-        U32 startLocation;
-        U16 length;
-    }__attribute__ ((packed)) BootFileItem;
+        MMTYPE_FREE = 1,
+        MMTYPE_RESERVED = 2,
+        MMTYPE_ACPI_RECLAIM = 3,
+    } BootMemoryMapTypes;
 
-    typedef struct BootLoaderInfo
-    {
-        U16 filecount;
-        BootFileItem files[11];
-        U16 count;
-        BootMemoryMapItem items[];
-    }__attribute__ ((packed)) BootLoaderInfo;
+    typedef struct BootMemoryMapItem BootMemoryMapItem;
+    typedef struct BootFileItem BootFileItem;
+    typedef struct BootLoaderInfo BootLoaderInfo;
 
-#endif //__BOOT_H__
+    BootLoaderInfo* kboot_getCurrentBootLoaderInfo ();
+
+    U16 kBootLoaderInfo_getFilesCount (BootLoaderInfo const* bli);
+    BootFileItem* kBootLoaderInfo_getFileItem (BootLoaderInfo const* bli, INT index);
+    BootMemoryMapItem* kBootLoaderInfo_getMemoryMapItem (BootLoaderInfo const* bli, INT index);
+    U16 kBootLoaderInfo_getMemoryMapItemCount (BootLoaderInfo const* bli);
+
+    U16 kBootFileItem_getLength (BootFileItem const* bfi);
+    U32 kBootFileItem_getStartLocation (BootFileItem const* bfi);
+
+    BootMemoryMapTypes kBootMemoryMapItem_getType (BootMemoryMapItem const* bmmi);
+    U64 kBootMemoryMapItem_getLength (BootMemoryMapItem const* bmmi);
+    U64 kBootMemoryMapItem_getBaseAddress (BootMemoryMapItem const* bmmi);
+
+    ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli);
+#endif //BOOT_H

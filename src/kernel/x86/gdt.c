@@ -10,23 +10,7 @@
 */
 
 #include <kernel.h>
-
-typedef struct GdtDescriptor
-{
-    U16 limit_low;
-    U16 base_low;
-    U8 base_middle;
-    U8 access;
-    U8 limit_high:4;
-    U8 flags     :4;
-    U8 base_high;
-} __attribute__ ((packed)) GdtDescriptor;
-
-typedef struct GdtMeta
-{
-    U16 size;
-    U32 location;
-} __attribute__ ((packed)) GdtMeta;
+#include <x86/gdt_struct.h>
 
 /* -------------------------------------------------------------------------*/
 /* Variables */

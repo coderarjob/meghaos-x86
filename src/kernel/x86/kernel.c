@@ -23,6 +23,8 @@ static void sys_dummy ();
 static void fault_gp ();
 static void page_fault ();
 static void display_system_info ();
+static void s_markMemoryOccupiedByModuleFiles ();
+static void s_dumpPab ();
 
 /*
  Virtual memory        ->  Physical memory
@@ -36,6 +38,12 @@ void __kernel_main ()
 {
     kdisp_init ();
     kearly_printf ("\r\n[OK]\tPaging enabled.");
+
+    // Initilaize Physical Memory Manger
+    kpmm_init ();
+
+    // Mark memory already occupied by the modules.
+    s_markMemoryOccupiedByModuleFiles();
 
     // TSS setup
     kearly_printf ("\r\n[  ]\tTSS setup.");
@@ -54,60 +62,112 @@ void __kernel_main ()
     kearly_printf ("\r\n[  ]\tIDT setup");
     kidt_init ();
 
-    kidt_edit (0, div_zero, GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-
-    kidt_edit (14, page_fault, GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-
-    kidt_edit (13, fault_gp,GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-
-    kidt_edit (0x40, sys_dummy, GDT_SELECTOR_KCODE,
-              IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
+    kidt_edit (0, div_zero, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (14, page_fault, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (13, fault_gp,GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (0x40, sys_dummy, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
 
     kearly_printf ("\r[OK]");
 
     // Display available memory
     display_system_info ();
+
     
+    s_dumpPab();
     // Paging information
-    extern void paging_print ();
-    paging_print ();
+    //extern void paging_print ();
+    //paging_print ();
 
     // Jump to user mode
     kearly_printf ("\r\nJumping to User mode..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,CYAN,0));
-    __jump_to_usermode (GDT_SELECTOR_UDATA, 
-                       GDT_SELECTOR_UCODE,
-                       &usermode_main);
+    __jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
     
 }
 
+void s_dumpPab ()
+{
+#if DEBUG
+    U8 *s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
+    UINT bytes = 60;
+
+    while (bytes)
+    {
+        kdebug_printf ("\r\n%x:", s_pab);
+        for (int i = 0; i < 8 && bytes; bytes--, i++, s_pab++)
+            kdebug_printf ("\t%x ", *s_pab);
+    }
+#endif // DEBUG
+}
+
 void display_system_info ()
 {
-    BootLoaderInfo *mi = (BootLoaderInfo*)BOOT_INFO_LOCATION;
+#if DEBUG
+    BootLoaderInfo *mi = kboot_getCurrentBootLoaderInfo ();
+    INT loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
 
     kdebug_printf ("%s","\r\nLoaded kernel files:");
-    for (INT i = 0; i < mi->filecount; i++){
-        BootFileItem file = mi->files[i];
+    for (INT i = 0; i < loadedFilesCount; i++){
+        BootFileItem* file = kBootLoaderInfo_getFileItem (mi, i);
+        UINT startLocation = (UINT)kBootFileItem_getStartLocation (file);
+        UINT length_bytes = (UINT)kBootFileItem_getLength (file);
+
         kdebug_printf ("\r\n* file: Start = %x, Length = %x",
-                file.startLocation, file.length);
+                startLocation, length_bytes);
     }
 
+
+    INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
     kdebug_printf ("%s","\r\nBIOS Memory map:"); 
     U64 available_memory = 0;
-    for (INT i = 0; i < mi->count; i++)
+    for (INT i = 0; i < memoryMapItemCount; i++)
     {
-        BootMemoryMapItem item = mi->items[i];
-        available_memory += item.length;
+        BootMemoryMapItem* item = kBootLoaderInfo_getMemoryMapItem (mi, i);
+        U64 baseAddress = kBootMemoryMapItem_getBaseAddress (item);
+        U64 length_bytes = kBootMemoryMapItem_getLength (item);
+        BootMemoryMapTypes type = kBootMemoryMapItem_getType (item);
+
+        available_memory += length_bytes;
         kdebug_printf ("\r\n* map: Start = %llx, Length = %llx, Type = %u",
-                         item.baseAddr, item.length, item.type);
+                         baseAddress, length_bytes, type);
     }
 
-    kdebug_printf ("\r\nKernel files loaded: %u", mi->filecount);
-    kdebug_printf ("\r\nAvailable memory: %u KiB",available_memory/1024);
+    kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
+    kdebug_printf ("\r\nAvailable RAM bytes: %llx bytes",available_memory);
+
+    UINT availablePageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (available_memory);
+    kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
+
+    kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE_COUNT);
+#endif // DEBUG
+}
+/***************************************************************************************************
+ * Marks pages occupied by module files as occupied.
+ *
+ * It consults the bootloader structures and it marks memory occupied by module files.
+ * If memory map length is not aligned, memory is marked allocated, till the next page boundary.
+ * This means length is aligned to the next multiple of CONFIG_PAGE_FRAME_SIZE_BYTES.
+ *
+ * @return nothing
+ * @error   On failure, processor is halted.
+ **************************************************************************************************/
+static void s_markMemoryOccupiedByModuleFiles ()
+{
+    BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
+    INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
+    for (INT i = 0; i < filesCount; i++)
+    {
+        BootFileItem* fileinfo = kBootLoaderInfo_getFileItem (bootloaderinfo, i);
+        USYSINT startAddress = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
+        USYSINT lengthBytes = (USYSINT)kBootFileItem_getLength (fileinfo);
+        UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
+
+        kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
+                        , startAddress, lengthBytes, pageFrameCount);
+        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == false)
+            k_assertOnError ();
+    }
 }
 
 __attribute__ ((noreturn))
@@ -168,6 +228,12 @@ void usermode_main ()
     kearly_printf ("\r\n%llx",var);
     kearly_printf ("\r\nLocation of __kernel_main = %x",__kernel_main);
 
+    void *pab = CAST_PA_TO_VA (g_pab);
+    kearly_printf ("\r\nLocation of pab = %x",pab);
+
+
+    USYSINT num = 0xFF012EA;
+    kearly_printf ("\r\nNum is = %px", num);
     //k_assert (1 < 0,"Nonsense");
     *a = 0;    
 

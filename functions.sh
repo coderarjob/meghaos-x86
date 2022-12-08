@@ -65,7 +65,13 @@ __compile_cc()
     local OBJ_FILE=$3
     local LIST_FILE=$4
 
-    $CC -S "$IN_FILE" -o "$LIST_FILE" >/dev/null 2>&1                   || exit
+    # Because the same files are compiled twice, (once for the list files and
+    # another time the actual object files are created), any warning will
+    # appear twice. To prevent this, all output is purged when generating the
+    # list files.
+    # However, this means errors will also not be shown. To remedy this, the
+    # 2nd compilation step will always occur. Not the ideal solution, I know.
+    $CC -S "$IN_FILE" -o "$LIST_FILE" > /dev/null 2>&1
     $CC -c "$IN_FILE" -o "$OBJ_FILE"                                    || exit
 }
 
@@ -86,7 +92,7 @@ __compile_nasm()
     local OBJ_FILE=$3
     local LIST_FILE=$4
 
-    $ASM "$IN_FILE" -l "$LIST_FILE" -o "$OBJ_FILE"                       || exit
+    $ASM "$IN_FILE" $NASM_INCPATH -l "$LIST_FILE" -o "$OBJ_FILE"     || exit
 }
 
 # ----------------------------------------------------------------------------
@@ -133,39 +139,4 @@ compile_nasm()
     local SRC_FILES="$@"
 
     __compile "$ASM" "__compile_nasm" "$OBJ_PATH" "$SRC_FILES"
-}
-
-# ----------------------------------------------------------------------------
-# link_unittest_add_file
-# Adds C files, whose corresponding object files need to be linked.
-#
-# $1   - Path to the directory for obj and list files.
-#        Relative to MOS_ROOT_PATH dir.
-# $2   - Flies to compile. Relative to SRC_ROOT dir.
-link_unittest_add_file()
-{
-    local OBJ_PATH=$1
-    local FILES=$2
-
-    for fn in ${FILES[@]}; do
-        local SRC_FTILE=${fn%.*}              # Remove extension.
-        local OBJ_FILE=$OBJ_PATH/$SRC_FTILE.o # Path to object file
-        GLOBAL_MOS_BUILD_OBJ_FILES=("${GLOBAL_MOS_BUILD_OBJ_FILES[@]}" "$OBJ_FILE")
-    done
-}
-
-# ----------------------------------------------------------------------------
-# link_unittest
-# Calls the Linker program with the appropriate arguments. This links all the
-# previously added object files (using link_unittest_add_file) into an
-# executable. Later it also clears the global object file list.
-# $1   - Linker argumnets.
-# $2   - Test executable filename
-link_unittest()
-{
-    local LD=$1
-    local EXE_PATH=$2
-
-    $LD "${GLOBAL_MOS_BUILD_OBJ_FILES[@]}" -o "$EXE_PATH"
-    GLOBAL_MOS_BUILD_OBJ_FILES=()       # Clear the array.
 }

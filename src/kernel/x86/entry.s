@@ -14,44 +14,16 @@ extern __kernel_main
 global g_kernel_entry
 global g_page_dir
 global g_page_table
+global g_pab
 
-; ---------------------------------------------------------------------------
-; Structures
-; ---------------------------------------------------------------------------
-MAX_FILES_COUNT  EQU 11
-BOOT_INFO_MEM    EQU 0x1800
-
-struc mem_des_t
-            .BaseAddrLow   : resd 1
-            .BaseAddrHigh  : resd 1
-            .LengthLow     : resd 1
-            .LengthHigh    : resd 1
-            .Type          : resd 1
-endstruc
-
-struc file_des_t
-            .StartLocation : resd 1
-            .Length        : resw 1
-endstruc
-
-struc boot_info_t
-            .file_count    : resw 1
-            .file_dec_items: resb file_des_t_size * MAX_FILES_COUNT
-            .mem_des_count : resw 1
-            .mem_des_items : resb mem_des_t_size
-endstruc
-
-; ---------------------------------------------------------------------------
-; Macros
-; ---------------------------------------------------------------------------
-%define PHY(m) (m - 0xC0000000)
-
+%include "mos.inc"
 ; ---------------------------------------------------------------------------
 ; Data Section
 ; ---------------------------------------------------------------------------
 section .bss nobits alloc
-g_page_dir  : resd 1
+g_page_dir:   resd 1
 g_page_table: resd 1
+g_pab:        resd 1
 
 ; ---------------------------------------------------------------------------
 ; Text Section
@@ -69,6 +41,10 @@ g_kernel_entry:
     ; Page table is placed 4KB from the Page directory.
         add eax, 0x1000
         mov [PHY(g_page_table)], eax
+
+    ; Page allocation bitmap is placed after the Page table.
+        add eax, 0x1000
+        mov [PHY(g_pab)], eax
     ; --
 
     call s_fill_pd
@@ -109,8 +85,7 @@ section .text progbits alloc exec nowrite
     ; --
 
     ; Map stack to higher address
-    ; TODO: Need to remove this hard coded address shomehow.
-    mov esp, 0xC0027FFF
+    mov esp, HIGHV(KERNEL_STACK_TOP_MEM)
 
     ; Clear TLB
         mov eax, [g_page_dir]

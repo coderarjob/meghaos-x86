@@ -9,24 +9,7 @@
 */
 
 #include <kernel.h>
-
-/* IDT Descriptor */
-typedef struct IdtDescriptor
-{
-    U16 offset_low;
-    U16 segment_tss_selector;
-    U8  zeros;
-    U8  type : 5;
-    U8  dpl  : 2;
-    U8  p    : 1;
-    U16 offset_high;
-} __attribute__ ((packed)) IdtDescriptor;
-
-typedef struct IdtMeta
-{
-    U16 limit;
-    U32 location;
-} __attribute__ ((packed)) IdtMeta;
+#include <x86/idt_struct.h>
 
 /* -------------------------------------------------------------------------*/
 /* Variables */
