@@ -26,7 +26,7 @@ RUNMODE='QEMU'
 case $RUNMODE in
     QEMU)
         {
-            OPTS="-m 5"
+            OPTS="-m 2561k"
             [[ $# -gt 0 ]] && OPTS="$@"
 
             qemu-system-i386 $OPTS -fda ./build/diskimage/x86/mos.flp \

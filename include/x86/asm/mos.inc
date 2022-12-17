@@ -53,7 +53,7 @@
     ; Constants
     ; ------------------------------------------------------------------------
     MAX_FILES_COUNT:    EQU     11              ; 10 Ramdisks + 1 Kernel file.
-    MIN_MEM_REQ:        EQU     4 * 1024 * 1024 ; 4 MB RAM required mininum.
+    MIN_MEM_REQ:        EQU     2 * 1024 * 1024 ; 2 MB RAM required mininum.
 
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"
