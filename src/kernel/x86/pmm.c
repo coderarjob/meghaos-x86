@@ -58,6 +58,8 @@ static void s_markFreeMemory ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     INT mmapCount = kBootLoaderInfo_getMemoryMapItemCount (bootloaderinfo);
+    size_t actualAddressableMemorySize = kpmm_getActualAddressableRamSize (false);
+
     for (INT i = 0; i < mmapCount; i++)
     {
         BootMemoryMapItem* memmap = kBootLoaderInfo_getMemoryMapItem (bootloaderinfo, i);
@@ -72,12 +74,12 @@ static void s_markFreeMemory ()
         // range. Now this is not an error, because on systems with more RAM than
         // MAX_ADDRESSABLE_BYTE, Memory map from BIOS will have sections that is entirely outside
         // the addressable range.
-        if (lengthBytes == 0 || startAddress > MAX_ADDRESSABLE_BYTE) continue;
+        if (lengthBytes == 0 || startAddress >= actualAddressableMemorySize) continue;
 
         // Check if addressing more than Addressable. Cap it to Max Addressable if so.
         U64 endAddress = startAddress + lengthBytes - 1;
-        if (endAddress > MAX_ADDRESSABLE_BYTE)
-            lengthBytes = MAX_ADDRESSABLE_BYTE_COUNT - startAddress + 1;
+        if (endAddress >= actualAddressableMemorySize)
+            lengthBytes = actualAddressableMemorySize - startAddress + 1;
 
         // As access to this page is not allowed, if the start address is within the 1st page, we
         // need to move start location to the start of 2nd page frame and decrease the length by the
