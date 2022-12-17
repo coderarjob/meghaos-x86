@@ -58,7 +58,7 @@ static void s_markFreeMemory ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     INT mmapCount = kBootLoaderInfo_getMemoryMapItemCount (bootloaderinfo);
-    size_t actualAddressableMemorySize = kpmm_getActualAddressableRamSize (false);
+    size_t actualAddressableMemorySize = kpmm_getAddressableByteCount (false);
 
     for (INT i = 0; i < mmapCount; i++)
     {
@@ -72,7 +72,7 @@ static void s_markFreeMemory ()
 
         // Skip, if length is zero or start address of the section is beyond the addressable
         // range. Now this is not an error, because on systems with more RAM than
-        // MAX_ADDRESSABLE_BYTE, Memory map from BIOS will have sections that is entirely outside
+        // MAX_PAB_ADDRESSABLE_BYTE, Memory map from BIOS will have sections that is entirely outside
         // the addressable range.
         if (lengthBytes == 0 || startAddress >= actualAddressableMemorySize) continue;
 
@@ -138,7 +138,7 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = startAddress.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
 
-    if (allocation_end_byte >= kpmm_getActualAddressableRamSize (false))
+    if (allocation_end_byte >= kpmm_getAddressableByteCount (false))
         RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
@@ -184,7 +184,7 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
 
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = start.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
-    if (allocation_end_byte >= kpmm_getActualAddressableRamSize (isDMA))
+    if (allocation_end_byte >= kpmm_getAddressableByteCount (isDMA))
         RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
@@ -234,7 +234,7 @@ Physical kpmm_alloc (UINT pageCount, bool isDMA)
     INT found = FALSE;
 
     // Search PAB for a suitable location.
-    UINT maxPageFrame = kpmm_getActualAddressablePageCount (isDMA) - pageCount;
+    UINT maxPageFrame = kpmm_getAddressablePageCount (isDMA) - pageCount;
     for (; found == FALSE && startPageFrame <= maxPageFrame; startPageFrame++)
         found = s_isPagesFree (startPageFrame, pageCount, isDMA);
 
@@ -346,7 +346,7 @@ static INT s_get (UINT pageFrame, bool isDMA)
     if (pageFrame == 0)
         k_panic ("Invalid access: Page %u", pageFrame);
 
-    if (pageFrame > kpmm_getActualAddressablePageCount (isDMA))
+    if (pageFrame > kpmm_getAddressablePageCount (isDMA))
         k_panic ("Access outside range. Page %u", pageFrame);
 
     UINT byteIndex = (pageFrame / 8);
@@ -366,9 +366,9 @@ static INT s_get (UINT pageFrame, bool isDMA)
  * @return          Gets the maximum page frame count for DMA hardware. Otherwise returns the
  *                  maximum page frame count supported by the PAB.
  **************************************************************************************************/
-UINT kpmm_getActualAddressablePageCount (bool isDMA)
+UINT kpmm_getAddressablePageCount (bool isDMA)
 {
-    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getActualAddressableRamSize (isDMA));
+    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getAddressableByteCount (isDMA));
     return maxPageCount;
 }
 
@@ -382,11 +382,11 @@ UINT kpmm_getActualAddressablePageCount (bool isDMA)
  * @return          Amount of actual accessible RAM in bytes. So the last valid byte will be at
  *                  `s_getAddressableRamSize() - 1`.
  **************************************************************************************************/
-size_t kpmm_getActualAddressableRamSize (bool isDMA)
+size_t kpmm_getAddressableByteCount (bool isDMA)
 {
     BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
     ULLONG RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
-    ULLONG PABLimit = (isDMA) ? MAX_DMA_ADDRESSABLE_BYTE_COUNT : MAX_ADDRESSABLE_BYTE_COUNT;
+    ULLONG PABLimit = (isDMA) ? MAX_PAB_DMA_ADDRESSABLE_BYTE_COUNT : MAX_PAB_ADDRESSABLE_BYTE_COUNT;
 
     return (size_t) MIN(RAMSizeBytes, PABLimit);
 }
@@ -415,7 +415,7 @@ size_t kpmm_getFreeMemorySize ()
         k_panic ("%s", "Called before PMM initialization.");
 
     size_t freeBytes = 0;
-    UINT pageFrameCount = kpmm_getActualAddressablePageCount (false);
+    UINT pageFrameCount = kpmm_getAddressablePageCount (false);
 
     for (UINT frame = 1; frame < pageFrameCount; frame++)
         freeBytes += s_get (frame, false) ? 0 : CONFIG_PAGE_FRAME_SIZE_BYTES;

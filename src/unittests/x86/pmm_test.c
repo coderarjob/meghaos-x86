@@ -4,8 +4,8 @@
 #include <mock/kernel/x86/boot.h>
 #include <string.h>
 
-#define MAX_ACTUAL_PAGE_COUNT (kpmm_getActualAddressablePageCount (false))
-#define MAX_ACTUAL_DMA_PAGE_COUNT (kpmm_getActualAddressablePageCount (true))
+#define MAX_ACTUAL_PAGE_COUNT (kpmm_getAddressablePageCount (false))
+#define MAX_ACTUAL_DMA_PAGE_COUNT (kpmm_getAddressablePageCount (true))
 
 static U8 pab[PAB_SIZE_BYTES];
 
@@ -426,7 +426,7 @@ TEST(PMM, autoalloc_excess_pages)
     // Clear PAB.
     memset (pab, 0,PAB_SIZE_BYTES);
 
-    // Allocating MAX_ADDRESSABLE_PAGE_COUNT pages. Should fail.
+    // Allocating more pages than present. Should fail.
     Physical startAddress = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT, FALSE);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
@@ -457,7 +457,7 @@ TEST(PMM, free_excess_pages)
     // Set every page in PAB.
     memset (pab, 0xFF,PAB_SIZE_BYTES);
 
-    // Freeing MAX_ADDRESSABLE_PAGE_COUNT pages at 4096. Should fail.
+    // Freeing more pages than available. Should fail.
     Physical startAddress = createPhysical(4096);
 
     bool success = kpmm_free (startAddress, MAX_ACTUAL_PAGE_COUNT);
@@ -559,18 +559,18 @@ TEST(PMM, free_mem_size_after_autoalloc)
 TEST(PMM, actual_accessable_ram)
 {
     kboot_calculateAvailableMemory_fake.ret = 5 * MB;
-    size_t available_ram = kpmm_getActualAddressableRamSize (false);
+    size_t available_ram = kpmm_getAddressableByteCount (false);
     EQ_SCALAR (available_ram, 5 * MB);
 
-    available_ram = kpmm_getActualAddressableRamSize (true);
+    available_ram = kpmm_getAddressableByteCount (true);
     EQ_SCALAR (available_ram, 5 * MB);
 
     kboot_calculateAvailableMemory_fake.ret = 5 * GB;
-    available_ram = kpmm_getActualAddressableRamSize (false);
-    EQ_SCALAR (available_ram, MAX_ADDRESSABLE_BYTE_COUNT);
+    available_ram = kpmm_getAddressableByteCount (false);
+    EQ_SCALAR (available_ram, MAX_PAB_ADDRESSABLE_BYTE_COUNT);
 
-    available_ram = kpmm_getActualAddressableRamSize (true);
-    EQ_SCALAR (available_ram, MAX_DMA_ADDRESSABLE_BYTE_COUNT);
+    available_ram = kpmm_getAddressableByteCount (true);
+    EQ_SCALAR (available_ram, MAX_PAB_DMA_ADDRESSABLE_BYTE_COUNT);
 
     END();
 }
