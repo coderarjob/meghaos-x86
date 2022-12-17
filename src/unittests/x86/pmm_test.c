@@ -473,6 +473,9 @@ TEST(PMM, free_last_page)
     // Set every page in PAB.
     memset (pab, 0xFF,PAB_SIZE_BYTES);
 
+    // System has 5 MB of ram
+    kboot_calculateAvailableMemory_fake.ret = 5 * MB;
+
     // Freeing the last physical page (5 MB of RAM). Should succeed.
     // Last page is 1279, which is 159:7 bit in the PAB.
     USYSINT lastPageAddress = (MAX_ACTUAL_PAGE_COUNT - 1) * CONFIG_PAGE_FRAME_SIZE_BYTES;
@@ -556,8 +559,8 @@ void reset()
     resetMemFake();
     resetBootFake();
 
-    // Default size of RAM is set to 5 MB.
-    kboot_calculateAvailableMemory_fake.ret = 5 * MB;
+    // Default size of RAM is set to 2 MB.
+    kboot_calculateAvailableMemory_fake.ret = 2 * MB;
 }
 
 int main()
