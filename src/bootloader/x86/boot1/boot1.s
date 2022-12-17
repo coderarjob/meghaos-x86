@@ -76,7 +76,7 @@ _start:
     printString msg_success
     
     ; -------- [ Calculate total usable memory ] -----------
-    ; We require at least 4 MB of usable RAM. We HALT if the amount is less.
+    ; Check for minimum memory. Halts if amount is less.
     printString msg_AVLMEM
     ; AX = Entry Count
     ; ES:DI = Pointer to mem_des_t array
@@ -90,13 +90,13 @@ _start:
         call __printhex
     pop eax
 
-    ; Check if the amount of free memory is >= 4MB
-    cmp eax, HIGH_BITS(MIN_MEM_REQ,32)            ; 4 MiB
-    ja .ne1                                       ; HIGH(AVRAM) > HIGH(4MB)
-    jb failed                                     ; HIGH(AVRAM) < HIGH(4MB)
-    cmp ebx, LOW_BITS(MIN_MEM_REQ,32)             ; HIGH(AVRAM) = HIGH(4MB)
-    jb failed                                     ; LOW(AVRAM) < LOW(4MB)
-.ne1:                                             ; AVRAM >= 4MB
+    ; Check if the amount of free memory is >= Minimum Required RAM
+    cmp eax, HIGH_BITS(MIN_MEM_REQ,32)
+    ja .ne1                                       ; HIGH(AVRAM) > HIGH(MIN REQ)
+    jb failed                                     ; HIGH(AVRAM) < HIGH(MIN REQ)
+    cmp ebx, LOW_BITS(MIN_MEM_REQ,32)             ; HIGH(AVRAM) = HIGH(MIN REQ)
+    jb failed                                     ; LOW(AVRAM) < LOW(MIN REQ)
+.ne1:                                             ; AVRAM >= MIN REQ RAM
     printString msg_success
 
     ; -------- [ A20 Gate Enabling ] -----------
