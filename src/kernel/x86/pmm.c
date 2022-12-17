@@ -14,7 +14,6 @@ static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA);
 static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA);
 static INT s_get (UINT pageFrame, bool isDMA);
 static void s_set (UINT pageFrame, bool alloc, bool isDMA);
-static UINT s_getMaxPageCount (bool isDMA);
 static void s_markFreeMemory ();
 
 static U8 *s_pab = NULL;
@@ -137,7 +136,7 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = startAddress.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
 
-    if (allocation_end_byte >= MAX_ADDRESSABLE_BYTE_COUNT)
+    if (allocation_end_byte >= kpmm_getActualAddressableRamSize (false))
         RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
@@ -182,9 +181,8 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
     // Check if address is within the max addressable range.
-    USYSINT max_addressable_byte_count = s_getMaxPageCount (isDMA) * CONFIG_PAGE_FRAME_SIZE_BYTES;
     USYSINT allocation_end_byte = start.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
-    if (allocation_end_byte >= max_addressable_byte_count)
+    if (allocation_end_byte >= kpmm_getActualAddressableRamSize (isDMA))
         RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
@@ -234,7 +232,7 @@ Physical kpmm_alloc (UINT pageCount, bool isDMA)
     INT found = FALSE;
 
     // Search PAB for a suitable location.
-    UINT maxPageFrame = s_getMaxPageCount (isDMA) - pageCount;
+    UINT maxPageFrame = kpmm_getActualAddressablePageCount (isDMA) - pageCount;
     for (; found == FALSE && startPageFrame <= maxPageFrame; startPageFrame++)
         found = s_isPagesFree (startPageFrame, pageCount, isDMA);
 
@@ -346,7 +344,7 @@ static INT s_get (UINT pageFrame, bool isDMA)
     if (pageFrame == 0)
         k_panic ("Invalid access: Page %u", pageFrame);
 
-    if (pageFrame > s_getMaxPageCount (isDMA))
+    if (pageFrame > kpmm_getActualAddressablePageCount (isDMA))
         k_panic ("Access outside range. Page %u", pageFrame);
 
     UINT byteIndex = (pageFrame / 8);
@@ -357,18 +355,38 @@ static INT s_get (UINT pageFrame, bool isDMA)
 }
 
 /***************************************************************************************************
- * Returs the largest page frame count, for the input provided.
+ * Gets the total number of physical page frames in the system.
+ *
+ * Actual addressable RAM is the minimum of the total system RAM and the maximum RAM supported by
+ * the OS.
  *
  * @Input isDMA     Queried for DMA.
  * @return          Gets the maximum page frame count for DMA hardware. Otherwise returns the
  *                  maximum page frame count supported by the PAB.
  **************************************************************************************************/
-static UINT s_getMaxPageCount (bool isDMA)
+UINT kpmm_getActualAddressablePageCount (bool isDMA)
 {
-    UINT maxPageCount = (isDMA) ? MAX_DMA_ADDRESSABLE_PAGE_COUNT: MAX_ADDRESSABLE_PAGE_COUNT;
-    k_assert (maxPageCount <= MAX_ADDRESSABLE_PAGE_COUNT, "Page outside addressable range");
-
+    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getActualAddressableRamSize (isDMA));
     return maxPageCount;
+}
+
+/***************************************************************************************************
+ * Gets the total amount accessible RAM.
+ *
+ * Actual addressable RAM is the minimum of the total system RAM and the maximum RAM supported by
+ * the OS.
+ *
+ * @Input isDMA     Queried for DMA.
+ * @return          Amount of actual accessible RAM in bytes. So the last valid byte will be at
+ *                  `s_getAddressableRamSize() - 1`.
+ **************************************************************************************************/
+size_t kpmm_getActualAddressableRamSize (bool isDMA)
+{
+    BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
+    ULLONG RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
+    ULLONG PABLimit = (isDMA) ? MAX_DMA_ADDRESSABLE_BYTE_COUNT : MAX_ADDRESSABLE_BYTE_COUNT;
+
+    return (size_t) MIN(RAMSizeBytes, PABLimit);
 }
 
 /***************************************************************************************************
@@ -395,13 +413,10 @@ size_t kpmm_getFreeMemorySize ()
         k_panic ("%s", "Called before PMM initialization.");
 
     size_t freeBytes = 0;
-    for (UINT frame = 1; frame < MAX_ADDRESSABLE_PAGE_COUNT; frame++)
-        freeBytes += s_get (frame, false) ? 0 : CONFIG_PAGE_FRAME_SIZE_BYTES;
+    UINT pageFrameCount = kpmm_getActualAddressablePageCount (false);
 
-    // Cannot be larger than the system RAM.
-    BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
-    ULLONG RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
-    k_assert (freeBytes <= RAMSizeBytes, "Calculated free size more than total RAM.");
+    for (UINT frame = 1; frame < pageFrameCount; frame++)
+        freeBytes += s_get (frame, false) ? 0 : CONFIG_PAGE_FRAME_SIZE_BYTES;
 
     return freeBytes;
 }

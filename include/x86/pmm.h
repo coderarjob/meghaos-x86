@@ -27,4 +27,6 @@ Physical kpmm_alloc (UINT pageCount, bool isDMA);
 bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA);
 bool kpmm_isInitialized ();
 size_t kpmm_getFreeMemorySize ();
+size_t kpmm_getActualAddressableRamSize (bool isDMA);
+UINT kpmm_getActualAddressablePageCount (bool isDMA);
 #endif // PMM_H_X86
