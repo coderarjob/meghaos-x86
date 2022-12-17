@@ -135,11 +135,12 @@ void display_system_info ()
 
     kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
     kdebug_printf ("\r\nAvailable RAM bytes: %llx bytes",available_memory);
+    kdebug_printf ("\r\nFree RAM bytes: %llx bytes", kpmm_getFreeMemorySize ());
 
     UINT availablePageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (available_memory);
     kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
 
-    kdebug_printf ("\r\nMax RAM Pages: %u", MAX_ADDRESSABLE_PAGE_COUNT);
+    kdebug_printf ("\r\nMax RAM Pages: %u", MAX_PAB_ADDRESSABLE_PAGE_COUNT);
 #endif // DEBUG
 }
 /***************************************************************************************************
@@ -214,28 +215,14 @@ void usermode_main ()
 
     kearly_printf ("\r\nInside usermode..");
 
-    kearly_printf ("\r\nUINT_MAX %llu\r\nULONG_MAX %llu\r\nULLONG_MAX %llu",
-            (U64)UINT_MAX,
-            (U64)ULONG_MAX,
-            (U64)ULLONG_MAX);
-
-    kearly_printf ("\r\n%u,%x,%o,%s,%%",
-                        45789,
-                        0xcafeefe,
-                        02760,
-                        "Hello Arjob");
-    U64 var = 0xCF010203040506FF;   
-    kearly_printf ("\r\n%llx",var);
     kearly_printf ("\r\nLocation of __kernel_main = %x",__kernel_main);
+    kearly_printf ("\r\nLocation of pab = %x",CAST_PA_TO_VA (g_pab));
 
-    void *pab = CAST_PA_TO_VA (g_pab);
-    kearly_printf ("\r\nLocation of pab = %x",pab);
+    //volatile char p = *(char *)0xC0300000;
+    //kdebug_printf ("\r\np is: %u", p);
 
-
-    USYSINT num = 0xFF012EA;
-    kearly_printf ("\r\nNum is = %px", num);
     //k_assert (1 < 0,"Nonsense");
-    *a = 0;    
+    *a = 0;
 
     while (1);
 }
