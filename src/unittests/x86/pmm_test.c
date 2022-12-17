@@ -441,7 +441,7 @@ TEST(PMM, alloc_fixed_excess_pages)
     // Clear PAB.
     memset (pab, 0,PAB_SIZE_BYTES);
 
-    // Allocating MAX_ADDRESSABLE_PAGE_COUNT pages at 4096. Should panic.
+    // Allocating every physical page, stating at 4096. Should panic.
     Physical startAddress = createPhysical(4096);
 
     bool success = kpmm_allocAt (startAddress, MAX_ACTUAL_PAGE_COUNT, FALSE);
@@ -531,6 +531,28 @@ TEST(PMM, free_mem_size_free_last_page)
     END();
 }
 
+TEST(PMM, free_mem_size_after_autoalloc)
+{
+    // Clear every page in PAB.
+    memset (pab, 0x00,PAB_SIZE_BYTES);
+
+    // 5MB of RAM
+    kboot_calculateAvailableMemory_fake.ret = 5 * MB;
+
+    // Allocate whole RAM
+    // 5 MB is 1280 physical pages. Last page is 159:7 bit in PAB.
+    Physical startAddress = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT - 1, false);
+    EQ_SCALAR (startAddress.val, 4096);     // Allocation starts from the 2nd page.
+    EQ_SCALAR (pab[0], 0xFE);
+    EQ_SCALAR (pab[159], 0xFF);
+    EQ_SCALAR (pab[160], 0x00);
+
+    size_t available_ram = kpmm_getFreeMemorySize ();
+    EQ_SCALAR (available_ram, 0);
+
+    END();
+}
+
 TEST(PMM, actual_accessable_ram)
 {
     kboot_calculateAvailableMemory_fake.ret = 5 * MB;
@@ -603,4 +625,5 @@ int main()
     free_mem_size_mem_full();
     free_mem_size();
     free_mem_size_free_last_page();
+    free_mem_size_after_autoalloc();
 }
