@@ -382,3 +382,26 @@ bool kpmm_isInitialized ()
 {
     return s_isInitialized;
 }
+
+/***************************************************************************************************
+ * Calculates the size of free system memory based on PAB
+ *
+ * @return      Free memory size in bytes.
+ * @error       Panics if called before initialization.
+ **************************************************************************************************/
+size_t kpmm_getFreeMemorySize ()
+{
+    if (!kpmm_isInitialized())
+        k_panic ("%s", "Called before PMM initialization.");
+
+    size_t freeBytes = 0;
+    for (UINT frame = 1; frame < MAX_ADDRESSABLE_PAGE_COUNT; frame++)
+        freeBytes += s_get (frame, false) ? 0 : CONFIG_PAGE_FRAME_SIZE_BYTES;
+
+    // Cannot be larger than the system RAM.
+    BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
+    ULLONG RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
+    k_assert (freeBytes <= RAMSizeBytes, "Calculated free size more than total RAM.");
+
+    return freeBytes;
+}

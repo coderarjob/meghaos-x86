@@ -60,7 +60,7 @@ TEST(PMM, alloc_fixed_zero_pages)
     memset (shadow_pab, 0,PAB_SIZE_BYTES); // Same state as PAB
 
     // alloc_At must fail immediately.
-    INT success = kpmm_allocAt (createPhysical(4096), 0, FALSE);
+    bool success = kpmm_allocAt (createPhysical(4096), 0, FALSE);
     EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
@@ -81,7 +81,7 @@ TEST(PMM, autoalloc_zero_pages)
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
 
     // alloc_At must fail immediately.
-    INT success = kpmm_allocAt (addr, 0, FALSE);
+    bool success = kpmm_allocAt (addr, 0, FALSE);
     EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
@@ -95,7 +95,7 @@ TEST(PMM, free_zero_pages)
     memset (pab, 0xFF,PAB_SIZE_BYTES);          // Mark whole PAB as allocated.
     memset (shadow_pab, 0xFF, PAB_SIZE_BYTES);  // Same state as PAB.
 
-    INT success = kpmm_free (createPhysical(0), 0);
+    bool success = kpmm_free (createPhysical(0), 0);
 
     // free must not do anything.
     EQ_SCALAR (success, false);
@@ -173,7 +173,7 @@ TEST(PMM, autoalloc_free_autoalloc)
 
     // Now free 2 pages.
     printf ("\n:: Freeing 2 pages");
-    INT success = kpmm_free (startAddress, 2);
+    bool success = kpmm_free (startAddress, 2);
     EQ_SCALAR (pab[0], 0x4E);
     EQ_SCALAR (pab[1], 0x00);
     EQ_SCALAR (success, true);
@@ -199,7 +199,7 @@ TEST(PMM, alloc_fixed_past_last_page)
     USYSINT pagesCount = 1;
     Physical startAddress = createPhysical (MAX_ADDRESSABLE_BYTE + 1);
 
-    INT success = kpmm_allocAt (startAddress, pagesCount, FALSE);
+    bool success = kpmm_allocAt (startAddress, pagesCount, FALSE);
     EQ_SCALAR (panic_invoked, false);
     EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
@@ -235,7 +235,7 @@ TEST(PMM, alloc_fixed_last_dma_page)
     USYSINT pagesCount = 1;
     Physical startAddress = createPhysical(MAX_DMA_ADDRESSABLE_PAGE * CONFIG_PAGE_FRAME_SIZE_BYTES);
 
-    INT success = kpmm_allocAt (startAddress, pagesCount, FALSE);
+    bool success = kpmm_allocAt (startAddress, pagesCount, FALSE);
     EQ_SCALAR (pab[510], 0x00);
     EQ_SCALAR (pab[511], 0x80);         // Last addressable DMA page (bit 7). Should be allocated.
     EQ_SCALAR (pab[512], 0x00);
@@ -254,7 +254,7 @@ TEST(PMM, alloc_fixed_last_page)
     USYSINT pagesCount = 1;
     Physical startAddress = createPhysical(MAX_ADDRESSABLE_PAGE * CONFIG_PAGE_FRAME_SIZE_BYTES);
 
-    INT success = kpmm_allocAt (startAddress, pagesCount, FALSE);
+    bool success = kpmm_allocAt (startAddress, pagesCount, FALSE);
     EQ_SCALAR (pab[4094], 0x0);
     EQ_SCALAR (pab[4095], 0x80);
     EQ_SCALAR (success, true);
@@ -270,7 +270,7 @@ TEST(PMM, alloc_free_fixed_misaligned_address)
     Physical startAddress = createPhysical(4097);
 
     printf ("\n:: Allocating 1 page at address 0x4097");
-    INT success = kpmm_allocAt (startAddress, 1, FALSE);
+    bool success = kpmm_allocAt (startAddress, 1, FALSE);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
     EQ_SCALAR (success, false);
@@ -293,7 +293,7 @@ TEST(PMM, double_free)
 
     // Freeing 1 page at location 4096. Already freed, so will fail.
     Physical startAddress = createPhysical (4096);
-    INT success = kpmm_free (startAddress, 1);
+    bool success = kpmm_free (startAddress, 1);
     EQ_SCALAR (panic_invoked, true);
     END();
 }
@@ -310,7 +310,7 @@ TEST(PMM, double_fixed_allocate)
     EQ_SCALAR (pab[1], 0x0);
 
     // Allocating again 1 page at location 4096. Should fail this time.
-    INT success = kpmm_allocAt (addr, 1, FALSE);
+    bool success = kpmm_allocAt (addr, 1, FALSE);
     EQ_SCALAR (pab[0], 0x2);
     EQ_SCALAR (pab[1], 0x0);
     EQ_SCALAR (success, false);
@@ -326,7 +326,7 @@ TEST(PMM, alloc_fixed_2nd_page)
     // Allocating 1 page at byte 4096. Should be successful.
     Physical startAddress = createPhysical(4096);
 
-    INT success = kpmm_allocAt (startAddress, 1, FALSE);
+    bool success = kpmm_allocAt (startAddress, 1, FALSE);
 
     EQ_SCALAR (pab[0], 0x2);
     EQ_SCALAR (pab[1], 0x0);
@@ -342,7 +342,7 @@ TEST(PMM, alloc_fixed_1st_page)
     // Allocating 1 page at byte 0. Should fail.
     Physical startAddress = createPhysical(0);
 
-    INT success = kpmm_allocAt (startAddress, 1, FALSE);
+    bool success = kpmm_allocAt (startAddress, 1, FALSE);
     EQ_SCALAR (panic_invoked, true);
     END();
 }
@@ -355,7 +355,7 @@ TEST(PMM, free_1st_page)
     // Allocating 1 page at byte 0. Should fail.
     Physical startAddress = createPhysical(0);
 
-    INT success = kpmm_free (startAddress, 1);
+    bool success = kpmm_free (startAddress, 1);
     EQ_SCALAR (panic_invoked, true);
     END();
 }
@@ -383,7 +383,7 @@ TEST(PMM, alloc_fixed_excess_pages)
     // Allocating MAX_ADDRESSABLE_PAGE_COUNT pages at 4096. Should panic.
     Physical startAddress = createPhysical(4096);
 
-    INT success = kpmm_allocAt (startAddress, MAX_ADDRESSABLE_PAGE_COUNT, FALSE);
+    bool success = kpmm_allocAt (startAddress, MAX_ADDRESSABLE_PAGE_COUNT, FALSE);
     EQ_SCALAR (panic_invoked, false);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
@@ -399,7 +399,7 @@ TEST(PMM, free_excess_pages)
     // Freeing MAX_ADDRESSABLE_PAGE_COUNT pages at 4096. Should fail.
     Physical startAddress = createPhysical(4096);
 
-    INT success = kpmm_free (startAddress, MAX_ADDRESSABLE_PAGE_COUNT);
+    bool success = kpmm_free (startAddress, MAX_ADDRESSABLE_PAGE_COUNT);
     EQ_SCALAR (panic_invoked, false);
     EQ_SCALAR (pab[0], 0xFF);   // no change must be made to the PAB. free must fail immediately.
     EQ_SCALAR (pab[1], 0xFF);
@@ -415,10 +415,54 @@ TEST(PMM, free_last_page)
     // Freeing the last page at byte 134213632 (start of last addressable page). Should succeed.
     Physical startAddress = createPhysical(MAX_ADDRESSABLE_PAGE * CONFIG_PAGE_FRAME_SIZE_BYTES);
 
-    INT success = kpmm_free (startAddress, 1);
+    bool success = kpmm_free (startAddress, 1);
     EQ_SCALAR (pab[0], 0xFF);   // no change must be made to the PAB. free must fail immediately.
     EQ_SCALAR (pab[4094], 0xFF);
     EQ_SCALAR (pab[4095], 0x7F);
+    END();
+}
+
+TEST(PMM, free_mem_size_mem_full)
+{
+    // Set every page in PAB.
+    memset (pab, 0xFF,PAB_SIZE_BYTES);
+    size_t freeMemSize = kpmm_getFreeMemorySize ();
+    EQ_SCALAR (freeMemSize, 0);
+
+    END();
+}
+
+TEST(PMM, free_mem_size)
+{
+    // Set every page in PAB.
+    memset (pab, 0xFF,PAB_SIZE_BYTES);
+
+    // Free 3 pages starting from address 4096
+    printf ("\n:: Freeing 3 pages");
+    Physical startAddress = createPhysical (4096);
+    bool success = kpmm_free (startAddress, 3);
+    EQ_SCALAR (success, true);
+
+    size_t freeMemSize = kpmm_getFreeMemorySize ();
+    EQ_SCALAR (freeMemSize, 4096 * 3);
+
+    END();
+}
+
+TEST(PMM, free_mem_size_free_last_page)
+{
+    // Set every page in PAB.
+    memset (pab, 0xFF,PAB_SIZE_BYTES);
+
+    // Freeing the last page at byte 134213632 (start of last addressable page). Should succeed.
+    Physical startAddress = createPhysical(MAX_ADDRESSABLE_PAGE * CONFIG_PAGE_FRAME_SIZE_BYTES);
+
+    bool success = kpmm_free (startAddress, 1);
+    EQ_SCALAR (success, true);
+
+    size_t freeMemSize = kpmm_getFreeMemorySize ();
+    EQ_SCALAR (freeMemSize, 4096);
+
     END();
 }
 
@@ -427,6 +471,9 @@ void reset()
     panic_invoked = false;
     resetMemFake();
     resetBootFake();
+
+    // Default size of RAM is set to 5 MB.
+    kboot_calculateAvailableMemory_fake.ret = 5 * MB;
 }
 
 
@@ -466,4 +513,8 @@ int main()
 
     alloc_free_fixed_misaligned_address();
     autoalloc_free_autoalloc();
+
+    free_mem_size_mem_full();
+    free_mem_size();
+    free_mem_size_free_last_page();
 }
