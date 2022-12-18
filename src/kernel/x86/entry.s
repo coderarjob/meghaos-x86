@@ -116,8 +116,15 @@ s_fill_pd:
         ; Caching is enabled, with write-back caching.
         and eax, 0b11111111_11111111_11110000_00000000
         or eax, 7
-        mov [edi],eax
-        mov [edi + 768*4],eax
+        mov [edi],eax           ; Identity map
+        mov [edi + 768*4],eax   ; Higher-half map
+
+        ; Recursive maping
+        ; Caching is enabled, with write-back caching.
+        mov eax, [PHY(g_page_dir)]
+        and eax, 0b11111111_11111111_11110000_00000000
+        or eax, 7
+        mov [edi + 1023*4], eax
     popad
     ret
 
@@ -132,7 +139,7 @@ s_fill_pt:
     pushad
         mov edi, [PHY(g_page_table)]
         mov eax, 0
-        mov ecx, 1024           ; There are 1024 entries per page table.
+        mov ecx, MIN_MEM_REQ / 4096    ; Assuming the minimum ram available.
 .write_next_pte:
         push eax
             ; Caching is enabled, with write-back caching.
