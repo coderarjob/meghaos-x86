@@ -76,6 +76,8 @@ void __kernel_main ()
     s_dumpPab();
     // Paging information
     //extern void paging_print ();
+    extern void display_PageInfo ();
+    display_PageInfo();
     //paging_print ();
 
     // Jump to user mode
@@ -218,8 +220,8 @@ void usermode_main ()
     kearly_printf ("\r\nLocation of __kernel_main = %x",__kernel_main);
     kearly_printf ("\r\nLocation of pab = %x",CAST_PA_TO_VA (g_pab));
 
-    //volatile char p = *(char *)0xC0300000;
-    //kdebug_printf ("\r\np is: %u", p);
+    volatile char p = *(char *)0xC0300000;
+    kdebug_printf ("\r\np is: %u", p);
 
     //k_assert (1 < 0,"Nonsense");
     *a = 0;
