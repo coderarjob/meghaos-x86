@@ -71,12 +71,15 @@ kvmm_map (Physical pa, uintptr_t pa, INT flags, INT access)
         // Create a new page table
         Physical addr = kpmm_alloc (1, false);
         info.pde.page_table = addr
+
+        // refresh!
+        info = s_getPagingInfo (va);
     }
 
     if (info.pte.present)
         Error ("Virtual address already mapped to another physical address")
     else
-        pte.addr = pa
+        pte.page_frame = pa
 }
 
 kvmm_virtualToPhyical (uintptr_t va)
