@@ -55,7 +55,7 @@ void ktss_init ()
 {
     // Deny permissions to all IO ports by setting all the bits
     k_memset (tss_entry.iomap, 0xFF, IOMAP_SIZE - 1);
-    tss_entry.iomap[29] &=0xFC;     // E9 Debug port
+    tss_entry.iomap[29] &=0xFD;     // E9 Debug port
     tss_entry.iomap[122] &=0xcf;    // VGA 3D4 and 3D5 ports
 
     // IOMAP area determines the io port permissions when CPL > IOPL.
