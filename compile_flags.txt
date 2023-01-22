@@ -4,6 +4,10 @@ ARCH=x86
 UNITTEST
 -D
 DEBUG
+-D
+DEBUG_LEVEL=3
+-m32
+-march=i386
 -I
 ./include
 -I
