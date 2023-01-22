@@ -12,7 +12,7 @@
 struct IdtDescriptor
 {
     U16 offset_low;
-    U16 segment_tss_selector;
+    U16 segment_selector;
     U8  zeros;
     U8  type : 5;
     U8  dpl  : 2;

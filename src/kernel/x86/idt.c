@@ -36,7 +36,7 @@ kidt_init ()
 void
 kidt_edit (INT                index,
            void             (*func)(),
-           U16                seg_tss_selector,
+           U16                seg_selector,
            IDTDescriptorTypes type,
            U8                 dpl)
 {
@@ -44,7 +44,7 @@ kidt_edit (INT                index,
 
     s_idt[index].offset_low           = offset & 0xFFFF;
     s_idt[index].offset_high          = (U16)(offset >> 16) & 0xFFFF;
-    s_idt[index].segment_tss_selector = seg_tss_selector;
+    s_idt[index].segment_selector     = seg_selector;
     s_idt[index].type                 = type;
     s_idt[index].dpl                  = (U8)(dpl & 0x3);
     s_idt[index].p                    = 1;
