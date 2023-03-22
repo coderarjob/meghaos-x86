@@ -35,7 +35,7 @@ The end product will be ready for a programmer but not for general use.
 - [X] GDT and TSS setup and entering protected mode.
 - [X] Higher-Half page mapping.
 - [X] Jumping to User mode (Privilege Level 3) from Kernel mode.
-- [ ] Handlers for CPU Exceptions and basic interrupts.                **(incomplete)**
+- [X] Handlers for CPU Exceptions and basic interrupts.
 - [X] Basic Kernel mode C functions for printing on screen etc.
 - [X] Unittesting framework to test parts of the OS on host computer.
 - [ ] Memory management: Physical page allocation.                     **(developing)**

@@ -3,6 +3,38 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 
 # TASKS                                         Estimated       Actual
 
+[ ] Document BOOTINFO struct                  - 03 Feb 2021
+[ ] Basic keyboard IRQ                        - 18 Nov 2020
+    handler (demo)
+[ ] RAMDISK (INITRD.0) creation
+    in build.sh
+[X] Physical memory allocator                 -
+    [ ] Lock to protect the PAB.              -
+[ ] Virutal memory allocator                  -
+[ ] Various functions like kdisp_ioctl, etc   -
+    must implement error reporting.
+    [X] kdisp_ioctl
+[ ] Make symbols comply with the C99.         -                 30 Dec 2021
+    Symbols beginning with underscore is
+    reserved [7.13]. Rename them.
+    [X] Macros in header files.
+    [X] Variable names in C source.
+    [X] Members in struct.
+    [X] Function names.
+    [ ] Guard Macros in header files.
+[ ] Configuration header files for C and
+    assembly.                                 -
+[ ] Script to auto generate the config
+    headers simultaneously for C and
+    assembly.                                 -
+[ ] There is a need to document the types
+    declared for MeghaOS like INT, LONG etc.
+    These do need to conform with C99, but
+    can be different from the compiler
+    versions. LONG for example must be 32
+    bits or more, but always large enough
+    to hold the largest addresses in the
+    architecture.                             -
 [-] Check the effect on kernel binary size,   -
     if the boot opaque types were removed.
     PMM or the Kernel accesses fields
@@ -33,40 +65,8 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     Not ERR_NONE, on Success, and -1 on
     failure.
     Issue first seen in kdisp module.
-[ ] Document BOOTINFO struct                  - 03 Feb 2021
-[ ] Basic keyboard IRQ                        - 18 Nov 2020
-    handler (demo)
-[ ] GP handler                                - 16 Nov 2020
-[ ] Page fault handler in asm                 - 26 Jan 2021
-[ ] RAMDISK (INITRD.0) creation
-    in build.sh
-[X] Physical memory allocator                 -
-    [ ] Lock to protect the PAB.              -
-[ ] Virutal memory allocator                  -
-[ ] Various functions like kdisp_ioctl, etc   -
-    must implement error reporting.
-    [X] kdisp_ioctl
-[ ] Make symbols comply with the C99.         -                 30 Dec 2021
-    Symbols beginning with underscore is
-    reserved [7.13]. Rename them.
-    [X] Macros in header files.
-    [X] Variable names in C source.
-    [X] Members in struct.
-    [X] Function names.
-    [ ] Guard Macros in header files.
-[ ] Configuration header files for C and
-    assembly.                                 -
-[ ] Script to auto generate the config
-    headers simultaneously for C and
-    assembly.                                 -
-[ ] There is a need to document the types
-    declared for MeghaOS like INT, LONG etc.
-    These do need to conform with C99, but
-    can be different from the compiler
-    versions. LONG for example must be 32
-    bits or more, but always large enough
-    to hold the largest addresses in the
-    architecture.                             -
+[X] GP handler                                - 16 Nov 2020    22 Mar 2023
+[X] Page fault handler in asm                 - 26 Jan 2021    22 Mar 2023
 [X] Rename the accessor methods in boot.c to  - 11 Nov 2022     11 Nov 2022
     the following format:
     k<Boot Structure Name>_get<Field Name>
