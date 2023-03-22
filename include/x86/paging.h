@@ -10,7 +10,7 @@
 ; ---------------------------------------------------------------------------
 */
 
-#include <kernel.h>
+#include <types.h>
 
 #ifndef __PAGING_H_X86__
 #define __PAGING_H_X86__

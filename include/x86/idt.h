@@ -6,7 +6,7 @@
 #ifndef IDT_H_X86
 #define IDT_H_X86
 
-#include <kernel.h>
+#include <types.h>
 
 typedef enum IDTDescriptorTypes
 {

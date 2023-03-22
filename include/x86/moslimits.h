@@ -12,7 +12,7 @@
 
 #ifndef __MOS_LIMITS_H_X86__
 #define __MOS_LIMITS_H_X86__
-#include <kernel.h>
+#include <config.h>
 
 #define MAX_VGA_COLUMNS                    80U
 #define MAX_VGA_ROWS                       50U

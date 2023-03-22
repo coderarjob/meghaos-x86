@@ -12,7 +12,7 @@
 #ifndef BOOT_STRUCT_H
 #define BOOT_STRUCT_H
 
-    #include <kernel.h>
+    #include <types.h>
 
     struct BootMemoryMapItem
     {
@@ -30,9 +30,9 @@
     struct BootLoaderInfo
     {
         U16 filecount;
-        BootFileItem files[11];
+        struct BootFileItem files[11];
         U16 count;
-        BootMemoryMapItem items[];
+        struct BootMemoryMapItem items[];
     }__attribute__ ((packed));
 
 #endif //BOOT_STRUCT_H

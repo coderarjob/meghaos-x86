@@ -6,7 +6,7 @@
 #ifndef IDT_STRUCT_H_X86
 #define IDT_STRUCT_H_X86
 
-#include <kernel.h>
+#include <types.h>
 
 /* IDT Descriptor */
 struct IdtDescriptor
