@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <moslimits.h>
 #include <config.h>
+#include <interrupt.h>
 
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/kernel.h> /* GDT, IO, MEMORY Addresses */
@@ -68,6 +69,10 @@
 
 /** Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
+
+/** Stringfy macros */
+#define STR_NDU(v) #v
+#define STR(v) STR_NDU(v)
 
 INT kearly_printf (const CHAR *fmt, ...);
 INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);

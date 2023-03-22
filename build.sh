@@ -50,21 +50,24 @@ WOPTS="-Wpedantic \
        -Wdangling-else \
        -Werror"
 
-export GCC32="i686-elf-gcc -std=c99\
-              -g \
-              -nostartfiles \
-              -ffreestanding \
-              -fno-pie \
-              -fno-stack-protector \
-              -fno-asynchronous-unwind-tables \
-              -m32 \
-              -march=i386 \
-              -masm=intel \
-              -mno-red-zone \
-              $WOPTS \
-              $GCC_INCPATH \
-              -O1 -fno-unit-at-a-time \
-              -D $DEBUG -D DEBUG_LEVEL=$DEBUGLEVEL" 
+export GCC32="i686-elf-gcc"
+export GCC32_FLAGS="-std=c99\
+                    -g \
+                    -nostartfiles \
+                    -ffreestanding \
+                    -fno-pie \
+                    -fno-stack-protector \
+                    -fno-asynchronous-unwind-tables \
+                    -m32 \
+                    -march=i386 \
+                    -masm=intel \
+                    -mno-red-zone \
+                    $WOPTS \
+                    $GCC_INCPATH \
+                    -O1 -fno-unit-at-a-time \
+                    -D $DEBUG -D DEBUG_LEVEL=$DEBUGLEVEL"
+
+export GCC32_INTERRUPT_HANDLER_FLAGS="$GCC32_FLAGS -mgeneral-regs-only"
 
 export NASM32_ELF="nasm -f elf32 -g"
 export NASM32_BIN="nasm -f bin"
@@ -77,7 +80,7 @@ export NASM32_BIN="nasm -f bin"
 
 # Link using the ld program. 
 if [ $LINK_USING_LD -eq 1 ]; then
-    GCCVER=$(i686-elf-gcc -v 2>&1|tail - -n 1|awk '{print $3}')
+    GCCVER=$($GCC32 -v 2>&1|tail - -n 1|awk '{print $3}')
     LIBPATH=$(dirname $(readlink $(which i686-elf-ld)))/../lib/gcc/i686-elf
 
     export LD_OPTIONS="-lgcc"       
@@ -90,7 +93,7 @@ else
                        -nostdlib \
                        -lgcc"
      export LD_FLAGS="-T build/kernel.ld"
-     export LD_KERNEL="i686-elf-gcc"
+     export LD_KERNEL="$GCC32"
 fi
 
 export OBJCOPY="i686-elf-objcopy"

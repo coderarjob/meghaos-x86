@@ -16,7 +16,7 @@ C_FILES=(
     'kernel/errno.c'
 )
 
-compile_cc "$GCC32" $OBJDIR ${C_FILES[@]}
+compile_cc "$GCC32 $GCC32_FLAGS" $OBJDIR ${C_FILES[@]}
 
 # Link all the object files in the $OBJDIR/kernel tree.
 OBJ_FILES=`find $OBJDIR/kernel -name "*.o"`
