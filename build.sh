@@ -132,7 +132,7 @@ fi
 # ---------------------------------------------------------------------------
 # Build the floppy image
 echo "    [ Creating disk image ]    "
-mkdosfs -C $IMAGEDIR/mos.flp 1440 || exit
+mkdosfs -C $IMAGEDIR/mos.flp -F 12 1440 || exit
 
 # mount the Disk image
 echo "    [ Mounting Disk image ]    "
