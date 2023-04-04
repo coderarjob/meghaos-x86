@@ -24,9 +24,12 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     [ ] Guard Macros in header files.
 [ ] Configuration header files for C and
     assembly.                                 -
+    Note: This can be done using CMake.
 [ ] Script to auto generate the config
     headers simultaneously for C and
     assembly.                                 -
+    Note: This can be done using CMake, so
+    separate script is not required.
 [ ] There is a need to document the types
     declared for MeghaOS like INT, LONG etc.
     These do need to conform with C99, but
