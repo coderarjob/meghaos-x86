@@ -38,8 +38,6 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     bits or more, but always large enough
     to hold the largest addresses in the
     architecture.                             -
-[X] Use true, false from stdbool.h instead
-    of macros defined in our types.h          -                 04 April 2023
 [-] Check the effect on kernel binary size,   -
     if the boot opaque types were removed.
     PMM or the Kernel accesses fields
@@ -49,6 +47,16 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     place asserts and other checks. And these
     checks are invaluable in finding and
     preventing bugs.
+
+[X] Page fault handler in asm                 - 26 Jan 2021    22 Mar 2023
+    [-] Examine if EFLAGS register need to be
+        preserved by interrupt and exception
+        handlers.                             -
+        - EFLAGS are preserved in the
+          interrupt frame. Thus not a must.
+
+[X] Use true, false from stdbool.h instead
+    of macros defined in our types.h          -                 04 April 2023
 
 [X] Remove the transparent union for PHYSICAL -                 19 Nov 2022
     Type matching must be rigid to be useful.
@@ -71,7 +79,6 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     failure.
     Issue first seen in kdisp module.
 [X] GP handler                                - 16 Nov 2020    22 Mar 2023
-[X] Page fault handler in asm                 - 26 Jan 2021    22 Mar 2023
 [X] Rename the accessor methods in boot.c to  - 11 Nov 2022     11 Nov 2022
     the following format:
     k<Boot Structure Name>_get<Field Name>
