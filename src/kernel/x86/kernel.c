@@ -163,7 +163,7 @@ static void s_markMemoryOccupiedByModuleFiles ()
 
         kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == false)
+        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, false) == false)
             k_assertOnError ();
     }
 }

@@ -38,6 +38,8 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     bits or more, but always large enough
     to hold the largest addresses in the
     architecture.                             -
+[X] Use true, false from stdbool.h instead
+    of macros defined in our types.h          -                 04 April 2023
 [-] Check the effect on kernel binary size,   -
     if the boot opaque types were removed.
     PMM or the Kernel accesses fields

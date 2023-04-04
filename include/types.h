@@ -17,9 +17,6 @@
     #include <x86/types.h>
 #endif
 
-#define TRUE  1
-#define FALSE 0
-
 /* Casts a bit field of n bits to UINT. */
 inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
     return (UINT)(t & (UINT)((1 << n) -1));

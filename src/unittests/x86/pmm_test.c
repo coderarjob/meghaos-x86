@@ -40,14 +40,14 @@ TEST(PMM, autoalloc)
     // Allocating 3 pages. Address should be allocated automatically.
     USYSINT pagesCount = 3;
 
-    Physical startAddress = kpmm_alloc (pagesCount, FALSE);
+    Physical startAddress = kpmm_alloc (pagesCount, false);
 
     EQ_SCALAR (startAddress.val, 4096);
     EQ_SCALAR (pab[0], 0x0E);
     EQ_SCALAR (pab[1], 0x00);
 
     // Allocating 3 pages again. Address should be allocated automatically.
-    startAddress = kpmm_alloc (pagesCount, FALSE);
+    startAddress = kpmm_alloc (pagesCount, false);
 
     EQ_SCALAR (startAddress.val, 4 * 4096);
     EQ_SCALAR (pab[0], 0x7E);
@@ -63,7 +63,7 @@ TEST(PMM, alloc_fixed_zero_pages)
     memset (shadow_pab, 0,PAB_SIZE_BYTES); // Same state as PAB
 
     // alloc_At must fail immediately.
-    bool success = kpmm_allocAt (createPhysical(4096), 0, FALSE);
+    bool success = kpmm_allocAt (createPhysical(4096), 0, false);
     EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
@@ -78,13 +78,13 @@ TEST(PMM, autoalloc_zero_pages)
     memset (shadow_pab, 0,PAB_SIZE_BYTES); // Same state as PAB
 
     // alloc must fail immediately.
-    Physical addr = kpmm_alloc (0, FALSE);
-    EQ_SCALAR (isPhysicalNull(addr), TRUE);
+    Physical addr = kpmm_alloc (0, false);
+    EQ_SCALAR (isPhysicalNull(addr), true);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
 
     // alloc_At must fail immediately.
-    bool success = kpmm_allocAt (addr, 0, FALSE);
+    bool success = kpmm_allocAt (addr, 0, false);
     EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     EQ_MEM (pab, shadow_pab, PAB_SIZE_BYTES);
@@ -121,13 +121,13 @@ TEST(PMM, autoalloc_out_of_memory)
 
     // Allocating every page. Then second allocation will fail.
     // Becuase the 1st page cannot be allocated, we are allocating 1 page less. Ergo the -1.
-    Physical addr = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT - 1, FALSE);
+    Physical addr = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT - 1, false);
 
     EQ_SCALAR (addr.val, 4096);        // Allocates from the 2nd page.
 
     // Allocating 1 more page. Should fail as there are no free pages.
-    addr = kpmm_alloc (1, FALSE);
-    EQ_SCALAR (isPhysicalNull(addr), TRUE);
+    addr = kpmm_alloc (1, false);
+    EQ_SCALAR (isPhysicalNull(addr), true);
     EQ_SCALAR (k_errorNumber, ERR_OUT_OF_MEM);
 
     // PAB in the end
@@ -152,12 +152,12 @@ TEST(PMM, autoalloc_dma_out_of_memory)
 
     // Allocating every DMA page. Then second allocation will fail.
     // Becuase the 1st page cannot be allocated, we are allocating 1 page less. Ergo the -1.
-    Physical addr = kpmm_alloc (MAX_ACTUAL_DMA_PAGE_COUNT - 1, TRUE);
+    Physical addr = kpmm_alloc (MAX_ACTUAL_DMA_PAGE_COUNT - 1, true);
     EQ_SCALAR (addr.val, 4096);        // Allocates from the 2nd page.
 
     // Allocating 1 more DMA page. Should fail as there are no free DMA pages.
-    addr = kpmm_alloc (1, TRUE);
-    EQ_SCALAR (isPhysicalNull(addr), TRUE);
+    addr = kpmm_alloc (1, true);
+    EQ_SCALAR (isPhysicalNull(addr), true);
     EQ_SCALAR (k_errorNumber, ERR_OUT_OF_MEM);
 
     EQ_SCALAR (pab[0], 0xFE);
@@ -165,7 +165,7 @@ TEST(PMM, autoalloc_dma_out_of_memory)
     EQ_SCALAR (pab[512], 0x00);
 
     // Allocating 1 more Non-DMA page. Should pass as there are free Non-DMA pages.
-    addr = kpmm_alloc (1, FALSE);
+    addr = kpmm_alloc (1, false);
     EQ_SCALAR (addr.val, 4096 * 4096);      // 4096th Page frame.
     EQ_SCALAR (pab[512], 0x01);
     END();
@@ -179,7 +179,7 @@ TEST(PMM, autoalloc_free_autoalloc)
     // Allocating 3 pages. Address should be allocated automatically. 
     printf ("\n:: Allocating 3 pages");
     USYSINT pagesCount = 3;
-    Physical startAddress = kpmm_alloc (pagesCount, FALSE);
+    Physical startAddress = kpmm_alloc (pagesCount, false);
 
     EQ_SCALAR (startAddress.val, 4096);
     EQ_SCALAR (pab[0], 0x0E);
@@ -187,7 +187,7 @@ TEST(PMM, autoalloc_free_autoalloc)
 
     // Allocating 3 pages again. Address should be allocated automatically.
     printf ("\n:: Allocating 3 pages");
-    startAddress = kpmm_alloc (pagesCount, FALSE);
+    startAddress = kpmm_alloc (pagesCount, false);
 
     EQ_SCALAR (startAddress.val, 4 * 4096);
     EQ_SCALAR (pab[0], 0x7E);
@@ -202,7 +202,7 @@ TEST(PMM, autoalloc_free_autoalloc)
 
     // Allocating 3 pages again. Address should be allocated automatically. 
     printf ("\n:: Allocating 3 pages");
-    startAddress = kpmm_alloc (pagesCount, FALSE);
+    startAddress = kpmm_alloc (pagesCount, false);
 
     EQ_SCALAR (startAddress.val, 7 * 4096);
     EQ_SCALAR (pab[0], 0xCE);
@@ -225,7 +225,7 @@ TEST(PMM, alloc_fixed_past_last_page)
     USYSINT pagesCount = 1;
     Physical startAddress = createPhysical (MAX_ACTUAL_PAGE_COUNT * CONFIG_PAGE_FRAME_SIZE_BYTES);
 
-    bool success = kpmm_allocAt (startAddress, pagesCount, FALSE);
+    bool success = kpmm_allocAt (startAddress, pagesCount, false);
     EQ_SCALAR (panic_invoked, false);
     EQ_SCALAR (success, false);
     EQ_SCALAR (k_errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
@@ -264,13 +264,13 @@ TEST(PMM, alloc_auto_last_page)
     // are allocating 2 page less. Ergo the -2.
     // Last page is 1279, which is 159:7 bit in the PAB.
 
-    Physical startAddress = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT - 2, FALSE);
+    Physical startAddress = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT - 2, false);
     EQ_SCALAR (startAddress.val, 4096);
     EQ_SCALAR (pab[0], 0xFE);
     EQ_SCALAR (pab[159], 0x7F);
 
     // Allocating 1 more page.
-    startAddress = kpmm_alloc (1, FALSE);
+    startAddress = kpmm_alloc (1, false);
     EQ_SCALAR (startAddress.val, 1279 * 4096);
     EQ_SCALAR (pab[0], 0xFE);
     EQ_SCALAR (pab[159], 0xFF);
@@ -291,7 +291,7 @@ TEST(PMM, alloc_fixed_last_dma_page)
     USYSINT lastDMAPageAddress = (MAX_ACTUAL_DMA_PAGE_COUNT - 1) * CONFIG_PAGE_FRAME_SIZE_BYTES;
     Physical startAddress = createPhysical(lastDMAPageAddress);
 
-    bool success = kpmm_allocAt (startAddress, pagesCount, FALSE);
+    bool success = kpmm_allocAt (startAddress, pagesCount, false);
     EQ_SCALAR (pab[510], 0x00);
     EQ_SCALAR (pab[511], 0x80);         // Last addressable DMA page (bit 7). Should be allocated.
     EQ_SCALAR (pab[512], 0x00);
@@ -315,7 +315,7 @@ TEST(PMM, alloc_fixed_last_page)
     USYSINT lastPageAddress = (MAX_ACTUAL_PAGE_COUNT - 1) * CONFIG_PAGE_FRAME_SIZE_BYTES;
     Physical startAddress = createPhysical(lastPageAddress);
 
-    bool success = kpmm_allocAt (startAddress, pagesCount, FALSE);
+    bool success = kpmm_allocAt (startAddress, pagesCount, false);
     EQ_SCALAR (pab[160], 0x0);
     EQ_SCALAR (pab[159], 0x80);
     EQ_SCALAR (success, true);
@@ -331,7 +331,7 @@ TEST(PMM, alloc_free_fixed_misaligned_address)
     Physical startAddress = createPhysical(4097);
 
     printf ("\n:: Allocating 1 page at address 0x4097");
-    bool success = kpmm_allocAt (startAddress, 1, FALSE);
+    bool success = kpmm_allocAt (startAddress, 1, false);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
     EQ_SCALAR (success, false);
@@ -365,13 +365,13 @@ TEST(PMM, double_fixed_allocate)
     memset (pab, 0,PAB_SIZE_BYTES);
 
     // Allocating 1 page at byte 0. Should be successful.
-    Physical addr = kpmm_alloc (1, FALSE);
+    Physical addr = kpmm_alloc (1, false);
     EQ_SCALAR (addr.val, 4096);
     EQ_SCALAR (pab[0], 0x2);
     EQ_SCALAR (pab[1], 0x0);
 
     // Allocating again 1 page at location 4096. Should fail this time.
-    bool success = kpmm_allocAt (addr, 1, FALSE);
+    bool success = kpmm_allocAt (addr, 1, false);
     EQ_SCALAR (pab[0], 0x2);
     EQ_SCALAR (pab[1], 0x0);
     EQ_SCALAR (success, false);
@@ -387,7 +387,7 @@ TEST(PMM, alloc_fixed_2nd_page)
     // Allocating 1 page at byte 4096. Should be successful.
     Physical startAddress = createPhysical(4096);
 
-    bool success = kpmm_allocAt (startAddress, 1, FALSE);
+    bool success = kpmm_allocAt (startAddress, 1, false);
 
     EQ_SCALAR (pab[0], 0x2);
     EQ_SCALAR (pab[1], 0x0);
@@ -403,7 +403,7 @@ TEST(PMM, alloc_fixed_1st_page)
     // Allocating 1 page at byte 0. Should fail.
     Physical startAddress = createPhysical(0);
 
-    bool success = kpmm_allocAt (startAddress, 1, FALSE);
+    bool success = kpmm_allocAt (startAddress, 1, false);
     EQ_SCALAR (panic_invoked, true);
     END();
 }
@@ -427,7 +427,7 @@ TEST(PMM, autoalloc_excess_pages)
     memset (pab, 0,PAB_SIZE_BYTES);
 
     // Allocating more pages than present. Should fail.
-    Physical startAddress = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT, FALSE);
+    Physical startAddress = kpmm_alloc (MAX_ACTUAL_PAGE_COUNT, false);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);
     EQ_SCALAR (isPhysicalNull(startAddress), true);
@@ -444,7 +444,7 @@ TEST(PMM, alloc_fixed_excess_pages)
     // Allocating every physical page, stating at 4096. Should panic.
     Physical startAddress = createPhysical(4096);
 
-    bool success = kpmm_allocAt (startAddress, MAX_ACTUAL_PAGE_COUNT, FALSE);
+    bool success = kpmm_allocAt (startAddress, MAX_ACTUAL_PAGE_COUNT, false);
     EQ_SCALAR (panic_invoked, false);
     EQ_SCALAR (pab[0], 0x0);
     EQ_SCALAR (pab[1], 0x0);

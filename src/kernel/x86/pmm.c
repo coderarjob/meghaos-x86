@@ -152,9 +152,9 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
     // Note: As startAddress is already aligned, both floor or ceiling are same here.
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (startAddress.val);
 
-    // DMA addressing range does not determine freeing. FALSE if passed here becuuse we want free to
+    // DMA addressing range does not determine freeing. false if passed here becuuse we want free to
     // deallocate any address.
-    s_managePages (startPageFrame, pageCount, false, FALSE);
+    s_managePages (startPageFrame, pageCount, false, false);
 
     return true;
 }
@@ -202,7 +202,7 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
     bool found = s_isPagesFree (startPageFrame, pageCount, isDMA);
 
     // Free pages were not found. But there was no error.
-    if (found == FALSE)
+    if (found == false)
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
 
     // Free pages found. Now Allocate them.
@@ -235,21 +235,21 @@ Physical kpmm_alloc (UINT pageCount, bool isDMA)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, PHYSICAL_NULL);
 
     UINT startPageFrame = 1;
-    INT found = FALSE;
+    INT found = false;
 
     // Search PAB for a suitable location.
     UINT maxPageFrame = kpmm_getAddressablePageCount (isDMA) - pageCount;
-    for (; found == FALSE && startPageFrame <= maxPageFrame; startPageFrame++)
+    for (; found == false && startPageFrame <= maxPageFrame; startPageFrame++)
         found = s_isPagesFree (startPageFrame, pageCount, isDMA);
 
     --startPageFrame; // undoing the last increment.
 
     // Free pages were not found. But there was no error.
-    if (found == FALSE)
+    if (found == false)
         RETURN_ERROR (ERR_OUT_OF_MEM, PHYSICAL_NULL);
 
     // Free pages found. Now Allocate them.
-    if (found == TRUE)
+    if (found == true)
     {
         s_managePages (startPageFrame, pageCount, true, isDMA);
         return createPhysical (PAGEFRAMES_TO_BYTES (startPageFrame));
@@ -290,9 +290,9 @@ static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, 
  *
  * @Input startPageFrame    Physical page frame to start the check from. First page frame is 0.
  * @Input count             Number of consecutive page frames that need to be free.
- * @return                  Returns TRUE if required number of free pages were found at the physical
+ * @return                  Returns true if required number of free pages were found at the physical
  *                          location.
- * @return                  Returns FALSE if required number of free pages were not found at the
+ * @return                  Returns false if required number of free pages were not found at the
  *                          physical location.
  * @return                  Nothing
  * @error                   On failure panic is triggered.
@@ -400,7 +400,7 @@ size_t kpmm_getAddressableByteCount (bool isDMA)
  *
  * PAB initialization is complete after kpmm_init has finished execution and there is no error.
  *
- * @return      true if PAB array was initialized and PMM is ready. False otherwise.
+ * @return      true if PAB array was initialized and PMM is ready. false otherwise.
  **************************************************************************************************/
 bool kpmm_isInitialized ()
 {
