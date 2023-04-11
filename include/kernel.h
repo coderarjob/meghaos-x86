@@ -9,8 +9,8 @@
 *
 * Dated: 1st November 2020
 */
-#ifndef __KERNEL_H__
-#define __KERNEL_H__
+#ifndef KERNEL_H
+#define KERNEL_H
 
 #if __STDC_VERSION__ >= 199901
     #define __C99__

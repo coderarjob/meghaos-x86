@@ -9,8 +9,8 @@
 *
 * Dated: 5st November 2020
 */
-#ifndef __KPANIC_H__
-#define __KPANIC_H__
+#ifndef KPANIC_H
+#define KPANIC_H
 
 /* Displays an error message on the screen and Halts */
 #ifdef __C99__
@@ -28,4 +28,4 @@
 __attribute__ ((noreturn))
 void k_panic_ndu (const CHAR *s,...);
 
-#endif // __KPANIC_H__
+#endif // KPANIC_H

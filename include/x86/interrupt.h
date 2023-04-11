@@ -4,8 +4,8 @@
 * --------------------------------------------------------------------------------------------------
 */
 
-#ifndef INTERRUPT_H_x86
-#define INTERRUPT_H_x86
+#ifndef INTERRUPT_H_X86
+#define INTERRUPT_H_X86
 
 #include <types.h>
 

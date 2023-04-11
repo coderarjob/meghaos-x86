@@ -10,10 +10,10 @@
 * Dated: 24th October 2020
 */
 
-#ifndef __x86_IO_H__
-#define __x86_IO_H__
+#ifndef IO_H_X86
+#define IO_H_X86
 
 #define outb(p,v) __asm__ volatile ("out %%dx, %%al;" : :"a" (v), "d" (p))
 #define inb(p,v)  __asm__ volatile ("in %%al, %%dx" :"=a" (v) :"d" (p))
 
-#endif // __x86_IO_H__
+#endif // IO_H_X86

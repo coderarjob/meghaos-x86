@@ -10,11 +10,11 @@
 * Dated: 24th October 2020
 */
 
-#ifndef __IO_H__
-#define __IO_H__
+#ifndef IO_H
+#define IO_H
 
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/io.h>
 #endif
 
-#endif // __IO_H__
+#endif // IO_H

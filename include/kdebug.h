@@ -10,8 +10,8 @@
 *
 * Dated: 1st November 2020
 */
-#ifndef __KDEBUG_H__
-#define __KDEBUG_H__
+#ifndef KDEBUG_H
+#define KDEBUG_H
 
 #include <types.h>
 
@@ -25,4 +25,4 @@
     #define kdebug_printf(fmt,...) (void)0
 #endif
 
-#endif // __KDEBUG_H__
+#endif // KDEBUG_H

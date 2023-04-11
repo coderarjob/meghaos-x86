@@ -10,8 +10,8 @@
 * Dated: 1st November 2020
 */
 
-#ifndef __PORTABLE_TYPES__
-#define __PORTABLE_TYPES__
+#ifndef PORTABLE_TYPES
+#define PORTABLE_TYPES
 
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/types.h>
@@ -48,4 +48,4 @@ static inline bool isPhysicalNull (Physical address) {
     return address.val == 0;
 }
 
-#endif // __PORTABLE_TYPES__
+#endif // PORTABLE_TYPES

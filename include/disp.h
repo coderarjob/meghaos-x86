@@ -9,8 +9,8 @@
 *
 * Dated: 1st November 2020
 */
-#ifndef __DISPTEXT_H__
-#define __DISPTEXT_H__
+#ifndef DISPTEXT_H
+#define DISPTEXT_H
 
 #include <types.h>
 
@@ -70,4 +70,4 @@ void kdisp_putc (CHAR c);
  **************************************************************************************************/
 bool kdisp_isInitialized ();
 
-#endif // __DISPTEXT_H__
+#endif // DISPTEXT_H

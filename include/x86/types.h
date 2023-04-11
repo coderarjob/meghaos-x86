@@ -10,8 +10,8 @@
 * Dated: 1st November 2020
 */
 
-#ifndef __x86_TYPES__
-#define __x86_TYPES__
+#ifndef TYPES_H_X86
+#define TYPES_H_X86
 
 #include <stddef.h>
 #include <stdint.h>
@@ -46,4 +46,4 @@
     /* Large enough to hold the largest address possible on a 32 bit system */
     typedef U32           USYSINT;
 
-#endif // __x86_TYPES__
+#endif // TYPES_H_X86

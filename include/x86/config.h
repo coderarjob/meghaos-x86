@@ -7,8 +7,8 @@
 * ---------------------------------------------------------------------------
 */
 
-#ifndef MOS_CONFIG_X86_H
-#define MOS_CONFIG_X86_H
+#ifndef MOS_CONFIG_H_X86
+#define MOS_CONFIG_H_X86
     #define KB (1024U)
     #define MB (1024U * KB)
     #define GB (1024U * MB)
@@ -17,4 +17,4 @@
     #define CONFIG_MIN_RAM_BYTES            (2U * MB)
     #define CONFIG_VGA_DISPLAY              "80x50"
 
-#endif // MOS_CONFIG_X86_H
+#endif // MOS_CONFIG_H_X86

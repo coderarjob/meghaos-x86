@@ -10,8 +10,8 @@
 * Dated: 7th September 2021
 */
 
-#ifndef __MOS_LIMITS_H_X86__
-#define __MOS_LIMITS_H_X86__
+#ifndef MOS_LIMITS_H_X86
+#define MOS_LIMITS_H_X86
 #include <config.h>
 
 #define MAX_VGA_COLUMNS                    80U
@@ -47,4 +47,4 @@
 // Interrupt/Exception frame size
 #define INTERRUPT_FRAME_SIZE_BYTES          (4 * 12)
 
-#endif // __MOS_LIMITS_H_X86__
+#endif // MOS_LIMITS_H_X86

@@ -10,7 +10,7 @@
 ; - Intiial version. Identity paging implementation
 ; ---------------------------------------------------------------------------
 
-extern __kernel_main
+extern kernel_main
 global g_kernel_entry
 global g_page_dir
 global g_page_table
@@ -92,7 +92,7 @@ section .text progbits alloc exec nowrite
         mov cr3, eax
     ; --
 
-    jmp __kernel_main
+    jmp kernel_main
     hlt
 ; ---------------------------------------------------------------------
 

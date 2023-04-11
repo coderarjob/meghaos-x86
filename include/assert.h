@@ -9,8 +9,8 @@
 *
 * Dated: 5st November 2020
 */
-#ifndef __ASSERT_H__
-#define __ASSERT_H__
+#ifndef ASSERT_H
+#define ASSERT_H
 
 #if defined (DEBUG)
 
@@ -39,4 +39,4 @@
 
 #endif // defined (DEBUG)
 
-#endif // __ASSERT_H__
+#endif // ASSERT_H

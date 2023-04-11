@@ -15,8 +15,8 @@
 #include <stdarg.h>
 #include <limits.h>
 
-void __jump_to_usermode (U32 dataselector, 
-                        U32 codeselector, void (*user_func)());
+void jump_to_usermode (U32 dataselector,
+                       U32 codeselector, void (*user_func)());
 
 static void usermode_main ();
 static void display_system_info ();
@@ -31,7 +31,7 @@ static void s_dumpPab ();
 volatile CHAR *a = (CHAR *)0xC0300000;
 
 __attribute__ ((noreturn)) 
-void __kernel_main ()
+void kernel_main ()
 {
     kdisp_init ();
     kearly_printf ("\r\n[OK]\tPaging enabled.");
@@ -78,7 +78,7 @@ void __kernel_main ()
     kearly_printf ("\r\nJumping to User mode..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,CYAN,0));
 
-    __jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
+    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
     
 }
@@ -177,7 +177,7 @@ void usermode_main ()
     __asm__ volatile ("INT 0x40");
     kbochs_breakpoint();
 
-    kearly_printf ("\r\nLocation of __kernel_main = %x",__kernel_main);
+    kearly_printf ("\r\nLocation of kernel_main = %x", kernel_main);
     kearly_printf ("\r\nLocation of pab = %x",CAST_PA_TO_VA (g_pab));
 
     extern void display_PageInfo ();
