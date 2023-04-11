@@ -16,9 +16,8 @@
 #ifndef MEM_H
 #define MEM_H
 
-#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
-    #include <x86/memloc.h>
-#endif
+#include <types.h>
+#include <buildcheck.h>
 
 /* Copies n bytes from src to dest. Returns dest */
 void *k_memcpy (void *dest, const void *src, size_t n);

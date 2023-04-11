@@ -18,5 +18,3 @@ DEBUG_LEVEL=3
 ./include/mock/kernel/x86
 -I
 ./include/unittest
--I
-./include/x86

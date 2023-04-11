@@ -6,7 +6,12 @@
 * Dated: 1st November 2020
 */
 
-#include <kernel.h>
+#include <panic.h>
+#include <types.h>
+#include <moslimits.h>
+#include <utils.h>
+#include <kdebug.h>
+#include <disp.h>
 #include <stdarg.h>
 
 /* Hook function called from k_panic macro. 

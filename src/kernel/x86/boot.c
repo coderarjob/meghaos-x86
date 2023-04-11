@@ -3,8 +3,10 @@
 * Megha Operating System V2 - x86 Kernel - Methods to access structures passed by the bootloader.
 * --------------------------------------------------------------------------------------------------
 */
-#include <kernel.h>
-#include <boot_struct.h>
+#include <assert.h>
+#include <x86/boot.h>
+#include <x86/memloc.h>
+#include <x86/boot_struct.h>
 
 BootLoaderInfo* kboot_getCurrentBootLoaderInfo ()
 {

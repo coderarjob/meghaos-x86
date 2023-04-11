@@ -7,6 +7,7 @@
 #define GDT_STRUCT_H_X86
 
 #include <types.h>
+#include <buildcheck.h>
 
 struct GdtDescriptor
 {

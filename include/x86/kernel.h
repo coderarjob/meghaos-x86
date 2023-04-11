@@ -16,13 +16,11 @@
 #ifndef KERNEL_H_X86
 #define KERNEL_H_X86
 
-#include <x86/boot.h>
-#include <x86/paging.h>
-#include <x86/gdt.h>
-#include <x86/idt.h>
-#include <x86/pmm.h>
+#include <types.h>
+#include <buildcheck.h>
 
-/* Initializes the tss_entry structure, installs a tss segment in GDT */
-void ktss_init  ();
+void jump_to_usermode (U32 dataselector,
+                       U32 codeselector, void (*user_func)());
+
 
 #endif //KERNEL_H_x86

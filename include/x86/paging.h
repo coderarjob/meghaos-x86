@@ -11,6 +11,7 @@
 */
 
 #include <types.h>
+#include <buildcheck.h>
 
 #ifndef PAGING_H_X86
 #define PAGING_H_X86

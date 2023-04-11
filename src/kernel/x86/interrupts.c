@@ -1,4 +1,8 @@
-#include <kernel.h>
+#include <types.h>
+#include <interrupt.h>
+#include <disp.h>
+#include <panic.h>
+#include <kdebug.h>
 
 INTERRUPT_HANDLER(sys_dummy)
 void sys_dummy_handler (InterruptFrame *frame)

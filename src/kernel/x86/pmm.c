@@ -8,7 +8,15 @@
 *  TODO: Make allocation and deallocation atomic.
 */
 
-#include <kernel.h>
+#include <x86/pmm.h>
+#include <panic.h>
+#include <mem.h>
+#include <paging.h>
+#include <moslimits.h>
+#include <types.h>
+#include <x86/boot.h>
+#include <kdebug.h>
+#include <errno.h>
 
 static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA);
 static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA);

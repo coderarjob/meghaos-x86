@@ -1,8 +1,12 @@
-#include <kernel.h>
 #include <unittest/unittest.h>
 #include <mock/kernel/mem.h>
 #include <mock/kernel/x86/boot.h>
 #include <string.h>
+#include <utils.h>
+#include <moslimits.h>
+#include <errno.h>
+#include <pmm.h>
+#include <stdarg.h>
 
 #define MAX_ACTUAL_PAGE_COUNT (kpmm_getAddressablePageCount (false))
 #define MAX_ACTUAL_DMA_PAGE_COUNT (kpmm_getAddressablePageCount (true))

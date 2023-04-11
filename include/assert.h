@@ -14,6 +14,9 @@
 
 #if defined (DEBUG)
 
+#include <panic.h>
+#include <buildcheck.h>
+
 /* If expression `t' is false, compiler will generate an error 
  *
  * Note: This workes because an array dimension cannot be negative, which is

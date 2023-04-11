@@ -12,6 +12,9 @@
 #ifndef KPANIC_H
 #define KPANIC_H
 
+#include <types.h>
+#include <buildcheck.h>
+
 /* Displays an error message on the screen and Halts */
 #ifdef __C99__
 #define k_panic(s,...) k_panic_ndu ("\r\nKernel Panic!\r\n" s "\r\nin %s:%u:%s" \
@@ -27,5 +30,8 @@
  * */
 __attribute__ ((noreturn))
 void k_panic_ndu (const CHAR *s,...);
+
+/* Halts the processor by going into infinite loop */
+#define k_halt() for (;;)
 
 #endif // KPANIC_H

@@ -13,6 +13,8 @@
 #ifndef IO_H
 #define IO_H
 
+#include <buildcheck.h>
+
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/io.h>
 #endif

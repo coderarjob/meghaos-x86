@@ -12,6 +12,8 @@
 #ifndef VGA_TEXT_H_X86
 #define VGA_TEXT_H_X86
 
+#include <buildcheck.h>
+
 typedef enum DisplayVgaColors 
 {
     BLACK,

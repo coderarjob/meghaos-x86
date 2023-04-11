@@ -13,6 +13,8 @@
 #define DISPTEXT_H
 
 #include <types.h>
+#include <stdarg.h>
+#include <buildcheck.h>
 
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/vgatext.h>
@@ -69,5 +71,9 @@ void kdisp_putc (CHAR c);
  * @return true if kdisp_init has been called.
  **************************************************************************************************/
 bool kdisp_isInitialized ();
+
+INT kearly_printf (const CHAR *fmt, ...);
+INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);
+INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
 
 #endif // DISPTEXT_H

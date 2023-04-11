@@ -8,7 +8,11 @@
 * Dated: 27th November 2020
 */
 
-#include <kernel.h>
+#include <x86/idt.h>
+#include <mem.h>
+#include <x86/memloc.h>
+#include <moslimits.h>
+#include <kdebug.h>
 #include <x86/idt_struct.h>
 
 /* -------------------------------------------------------------------------*/

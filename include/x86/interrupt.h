@@ -8,6 +8,9 @@
 #define INTERRUPT_H_X86
 
 #include <types.h>
+#include <utils.h>
+#include <moslimits.h>
+#include <buildcheck.h>
 
 typedef struct InterruptFrame  {
     uint32_t ip;

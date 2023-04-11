@@ -10,8 +10,13 @@
 * Dated: 6th October 2020
 */
 
-#include <kernel.h>
+#include <types.h>
 #include <stdarg.h>
+#include <disp.h>
+#include <moslimits.h>
+#include <errno.h>
+#include <x86/memloc.h>
+#include <io.h>
 
 #define TABSTOP             4U
 #define VGA_COLUMNS         MAX_VGA_COLUMNS

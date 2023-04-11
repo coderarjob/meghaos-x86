@@ -12,6 +12,8 @@
 #ifndef MEM_LOC_H_X86
 #define MEM_LOC_H_X86
 
+    #include <buildcheck.h>
+
     #define INTEL_32_IDT_LOCATION   0xC0001000 /* 256 entries, 8 bytes each */
     #define INTEL_32_GDT_LOCATION   0xC0001800 /* 512 entries, 8 bytes each */
     #define BOOT_INFO_LOCATION      0xC0002800 /* 1 KB in size */

@@ -1,6 +1,5 @@
 #include <mock/kernel/x86/vgadisp.h>
 #include <unittest/fake.h>
-#include <kernel.h>
 
 DEFINE_FUNC_VOID_1(kdisp_putc, CHAR);
 DEFINE_FUNC_VOID_0(kdisp_scrollDown);

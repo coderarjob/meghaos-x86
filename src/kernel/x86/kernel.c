@@ -11,12 +11,22 @@
 * Dated: 20th September 2020
 */
 
-#include <kernel.h>
+#include <disp.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <types.h>
+#include <tss.h>
+#include <interrupt.h>
+#include <moslimits.h>
+#include <kdebug.h>
+#include <errno.h>
+#include <x86/pmm.h>
+#include <x86/idt.h>
+#include <x86/gdt.h>
+#include <x86/boot.h>
+#include <x86/paging.h>
+#include <x86/kernel.h>
 
-void jump_to_usermode (U32 dataselector,
-                       U32 codeselector, void (*user_func)());
 
 static void usermode_main ();
 static void display_system_info ();

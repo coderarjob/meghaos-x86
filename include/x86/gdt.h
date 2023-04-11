@@ -7,6 +7,7 @@
 #define GDT_H_X86
 
 #include <types.h>
+#include <buildcheck.h>
 
 typedef struct GdtDescriptor GdtDescriptor;
 typedef struct GdtMeta GdtMeta;

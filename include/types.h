@@ -13,6 +13,8 @@
 #ifndef PORTABLE_TYPES
 #define PORTABLE_TYPES
 
+#include <buildcheck.h>
+
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/types.h>
 #endif

@@ -9,6 +9,9 @@
 
 #ifndef MOS_CONFIG_H_X86
 #define MOS_CONFIG_H_X86
+
+    #include <buildcheck.h>
+
     #define KB (1024U)
     #define MB (1024U * KB)
     #define GB (1024U * MB)

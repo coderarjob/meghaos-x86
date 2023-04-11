@@ -11,7 +11,11 @@
 * Dated: 20th September 2020
 */
 
-#include <kernel.h>
+#include <types.h>
+#include <mem.h>
+#include <utils.h>
+#include <x86/gdt.h>
+#include <x86/memloc.h>
 
 #define IOMAP_SIZE 0x100        // Covers VGA ports and normal IO ports.
 

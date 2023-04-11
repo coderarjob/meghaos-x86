@@ -14,6 +14,7 @@
 #define KDEBUG_H
 
 #include <types.h>
+#include <buildcheck.h>
 
 /* Prints formatted string to 0xE9 port and can optionally print to vga
  * buffer.
@@ -24,5 +25,8 @@
 #else
     #define kdebug_printf(fmt,...) (void)0
 #endif
+
+/** Magic break point used by bochs emulator*/
+#define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
 #endif // KDEBUG_H

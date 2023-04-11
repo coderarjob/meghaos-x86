@@ -2,7 +2,7 @@
 #define MEM_FAKE_H
 
 #include <unittest/fake.h>
-#include <kernel.h>
+#include <types.h>
 
 DECLARE_FUNC(void *, k_memcpy, void *, const void *, size_t);
 DECLARE_FUNC(void *, k_memset, void *, INT, size_t);

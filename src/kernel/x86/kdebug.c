@@ -7,7 +7,12 @@
 *
 * Dated: 8th June 2021
 */
-#include <kernel.h>
+#include <stdarg.h>
+#include <types.h>
+#include <io.h>
+#include <moslimits.h>
+#include <utils.h>
+#include <disp.h>
 
 #if  defined (DEBUG)
 

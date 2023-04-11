@@ -1,6 +1,5 @@
 #include <mock/kernel/x86/boot.h>
 #include <unittest/fake.h>
-#include <kernel.h>
 
 DEFINE_FUNC_0 (BootLoaderInfo*, kboot_getCurrentBootLoaderInfo);
 DEFINE_FUNC_1 (ULLONG, kboot_calculateAvailableMemory, BootLoaderInfo const*);

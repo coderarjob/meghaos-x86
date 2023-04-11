@@ -8,6 +8,9 @@
 #define PMM_H_X86
 
 #include <types.h>
+#include <utils.h>
+#include <config.h>
+#include <buildcheck.h>
 
 extern Physical g_pab; /* Address of Page Allocation Bitmap array */
 

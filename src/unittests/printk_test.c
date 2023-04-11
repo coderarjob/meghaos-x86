@@ -1,8 +1,11 @@
 #include <unittest/unittest.h>
 #include <mock/kernel/x86/vgadisp.h>
-#include <kernel.h>
+#include <types.h>
+#include <moslimits.h>
+#include <disp.h>
 #include <string.h>
 #include <stdio.h>
+#include <utils.h>
 
 
 TEST(kearly_snprintf, no_vargs)

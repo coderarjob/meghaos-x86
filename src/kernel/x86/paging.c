@@ -8,7 +8,10 @@
 * Dated: 13 September 2021
 ; ---------------------------------------------------------------------------
 */
-#include <kernel.h>
+#include <paging.h>
+#include <kdebug.h>
+#include <config.h>
+#include <disp.h>
 
 void display_PageInfo ()
 {
@@ -31,7 +34,7 @@ void display_PageInfo ()
         PageTableEntry *pte;
     } PageInfo;
 
-    uintptr_t va = 0xC0400004;
+    uintptr_t va = 0xC01FFFFF;
 
     PageInfo info = {0};
     info.pdeIndex = (va & PDE_MASK) >> PDE_SHIFT;
@@ -59,8 +62,10 @@ void display_PageInfo ()
 
     if (info.pte && info.pte->present)      // Check if a page frame address is present in the pte
     {
+#if DEBUG
         Physical paddr = createPhysical (info.pte->page_addr * CONFIG_PAGE_FRAME_SIZE_BYTES + info.offset);
         kdebug_printf ("\r\n%lx --> %lx", va, paddr.val);
+#endif
     }
     else
         kdebug_printf ("\r\n%lx --> unmapped", va);
