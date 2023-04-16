@@ -5,7 +5,7 @@
 #include <utils.h>
 #include <moslimits.h>
 #include <errno.h>
-#include <pmm.h>
+#include <x86/pmm.h>
 #include <stdarg.h>
 
 #define MAX_ACTUAL_PAGE_COUNT (kpmm_getAddressablePageCount (false))

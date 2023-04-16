@@ -19,7 +19,7 @@ export IMAGEDIR="build/diskimage/x86"
 export DISKTEMPDIR="build/diskimage/temp"
 
 export NASM_INCPATH="-I include/x86/asm -I include/asm"
-export GCC_INCPATH="-I include -I include/x86"
+export GCC_INCPATH="-I include"
 
 # ---------------------------------------------------------------------------
 # IMPORTAINT NOTES:

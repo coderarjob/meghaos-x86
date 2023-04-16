@@ -8,7 +8,7 @@
 * Dated: 13 September 2021
 ; ---------------------------------------------------------------------------
 */
-#include <paging.h>
+#include <x86/paging.h>
 #include <kdebug.h>
 #include <config.h>
 #include <disp.h>

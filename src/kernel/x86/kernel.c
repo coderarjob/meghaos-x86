@@ -15,11 +15,11 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <types.h>
-#include <tss.h>
 #include <interrupt.h>
 #include <moslimits.h>
 #include <kdebug.h>
 #include <errno.h>
+#include <x86/tss.h>
 #include <x86/pmm.h>
 #include <x86/idt.h>
 #include <x86/gdt.h>

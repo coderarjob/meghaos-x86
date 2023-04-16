@@ -11,9 +11,9 @@
 #include <x86/pmm.h>
 #include <panic.h>
 #include <mem.h>
-#include <paging.h>
 #include <moslimits.h>
 #include <types.h>
+#include <x86/paging.h>
 #include <x86/boot.h>
 #include <kdebug.h>
 #include <errno.h>
