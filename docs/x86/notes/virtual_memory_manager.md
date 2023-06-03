@@ -6,8 +6,8 @@ __16 Dec 2022__
 In order to make changes to a PDE or PTE, we require the virtual addresses of them. However, the PD
 addresses in CR3 and PT address in a PDE are all physical.
 
-Now, as there will always be one PD per process we its virtual address in the entry for the process
-in the Process table. However, there can be thousands of page tables per process, storing virtual
+Now, as there will always be one PD per process its virtual address can be part of the process
+table. However, there can be thousands of page tables per process, storing virtual
 address of each separately is going to be expensive - 4KB pre PD.
 
 4KB does not sound too bad right, even with 100 processes, this will account to just 400KB. So I am
@@ -31,8 +31,8 @@ Here is how a virtual address to physical address map works - Going from MSB to 
 bits is index to select a PDE, the next 10 bits is index to select a PTE, the next 12 bits is used
 to access each byte in the page.
 
-In recursive mapping, the last PDE has the address of the PD instead of a PT. With this simple
-change now, each of the PT in the PD now has a corresponding virtual address.
+In recursive mapping, the last PDE has the physical address of the PD instead of a PT. With this
+simple change now, each PT in the PD now has a corresponding virtual address.
 
 Here is how a virtual address to PT works - Going from MSB to LSB, the first 10 bits is index to
 select a PDE (here it is always 0x3FF, select the 1024th PDE), the next 10 bits is index to select
@@ -59,7 +59,7 @@ allocation and deallocation must go though the interface presented by VMM.
 kvmm_map which maps a Physical page to a Virtual one, will also call pmm_aloc if required, it should
 not be called separately by the caller of kvmm_map.
 
-```
+```c
 kvmm_map (Physical pa, uintptr_t pa, INT flags, INT access)
 {
     // pa and va must be page aligned

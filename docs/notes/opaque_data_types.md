@@ -156,4 +156,4 @@ Lets examine which types in Megha need to be `Opaque`.
 
 At this point however, thinking too much about opaque types is premature. Currently the OS is in its
 very early days and I do not have clarity to take decisions on these things. Lets just keep the OS
-as it is and not remove or introduce opaque types until as time when I can think of it.
+as it is and not remove or introduce opaque types until a time when I can think of it.

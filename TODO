@@ -11,6 +11,9 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] Physical memory allocator                 -
     [ ] Lock to protect the PAB.              -
 [ ] Virutal memory allocator                  -
+    [ ] How to do lazy allocation?
+    [ ] Allocate a new virtual address
+    [ ] Map a virtual to physical address
 [ ] Various functions like kdisp_ioctl, etc   -
     must implement error reporting.
     [X] kdisp_ioctl
