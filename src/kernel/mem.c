@@ -6,6 +6,7 @@
 * Dated: 1st November 2020
 */
 
+#include <mem.h>
 #include <types.h>
 
 /* Copies n bytes from src to dest. Returns dest */

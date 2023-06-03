@@ -12,6 +12,7 @@
 #ifndef DISPTEXT_H
 #define DISPTEXT_H
 
+#include <stddef.h>
 #include <types.h>
 #include <stdarg.h>
 #include <buildcheck.h>

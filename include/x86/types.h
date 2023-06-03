@@ -13,9 +13,7 @@
 #ifndef TYPES_H_X86
 #define TYPES_H_X86
 
-#include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <buildcheck.h>
 
     typedef uint8_t  U8;

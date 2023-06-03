@@ -7,6 +7,8 @@
 #ifndef PMM_H_X86
 #define PMM_H_X86
 
+#include <stddef.h>
+#include <stdbool.h>
 #include <types.h>
 #include <utils.h>
 #include <config.h>
