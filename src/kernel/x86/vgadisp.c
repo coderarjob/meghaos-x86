@@ -16,7 +16,7 @@
 #include <moslimits.h>
 #include <errno.h>
 #include <x86/memloc.h>
-#include <io.h>
+#include <x86/io.h>
 
 #define TABSTOP             4U
 #define VGA_COLUMNS         MAX_VGA_COLUMNS

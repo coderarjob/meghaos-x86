@@ -9,7 +9,7 @@
 */
 #include <stdarg.h>
 #include <types.h>
-#include <io.h>
+#include <x86/io.h>
 #include <moslimits.h>
 #include <utils.h>
 #include <disp.h>

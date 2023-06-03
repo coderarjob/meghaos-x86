@@ -1,5 +1,5 @@
 #include <types.h>
-#include <interrupt.h>
+#include <x86/interrupt.h>
 #include <disp.h>
 #include <panic.h>
 #include <kdebug.h>
