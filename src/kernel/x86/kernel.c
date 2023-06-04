@@ -19,6 +19,7 @@
 #include <kdebug.h>
 #include <errno.h>
 #include <x86/interrupt.h>
+#include <x86/vgatext.h>
 #include <x86/tss.h>
 #include <x86/pmm.h>
 #include <x86/idt.h>

@@ -13,11 +13,12 @@
 #include <moslimits.h>
 #include <utils.h>
 #include <disp.h>
+#include <x86/vgatext.h>
 
 #if  defined (DEBUG)
 
 #if (DEBUG_LEVEL & 1)
-static void s_e9puts (const CHAR *string)
+static void s_qemu_debugPutString (const CHAR *string)
 {
     CHAR c;
     while ((c = *string++))
@@ -36,7 +37,7 @@ void kdebug_printf_ndu (const CHAR *fmt, ...)
 
 #if (DEBUG_LEVEL & 1)
     // Print to E9 port 
-    s_e9puts (buffer);
+    s_qemu_debugPutString (buffer);
 #endif
 
 #if (DEBUG_LEVEL & 2)

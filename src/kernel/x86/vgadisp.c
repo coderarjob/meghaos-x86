@@ -13,6 +13,7 @@
 #include <types.h>
 #include <stdarg.h>
 #include <disp.h>
+#include <x86/vgatext.h>
 #include <moslimits.h>
 #include <errno.h>
 #include <x86/memloc.h>

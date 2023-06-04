@@ -17,10 +17,6 @@
 #include <stdarg.h>
 #include <buildcheck.h>
 
-#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
-    #include <x86/vgatext.h>
-#endif
-
 typedef enum DisplayControls 
 {
     DISP_GETCOORDS, 

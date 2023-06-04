@@ -13,6 +13,9 @@
 #include <kdebug.h>
 #include <disp.h>
 #include <stdarg.h>
+#if ARCH == x86
+#include <x86/vgatext.h>
+#endif // x86
 
 /* Hook function called from k_panic macro. 
  * Displays an error message on the screen and Halts */
@@ -28,7 +31,12 @@ void k_panic_ndu (const CHAR *s,...)
 
     kdebug_printf ("%s",buffer);
 
+#if ARCH == x86
     kdisp_ioctl (DISP_SETATTR, k_dispAttr (RED,WHITE,0));
+#else
+    #error "Require implementation"
+#endif
+
     kearly_printf (buffer);
 
     k_halt ();
