@@ -16,7 +16,7 @@
 #include <x86/paging.h>
 #include <x86/boot.h>
 #include <kdebug.h>
-#include <errno.h>
+#include <kerror.h>
 
 static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA);
 static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA);

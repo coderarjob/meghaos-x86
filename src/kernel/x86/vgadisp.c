@@ -15,7 +15,7 @@
 #include <disp.h>
 #include <x86/vgatext.h>
 #include <moslimits.h>
-#include <errno.h>
+#include <kerror.h>
 #include <x86/memloc.h>
 #include <x86/io.h>
 
@@ -53,7 +53,7 @@ static void s_updateCursor ();
  *                  DisplayControls enum.
  * @param ...       Arguments for the specified operation. Provides input (is required)/output for
  *                  the specified operation.
- * @returns         On success, EXIT_SUCCESS is returned, otherwise EXIT_FAILURE.
+ * @returns         On success, KERNEL_EXIT_SUCCESS is returned, otherwise KERNEL_EXIT_FAILURE.
  **************************************************************************************************/
 INT kdisp_ioctl (INT request, ...)
 {
@@ -91,11 +91,11 @@ INT kdisp_ioctl (INT request, ...)
             break;
     };
     va_end (l);
-    return EXIT_SUCCESS;
+    return KERNEL_EXIT_SUCCESS;
 
 error_invalid_range:
     va_end(l);
-    RETURN_ERROR (ERR_INVALID_RANGE, EXIT_FAILURE);
+    RETURN_ERROR (ERR_INVALID_RANGE, KERNEL_EXIT_FAILURE);
 
 }
 

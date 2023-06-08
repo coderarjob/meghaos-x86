@@ -17,7 +17,7 @@
 #include <types.h>
 #include <moslimits.h>
 #include <kdebug.h>
-#include <errno.h>
+#include <kerror.h>
 #include <x86/interrupt.h>
 #include <x86/vgatext.h>
 #include <x86/tss.h>

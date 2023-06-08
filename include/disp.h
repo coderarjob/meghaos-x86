@@ -33,7 +33,7 @@ typedef enum DisplayControls
  *                  DisplayControls enum.
  * @param ...       Arguments for the specified operation. Provides input (is required)/output for
  *                  the specified operation.
- * @returns         On success, EXIT_SUCCESS is returned, otherwise EXIT_FAILURE.
+ * @returns         On success, KERNEL_EXIT_SUCCESS is returned, otherwise KERNEL_EXIT_FAILURE.
  **************************************************************************************************/
 INT kdisp_ioctl (INT request, ...);
 

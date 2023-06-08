@@ -13,7 +13,7 @@ C_FILES=(
     'kernel/printk.c'
     'kernel/mem.c'
     'kernel/kpanic.c'
-    'kernel/errno.c'
+    'kernel/kerror.c'
 )
 
 compile_cc "$GCC32 $GCC32_FLAGS" $OBJDIR ${C_FILES[@]}

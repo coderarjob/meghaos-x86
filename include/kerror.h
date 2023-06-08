@@ -42,8 +42,8 @@ extern CHAR *k_errorText[];
                    return rval;                                                              \
                 }while(0)
 
-#define EXIT_SUCCESS  0
-#define EXIT_FAILURE -1
+#define KERNEL_EXIT_SUCCESS  0
+#define KERNEL_EXIT_FAILURE -1
 
 /* Displays error description if k_errorNumber != 0 */
 #define k_assertOnError() k_assert (k_errorNumber == ERR_NONE,k_errorText[k_errorNumber])

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <utils.h>
 #include <moslimits.h>
-#include <errno.h>
+#include <kerror.h>
 #include <x86/pmm.h>
 #include <stdarg.h>
 
