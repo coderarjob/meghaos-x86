@@ -186,8 +186,10 @@ if [ ! -e "$LCOV_AVAILABLE" ] || [ ! -e "$GENHTML_AVAILABLE" ]; then
 else
     ./run.sh unittests > /dev/null 2>&1
     lcov --capture --directory . \
+         -rc lcov_branch_coverage=1 \
          --output-file build/coverage/capture.data > /dev/null  || exit
     genhtml build/coverage/capture.data \
+            --branch-coverage \
             -o build/coverage/report > /dev/null                || exit
 fi
 
