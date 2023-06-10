@@ -45,6 +45,7 @@ UNITTESTS=(
     "c99_conformance"
     "printk"
     "mem"
+    "bitmap"
 )
 
 # Adds tests specific to the current architecture.
@@ -93,6 +94,12 @@ get_arch_independent_test_definition()
                         {
                             SRC=('kernel/mem.c'
                                  'unittests/mem_test.c'
+                                 'unittests/unittest.c')
+                        };;
+        bitmap)
+                        {
+                            SRC=('common/bitmap.c'
+                                 'unittests/bitmap_test.c'
                                  'unittests/unittest.c')
                         };;
         *) return 1;;
