@@ -32,12 +32,13 @@ static inline SIZE bitmap_bitsPerState(Bitmap *b)
     return b->bitsPerState;
 }
 
+#define BITMAP_MAX_STATE(b)       (power_of_two((b)->bitsPerState))
 #define BITMAP_STATE_MASK(b)      (power_of_two((b)->bitsPerState) - 1)
 #define BITMAP_STATES_PER_BYTE(b) (8 / bitmap_bitsPerState(b))
-#define BITMAP_ITEM_COUNT(b)      ((b)->size * BITMAP_STATES_PER_BYTE(b))
+#define BITMAP_CAPACITY(b)        ((b)->size * BITMAP_STATES_PER_BYTE(b))
 
-INT bitmap_get (Bitmap *b, UINT index);
-INT bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state);
+BitmapState bitmap_get (Bitmap *b, UINT index);
+bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state);
 INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len);
-INT bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt);
+bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt);
 #endif // COMMON_BITMAP_H

@@ -4,17 +4,23 @@
 *
 * Bitmap implementation for use in the OS.
 *
-* NOTE: Being a common component, the methods must detect error conditions and report to the
-* caller? Or should panic! or at a later stage stop the process?
-*
 * Bitmap:
 * It stores states, the interpretation of which is let to the user of bitmap. Each state can be
 * represented by more than one bit. In the example below, each state is 2 bits.
+* These states are addresses with their index in the bitmap. Indices start from 0.
 *
 *    7    6    5    4    3    2    1    0
 *  +----+----+----+----+----+----+----+----+
 *  | State 3 | State 2 | State 1 | State 0 |
 *  +----+----+----+----+----+----+----+----+
+*
+* NOTE: Being a common component, the methods must detect error conditions and report to the
+* caller? If any function gets wrong input, this is a symptom of some wrong calculation elsewhere.
+* The only safe thing to do is to halt. Just reporting in the hope that the caller will deal with it
+* may not be a good idea, we should fail fast at the first sign of problem.
+*
+* NOTE: If a function reports a boolean, then it should report false on failure. The above
+* statement only deals with invalid/wrong/error conditions.
 * --------------------------------------------------------------------------------------------------
 */
 
@@ -24,48 +30,60 @@
 #include <common/bitmap.h>
 
 /***************************************************************************************************
- * Searches bitmap for continous `len` number of continous blocks with `state` state starting from
- * index 'indexAt' in the bitmap.
+ * Checks if a section in the bitmap exists starting at index `indexAt` having at least `len`
+ * number of states with value of `state`.
  * TODO: User must get lock on the bitmap before calling this function.
  *
  * @Input b          Bitmap
- * @Input state      Searches for a continous section with this state.
- * @Input len        This many consecutive blocks.
- * @return           On succes returns KERNEL_EXIT_SUCCESS, else KERNEL_EXIT_FAILURE.
+ * @Input state      Searches for this state in the bitmap.
+ * @Input len        This many consecutive states. Must be > 0.
+ * @Input indexAt    Start index in the bitmap. First index is 0.
+ * @return           On success returns true, false otherwise.
  **************************************************************************************************/
-INT bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt)
+bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt)
 {
-    k_assert(state < power_of_two(b->bitsPerState), "Invalid  state");
+    k_assert(b != NULL, "Cannot be null");
+#ifdef UNITTEST
+    if (b == NULL) return false;
+#endif
+    k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
+    k_assert ((indexAt + len - 1) < BITMAP_CAPACITY(b), "Index out of bounds.");
+    k_assert(len > 0, "Must be > zero");
 
     UINT i = 0;
-    for (; i < len && bitmap_get(b, i + indexAt) == state; i++)
-        k_assert(i < BITMAP_ITEM_COUNT(b), "Index out of bounds.");
+    for (; i < len && bitmap_get(b, i + indexAt) == state; i++);
 
-    // If the inner loop itterated `len` number of types, then we have
-    // found out contious block.
-    return (i == len ) ? KERNEL_EXIT_SUCCESS : KERNEL_EXIT_FAILURE;
+    // If the inner loop iterated `len` number of types, then we have
+    // found our continuous block.
+    return (i == len) ? true : false;
 }
 
 /***************************************************************************************************
- * Searches bitmap for continous `len` number of continous blocks with `state` state.
+ * Searches bitmap for a section with at least `len` number of continuous states with `state` value.
  * TODO: User must get lock on the bitmap before calling this function.
  *
  * @Input b          Bitmap
- * @Input state      Searches for a continous section with this state.
- * @Input len        This many consecutive blocks.
- * @return           On succes returns the index of the first item in the block, otherwise returns
+ * @Input state      Searches for this state in the bitmap.
+ * @Input len        This many consecutive states. Must be > 0.
+ * @return           On success returns the first index in the section, otherwise returns
  *                   KERNEL_EXIT_FAILURE.
  **************************************************************************************************/
 INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
 {
-    k_assert(state < power_of_two(b->bitsPerState), "Invalid  state");
-    UINT count = BITMAP_ITEM_COUNT(b);
+    k_assert(b != NULL, "Cannot be null");
+#ifdef UNITTEST
+    if (b == NULL) return false;
+#endif
+    k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
+    k_assert(len > 0, "Must be > zero");
+
+    UINT count = BITMAP_CAPACITY(b);
 
     for (UINT index = 0; index < count; index++)
-        if (bitmap_findContinousAt(b, state, len, index) != KERNEL_EXIT_FAILURE)
+        if (bitmap_findContinousAt(b, state, len, index))
             return (INT)index;
 
-    // No contigous block found
+    // No contiguous block found
     return KERNEL_EXIT_FAILURE;
 }
 
@@ -73,18 +91,22 @@ INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
  * Gets the bit at index
  *
  * @Input b          Bitmap
- * @Input index      Index starts from 0. What each bit represents is upto the user.
- * @return           On succes returns bitmap item at the index, otherwise returns KERNEL_EXIT_FAILURE.
+ * @Input index      Index into the bitmap. First index is 0.
+ * @return           On success returns bitmap item at the index, otherwise returns
+ *                   KERNEL_EXIT_FAILURE.
  **************************************************************************************************/
-INT bitmap_get (Bitmap *b, UINT index)
+BitmapState bitmap_get (Bitmap *b, UINT index)
 {
-    /*if (index == BITMAP_ITEM_COUNT(b))
-        RETURN_ERROR(BITMAP_ERR_OUTSIDE_RANGE, false);*/
+    k_assert(b != NULL, "Cannot be null");
+#ifdef UNITTEST
+    if (b == NULL) return false;
+#endif
+    k_assert (index < BITMAP_CAPACITY(b), "Index out of bounds.");
 
     UINT byteIndex = index / BITMAP_STATES_PER_BYTE(b);
     UINT bitIndex = (index % BITMAP_STATES_PER_BYTE(b)) * bitmap_bitsPerState(b);
 
-    return ((b->bitmap[byteIndex] >> bitIndex) & (INT)BITMAP_STATE_MASK(b));
+    return (BitmapState)((b->bitmap[byteIndex] >> bitIndex) & (INT)BITMAP_STATE_MASK(b));
 }
 
 /***************************************************************************************************
@@ -92,24 +114,33 @@ INT bitmap_get (Bitmap *b, UINT index)
  * TODO: User must get lock on the bitmap before calling this function.
  *
  * @Input b             Bitmap
- * @Input index         Index starts from 0. What each bit represents is upto the user.
- * @Input len           Number of items to change.
- * @Input state         State to set to. Validity is checked before making a change.
- * @return              Returns KERNEL_EXIT_SUCCESS on success, else KERNEL_EXIT_FAILURE.
+ * @Input index         Index into the bitmap. First index is 0.
+ * @Input len           Number of consecutive states in the bitmap to set. Must be > 0.
+ * @Input state         State to set to.
+ * @return              Returns true on success, else false.
  **************************************************************************************************/
-INT bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state)
+bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state)
 {
-    k_assert(state < power_of_two(b->bitsPerState), "Invalid  state");
+    k_assert(b != NULL, "Cannot be null");
+#ifdef UNITTEST
+    if (b == NULL) return false;
+#endif
+    k_assert(b->allow != NULL, "Cannot be null");
+#ifdef UNITTEST
+    if (b->allow == NULL) return false;
+#endif
+
+    k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
+    k_assert((index + len - 1) < BITMAP_CAPACITY(b), "Index out of bounds.");
+    k_assert(len > 0, "Must be > zero");
 
     for (; len > 0 && b->allow(index, (BitmapState)bitmap_get(b, index), state); len--, index++)
     {
-        k_assert(index < BITMAP_ITEM_COUNT(b), "Index out of bounds.");
-
         UINT byteIndex = index / BITMAP_STATES_PER_BYTE(b);
         UINT bitIndex = (index % BITMAP_STATES_PER_BYTE(b)) * bitmap_bitsPerState(b);
         b->bitmap[byteIndex] &= (BitmapState)~(BITMAP_STATE_MASK(b) << bitIndex);
         b->bitmap[byteIndex] |= (BitmapState)(state << bitIndex);
     }
 
-    return (len == 0) ? KERNEL_EXIT_SUCCESS : KERNEL_EXIT_FAILURE;
+    return (len == 0) ? true : false;
 }
