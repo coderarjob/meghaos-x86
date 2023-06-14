@@ -333,6 +333,35 @@ TEST(bitmap, findContinousAt_mustpass) {
     END();
 }
 
+/**************************************************************************************************
+ * One bitmap memory used by two Bitmap objects
+**************************************************************************************************/
+TEST(bitmap, bitmap_splited_mustpass)
+{
+    Bitmap low =  {&bitmap[0], 1 /*byte*/, 2, isValid};
+    Bitmap high = {&bitmap[1], 2 /*byte*/, 2, isValid};
+
+    EQ_SCALAR(true, bitmap_setContinous(&low, 0, 3, STATE_2));
+    EQ_SCALAR(true, bitmap_setContinous(&high, 0, 5, STATE_2));
+
+    U8 final[] = {0xD5,0x55,0xFD};
+    EQ_MEM(bitmap, final, sizeof(bitmap));
+
+    // Being 1 byte, low has a capacity of 4 states (0 to 3).
+    EQ_SCALAR(4, BITMAP_CAPACITY(&low));
+    panic_invoked = false;
+    bitmap_setContinous(&low, 4, 1, STATE_1);
+    EQ_SCALAR(panic_invoked, true);
+
+    // Being 2 byte, high has a capacity of 8 states (0 to 7).
+    EQ_SCALAR(8, BITMAP_CAPACITY(&high));
+    panic_invoked = false;
+    bitmap_setContinous(&high, 8, 1, STATE_1);
+    EQ_SCALAR(panic_invoked, true);
+
+    END();
+}
+
 void reset() {
     memset(bitmap, 0xFF, ARRAY_LENGTH(bitmap));
     panic_invoked = false;
@@ -353,4 +382,5 @@ int main() {
     findContinous_mustpass();
     findContinousAt_mustpass();
     get_mustpass();
+    bitmap_splited_mustpass();
 }
