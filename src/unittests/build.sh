@@ -17,19 +17,17 @@ source src/unittests/$ARCH/build.sh
 UNITTEST_BINDIR="build/bin/unittests"
 UNITTEST_OBJDIR="build/obj/unittests"
 
-UNITTEST_WOPTS="-Wpedantic   \
-                -Wpadded     \
-                -Wall        \
-                -Wextra      \
-                -Wconversion"
+UNITTEST_WOPTS="-Wall        \
+                -Wextra"
 
 # Note: Requires gcc-multilib package if compiling on a x86_64 machine.
 UNITTEST_CC="gcc -std=c99                   \
                  -g                         \
                  -m32                       \
                  -march=i386                \
+                 -masm=intel                \
                  --coverage                 \
-                 $UT_WOPTS                  \
+                 $UNITTEST_WOPTS            \
                  $GCC_INCPATH               \
                  -D UNITTEST                \
                  -D ARCH=$ARCH              \
