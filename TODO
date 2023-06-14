@@ -17,6 +17,14 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [ ] Various functions like kdisp_ioctl, etc   -
     must implement error reporting.
     [X] kdisp_ioctl
+    Note: Afterthought: Is this a good idea?
+    Calls or or any of its parameters to these
+    functions come not from a human, but from
+    other parts of the OS, any wrong argument
+    getting to these functions means there
+    is something wrong within the kernel code.
+    We should fail fast the moment such
+    conditions occur in the kernel.
 [ ] Make symbols comply with the C99.         -                 30 Dec 2021
     Symbols beginning with underscore is
     reserved [7.13]. Rename them.
