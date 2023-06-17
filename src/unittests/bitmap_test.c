@@ -59,20 +59,6 @@ typedef enum States
     STATE_5
 } States;
 
-/* Fake Defination. At present, meghatest does not support varidac parameters. */
-static bool panic_invoked;
-void k_panic_ndu (const CHAR *s,...)
-{
-    panic_invoked = true;
-
-    va_list l;
-    va_start (l, s);
-
-    printf ("%s!%s", COL_RED, COL_RESET);
-
-    va_end(l);
-}
-
 /**************************************************************************************************
  * Bitmap bits per state must be a factor of 8.
  * 3 is not a factor of 8, so must hit assert.
@@ -83,12 +69,15 @@ TEST(bitmap, bitmap_bitsPerState_invalid_mustfail) {
   bitmap_setContinous(&b, 0, 1, 1);
   EQ_SCALAR(panic_invoked, true);
 
+  panic_invoked = false;
   bitmap_get(&b, 0);
   EQ_SCALAR(panic_invoked, true);
 
+  panic_invoked = false;
   bitmap_findContinous(&b, STATE_1, 1);
   EQ_SCALAR(panic_invoked, true);
 
+  panic_invoked = false;
   bitmap_findContinousAt(&b, STATE_1, 1, 0);
   EQ_SCALAR(panic_invoked, true);
 
@@ -102,12 +91,15 @@ TEST(bitmap, bitmap_null_mustfail) {
   bitmap_setContinous(NULL, 0, 1, 1);
   EQ_SCALAR(panic_invoked, true);
 
+  panic_invoked = false;
   bitmap_get(NULL, 0);
   EQ_SCALAR(panic_invoked, true);
 
+  panic_invoked = false;
   bitmap_findContinous(NULL, STATE_1, 1);
   EQ_SCALAR(panic_invoked, true);
 
+  panic_invoked = false;
   bitmap_findContinousAt(NULL, STATE_1, 1, 0);
   EQ_SCALAR(panic_invoked, true);
 
@@ -168,7 +160,7 @@ TEST(bitmap, set_not_allowed_mustfail) {
 }
 
 /**************************************************************************************************
- * Allow funcion is not set in bitmap.
+ * Allow function is not set in bitmap.
 **************************************************************************************************/
 TEST(bitmap, set_allow_null_mustfail) {
   Bitmap b = {bitmap, sizeof(bitmap), 2, NULL};
@@ -258,7 +250,7 @@ TEST(bitmap, set_multiple_mustpass) {
 }
 
 /**************************************************************************************************
- * Write every kind of state and reack back
+ * Write every kind of state and read back
 **************************************************************************************************/
 TEST(bitmap, get_mustpass) {
   isValid_fake.ret = true;
@@ -281,7 +273,7 @@ TEST(bitmap, get_mustpass) {
 }
 
 /**************************************************************************************************
- * Finds continous states from bitmap.
+ * Finds continuous states from bitmap.
 **************************************************************************************************/
 TEST(bitmap, findContinous_mustpass) {
     isValid_fake.ret = true;
@@ -306,7 +298,7 @@ TEST(bitmap, findContinous_mustpass) {
 }
 
 /**************************************************************************************************
- * Finds continous states from bitmap.
+ * Finds continuous states from bitmap.
 **************************************************************************************************/
 TEST(bitmap, findContinousAt_mustpass) {
     isValid_fake.ret = true;
@@ -349,12 +341,14 @@ TEST(bitmap, bitmap_splited_mustpass)
 
     // Being 1 byte, low has a capacity of 4 states (0 to 3).
     EQ_SCALAR(4, BITMAP_CAPACITY(&low));
+
     panic_invoked = false;
     bitmap_setContinous(&low, 4, 1, STATE_1);
     EQ_SCALAR(panic_invoked, true);
 
     // Being 2 byte, high has a capacity of 8 states (0 to 7).
     EQ_SCALAR(8, BITMAP_CAPACITY(&high));
+
     panic_invoked = false;
     bitmap_setContinous(&high, 8, 1, STATE_1);
     EQ_SCALAR(panic_invoked, true);
@@ -363,7 +357,7 @@ TEST(bitmap, bitmap_splited_mustpass)
 }
 
 void reset() {
-    memset(bitmap, 0xFF, ARRAY_LENGTH(bitmap));
+    memset(bitmap, 0xFF, sizeof(bitmap));
     panic_invoked = false;
 }
 

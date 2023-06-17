@@ -43,12 +43,14 @@
 bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt)
 {
     k_assert(b != NULL, "Cannot be null");
-#ifdef UNITTEST
-    if (b == NULL) return false;
-#endif
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
     k_assert ((indexAt + len - 1) < BITMAP_CAPACITY(b), "Index out of bounds.");
     k_assert(len > 0, "Must be > zero");
+
+#ifdef UNITTEST
+    // Do not proceed if one the asserts has failed.
+    if (panic_invoked) return false;
+#endif
 
     UINT i = 0;
     for (; i < len && bitmap_get(b, i + indexAt) == state; i++);
@@ -71,11 +73,13 @@ bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexA
 INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
 {
     k_assert(b != NULL, "Cannot be null");
-#ifdef UNITTEST
-    if (b == NULL) return false;
-#endif
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
     k_assert(len > 0, "Must be > zero");
+
+#ifdef UNITTEST
+    // Do not proceed if one the asserts has failed.
+    if (panic_invoked) return false;
+#endif
 
     UINT count = BITMAP_CAPACITY(b);
 
@@ -98,10 +102,12 @@ INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
 BitmapState bitmap_get (Bitmap *b, UINT index)
 {
     k_assert(b != NULL, "Cannot be null");
-#ifdef UNITTEST
-    if (b == NULL) return false;
-#endif
     k_assert (index < BITMAP_CAPACITY(b), "Index out of bounds.");
+
+#ifdef UNITTEST
+    // Do not proceed if one the asserts has failed.
+    if (panic_invoked) return false;
+#endif
 
     UINT byteIndex = index / BITMAP_STATES_PER_BYTE(b);
     UINT bitIndex = (index % BITMAP_STATES_PER_BYTE(b)) * bitmap_bitsPerState(b);
@@ -122,17 +128,15 @@ BitmapState bitmap_get (Bitmap *b, UINT index)
 bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state)
 {
     k_assert(b != NULL, "Cannot be null");
-#ifdef UNITTEST
-    if (b == NULL) return false;
-#endif
     k_assert(b->allow != NULL, "Cannot be null");
-#ifdef UNITTEST
-    if (b->allow == NULL) return false;
-#endif
-
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
     k_assert((index + len - 1) < BITMAP_CAPACITY(b), "Index out of bounds.");
     k_assert(len > 0, "Must be > zero");
+
+#ifdef UNITTEST
+    // Do not proceed if one the asserts has failed.
+    if (panic_invoked) return false;
+#endif
 
     for (; len > 0 && b->allow(index, (BitmapState)bitmap_get(b, index), state); len--, index++)
     {

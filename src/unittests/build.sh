@@ -98,6 +98,7 @@ get_arch_independent_test_definition()
                         {
                             SRC=('common/bitmap.c'
                                  'unittests/bitmap_test.c'
+                                 'unittests/common.c'
                                  'unittests/unittest.c')
                         };;
         *) return 1;;
