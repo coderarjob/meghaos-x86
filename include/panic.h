@@ -1,6 +1,6 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Cross Platform Kernel - k_panic () 
+* Megha Operating System V2 - Cross Platform Kernel - k_panic ()
 *
 * Note:
 * Remember that these header files are for building OS and its utilitites, it
@@ -12,17 +12,23 @@
 #ifndef KPANIC_H
 #define KPANIC_H
 
-#include <types.h>
 #include <buildcheck.h>
+#include <types.h>
 
-/* Displays an error message on the screen and Halts */
-#ifdef __C99__
-#define k_panic(s,...) k_panic_ndu ("\r\nKernel Panic!\r\n" s "\r\nin %s:%u:%s" \
-                               ,__VA_ARGS__, __FILE__,__LINE__,__func__)
-#else
-#define k_panic(s,...) k_panic_ndu ("\r\nKernel Panic!\r\n" s "\r\nin %s:%u" \
-                               ,__VA_ARGS__, __FILE__,__LINE__)
-#endif // __C99__
+#ifndef UNITTEST
+    /* Displays an error message on the screen and Halts */
+    #ifdef __C99__
+        #define k_panic(s, ...)                                                                    \
+            k_panic_ndu("\r\nKernel Panic!\r\n" s "\r\nin %s:%u:%s", __VA_ARGS__, __FILE__,        \
+                        __LINE__, __func__)
+    #else // __C99__
+        #define k_panic(s, ...)                                                                    \
+            k_panic_ndu("\r\nKernel Panic!\r\n" s "\r\nin %s:%u", __VA_ARGS__, __FILE__, __LINE__)
+    #endif // __C99__
+#else      // UNITTEST
+    extern bool panic_invoked;
+    #define k_panic(s, ...) k_panic_ndu("\r\nKernel Panic! " s, __VA_ARGS__)
+#endif // UNITTEST
 
 /* Displays an error message on the screen and Halts */
 #ifndef UNITTEST
@@ -35,7 +41,6 @@
  */
 __attribute__ ((noreturn))
 #endif // UNITTEST
-
 void k_panic_ndu (const CHAR *s,...);
 
 /* Halts the processor by going into infinite loop */
