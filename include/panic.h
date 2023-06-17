@@ -24,11 +24,18 @@
                                ,__VA_ARGS__, __FILE__,__LINE__)
 #endif // __C99__
 
-/* Displays an error message on the screen and Halts 
- * Note: The attribute here suppresses warning from GCC when used within
+/* Displays an error message on the screen and Halts */
+#ifndef UNITTEST
+/* Note: The attribute here suppresses warning from GCC when used within
  * another `noreturn` function.
- * */
+ *
+ * Note: In an unittest, this function have to return (otherwise test will hung up), so this
+ * attribute is not applied when building unittests. Also causes weird effects if a function with
+ * 'noreturn' attribute returns.
+ */
 __attribute__ ((noreturn))
+#endif // UNITTEST
+
 void k_panic_ndu (const CHAR *s,...);
 
 /* Halts the processor by going into infinite loop */
