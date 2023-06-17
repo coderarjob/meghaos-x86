@@ -30,10 +30,11 @@
     #define k_staticAssert(t) ((void)sizeof(CHAR[2 * !!(t)-1]))
 
     #ifdef UNITTEST
+        /* Do nothing if an assertion has failed previously.*/
         #define k_assert(t, e)                                                                     \
             do                                                                                     \
             {                                                                                      \
-                if (panic_invoked || (!(t)))                                                       \
+                if (!panic_invoked && (!(t)))                                                      \
                     k_panic("(%s) assertion failed. %s", #t, e);                                   \
             } while (0)
     #else // UNITTEST
