@@ -6,8 +6,12 @@
 #include <utils.h>
 #include <kerror.h>
 #include <unittest/fake.h>
+#include <mock/common/utils.h>
+#include <math.h>
 #include <stdarg.h>
 
+/* Using fake functions to implement isValid gives better control when its behaviour can varry from
+ * one test case to another.*/
 DECLARE_FUNC(bool, isValid, UINT, BitmapState, BitmapState);
 DEFINE_FUNC_3(bool, isValid, UINT, BitmapState, BitmapState);
 
@@ -356,7 +360,13 @@ TEST(bitmap, bitmap_splited_mustpass)
     END();
 }
 
+UINT powerOfTwo(UINT e)
+{
+    return pow(e, 2);
+}
+
 void reset() {
+    power_of_two_fake.handler = powerOfTwo;
     memset(bitmap, 0xFF, sizeof(bitmap));
     panic_invoked = false;
 }

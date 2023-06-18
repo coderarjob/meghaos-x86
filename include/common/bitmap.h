@@ -26,15 +26,9 @@ typedef struct Bitmap
                  BitmapState new); /* Function returns true if state change can be done. */
 } Bitmap;
 
-static inline SIZE bitmap_bitsPerState(Bitmap *b)
-{
-    k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
-    return b->bitsPerState;
-}
-
 #define BITMAP_MAX_STATE(b)       (power_of_two((b)->bitsPerState))
 #define BITMAP_STATE_MASK(b)      (power_of_two((b)->bitsPerState) - 1)
-#define BITMAP_STATES_PER_BYTE(b) (8 / bitmap_bitsPerState(b))
+#define BITMAP_STATES_PER_BYTE(b) (8 / ((b)->bitsPerState))
 #define BITMAP_CAPACITY(b)        ((b)->size * BITMAP_STATES_PER_BYTE(b))
 
 BitmapState bitmap_get (Bitmap *b, UINT index);

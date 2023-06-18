@@ -37,13 +37,7 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 /** Power of two */
-static inline UINT power_of_two(UINT e)
-{
-    UINT result = 1;
-    for (; e > 0; e--)
-        result = result << 1;
-    return result;
-}
+UINT power_of_two(UINT e);
 
 /** Stringfy macros */
 #define STR_NDU(v) #v

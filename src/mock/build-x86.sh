@@ -32,5 +32,10 @@ function add_mock_source()
                                  'mock/kernel/x86/boot.c'
                                )
                 };;
+        bitmap)    {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/common/utils.c'
+                               )
+                };;
     esac
 }

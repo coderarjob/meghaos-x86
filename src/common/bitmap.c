@@ -43,6 +43,7 @@
 bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt)
 {
     k_assert(b != NULL, "Cannot be null");
+    k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
     k_assert(len > 0, "Must be > zero");
     k_assert ((indexAt + len - 1) < BITMAP_CAPACITY(b), "Index out of bounds.");
@@ -73,6 +74,7 @@ bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexA
 INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
 {
     k_assert(b != NULL, "Cannot be null");
+    k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
     k_assert(len > 0, "Must be > zero");
 
@@ -102,6 +104,7 @@ INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
 BitmapState bitmap_get (Bitmap *b, UINT index)
 {
     k_assert(b != NULL, "Cannot be null");
+    k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert (index < BITMAP_CAPACITY(b), "Index out of bounds.");
 
 #ifdef UNITTEST
@@ -110,7 +113,7 @@ BitmapState bitmap_get (Bitmap *b, UINT index)
 #endif
 
     UINT byteIndex = index / BITMAP_STATES_PER_BYTE(b);
-    UINT bitIndex = (index % BITMAP_STATES_PER_BYTE(b)) * bitmap_bitsPerState(b);
+    UINT bitIndex = (index % BITMAP_STATES_PER_BYTE(b)) * b->bitsPerState;
 
     return (BitmapState)((b->bitmap[byteIndex] >> bitIndex) & (INT)BITMAP_STATE_MASK(b));
 }
@@ -129,6 +132,7 @@ bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state)
 {
     k_assert(b != NULL, "Cannot be null");
     k_assert(b->allow != NULL, "Cannot be null");
+    k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
     k_assert(len > 0, "Must be > zero");
     k_assert((index + len - 1) < BITMAP_CAPACITY(b), "Index out of bounds.");
@@ -141,7 +145,7 @@ bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state)
     for (; len > 0 && b->allow(index, (BitmapState)bitmap_get(b, index), state); len--, index++)
     {
         UINT byteIndex = index / BITMAP_STATES_PER_BYTE(b);
-        UINT bitIndex = (index % BITMAP_STATES_PER_BYTE(b)) * bitmap_bitsPerState(b);
+        UINT bitIndex = (index % BITMAP_STATES_PER_BYTE(b)) * b->bitsPerState;
         b->bitmap[byteIndex] &= (BitmapState)~(BITMAP_STATE_MASK(b) << bitIndex);
         b->bitmap[byteIndex] |= (BitmapState)(state << bitIndex);
     }
