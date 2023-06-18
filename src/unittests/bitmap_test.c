@@ -132,15 +132,15 @@ TEST(bitmap, invalid_state_mustfail) {
 TEST(bitmap, zero_length_mustfail) {
   isValid_fake.ret = true;
 
-  bitmap_setContinous(&b, 0, 0, STATE_5);
+  bitmap_setContinous(&b, 0, 0, STATE_3);
   EQ_SCALAR(panic_invoked, true);
 
   panic_invoked = false;
-  bitmap_findContinous(&b, STATE_5, 0);
+  bitmap_findContinous(&b, STATE_3, 0);
   EQ_SCALAR(panic_invoked, true);
 
   panic_invoked = false;
-  bitmap_findContinousAt(&b, STATE_5, 0, 0);
+  bitmap_findContinousAt(&b, STATE_3, 0, 0);
   EQ_SCALAR(panic_invoked, true);
 
   END();
