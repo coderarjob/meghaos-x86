@@ -35,7 +35,7 @@ UNITTEST_CC="gcc -std=c99                   \
                  -D DEBUG_LEVEL=$DEBUGLEVEL"
 
 LD_UNITTEST="gcc -m32"
-LD_UNITTEST_FLAGS="-lgcov"
+LD_UNITTEST_FLAGS="-lgcov -lm"
 
 # ---------------------------------------------------------------------------
 # Architecture independent Unit tests

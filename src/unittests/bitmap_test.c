@@ -366,6 +366,7 @@ UINT powerOfTwo(UINT e)
 }
 
 void reset() {
+    resetUtilsFake();
     power_of_two_fake.handler = powerOfTwo;
     memset(bitmap, 0xFF, sizeof(bitmap));
     panic_invoked = false;
