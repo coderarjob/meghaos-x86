@@ -6,6 +6,8 @@
 ### Guidelines Docs
 - [MeghaOS code style](notes/coding_style.md#MeghaOS code style)
 - [Cross platform guidelines](notes/CrossPlatform.md#Cross platform guidelines)
+- [Unittests file system hierarchy in MeghaOS](notes/source_tree_style.md#Unittests file system hierarchy in MeghaOS)
+- [Build scripts in MeghaOS](notes/source_tree_style.md#Build scripts in MeghaOS)
 ### Obsolete Guidelines Docs
 - [Source tree conventions](notes/source_tree_style.md#Source tree conventions)
 ### x86 Guidelines Docs
