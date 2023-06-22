@@ -1,6 +1,8 @@
-## Megha Operating System V2 - General
-## User Interface notes
+# Megha Operating System V2 - General
 ------------------------------------------------------------------------------
+
+## User Interface notes
+categories: note, independent
 _4th Dec 2020_
 
 Here are the **goals**. 

@@ -1,7 +1,9 @@
-## Megha Operating System V2 - x86
-## Virtual Memory Manager
+# Megha Operating System V2 - x86
 ----------------------------------------------------------------------------------------------------
-__16 Dec 2022__
+
+## Virtual Memory Manager and Recursive mapping
+categories: note, x86
+_16 Dec 2022_
 
 In order to make changes to a PDE or PTE, we require the virtual addresses of them. However, the PD
 addresses in CR3 and PT address in a PDE are all physical.
@@ -47,7 +49,10 @@ offset into the PD and can be used to access PDEs - that is virtual address in t
 `FFFFF000 – FFFFFFFC` access PDEs in the PD.
 
 ----------------------------------------------------------------------------------------------------
-__18 Dec 2022__
+
+## Map virtual memory to physical memory
+categories: note, x86
+_18 Dec 2022_
 
 The functions in VMM for example (`kvmm_map`) will call functions in PMM. PMM and VMM are not
 sibling modules, but have a parent child relationship.

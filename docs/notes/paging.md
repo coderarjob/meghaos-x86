@@ -1,10 +1,11 @@
-## Megha Operating System V2 - x86
-## Paging
+# Megha Operating System V2 - x86
 ------------------------------------------------------------------------------
+
+## Where should we initiate and start using paging? 
+categories: note, x86
 _18th Dec 2020_
 
-# Where should we initiate and start using paging? 
-
+Where should we initiate and start using paging? 
  * In `boot1` or 
  * In `kernel`
 
@@ -22,13 +23,12 @@ I think it should be in `kernel`. This is because of the following reasons.
      only to be overridden by the `kernel`).
 
 ------------------------------------------------------------------------------
+
+## How to use page tables to map Virtual Addresses to Physical Addresses?
+categories: note, x86
 _24 July 2021_
 
-------------------------------------------------------------
-*NOTE: The latest note is found in x86_intel_protection.odt*
-------------------------------------------------------------
-
-# How to use page tables to map Virtual Addresses to Physical Addresses?
+**NOTE: The latest note is found in x86_intel_protection.odt**
 
 ### Choose a mapping
 
@@ -186,9 +186,10 @@ Logical address for **0xB8000** = 768 * 1024 * 4096 + 1023 * 4096 = 0xC03FF000.
 [11:0 ] : 0
 
 ------------------------------------------------------------------------------
-_17th Oct 2021_
 
-# Notes: Why not preallocate the whole 256 MB? 
+## Notes: Why not preallocate the whole 256 MB? 
+categories: note, x86
+_17th Oct 2021_
 
 If I preallocate the whole of physical memory, then will that not eliminate
 the need for a physical page allocator.

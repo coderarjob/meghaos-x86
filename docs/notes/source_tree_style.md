@@ -1,6 +1,8 @@
-## Megha Operating System V2 - x86
-## Source tree conventions
+## Megha Operating System V2
 ------------------------------------------------------------------------------
+
+## Source tree conventions
+categories: guideline, independent, obsolete
 _2nd November 2020_
 
 ### Header files hierarchy

@@ -1,7 +1,9 @@
 ## Megha Operating System V2 - x86
-## Physical Memory allocation
 ------------------------------------------------------------------------------
-__04 December 2022__
+
+## Physical Memory allocation
+categories: feature, x86
+_04 December 2022_
 
 ### Summary:
 

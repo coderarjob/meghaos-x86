@@ -1,6 +1,8 @@
 ## Megha Operating System V2 - x86
-## Interrupt handling
 ------------------------------------------------------------------------------
+
+## Interrupt handling
+categories: feature, x86
 
 ## Processor Interrupt frame
 

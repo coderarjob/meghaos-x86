@@ -1,6 +1,8 @@
 ## Megha Operating System V2 - General
-## To POSIX or not to POSIX
 ---------------------------------------------------------------------------------------------------
+
+## To POSIX or not to POSIX
+categories: note, independent 
 _16 July 2021_
 
 Well POSIX is one of a kind standard in the computer software field. In this world of proprietary 
