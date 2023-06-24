@@ -16,6 +16,7 @@
 #include <x86/paging.h>
 #include <kdebug.h>
 #include <kerror.h>
+#include <common/bitmap.h>
 
 static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA);
 static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA);
@@ -25,6 +26,39 @@ static void s_set (UINT pageFrame, bool alloc, bool isDMA);
 static U8 *s_pab = NULL;
 
 static bool s_isInitialized = false;
+
+Bitmap g_pmm_completeRegion;
+Bitmap g_pmm_dmaRegion;
+
+typedef enum PhysicalMemoryStates {
+    PMM_FREE = 0,
+    PMM_USED,
+    PMM_RESERVED,
+    PMM_INVALID
+} PhysicalMemoryStates;
+
+bool s_pmm_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
+{
+    if (pageFrame == 0)
+        k_panic ("Invalid access: Page %u", pageFrame);
+
+    if (pageFrame > kpmm_getAddressablePageCount (false))
+        k_panic ("Access outside range. Page %u", pageFrame);
+
+    if (old == PMM_USED && new == PMM_USED)
+        k_panic ("Double allocation: Page %u", pageFrame);
+
+    if (old == PMM_FREE && new == PMM_FREE)
+        k_panic ("Double free: Page %u", pageFrame);
+
+    if (old == PMM_RESERVED)
+        k_panic ("Use of Reserved page: Page %u", pageFrame);
+
+    if (old == PMM_INVALID)
+        k_panic ("Use of Invalid page: Page %u", pageFrame);
+
+    return true;
+}
 
 /***************************************************************************************************
  * Initializes PAB array.
@@ -39,6 +73,11 @@ void kpmm_init ()
 
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
     k_memset (s_pab, 0xFF, PAB_SIZE_BYTES);
+
+    g_pmm_completeRegion.allow = s_pmm_verifyChange;
+    g_pmm_completeRegion.bitmap = s_pab;
+    g_pmm_completeRegion.bitsPerState = 1;
+    g_pmm_completeRegion.size = PAB_SIZE_BYTES;
 
     kpmm_arch_init(s_pab);
 
@@ -250,7 +289,10 @@ static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA)
  **************************************************************************************************/
 static void s_set (UINT pageFrame, bool alloc, bool isDMA)
 {
-    if (pageFrame == 0)
+    (void)isDMA;
+    bitmap_setContinous(&g_pmm_completeRegion, pageFrame, 1, (alloc) ? PMM_USED: PMM_FREE);
+
+    /*if (pageFrame == 0)
         k_panic ("Invalid access: Page %u", pageFrame);
 
     INT allocated = s_get (pageFrame, isDMA);
@@ -268,7 +310,7 @@ static void s_set (UINT pageFrame, bool alloc, bool isDMA)
     if (alloc)
         s_pab[byteIndex] |= (U8)mask;
     else
-        s_pab[byteIndex] &= (U8)~mask;
+        s_pab[byteIndex] &= (U8)~mask;*/
 }
 
 /***************************************************************************************************
@@ -280,7 +322,9 @@ static void s_set (UINT pageFrame, bool alloc, bool isDMA)
  **************************************************************************************************/
 static INT s_get (UINT pageFrame, bool isDMA)
 {
-    if (pageFrame == 0)
+    (void)isDMA;
+    return (INT)bitmap_get(&g_pmm_completeRegion, pageFrame);
+    /*if (pageFrame == 0)
         k_panic ("Invalid access: Page %u", pageFrame);
 
     if (pageFrame > kpmm_getAddressablePageCount (isDMA))
@@ -290,7 +334,7 @@ static INT s_get (UINT pageFrame, bool isDMA)
     UINT bitIndex = (pageFrame % 8);
     UINT mask = (U8)(1U << bitIndex);
 
-    return (s_pab[byteIndex] & (U8)mask) >> bitIndex;
+    return (s_pab[byteIndex] & (U8)mask) >> bitIndex;*/
 }
 
 /***************************************************************************************************

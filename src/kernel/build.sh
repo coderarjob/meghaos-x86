@@ -15,11 +15,13 @@ C_FILES=(
     'kernel/kpanic.c'
     'kernel/kerror.c'
     'kernel/pmm.c'
+    'common/bitmap.c'
+    'common/utils.c'
 )
 
 compile_cc "$GCC32 $GCC32_FLAGS" $OBJDIR ${C_FILES[@]}
 
 # Link all the object files in the $OBJDIR/kernel tree.
-OBJ_FILES=`find $OBJDIR/kernel -name "*.o"`
+OBJ_FILES=`find $OBJDIR/kernel $OBJDIR/common -name "*.o"`
 $LD_KERNEL $LD_FLAGS $OBJ_FILES $LD_OPTIONS -o $OBJDIR/kernel.elf      || exit
 $OBJCOPY -O binary $OBJDIR/kernel.elf $OBJDIR/kernel.flt               || exit

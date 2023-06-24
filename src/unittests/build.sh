@@ -104,6 +104,7 @@ get_arch_independent_test_definition()
                         };;
           pmm)          {
                             SRC=('kernel/pmm.c'
+                                 'common/bitmap.c'
                                  'unittests/common.c'
                                  'unittests/pmm_test.c'
                                  'unittests/unittest.c')

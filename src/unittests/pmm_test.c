@@ -1,11 +1,13 @@
 #include <unittest/unittest.h>
 #include <mock/kernel/mem.h>
 #include <mock/kernel/x86/pmm.h>
+#include <mock/common/utils.h>
 #include <string.h>
 #include <utils.h>
 #include <moslimits.h>
 #include <kerror.h>
 #include <pmm.h>
+#include <math.h>
 
 #define MAX_ACTUAL_PAGE_COUNT (kpmm_getAddressablePageCount (false))
 
@@ -553,11 +555,19 @@ TEST(PMM, free_mem_size_after_autoalloc)
     END();
 }
 
+UINT powerOfTwo(UINT e)
+{
+    return pow(2, e);
+}
+
 void reset()
 {
     panic_invoked = false;
     resetMemFake();
     resetX86Pmm();
+    resetUtilsFake();
+
+    power_of_two_fake.handler = powerOfTwo;
 
     // Default size of RAM is set to 2 MB.
     kpmm_getAddressableByteCount_fake.ret = 2 * MB;
