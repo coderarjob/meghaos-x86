@@ -17,7 +17,7 @@ add_arch_specific_tests()
 {
     local UNITTESTS_ARRAY=$@
     export UNITTESTS=($UNITTESTS_ARRAY
-                      pmm
+                      pmm_x86
     )
 }
 
@@ -42,11 +42,11 @@ get_arch_dependent_test_definition()
     local TEST=$1
 
     case $TEST in
-          pmm) {
-                export SRC=( 'kernel/x86/pmm.c'
-                             'unittests/x86/pmm_test.c'
-                             'unittests/unittest.c')
-               };;
+        pmm_x86) {
+                   export SRC=('kernel/x86/pmm.c'
+                               'unittests/common.c'
+                               'unittests/x86/pmm_test.c')
+                 };;
             *) return 1;;
     esac
 }

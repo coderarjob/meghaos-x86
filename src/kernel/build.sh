@@ -14,6 +14,7 @@ C_FILES=(
     'kernel/mem.c'
     'kernel/kpanic.c'
     'kernel/kerror.c'
+    'kernel/pmm.c'
 )
 
 compile_cc "$GCC32 $GCC32_FLAGS" $OBJDIR ${C_FILES[@]}

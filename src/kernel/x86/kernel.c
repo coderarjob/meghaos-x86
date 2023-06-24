@@ -21,7 +21,7 @@
 #include <x86/interrupt.h>
 #include <x86/vgatext.h>
 #include <x86/tss.h>
-#include <x86/pmm.h>
+#include <pmm.h>
 #include <x86/idt.h>
 #include <x86/gdt.h>
 #include <x86/boot.h>
