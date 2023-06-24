@@ -27,7 +27,7 @@ bitmap_get
 - Read evey kind of state     | States read. true | get_mustpass
 
 bitmap_setContinous
-- state >= BITMAP_MAX_STATE(b)          | panics                  | set_invalid_state_mustfail
+- state >= BITMAP_MAX_STATE(b)          | panics                  | invalid_state_mustfail
 - b->allow == NULL                      | panics                  | set_allow_null_mustfail
 - index + len - 1 >= BITMAP_CAPACITY(b) | panics                  | set_large_index_mustfail
 - len == 0                              | panics                  | zero_length_mustfail
@@ -39,13 +39,13 @@ bitmap_setContinous
 - Setting the very last state           | Changes bitmap. true.   | set_laststate_mustpass
 
 bitmap_findContinous
-- state >= BITMAP_MAX_STATE(b)  | panics                      | set_invalid_state_mustfail
+- state >= BITMAP_MAX_STATE(b)  | panics                      | invalid_state_mustfail
 - len == 0                      | panics                      | zero_length_mustfail
 - Continous block is available  | Finds correct block. true   | findContinous_mustpass
 - Continous block is unavilable | false                       | findContinous_mustpass
 
 bitmap_findContinousAt
-- state >= BITMAP_MAX_STATE(b)          | panics                    | set_invalid_state_mustfail
+- state >= BITMAP_MAX_STATE(b)          | panics                    | invalid_state_mustfail
 - index + len - 1 >= BITMAP_CAPACITY(b) | panics                    | set_large_index_mustfail
 - len == 0                              | panics                    | zero_length_mustfail
 - Continous block is available          | Finds correct block. true | findContinousAt_mustpass
@@ -343,6 +343,17 @@ TEST(bitmap, bitmap_splited_mustpass)
     U8 final[] = {0xD5,0x55,0xFD};
     EQ_MEM(bitmap, final, sizeof(bitmap));
 
+    END();
+}
+
+/**************************************************************************************************
+ * One bitmap memory used by two Bitmap objects
+**************************************************************************************************/
+TEST(bitmap, bitmap_splited_mustfail)
+{
+    Bitmap low =  {&bitmap[0], 1 /*byte*/, 2, isValid};
+    Bitmap high = {&bitmap[1], 2 /*byte*/, 2, isValid};
+
     // Being 1 byte, low has a capacity of 4 states (0 to 3).
     EQ_SCALAR(4, BITMAP_CAPACITY(&low));
 
@@ -362,7 +373,7 @@ TEST(bitmap, bitmap_splited_mustpass)
 
 UINT powerOfTwo(UINT e)
 {
-    return pow(e, 2);
+    return pow(2, e);
 }
 
 void reset() {
@@ -388,4 +399,5 @@ int main() {
     findContinousAt_mustpass();
     get_mustpass();
     bitmap_splited_mustpass();
+    bitmap_splited_mustfail();
 }
