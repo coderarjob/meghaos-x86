@@ -7,7 +7,7 @@ _26 March 2023_
 
 Opaque structure are beneficial for the following cases:
 1. As a form of abstraction, it can be used to hide implementation details (field names) from the
-   users of the structure. If the field names or structures change, the function names need to
+   users of the structure. If the field names or structures change, the function names need not
    change.
 2. Getter and setter methods can do checks and take action. These make bugs easier to catch.
 
