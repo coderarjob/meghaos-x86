@@ -9,7 +9,22 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [ ] RAMDISK (INITRD.0) creation
     in build.sh
 [X] Physical memory allocator                 -
+    [ ] Reimplement using common/bitmap       -
     [ ] Lock to protect the PAB.              -
+[ ] Have two macros like BUG_ON, WARN_ON
+    BUG_ON panics, WARN_ON prints warning
+    They will replace k_assert and remain
+    in release as well, thus these macros
+    must have little impact on binary
+    size - Loose the text description of
+    k_assert.
+[ ] Remove k_errorText. Has no use in the
+    kernel. It just wasts space.
+[ ] k_panic called from interrupt handlers
+    must show correct exception location.
+    Use the interrupt frame.                  -
+[ ] Print interrupt frame in exception
+    handlers                                  -
 [ ] Virutal memory allocator                  -
     [ ] How to do lazy allocation?
     [ ] Allocate a new virtual address

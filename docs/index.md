@@ -34,6 +34,8 @@
 - [Is it required for all the structures to be opaque?](notes/opaque_data_types.md#Is it required for all the structures to be opaque?)
 - [Why are opaque data types needed?](notes/opaque_data_types.md#Why are opaque data types needed?)
 - [User Interface notes](notes/ui.md#User Interface notes)
+- [Different ways to handle error/invalid input in Kernel](notes/when-to-assert.md#Different ways to handle error/invalid input in Kernel)
+- [When to panic in a kernel?](notes/when-to-assert.md#When to panic in a kernel?)
 ### Obsolete Notes
 
 ### x86 Notes
