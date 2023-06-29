@@ -185,7 +185,7 @@ void usermode_main ()
 
     kbochs_breakpoint();
     //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy));
-    __asm__ volatile ("INT 0x40");
+    //__asm__ volatile ("INT 0x40");
     kbochs_breakpoint();
 
     kearly_printf ("\r\nLocation of kernel_main = %x", kernel_main);
@@ -194,7 +194,7 @@ void usermode_main ()
     extern void display_PageInfo ();
     display_PageInfo();
 
-    //k_assert (1 < 0,"Nonsense");
+    kpanic_show_call_trace();
     *a = 0;
 
     while (1);

@@ -29,4 +29,6 @@
 /** Magic break point used by bochs emulator*/
 #define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 
+void kdebug_dump_call_trace(PTR *raddrs, INT count);
+
 #endif // KDEBUG_H

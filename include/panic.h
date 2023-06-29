@@ -42,7 +42,9 @@ extern bool panic_invoked;
  */
 __attribute__ ((noreturn))
 #endif // UNITTEST
+
 void k_panic_ndu (const CHAR *s,...);
+void kpanic_show_call_trace();
 
 /* Halts the processor by going into infinite loop */
 #define k_halt() for (;;)

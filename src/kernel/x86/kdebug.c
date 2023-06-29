@@ -14,6 +14,7 @@
 #include <utils.h>
 #include <disp.h>
 #include <x86/vgatext.h>
+#include <kdebug.h>
 
 #if  defined (DEBUG)
 
@@ -53,3 +54,17 @@ void kdebug_printf_ndu (const CHAR *fmt, ...)
 }
 
 #endif // DEBUG
+
+void kdebug_dump_call_trace(PTR *raddrs, INT count)
+{
+    typedef struct stack_frame {
+        struct stack_frame *ebp;
+        unsigned int eip;
+    } stack_frame;
+
+    stack_frame *frame;
+    __asm__ volatile( "mov %0, ebp;" : "=m" (frame));
+
+    for (; count && frame->ebp; count--, frame = frame->ebp)
+        *(raddrs++) = frame->eip;
+}
