@@ -22,5 +22,7 @@ for data in ${FILES_WITH_TITLE[@]}; do
     filename=${data%.md-*}  # Get filename. Eveything left of the first `.md`
     title=${data#*-##\ }      # Title style 2. Everything right of the first -#
     title=${title#\ *}      # Remove leading space
+    title=${title//\ /-}    # Replace spaces with `-` (To be valid links)
+    title=${title//\?/}     # Remove `?`s (To be valid links)
     echo "- [$title]($filename.md#$title)"
 done
