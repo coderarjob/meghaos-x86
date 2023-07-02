@@ -73,4 +73,8 @@ INT kearly_printf (const CHAR *fmt, ...);
 INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);
 INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
 
+/* Message are printed on screen and if configured also on the debug console. */
+void kdisp_importantPrint(char *fmt, ...);
+void kdisp_show_call_trace();
+
 #endif // DISPTEXT_H

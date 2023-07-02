@@ -194,7 +194,7 @@ void usermode_main ()
     extern void display_PageInfo ();
     display_PageInfo();
 
-    kpanic_show_call_trace();
+    kdisp_show_call_trace();
     *a = 0;
 
     while (1);
