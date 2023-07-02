@@ -29,7 +29,7 @@ void kdisp_importantPrint(char *fmt, ...)
 
     kdebug_printf ("%s",buffer);
 
-#if !(DEBUG_LEVEL & 2)
+#if !defined(DEBUG) || !(DEBUG_LEVEL & 2)
     kearly_printf (buffer);
 #endif
 
