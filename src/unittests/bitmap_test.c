@@ -384,7 +384,7 @@ void reset() {
 }
 
 int main() {
-#ifdef DBEUG
+#ifdef DEBUG
     bitmap_bitsPerState_invalid_mustfail();
     bitmap_null_mustfail();
     zero_length_mustfail();
