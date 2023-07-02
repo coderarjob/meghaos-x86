@@ -14,33 +14,16 @@
 
 #include <buildcheck.h>
 
-#ifdef UNITTEST
-    #include <panic.h>
-    /* Do nothing if an assertion has failed previously.*/
-    #define k_assert(t, e)                                                                         \
-        do                                                                                         \
-        {                                                                                          \
-            if (!panic_invoked && (!(t)))                                                          \
-                k_panic("(%s) assertion failed. %s", #t, e);                                       \
-        } while (0)
-#else
-    #if defined(DEBUG)
-        #include <panic.h>
-        /* If assertion `t' is false, call k_panic () and halts.
-         * Displays message `e' in the panic message.
-         */
-        #define k_assert(t, e)                                                                     \
-            do                                                                                     \
-            {                                                                                      \
-                if (!(t))                                                                          \
-                    k_panic("Assertion failed:%s.\r\n%s", #t, e);                                  \
-            } while (0)
-    #else
-        #define k_assert(t, e) (void)0
-    #endif // DEBUG
-#endif     // UNITTEST
-
 #if defined(DEBUG)
+    #include <panic.h>
+    /* If assertion `t' is false, call k_panic () and halts.
+     * Displays message `e' in the panic message.
+     */
+    #define k_assert(t, e) do {                                                                    \
+            if (!(t))                                                                              \
+                k_panic("Assertion failed:%s.\r\n%s", #t, e);                                      \
+        } while (0)
+
     /* If expression `t' is false, compiler will generate an error
      *
      * Note: This works because an array dimension cannot be negative, which is
@@ -52,8 +35,8 @@
      * by 2.
      */
     #define k_staticAssert(t) ((void)sizeof(CHAR[2 * !!(t)-1]))
-#else // DEBUG
-    /* These has no effect when DEBUG macro is not defined */
+#else
+    #define k_assert(t, e) (void)0
     #define k_staticAssert(t) (void)0
 #endif // DEBUG
 

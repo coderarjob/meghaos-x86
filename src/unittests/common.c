@@ -11,7 +11,7 @@
 
 /* Panic handler */
 bool panic_invoked;
-void k_panic_ndu (const CHAR *s,...)
+void unittest_panic_handler(const CHAR *s,...)
 {
     panic_invoked = true;
 

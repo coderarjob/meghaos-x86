@@ -24,11 +24,24 @@
         k_halt();                                                                                  \
     } while(0)
 #else      // UNITTEST
-extern bool panic_invoked;
-    #define k_panic(s, ...)                                                                        \
-        k_panic_ndu("\r\nPanic! " s ". In %s:%u", __VA_ARGS__, __func__, __LINE__)
-#endif // UNITTEST
+    void unittest_panic_handler(const CHAR *s,...);
+    extern bool panic_invoked;
 
+    /* Returns from the 'function under testing', when an assert/panic is hit.
+     *
+     * There is x86 assembly hard coded in an arch independent header, however this corresponds to
+     * the host (not the target) arch. Which implies that unittests can only be built & run on an
+     * x86 machine.
+     *
+     * TODO: Find some way to make this host independent.
+     */
+    #define UNITTEST_RETURN() __asm__ volatile ("mov esp, ebp; pop ebp; ret;"::)
+
+    #define k_panic(s, ...)  do {                                                                  \
+        unittest_panic_handler("\r\nPanic! " s ". In %s:%u", __VA_ARGS__, __func__, __LINE__);     \
+        UNITTEST_RETURN();                                                                         \
+    } while (0)
+#endif // UNITTEST
 
 /* Halts the processor by going into infinite loop */
 #define k_halt() for (;;)

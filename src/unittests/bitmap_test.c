@@ -8,7 +8,7 @@
 #include <unittest/fake.h>
 #include <mock/common/utils.h>
 #include <math.h>
-#include <stdarg.h>
+#include <panic.h>
 
 /* Using fake functions to implement isValid gives better control when its behaviour can varry from
  * one test case to another.*/
@@ -384,13 +384,16 @@ void reset() {
 }
 
 int main() {
+#ifdef DBEUG
     bitmap_bitsPerState_invalid_mustfail();
     bitmap_null_mustfail();
     zero_length_mustfail();
     invalid_state_mustfail();
     set_large_index_mustfail();
-    set_not_allowed_mustfail();
     set_allow_null_mustfail();
+    bitmap_splited_mustfail();
+#endif
+    set_not_allowed_mustfail();
     set_valid_states_mustpass();
     set_all_mustpass();
     set_laststate_mustpass();
@@ -399,5 +402,4 @@ int main() {
     findContinousAt_mustpass();
     get_mustpass();
     bitmap_splited_mustpass();
-    bitmap_splited_mustfail();
 }

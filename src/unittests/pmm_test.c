@@ -8,6 +8,7 @@
 #include <kerror.h>
 #include <pmm.h>
 #include <math.h>
+#include <panic.h>
 
 #define MAX_ACTUAL_PAGE_COUNT (kpmm_getAddressablePageCount (false))
 
