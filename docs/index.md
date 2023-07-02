@@ -28,6 +28,7 @@
 ------------------------------------------------
 ### Notes
 - [Abstraction is Key for a modular Operating System](notes/abstract_design.md#Abstraction-is-Key-for-a-modular-Operating-System)
+- [Fixed - Assert/Panic handling in unittests](notes/assert-panic-in-meghaos.md#Fixed---Assert/Panic-handling-in-unittests)
 - [Asserts and Panics in Unittests in MeghaOS](notes/assert-panic-in-meghaos.md#Asserts-and-Panics-in-Unittests-in-MeghaOS)
 - [To POSIX or not to POSIX](notes/general.md#To-POSIX-or-not-to-POSIX)
 - [Study on executable binary file format for the Kernel and other module files.](notes/object_file_format.md#Study-on-executable-binary-file-format-for-the-Kernel-and-other-module-files.)

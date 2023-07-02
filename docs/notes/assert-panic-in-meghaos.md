@@ -1,9 +1,37 @@
 # Megha Operating System V2
 ----------------------------------------------------------------------------------------------------
 
+## Fixed - Assert/Panic handling in unittests
+categories: note, independent
+_02 July 2023_
+
+Related to commit: _8f9990948f70_
+
+The below note sets the context for this fix.
+
+Previously, when built for unittests asserts/panics (in the unit under test) would continue
+executing and required explicit checks in the interface to return from if `panic_invoked` is true.
+    
+This was a very bad design because interfaces needed to be aware about unittest setup and must
+implement code for unittests to work properly.
+
+The new solution eliminates this drawback. Calling panic macro now returns from the called function.
+This 'return' code is written in assembly which unwinds the ESP and calls RET after restoring the
+EBP register.
+
+This however is not without its drawbacks:
+1. Host specific implementation - Because of the use of assembly instructions, this code need to be
+   reimplemented for architectures where unittests is to run.
+   NOTE: Its host specific (build system) not target (target CPU of MeghaOS) specific.
+2. Only works if CDECL calling convention is used.
+3. When panic is called, the function simply returns without settings EAX register. It can be
+   garbage.
+
+------------------------------------------
+
 ## Asserts and Panics in Unittests in MeghaOS
 categories: note, independent
-_20 July 2023_
+_20 June 2023_
 
 In normal condition, when an assert fails, control is transfered to `k_panic`, which prints a panic
 message and halts the system. In unittests however the dummy/fake panic routine, prints a message
@@ -22,7 +50,7 @@ This is required so that we can detect and fail on any input which does not matc
 So as these asserts validates input, we must test them with invalid inputs. Such tests increases
 confidence on the interface as it is getting tested extensively.
 
-## How to unittest asserts?
+## How asserts work in unittests? (Obsolete)
 Well one easy solution when building unittests have a global flag which is set within the fake panic
 routine and unittest routine tests this flag to check if assert was hit in the interface under test.
 
