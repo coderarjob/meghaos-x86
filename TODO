@@ -11,6 +11,8 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 [X] Physical memory allocator                 -
     [ ] Reimplement using common/bitmap       -
     [ ] Lock to protect the PAB.              -
+[ ] Add -Wundedf compiler flags
+    [ ] define ARCH
 [ ] Have two macros like BUG_ON, WARN_ON
     BUG_ON panics, WARN_ON prints warning
     They will replace k_assert and remain
