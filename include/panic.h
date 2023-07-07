@@ -19,9 +19,10 @@
 #ifndef UNITTEST
     /* Displays an error message on the screen and Halts */
     #define k_panic(s, ...) do {                                                                   \
-        kdisp_importantPrint("\r\nKernel Panic!\r\n" s "\r\nin %s:%u:%s", __VA_ARGS__,             \
-                    __FILE__, __LINE__, __func__);                                                 \
+        kdisp_importantPrint("\r\n\r\n---------- Kernel Panic ----------");                        \
+        kdisp_importantPrint("\r\n" s "\r\n", __VA_ARGS__);                                        \
         kdisp_show_call_trace();                                                                   \
+        kdisp_importantPrint("\r\n-----------------------------------");                           \
         k_halt();                                                                                  \
     } while(0)
 #else      // UNITTEST

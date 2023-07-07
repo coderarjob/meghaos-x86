@@ -22,11 +22,11 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     k_assert.
 [ ] Remove k_errorText. Has no use in the
     kernel. It just wasts space.
-[ ] k_panic called from interrupt handlers
-    must show correct exception location.
-    Use the interrupt frame.                  -
-[ ] Print interrupt frame in exception
-    handlers                                  -
+[ ] Space saving measures
+    [ ] \n instead of \r\n. No use or LF.     -
+    [ ] 0x printed automatically with %x.     -
+    [ ] Assert message inly valid for
+        unittests.                            -
 [ ] Virutal memory allocator                  -
     [ ] How to do lazy allocation?
     [ ] Allocate a new virtual address
@@ -75,6 +75,12 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     place asserts and other checks. And these
     checks are invaluable in finding and
     preventing bugs.
+
+[X] k_panic called from interrupt handlers
+    must show correct exception location.
+    Use the interrupt frame.                  -                 8 July 2023
+[X] Print interrupt frame in exception
+    handlers                                  -                 8 July 2023
 
 [X] Page fault handler in asm                 - 26 Jan 2021    22 Mar 2023
     [-] Examine if EFLAGS register need to be
