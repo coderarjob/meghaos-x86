@@ -21,6 +21,7 @@
     #define k_panic(s, ...) do {                                                                   \
         kdisp_importantPrint("\r\nKernel Panic!\r\n" s "\r\nin %s:%u:%s", __VA_ARGS__,             \
                     __FILE__, __LINE__, __func__);                                                 \
+        kdisp_show_call_trace();                                                                   \
         k_halt();                                                                                  \
     } while(0)
 #else      // UNITTEST

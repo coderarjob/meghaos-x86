@@ -40,7 +40,7 @@ void kdisp_show_call_trace()
     PTR raddrs[CONFIG_MAX_CALL_TRACE_DEPTH] = {0};
     kdebug_dump_call_trace(raddrs, ARRAY_LENGTH(raddrs));
 
-    kdebug_printf("\r\n%s", "Call stack:");
+    kdisp_importantPrint("\r\n%s", "Call stack:");
     for (int i = 0; i < CONFIG_MAX_CALL_TRACE_DEPTH && raddrs[i] > 0; i++)
-        kdebug_printf("\r\n- 0x%x", raddrs[i]);
+        kdisp_importantPrint("\r\n- 0x%x", raddrs[i]);
 }

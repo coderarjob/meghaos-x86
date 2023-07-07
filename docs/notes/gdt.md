@@ -26,7 +26,8 @@ Revised physical memory map
 * 0x007c00  - 0x007FFF    -   boot0             1   KB
 * 0x008000  - 0x017FFF    -   boot1            64   KB (Maximum boot1 size)
 * 0x018000  - 0x027FFF    -   boot1 buffer     64   KB
-* 0x003C00  - 0x043BFF    -   kernel stack    256   KB (boo1 space reused)
+* 0x003C00  - 0x023BFF    -   User stack      128   KB (boo1 space reused) (See Issue)
+* 0x023C00  - 0x043BFF    -   kernel stack    128   KB
 * 0x043C00  - 0x044BFF    -   Guard Null page   4   KB
 * 0x100000  - 0x110000    -   kernel           64   KB (Maximum kernel size)
 ```
@@ -34,8 +35,18 @@ Revised physical memory map
 The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine.
 It can load files at most 64 KB in size.
 
-The 1 KB for Boot Info structure is arbitarily large. The 1 KB is size should be
+The 1 KB for Boot Info structure is arbitrarily large. The 1 KB is size should be
 large for any x86-64 systems.
+
+**ISSUE**: Currently the same kernel stack is also used in user mode. This is wrong, because the CPU
+will set the stack pointer to `0x043BFF` (Kernel Stack Top) when going from user mode to kernel
+mode. Then any Push in the Kernel space will overwrite the user stack. The SS & ESP itself will be
+restored when returning from an Interrupt, however the because the memory remains the same, it gets
+modified by the stack operations of the Kernel mode.
+
+_Solution_: This is temporary solution. I reduced the Kernel stack to make space for the User stack.
+Such a separate fixed user stack may not be required as user stack allocation will be part of
+process creation - each process will have different physical memory allocated for their stack.
 
 ------------------------------------------------------------------------------
 
