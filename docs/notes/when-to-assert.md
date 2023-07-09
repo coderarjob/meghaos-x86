@@ -5,34 +5,45 @@
 categories: note, independent
 _25 June 2023_
 
-Put assertions when you know that the input/state of a variable must be valid. You assume this
-because, it should have been validated before reaching to this place. It must be an impossibility
-for an assertion to fail - but when it does it means that there is a bug.
+Using assert to validate input is a horrible idea. For the current implementation, failing an assert
+freezes the machine. For an operating system this is not a good idea to halt the system completely.
 
-To be sure that hitting an assert is an impossibility, there must be checks before. This presents
-two problem:
-1. At some point something must do the check and not assert. What should be that place?
-2. When writing an OS from the bottom, there is no visibility who is supposed to check these inputs.
-   Which is again a case for my confusion.
+Data should have been pre-validated before reaching an assert, making an assert failure an
+impossibility. Failing an assert should be seen as a bug.
 
-If we think every data belongs to a module, then top-level functions of that module should check for
-their validity. It reports back the error and sets appropriate error code.
+This presents two problems:
+1. Where should be the checks (and not asserts) be?
+2. When writing an OS from the bottom, there is sometimes no visibility who should be doing these
+   check on inputs. Which is again a case for my confusion.
 
-What I mean by top level depends what your module contains:
-1. Single file module: Top level functions are the public functions.
-2. Multi file modules: Top level functions are functions which directly get input from other
-   modules.
+### Solution: Think in terms of modules who set policies on data
+
+Working on the previous idea, one can think of policies, instead of data. Modules should check for
+policies they introduce. Modules which get data from higher level modules, can assert on these as
+they must have been checked higher up. Conversely, higher level modules need not know the policies
+introduced by lower level modules. They should check the return value to know if an operation has
+failed, then they may decide what to do.
+
+This can ensure orthogonality (between higher level modules and lower level policies).
 
 For example:
-A) If common/bitmap.c is thought of one module then, top-level functions are `bitmap_*` public
-   functions. They must validate the input and report back if validation fails.
+A) Policy - **0x000 physical address is invalid**
+If we think this policy should be enforced by the PMM, then public functions should check physical
+address inputs. Modules higher up, which calls PMM routines, need not bother about this policy and
+modules lower (in this case bitmap) can assert if it receives an bit index == 0.
+If this was not the case and PMM uses assertions, then modules higher up must be checking for this
+policy violation. But who? There is no clear taker. Also if this policy changes (say 0x000 address
+is now valid) changes will be much more spread out, instead of just the PMM and lower modules (just
+assertions in lower modules) changing in case of the former.
 
-B) If we say kernel/pmm.c and common/bitmap.c make one module, then top-level functions are `pmm_*`
-   public functions, because no other part of the OS will call `bitmap_*` functions directly for PMM
-   operations. In this case `pmm_*` functions should validate and bitmap functions can assert.
+### What is meant by modules?
 
-Note that failing an assert should not mean calling panic and halting the system. There can be
-conditions where a warning can be enough. If an assert failure is not fatal, print a warning.
+One functional unit. PMM is one module. Bitmap is not a module, its a data structure being used by
+PMM.
+
+**TODO**
+Failing an assert should not mean calling panic and halting the system. There can be conditions
+where a warning can be enough. If an assert failure is not fatal, print a warning.
 
 ------------------------------------------------------------------------------
 
