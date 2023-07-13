@@ -18,46 +18,72 @@
 #include <kerror.h>
 #include <common/bitmap.h>
 
-static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA);
-static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA);
-static INT s_get (UINT pageFrame, bool isDMA);
-static void s_set (UINT pageFrame, bool alloc, bool isDMA);
-
-static U8 *s_pab = NULL;
-
-static bool s_isInitialized = false;
-
-Bitmap g_pmm_completeRegion;
-Bitmap g_pmm_dmaRegion;
-
-typedef enum PhysicalMemoryStates {
-    PMM_FREE = 0,
-    PMM_USED,
-    PMM_RESERVED,
-    PMM_INVALID
-} PhysicalMemoryStates;
-
-bool s_pmm_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
+typedef enum PhysicalMemoryBitmapState
 {
+    PMM_INIT_STATE_UNINITIALIZED,
+    PMM_INIT_STATE_PARTIAL,
+    PMM_INIT_STATE_COMPLETE
+} PhysicalMemoryBitmapState;
+
+typedef struct PhysicalMemoryRegion
+{
+    Bitmap bitmap;
+    Physical start;
+    USYSINT length;
+} PhysicalMemoryRegion;
+
+static PhysicalMemoryRegion s_pmm_completeRegion;
+static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg);
+static U8 *s_pab = NULL;
+static PhysicalMemoryBitmapState s_isInitialized = PMM_INIT_STATE_UNINITIALIZED;
+
+static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions reg)
+{
+    switch (reg) {
+        case PMM_REGION_ANY: return &s_pmm_completeRegion;
+        default: k_assert(false, "Invalid region. Must not be here");
+    }
+    return NULL;
+}
+
+static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
+{
+    // TODO: These should not panic. They should instead set error code and return false.
     if (pageFrame == 0)
         k_panic ("Invalid access: Page %u", pageFrame);
 
-    if (pageFrame > kpmm_getAddressablePageCount (false))
+    if (pageFrame > kpmm_getUsableMemoryPagesCount (PMM_REGION_ANY))
         k_panic ("Access outside range. Page %u", pageFrame);
 
-    if (old == PMM_USED && new == PMM_USED)
+    if (old == PMM_STATE_USED && new == PMM_STATE_USED)
         k_panic ("Double allocation: Page %u", pageFrame);
 
-    if (old == PMM_FREE && new == PMM_FREE)
+    if (old == PMM_STATE_FREE && new == PMM_STATE_FREE)
         k_panic ("Double free: Page %u", pageFrame);
 
-    if (old == PMM_RESERVED)
+    if (old == PMM_STATE_RESERVED)
         k_panic ("Use of Reserved page: Page %u", pageFrame);
 
-    if (old == PMM_INVALID)
+    if (old == PMM_STATE_INVALID)
         k_panic ("Use of Invalid page: Page %u", pageFrame);
 
     return true;
+}
+
+/***************************************************************************************************
+ * Gets the total number of physical page frames in the system.
+ *
+ * Actual addressable RAM is the minimum of the total system RAM and the maximum RAM supported by
+ * the OS.
+ *
+ * @Input isDMA     Queried for DMA.
+ * @return          Gets the maximum page frame count for DMA hardware. Otherwise returns the
+ *                  maximum page frame count supported by the PAB.
+ **************************************************************************************************/
+static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg)
+{
+    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getUsableMemorySize(reg));
+    return maxPageCount;
 }
 
 /***************************************************************************************************
@@ -74,15 +100,20 @@ void kpmm_init ()
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
     k_memset (s_pab, 0xFF, PAB_SIZE_BYTES);
 
-    g_pmm_completeRegion.allow = s_pmm_verifyChange;
-    g_pmm_completeRegion.bitmap = s_pab;
-    g_pmm_completeRegion.bitsPerState = 1;
-    g_pmm_completeRegion.size = PAB_SIZE_BYTES;
+    s_pmm_completeRegion.bitmap.allow = s_verifyChange;
+    s_pmm_completeRegion.bitmap.bitmap = s_pab;
+    s_pmm_completeRegion.bitmap.bitsPerState = PAB_BITS_PER_STATE;
+    s_pmm_completeRegion.bitmap.size = PAB_SIZE_BYTES;
+    s_pmm_completeRegion.length = MAX_PAB_ADDRESSABLE_BYTE_COUNT;
+    s_pmm_completeRegion.start = createPhysical(0);
+
+    // Partial initialized because free memory regions still needs to be marked in the bitmap.
+    s_isInitialized = PMM_INIT_STATE_PARTIAL;
 
     kpmm_arch_init(s_pab);
 
     // PMM is now initialized
-    s_isInitialized = true;
+    s_isInitialized = PMM_INIT_STATE_COMPLETE;
 }
 
 /***************************************************************************************************
@@ -108,13 +139,16 @@ void kpmm_init ()
  **************************************************************************************************/
 bool kpmm_free (Physical startAddress, UINT pageCount)
 {
+    k_assert(s_isInitialized > PMM_INIT_STATE_UNINITIALIZED, "Called before PMM initialization.");
+
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
+
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = startAddress.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
-
-    if (allocation_end_byte >= kpmm_getAddressableByteCount (false))
+    if (allocation_end_byte >= kpmm_getUsableMemorySize(PMM_REGION_ANY))
         RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
@@ -124,11 +158,12 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
     // Note: As startAddress is already aligned, both floor or ceiling are same here.
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (startAddress.val);
 
-    // DMA addressing range does not determine freeing. false if passed here becuuse we want free to
-    // deallocate any address.
-    s_managePages (startPageFrame, pageCount, false, false);
+    bool success = bitmap_setContinous(&region->bitmap,
+                                       startPageFrame,
+                                       pageCount,
+                                       PMM_STATE_FREE);
 
-    return true;
+    return success;
 }
 
 /***************************************************************************************************
@@ -150,17 +185,18 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
  *                                                         range.
  * @error               Panics if called before initialization.
  **************************************************************************************************/
-bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
+bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
-    if (!kpmm_isInitialized())
-        k_panic ("%s", "Called before PMM initialization.");
+    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
+
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = start.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
-    if (allocation_end_byte >= kpmm_getAddressableByteCount (isDMA))
+    if (allocation_end_byte >= kpmm_getUsableMemorySize (reg))
         RETURN_ERROR (ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
 
     // Check alignment of the address. Must be aligned to page boundary.
@@ -171,16 +207,21 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
 
     // Check if all the pages can be allocated at the provided location.
-    bool found = s_isPagesFree (startPageFrame, pageCount, isDMA);
+    bool found = bitmap_findContinousAt(&region->bitmap,
+                                        PMM_STATE_FREE,
+                                        pageCount,
+                                        startPageFrame);
 
     // Free pages were not found. But there was no error.
     if (found == false)
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
 
     // Free pages found. Now Allocate them.
-    s_managePages (startPageFrame, pageCount, true, isDMA);
-
-    return true;
+    bool success = bitmap_setContinous (&region->bitmap,
+                                        startPageFrame,
+                                        pageCount,
+                                        PMM_STATE_USED);
+    return success;
 }
 
 /***************************************************************************************************
@@ -198,160 +239,34 @@ bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA)
  *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
  * @error               Panics if called before initialization.
  **************************************************************************************************/
-Physical kpmm_alloc (UINT pageCount, bool isDMA)
+Physical kpmm_alloc (UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
-    if (!kpmm_isInitialized())
-        k_panic ("%s", "Called before PMM initialization.");
+    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, PHYSICAL_NULL);
 
-    UINT startPageFrame = 1;
-    INT found = false;
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
 
     // Search PAB for a suitable location.
-    UINT maxPageFrame = kpmm_getAddressablePageCount (isDMA) - pageCount;
-    for (; found == false && startPageFrame <= maxPageFrame; startPageFrame++)
-        found = s_isPagesFree (startPageFrame, pageCount, isDMA);
-
-    --startPageFrame; // undoing the last increment.
-
-    // Free pages were not found. But there was no error.
-    if (found == false)
+    INT pageFrame = bitmap_findContinous(&region->bitmap, PMM_STATE_FREE, pageCount);
+    if (pageFrame == KERNEL_EXIT_FAILURE)
         RETURN_ERROR (ERR_OUT_OF_MEM, PHYSICAL_NULL);
 
+    k_assert((UINT)pageFrame < kpmm_getUsableMemoryPagesCount(reg), "Out of range");
+
     // Free pages found. Now Allocate them.
-    if (found == true)
-    {
-        s_managePages (startPageFrame, pageCount, true, isDMA);
-        return createPhysical (PAGEFRAMES_TO_BYTES (startPageFrame));
-    }
+    bool success = bitmap_setContinous(&region->bitmap,
+                                (UINT)pageFrame,
+                                pageCount,
+                                PMM_STATE_USED);
+
+    return success ? createPhysical(PAGEFRAMES_TO_BYTES((UINT)pageFrame)): PHYSICAL_NULL;
 
     // There was an error in either s_isPagesFree or s_managePages
     return PHYSICAL_NULL;
 }
 
-/***************************************************************************************************
- * Marks physical memory pages as either Allocated or Free in PAB.
- *
- * 'frameCount' pages of memory starting from 'startPageFrame' will be either marked as Allocated
- * or Free.
- *
- * @Input startPageFrame    Physical page where the allocation must begin. First page frame is 0.
- * @Input frameCount        Number of page frames to allocate. Out of Memory is generated if more
- *                          pages are requested than are free.
- * @Input allocate          true to Allocate, false to deallocate.
- * @return                  Nothing
- * @error                   On failure panic is triggered.
- **************************************************************************************************/
-static void s_managePages (UINT startPageFrame, UINT frameCount, bool allocate, bool isDMA)
-{
-    kdebug_printf ("\r\nI: %s starting physical address 0x%px, length 0x%px bytes ."
-                    , (allocate) ? "Allocating" : "Freeing"
-                    , PAGEFRAMES_TO_BYTES(startPageFrame)
-                    , PAGEFRAMES_TO_BYTES(frameCount));
-
-    k_assert (frameCount > 0, "Page frame count cannot be zero.");
-
-    for (UINT pageFrame = startPageFrame ; frameCount-- > 0; pageFrame++)
-        s_set (pageFrame, allocate, isDMA);
-}
-
-/***************************************************************************************************
- * Checks if 'count' number of consecutive frames are free.
- *
- * @Input startPageFrame    Physical page frame to start the check from. First page frame is 0.
- * @Input count             Number of consecutive page frames that need to be free.
- * @return                  Returns true if required number of free pages were found at the physical
- *                          location.
- * @return                  Returns false if required number of free pages were not found at the
- *                          physical location.
- * @return                  Nothing
- * @error                   On failure panic is triggered.
- **************************************************************************************************/
-static bool s_isPagesFree (UINT startPageFrame, UINT count, bool isDMA)
-{
-    k_assert (count > 0, "Page frame count cannot be zero.");
-
-    INT isAllocated = 0;
-    for (UINT i = 0 ; i < count && isAllocated == 0; i++)
-        isAllocated = s_get (i + startPageFrame, isDMA);
-
-    return isAllocated == 0;
-}
-
-/***************************************************************************************************
- * Sets/Clears corresponding page frame bit in PAB.
- *
- * @Input pageFrame Physical page frame to change. First page frame is 0.
- * @return                  Nothing
- * @error                   On failure panic is triggered.
- **************************************************************************************************/
-static void s_set (UINT pageFrame, bool alloc, bool isDMA)
-{
-    (void)isDMA;
-    bitmap_setContinous(&g_pmm_completeRegion, pageFrame, 1, (alloc) ? PMM_USED: PMM_FREE);
-
-    /*if (pageFrame == 0)
-        k_panic ("Invalid access: Page %u", pageFrame);
-
-    INT allocated = s_get (pageFrame, isDMA);
-
-    if (allocated && alloc)
-        k_panic ("Double allocation: Page %u", pageFrame);
-
-    if (!allocated && !alloc)
-        k_panic ("Double free: Page %u", pageFrame);
-
-    UINT byteIndex = (pageFrame / 8);
-    UINT bitIndex = (pageFrame % 8);
-    UINT mask = (U8)(1U << bitIndex);
-
-    if (alloc)
-        s_pab[byteIndex] |= (U8)mask;
-    else
-        s_pab[byteIndex] &= (U8)~mask;*/
-}
-
-/***************************************************************************************************
- * Gets corresponding page frame bit from PAB.
- *
- * @Input pageFrame Physical page frame to query. First page frame is 0.
- * @return          On Success, returns 0 is page frame is free, 1 otherwise.
- * @error           On failure panic is triggered.
- **************************************************************************************************/
-static INT s_get (UINT pageFrame, bool isDMA)
-{
-    (void)isDMA;
-    return (INT)bitmap_get(&g_pmm_completeRegion, pageFrame);
-    /*if (pageFrame == 0)
-        k_panic ("Invalid access: Page %u", pageFrame);
-
-    if (pageFrame > kpmm_getAddressablePageCount (isDMA))
-        k_panic ("Access outside range. Page %u", pageFrame);
-
-    UINT byteIndex = (pageFrame / 8);
-    UINT bitIndex = (pageFrame % 8);
-    UINT mask = (U8)(1U << bitIndex);
-
-    return (s_pab[byteIndex] & (U8)mask) >> bitIndex;*/
-}
-
-/***************************************************************************************************
- * Gets the total number of physical page frames in the system.
- *
- * Actual addressable RAM is the minimum of the total system RAM and the maximum RAM supported by
- * the OS.
- *
- * @Input isDMA     Queried for DMA.
- * @return          Gets the maximum page frame count for DMA hardware. Otherwise returns the
- *                  maximum page frame count supported by the PAB.
- **************************************************************************************************/
-UINT kpmm_getAddressablePageCount (bool isDMA)
-{
-    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getAddressableByteCount (isDMA));
-    return maxPageCount;
-}
 
 /***************************************************************************************************
  * Returns status of PAB array initializes .
@@ -362,7 +277,7 @@ UINT kpmm_getAddressablePageCount (bool isDMA)
  **************************************************************************************************/
 bool kpmm_isInitialized ()
 {
-    return s_isInitialized;
+    return s_isInitialized == PMM_INIT_STATE_COMPLETE;
 }
 
 /***************************************************************************************************
@@ -373,14 +288,46 @@ bool kpmm_isInitialized ()
  **************************************************************************************************/
 size_t kpmm_getFreeMemorySize ()
 {
-    if (!kpmm_isInitialized())
-        k_panic ("%s", "Called before PMM initialization.");
+    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
-    size_t freeBytes = 0;
-    UINT pageFrameCount = kpmm_getAddressablePageCount (false);
+    UINT usablePageCount = kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY);
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
 
-    for (UINT frame = 1; frame < pageFrameCount; frame++)
-        freeBytes += s_get (frame, false) ? 0 : CONFIG_PAGE_FRAME_SIZE_BYTES;
+    size_t freePages = 0;
+    for (UINT frame = 1; frame < usablePageCount; frame++)
+        if (bitmap_get(&region->bitmap, frame) == PMM_STATE_FREE)
+        freePages++;
 
-    return freeBytes;
+    return PAGEFRAMES_TO_BYTES(freePages);
+}
+
+/***************************************************************************************************
+ * Gets the amount of usable RAM for a memory region.
+ *
+ * Usable memory size for the region. If region completely falls outsize the installed RAM, then the
+ * usable size of the region is zero.
+ *
+ * @Input   reg     Region
+ * @return          Amount of actual accessible RAM in bytes for the region.
+ **************************************************************************************************/
+USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg)
+{
+    static S64 regionLength = -1; // static to cache the result. Amount of memory will not change.
+
+#if !defined(UNITTEST)
+    // TODO: This optimazation works in real life, because the amount of RAM will not change while
+    // the OS is running. However this is not true when unittesting. Currently we run all unittests
+    // in the same process, which means this function would have always returned the same value
+    // following the very first call.
+    if (regionLength == -1)
+#endif
+    {
+        U64 installedRamBytes = kpmm_arch_getInstalledMemoryByteCount();
+        PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
+        S64 earliestMemoryEnd = (S64)MIN(installedRamBytes, region->start.val + region->length);
+        regionLength = earliestMemoryEnd - region->start.val;
+        if (regionLength < 0) regionLength = 0;
+    }
+
+    return (USYSINT) regionLength;
 }

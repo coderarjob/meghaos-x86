@@ -2,10 +2,10 @@
 #include <mock/kernel/x86/pmm.h>
 
 DEFINE_FUNC_VOID_1(kpmm_arch_init, U8 *);
-DEFINE_FUNC_1(size_t, kpmm_getAddressableByteCount, bool);
+DEFINE_FUNC_0(U64, kpmm_arch_getInstalledMemoryByteCount);
 
 void resetX86Pmm()
 {
     RESET_FAKE(kpmm_arch_init);
-    RESET_FAKE(kpmm_getAddressableByteCount);
+    RESET_FAKE(kpmm_arch_getInstalledMemoryByteCount);
 }

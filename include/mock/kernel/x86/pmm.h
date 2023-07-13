@@ -5,7 +5,7 @@
 #include <types.h>
 
 DECLARE_FUNC_VOID(kpmm_arch_init, U8 *);
-DECLARE_FUNC(size_t, kpmm_getAddressableByteCount, bool);
+DECLARE_FUNC(U64, kpmm_arch_getInstalledMemoryByteCount);
 
 void resetX86Pmm();
 

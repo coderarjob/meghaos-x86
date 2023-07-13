@@ -20,5 +20,6 @@
     #define CONFIG_MIN_RAM_BYTES            (2U * MB)
     #define CONFIG_VGA_DISPLAY              "80x50"
     #define CONFIG_MAX_CALL_TRACE_DEPTH     10
+    #define CONFIG_PAB_NUMBER_OF_PAGES      1
 
 #endif // MOS_CONFIG_H_X86

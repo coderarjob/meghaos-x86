@@ -11,18 +11,12 @@ void kdebug_printf_ndu (const CHAR *fmt, ...) { }
 TEST(PMM, actual_accessable_ram)
 {
     kboot_calculateAvailableMemory_fake.ret = 5 * MB;
-    size_t available_ram = kpmm_getAddressableByteCount (false);
+    size_t available_ram = kpmm_arch_getInstalledMemoryByteCount();
     EQ_SCALAR (available_ram, 5 * MB);
 
-    available_ram = kpmm_getAddressableByteCount (true);
-    EQ_SCALAR (available_ram, 5 * MB);
-
-    kboot_calculateAvailableMemory_fake.ret = 5 * GB;
-    available_ram = kpmm_getAddressableByteCount (false);
-    EQ_SCALAR (available_ram, MAX_PAB_ADDRESSABLE_BYTE_COUNT);
-
-    available_ram = kpmm_getAddressableByteCount (true);
-    EQ_SCALAR (available_ram, MAX_PAB_DMA_ADDRESSABLE_BYTE_COUNT);
+    kboot_calculateAvailableMemory_fake.ret = 16 * GB;
+    available_ram = kpmm_arch_getInstalledMemoryByteCount();
+    EQ_SCALAR (available_ram, 16 * GB);
 
     END();
 }
@@ -30,9 +24,6 @@ TEST(PMM, actual_accessable_ram)
 void reset()
 {
     resetBootFake();
-
-    // Default size of RAM is set to 2 MB.
-    kboot_calculateAvailableMemory_fake.ret = 2 * MB;
 }
 
 int main()

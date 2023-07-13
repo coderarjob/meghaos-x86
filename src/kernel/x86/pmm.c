@@ -43,7 +43,7 @@ static void s_markFreeMemory ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     INT mmapCount = kBootLoaderInfo_getMemoryMapItemCount (bootloaderinfo);
-    size_t actualAddressableMemorySize = kpmm_getAddressableByteCount (false);
+    size_t actualAddressableMemorySize = kpmm_getUsableMemorySize (PMM_REGION_ANY);
 
     for (INT i = 0; i < mmapCount; i++)
     {
@@ -99,20 +99,16 @@ static void s_markFreeMemory ()
 }
 
 /***************************************************************************************************
- * Gets the total amount accessible RAM.
+ * Gets the total amount of installed memory.
  *
- * Actual addressable RAM is the minimum of the total system RAM and the maximum RAM supported by
- * the OS.
+ * Installed RAM size. OS may not be able to use the entire RAM.
  *
- * @Input isDMA     Queried for DMA.
- * @return          Amount of actual accessible RAM in bytes. So the last valid byte will be at
- *                  `s_getAddressableRamSize() - 1`.
+ * @return          Amount of installed RAM size in bytes.
  **************************************************************************************************/
-size_t kpmm_getAddressableByteCount (bool isDMA)
+U64 kpmm_arch_getInstalledMemoryByteCount ()
 {
     BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
-    ULLONG RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
-    ULLONG PABLimit = (isDMA) ? MAX_PAB_DMA_ADDRESSABLE_BYTE_COUNT : MAX_PAB_ADDRESSABLE_BYTE_COUNT;
+    U64 RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
 
-    return (size_t) MIN(RAMSizeBytes, PABLimit);
+    return RAMSizeBytes;
 }
