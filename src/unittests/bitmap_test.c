@@ -190,8 +190,8 @@ TEST(bitmap, set_large_index_mustfail) {
   EQ_SCALAR(panic_invoked, true);
 
   panic_invoked = false;
-  bitmap_findContinousAt(&b, STATE_1, BITMAP_CAPACITY(&b) + 1, 0);
-  EQ_SCALAR(panic_invoked, true);
+  EQ_SCALAR(false, bitmap_findContinousAt(&b, STATE_1, BITMAP_CAPACITY(&b) + 1, 0));
+  EQ_SCALAR(panic_invoked, false);
 
   END();
 }

@@ -46,7 +46,9 @@ bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexA
     k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
     k_assert(len > 0, "Must be > zero");
-    k_assert ((indexAt + len - 1) < BITMAP_CAPACITY(b), "Index out of bounds.");
+
+    if ((indexAt + len) > BITMAP_CAPACITY(b))
+        return false;
 
     UINT i = 0;
     for (; i < len && bitmap_get(b, i + indexAt) == state; i++);
