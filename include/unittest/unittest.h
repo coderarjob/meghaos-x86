@@ -22,7 +22,7 @@ int ut_equal_string (const char *a, const char *b, int *i);
 
 #define UT_FAILED(t, fnt, ...)                                                \
     do {                                                                      \
-         printf ("\n  %sFAIL%s: %-20s: ", COL_RED, COL_RESET, #t);            \
+         printf ("\n  %s** FAIL ** %s: %-20s: ", COL_RED, COL_RESET, #t);     \
          printf(fnt, __VA_ARGS__);                                            \
         } while(0)
 
