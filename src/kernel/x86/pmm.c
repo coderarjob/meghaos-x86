@@ -21,7 +21,6 @@ static void s_markFreeMemory ();
  *
  * @input   pab      Pointer to arch independent PAB.
  * @return  nothing
- * @error   Panics if called after initialization.
  **************************************************************************************************/
 void kpmm_arch_init (U8 *pab)
 {
@@ -33,8 +32,7 @@ void kpmm_arch_init (U8 *pab)
  * Marks pages which are free.
  *
  * It consults the bootloader structures and it marks free memory.
- * If memory map length is not aligned, memory is marked free, till the previous page boundary.
- * This means length is aligned to the previous multiple of CONFIG_PAGE_FRAME_SIZE_BYTES.
+ * If length of a memory map is not aligned, memory is freed, till the last page boundary.
  *
  * @return  nothing
  * @error   On failure, processor is halted.
@@ -100,8 +98,8 @@ static void s_markFreeMemory ()
 
 /***************************************************************************************************
  * Gets the total amount of installed memory.
- *
- * Installed RAM size. OS may not be able to use the entire RAM.
+ * This is the size of installed RAM, which may be is different than the usable size of the RAM. The
+ * Usable size is determined by the PAB size.
  *
  * @return          Amount of installed RAM size in bytes.
  **************************************************************************************************/

@@ -32,10 +32,10 @@ typedef struct PhysicalMemoryRegion
     USYSINT length;
 } PhysicalMemoryRegion;
 
-static PhysicalMemoryRegion s_pmm_completeRegion;
-static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg);
+static PhysicalMemoryRegion s_pmm_completeRegion = {0};
 static U8 *s_pab = NULL;
 static PhysicalMemoryBitmapState s_isInitialized = PMM_INIT_STATE_UNINITIALIZED;
+static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg);
 
 static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions reg)
 {
@@ -46,9 +46,17 @@ static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions 
     return NULL;
 }
 
+/***************************************************************************************************
+ * Called when setting a bitmap state. It returns true if the change is allowed.
+ * Any invalid condition here is unlikely so panic is justified.
+ *
+ * @Input pageFrame     Bitmap state index.
+ * @Input old           Old state at the index.
+ * @Input new           State to be set at the index.
+ * @return              True is change can be allowed, false otherwise.
+***************************************************************************************************/
 static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
 {
-    // TODO: These should not panic. They should instead set error code and return false.
     if (pageFrame == 0)
         k_panic ("Invalid access: Page %u", pageFrame);
 
@@ -71,22 +79,6 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
 }
 
 /***************************************************************************************************
- * Gets the total number of physical page frames in the system.
- *
- * Actual addressable RAM is the minimum of the total system RAM and the maximum RAM supported by
- * the OS.
- *
- * @Input isDMA     Queried for DMA.
- * @return          Gets the maximum page frame count for DMA hardware. Otherwise returns the
- *                  maximum page frame count supported by the PAB.
- **************************************************************************************************/
-static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg)
-{
-    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getUsableMemorySize(reg));
-    return maxPageCount;
-}
-
-/***************************************************************************************************
  * Initializes PAB array.
  *
  * @return nothing
@@ -100,15 +92,15 @@ void kpmm_init ()
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
     k_memset (s_pab, 0xFF, PAB_SIZE_BYTES);
 
+    // Partial initialized because free memory regions still needs to be marked in the bitmap.
+    s_isInitialized = PMM_INIT_STATE_PARTIAL;
+
     s_pmm_completeRegion.bitmap.allow = s_verifyChange;
     s_pmm_completeRegion.bitmap.bitmap = s_pab;
     s_pmm_completeRegion.bitmap.bitsPerState = PAB_BITS_PER_STATE;
     s_pmm_completeRegion.bitmap.size = PAB_SIZE_BYTES;
     s_pmm_completeRegion.length = MAX_PAB_ADDRESSABLE_BYTE_COUNT;
     s_pmm_completeRegion.start = createPhysical(0);
-
-    // Partial initialized because free memory regions still needs to be marked in the bitmap.
-    s_isInitialized = PMM_INIT_STATE_PARTIAL;
 
     kpmm_arch_init(s_pab);
 
@@ -119,23 +111,13 @@ void kpmm_init ()
 /***************************************************************************************************
  * Deallocates specified pages starting from the specified physical location.
  *
- * Note: free can be used even before PAB is initialized. This is to solve the chicken and egg
+ * Note: free can be used even before PAB is fully initialized. This is to solve the chicken and egg
  * problem where to initialize PAB one needs to at least call free or alloc functions. May be there
  * is a better solution.
  *
- * Important: Calling free before PAB initialization, is undefined behaviour. To remedy, before
- * calling free, initialize the PAB to some known state - kpmm_init for example initializes the PAB
- * with all ones.
- *
- * @Input startAddress  Physical memory location of the first page. Error is generated if not a
- *                      aligned to page boundary.
- * @Input pageCount     Number of page frames to deallocate.
- * @return              If successful, returns true;
- * @return              If failure false is returned. k_errorNumber is set with error code.
- *                      1. ERR_WRONG_ALIGNMENT  - startAddress not aligned to page boundary.
- *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
- *                      3. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
- *                                                         range.
+ * @Input startAddress  Physical memory location of the first page. Must be page aligned.
+ * @Input pageCount     Number of pages to deallocate.
+ * @return              If successful returns true, otherwise false and error code is set.
  **************************************************************************************************/
 bool kpmm_free (Physical startAddress, UINT pageCount)
 {
@@ -173,17 +155,9 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
  * make verify if the there are enough free pages at the provided address.
  *
  * @Input pageCount     Number of byte frames to allocate.
- * @Input isDMA         Is allocating from the DMA memory range.
- * @Input start         Pages will be allocated from this physical address.Must be page aligned.
- * @return              If successful, returns true.
- * @return              If failure false is returned. k_errorNumber is set with error code.
- *                      1. ERR_WRONG_ALIGNMENT - 'start' is not aligned to page boundary.
- *                      2. ERR_DOUBLE_ALLOC - All or part of specified memory is already allocated.
- *                                            This error is only thrown for FIXED allocations.
- *                      3. ERR_INVALID_ARGUMENT - pageCount is zero.
- *                      4. ERR_OUTSIDE_ADDRESSABLE_RANGE - the provided address is more than the max
- *                                                         range.
- * @error               Panics if called before initialization.
+ * @Input reg           Physical memory region.
+ * @Input start         Pages will be allocated from this physical address. Must be page aligned.
+ * @return              If successful returns true, otherwise false and error code is set.
  **************************************************************************************************/
 bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
@@ -231,13 +205,9 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
  * make find pages which can be allocated.
  *
  * @Input pageCount     Number of byte frames to allocate.
- * @Input isDMA         Is allocating from the DMA memory range.
- * @return              If successful, returns the allocated physical address.
- * @return              If failure PHYSICAL_NULL is returned. k_errorNumber is set with error code.
- *                      1. ERR_OUT_OF_MEM   - Could not find the required number of free
- *                                            consecutive pages.
- *                      2. ERR_INVALID_ARGUMENT - pageCount is zero.
- * @error               Panics if called before initialization.
+ * @Input reg           Physical memory region.
+ * @return              If successful, returns the allocated physical address otherwise
+ *                      returns PHYSICAL_NULL and error code is set.
  **************************************************************************************************/
 Physical kpmm_alloc (UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
@@ -269,11 +239,10 @@ Physical kpmm_alloc (UINT pageCount, KernelPhysicalMemoryRegions reg)
 
 
 /***************************************************************************************************
- * Returns status of PAB array initializes .
- *
+ * Returns status of PAB array initialization.
  * PAB initialization is complete after kpmm_init has finished execution and there is no error.
  *
- * @return      true if PAB array was initialized and PMM is ready. false otherwise.
+ * @return      true if PAB array was initialized and PMM is ready, false otherwise.
  **************************************************************************************************/
 bool kpmm_isInitialized ()
 {
@@ -298,24 +267,37 @@ size_t kpmm_getFreeMemorySize ()
         if (bitmap_get(&region->bitmap, frame) == PMM_STATE_FREE)
         freePages++;
 
+    k_assert(freePages <= kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY), "Invalid frames");
     return PAGEFRAMES_TO_BYTES(freePages);
 }
 
 /***************************************************************************************************
- * Gets the amount of usable RAM for a memory region.
+ * Total number of usable page frames in a memory region.
+ * Returns 0 if region is outside the installed physical memory range.
  *
- * Usable memory size for the region. If region completely falls outsize the installed RAM, then the
- * usable size of the region is zero.
+ * @Input reg       Physical memory region.
+ * @return          The number of usable page frames in the memory region. 0 is there are no usable
+ *                  page frames for this region.
+ **************************************************************************************************/
+static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg)
+{
+    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getUsableMemorySize(reg));
+    return maxPageCount;
+}
+
+/***************************************************************************************************
+ * Total amount of usable bytes in the memory region.
+ * If region completely falls outsize the installed RAM, then the usable size of the region is zero.
  *
- * @Input   reg     Region
- * @return          Amount of actual accessible RAM in bytes for the region.
+ * @Input   reg     Physical memory region
+ * @return          Amount of a usable/accessible memory for the region.
  **************************************************************************************************/
 USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg)
 {
     static S64 regionLength = -1; // static to cache the result. Amount of memory will not change.
 
 #if !defined(UNITTEST)
-    // TODO: This optimazation works in real life, because the amount of RAM will not change while
+    // TODO: This optimization works in real life, because the amount of RAM will not change while
     // the OS is running. However this is not true when unittesting. Currently we run all unittests
     // in the same process, which means this function would have always returned the same value
     // following the very first call.
