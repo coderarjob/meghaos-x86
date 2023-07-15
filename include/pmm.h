@@ -12,6 +12,7 @@
 #include <types.h>
 #include <utils.h>
 #include <config.h>
+#include <common/bitmap.h>
 
 extern Physical g_pab; /* Address of Page Allocation Bitmap array */
 
@@ -38,7 +39,7 @@ typedef enum KernelPhysicalMemoryStates {
     (ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES) / CONFIG_PAGE_FRAME_SIZE_BYTES)
 
 void kpmm_init ();
-void kpmm_arch_init (U8 *pab);
+void kpmm_arch_init (Bitmap *bitmap);
 bool kpmm_isInitialized ();
 
 bool kpmm_free (Physical startAddress, UINT pageCount);

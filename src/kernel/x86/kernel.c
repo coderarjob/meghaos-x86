@@ -31,7 +31,7 @@
 
 static void usermode_main ();
 static void display_system_info ();
-static void s_markMemoryOccupiedByModuleFiles ();
+static void s_markUsedMemory ();
 static void s_dumpPab ();
 
 /*
@@ -51,7 +51,7 @@ void kernel_main ()
     kpmm_init ();
 
     // Mark memory already occupied by the modules.
-    s_markMemoryOccupiedByModuleFiles();
+    s_markUsedMemory();
 
     // TSS setup
     kearly_printf ("\r\n[  ]\tTSS setup.");
@@ -98,13 +98,13 @@ void s_dumpPab ()
 {
 #if DEBUG
     U8 *s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
-    UINT bytes = 60;
+    UINT bytes = 120;
 
     while (bytes)
     {
         kdebug_printf ("\r\n%x:", s_pab);
-        for (int i = 0; i < 8 && bytes; bytes--, i++, s_pab++)
-            kdebug_printf ("\t%x ", *s_pab);
+        for (int i = 0; i < 16 && bytes; bytes--, i+=2, s_pab+=2)
+            kdebug_printf ("\t%x:%x ", *(s_pab + 1), *s_pab);
     }
 #endif // DEBUG
 }
@@ -128,7 +128,7 @@ void display_system_info ()
 
     INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
     kdebug_printf ("%s","\r\nBIOS Memory map:"); 
-    U64 available_memory = 0;
+    U64 installed_memory = 0;
     for (INT i = 0; i < memoryMapItemCount; i++)
     {
         BootMemoryMapItem* item = kBootLoaderInfo_getMemoryMapItem (mi, i);
@@ -136,21 +136,20 @@ void display_system_info ()
         U64 length_bytes = kBootMemoryMapItem_getLength (item);
         BootMemoryMapTypes type = kBootMemoryMapItem_getType (item);
 
-        available_memory += length_bytes;
+        installed_memory += length_bytes;
         kdebug_printf ("\r\n* map: Start = %llx, Length = %llx, Type = %u",
                          baseAddress, length_bytes, type);
     }
 
     kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
-    kdebug_printf ("\r\nAvailable RAM bytes: %llx bytes",available_memory);
-    kdebug_printf ("\r\nFree RAM bytes: %llx bytes", kpmm_getFreeMemorySize ());
-
-    UINT availablePageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (available_memory);
-    kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
-
     kdebug_printf ("\r\nMax RAM Pages: %u", MAX_PAB_ADDRESSABLE_PAGE_COUNT);
+    kdebug_printf ("\r\nInstalled RAM bytes: x:%llx bytes",installed_memory);
+    UINT installed_memory_pageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (installed_memory);
+    kdebug_printf ("\r\nInstalled RAM Pages: %u", installed_memory_pageCount);
+    kdebug_printf ("\r\nFree RAM bytes: x:%llx bytes", kpmm_getFreeMemorySize ());
 #endif // DEBUG
 }
+
 /***************************************************************************************************
  * Marks pages occupied by module files as occupied.
  *
@@ -161,7 +160,7 @@ void display_system_info ()
  * @return nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_markMemoryOccupiedByModuleFiles ()
+static void s_markUsedMemory ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
@@ -174,7 +173,7 @@ static void s_markMemoryOccupiedByModuleFiles ()
 
         kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, false) == false)
+        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, PMM_REGION_ANY) == false)
             k_assertOnError ();
     }
 }
@@ -184,8 +183,8 @@ void usermode_main ()
     kearly_printf ("\r\nInside usermode..");
 
     kbochs_breakpoint();
-    //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy));
-    //__asm__ volatile ("INT 0x40");
+    //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy_asm_handler));
+    __asm__ volatile ("INT 0x40");
     kbochs_breakpoint();
 
     kearly_printf ("\r\nLocation of kernel_main = %x", kernel_main);
@@ -194,7 +193,6 @@ void usermode_main ()
     extern void display_PageInfo ();
     display_PageInfo();
 
-    kdisp_show_call_trace();
     *a = 0;
 
     while (1);

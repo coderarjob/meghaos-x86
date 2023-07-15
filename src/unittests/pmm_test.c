@@ -517,7 +517,6 @@ UINT powerOfTwo(UINT e)
 void reset()
 {
     panic_invoked = false;
-    resetMemFake();
     resetX86Pmm();
     resetUtilsFake();
 

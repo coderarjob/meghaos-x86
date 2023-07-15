@@ -10,7 +10,6 @@
 
 #include <pmm.h>
 #include <panic.h>
-#include <mem.h>
 #include <moslimits.h>
 #include <types.h>
 #include <x86/paging.h>
@@ -66,7 +65,7 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
     if (old == PMM_STATE_FREE && new == PMM_STATE_FREE)
         k_panic ("Double free: Page %u", pageFrame);
 
-    if (old == PMM_STATE_RESERVED)
+    if (s_isInitialized == PMM_INIT_STATE_COMPLETE && old == PMM_STATE_RESERVED)
         k_panic ("Use of Reserved page: Page %u", pageFrame);
 
     if (old == PMM_STATE_INVALID)
@@ -87,10 +86,6 @@ void kpmm_init ()
         k_panic ("%s", "Called after PMM initialization.");
 
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
-    k_memset (s_pab, 0xFF, PAB_SIZE_BYTES);
-
-    // Partial initialized because free memory regions still needs to be marked in the bitmap.
-    s_isInitialized = PMM_INIT_STATE_PARTIAL;
 
     s_pmm_completeRegion.bitmap.allow = s_verifyChange;
     s_pmm_completeRegion.bitmap.bitmap = s_pab;
@@ -99,7 +94,7 @@ void kpmm_init ()
     s_pmm_completeRegion.length = MAX_PAB_ADDRESSABLE_BYTE_COUNT;
     s_pmm_completeRegion.start = createPhysical(0);
 
-    kpmm_arch_init(s_pab);
+    kpmm_arch_init(&s_pmm_completeRegion.bitmap);
 
     // PMM is now initialized
     s_isInitialized = PMM_INIT_STATE_COMPLETE;
@@ -118,7 +113,7 @@ void kpmm_init ()
  **************************************************************************************************/
 bool kpmm_free (Physical startAddress, UINT pageCount)
 {
-    k_assert(s_isInitialized > PMM_INIT_STATE_UNINITIALIZED, "Called before PMM initialization.");
+    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
 

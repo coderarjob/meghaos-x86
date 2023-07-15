@@ -28,13 +28,14 @@ function add_mock_source()
                 };;
         pmm)    {
                     export SRC=( $SRC_ARRAY
-                                 'mock/kernel/mem.c'
                                  'mock/kernel/x86/pmm.c'
                                  'mock/common/utils.c'
                                )
                 };;
        pmm_x86) {
                     export SRC=( $SRC_ARRAY
+                                 'mock/kernel/mem.c'
+                                 'mock/common/bitmap.c'
                                  'mock/kernel/pmm.c'
                                  'mock/kernel/x86/boot.c'
                                )

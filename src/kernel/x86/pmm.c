@@ -13,8 +13,10 @@
 #include <types.h>
 #include <x86/boot.h>
 #include <kerror.h>
+#include <panic.h>
+#include <mem.h>
 
-static void s_markFreeMemory ();
+static void s_markFreeMemory (Bitmap *bitmap);
 
 /***************************************************************************************************
  * Initializes PAB array for x86 architecture.
@@ -22,22 +24,20 @@ static void s_markFreeMemory ();
  * @input   pab      Pointer to arch independent PAB.
  * @return  nothing
  **************************************************************************************************/
-void kpmm_arch_init (U8 *pab)
+void kpmm_arch_init (Bitmap *bitmap)
 {
-    (void)pab;
-    s_markFreeMemory (pab);
+    k_memset (bitmap->bitmap, 0xAA, PAB_SIZE_BYTES);
+    s_markFreeMemory (bitmap);
 }
 
 /***************************************************************************************************
- * Marks pages which are free.
- *
- * It consults the bootloader structures and it marks free memory.
- * If length of a memory map is not aligned, memory is freed, till the last page boundary.
+ * Consults the bootloader structures and it marks free pages.
+ * If length of a memory map is not aligned, memory till the last page boundary is marked.
  *
  * @return  nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_markFreeMemory ()
+static void s_markFreeMemory (Bitmap *bitmap)
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     INT mmapCount = kBootLoaderInfo_getMemoryMapItemCount (bootloaderinfo);
@@ -48,34 +48,34 @@ static void s_markFreeMemory ()
         BootMemoryMapItem* memmap = kBootLoaderInfo_getMemoryMapItem (bootloaderinfo, i);
         BootMemoryMapTypes type = kBootMemoryMapItem_getType (memmap);
 
+        //if (type != MMTYPE_RESERVED && type != MMTYPE_ACPI_RECLAIM) continue;
         if (type != MMTYPE_FREE) continue;
 
         U64 startAddress = kBootMemoryMapItem_getBaseAddress (memmap);
         U64 lengthBytes = kBootMemoryMapItem_getLength (memmap);
 
         // Skip, if length is zero or start address of the section is beyond the addressable
-        // range. Now this is not an error, because on systems with more RAM than
-        // MAX_PAB_ADDRESSABLE_BYTE, Memory map from BIOS will have sections that is entirely outside
-        // the addressable range.
+        // range (systems can have more RAM installed than our PAB supports).
         if (lengthBytes == 0 || startAddress >= actualAddressableMemorySize) continue;
 
         // Check if addressing more than Addressable. Cap it to Max Addressable if so.
-        U64 endAddress = startAddress + lengthBytes - 1;
-        if (endAddress >= actualAddressableMemorySize)
-            lengthBytes = actualAddressableMemorySize - startAddress + 1;
+        U64 endAddress = MIN(actualAddressableMemorySize, startAddress + lengthBytes - 1);
+        lengthBytes = endAddress - startAddress + 1;
 
-        // If section length is less than CONFIG_PAGE_FRAME_SIZE_BYTES (4096 bytes), it cannot be
-        // freed, so we skip this section
-        if (lengthBytes < CONFIG_PAGE_FRAME_SIZE_BYTES)
-            continue;
+        // If section length is less than 1 page size  (4096 bytes), we free the whole page.
+        lengthBytes = MAX(CONFIG_PAGE_FRAME_SIZE_BYTES, lengthBytes);
 
         // At this point, start and end address is within the addressable range.
         UINT pageFrameCount = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)lengthBytes);
+        UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)startAddress);
 
         kdebug_printf ("\r\nI: Freeing startAddress: %llx, byteCount: %llx, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_free (createPhysical ((USYSINT)startAddress), pageFrameCount) == false)
-            k_assertOnError ();
+
+        bool success = bitmap_setContinous(bitmap, startPageFrame, pageFrameCount,
+                                           PMM_STATE_FREE);
+        if (!success)
+            k_panic("%s", "PAB cannot be initialized.");
     }
 }
 
