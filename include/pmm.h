@@ -12,7 +12,6 @@
 #include <types.h>
 #include <utils.h>
 #include <config.h>
-#include <buildcheck.h>
 
 extern Physical g_pab; /* Address of Page Allocation Bitmap array */
 
@@ -43,7 +42,7 @@ void kpmm_arch_init (U8 *pab);
 bool kpmm_isInitialized ();
 
 bool kpmm_free (Physical startAddress, UINT pageCount);
-Physical kpmm_alloc (UINT pageCount, KernelPhysicalMemoryRegions reg);
+bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions reg);
 bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg);
 
 size_t kpmm_getFreeMemorySize ();

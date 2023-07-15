@@ -64,29 +64,12 @@ static void s_markFreeMemory ()
         if (endAddress >= actualAddressableMemorySize)
             lengthBytes = actualAddressableMemorySize - startAddress + 1;
 
-        // As access to this page is not allowed, if the start address is within the 1st page, we
-        // need to move start location to the start of 2nd page frame and decrease the length by the
-        // same amount.
-        if (startAddress < CONFIG_PAGE_FRAME_SIZE_BYTES)
-        {
-            U64 distance = CONFIG_PAGE_FRAME_SIZE_BYTES - startAddress; // bytes till 2nd page.
-
-            // Section starts within the 1st page, and end within the 1st page as well.
-            // Thus we skip this section.
-            if (lengthBytes <= distance) continue;
-
-            // Section starts within the 1st page, but goes beyond the 1st page.
-            lengthBytes -= distance;                        // adjust length
-            startAddress = CONFIG_PAGE_FRAME_SIZE_BYTES;    // Start allocation from 2nd page
-        }
-
         // If section length is less than CONFIG_PAGE_FRAME_SIZE_BYTES (4096 bytes), it cannot be
         // freed, so we skip this section
         if (lengthBytes < CONFIG_PAGE_FRAME_SIZE_BYTES)
             continue;
 
         // At this point, start and end address is within the addressable range.
-
         UINT pageFrameCount = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)lengthBytes);
 
         kdebug_printf ("\r\nI: Freeing startAddress: %llx, byteCount: %llx, pageFrames: %u."

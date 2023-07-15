@@ -57,9 +57,6 @@ static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions 
 ***************************************************************************************************/
 static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
 {
-    if (pageFrame == 0)
-        k_panic ("Invalid access: Page %u", pageFrame);
-
     if (pageFrame > kpmm_getUsableMemoryPagesCount (PMM_REGION_ANY))
         k_panic ("Access outside range. Page %u", pageFrame);
 
@@ -154,9 +151,9 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
  * Note: This function can only be called once PMM is initialized. This is because it reads PAB to
  * make verify if the there are enough free pages at the provided address.
  *
+ * @Input start         Pages will be allocated from this physical address. Must be page aligned.
  * @Input pageCount     Number of byte frames to allocate.
  * @Input reg           Physical memory region.
- * @Input start         Pages will be allocated from this physical address. Must be page aligned.
  * @return              If successful returns true, otherwise false and error code is set.
  **************************************************************************************************/
 bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg)
@@ -204,37 +201,38 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
  * Note: This function can only be called once PMM is initialized. This is because it reads PAB to
  * make find pages which can be allocated.
  *
+ * @Input address       Allocated physical address
  * @Input pageCount     Number of byte frames to allocate.
  * @Input reg           Physical memory region.
- * @return              If successful, returns the allocated physical address otherwise
- *                      returns PHYSICAL_NULL and error code is set.
+ * @return              If successful returns true, otherwise returns false and error code is set.
  **************************************************************************************************/
-Physical kpmm_alloc (UINT pageCount, KernelPhysicalMemoryRegions reg)
+bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
     k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     if (pageCount == 0)
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, PHYSICAL_NULL);
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
     PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
 
     // Search PAB for a suitable location.
     INT pageFrame = bitmap_findContinous(&region->bitmap, PMM_STATE_FREE, pageCount);
     if (pageFrame == KERNEL_EXIT_FAILURE)
-        RETURN_ERROR (ERR_OUT_OF_MEM, PHYSICAL_NULL);
+        RETURN_ERROR (ERR_OUT_OF_MEM, false);
 
     k_assert((UINT)pageFrame < kpmm_getUsableMemoryPagesCount(reg), "Out of range");
 
     // Free pages found. Now Allocate them.
-    bool success = bitmap_setContinous(&region->bitmap,
+    if (bitmap_setContinous(&region->bitmap,
                                 (UINT)pageFrame,
                                 pageCount,
-                                PMM_STATE_USED);
+                                PMM_STATE_USED))
+    {
+        *address = createPhysical(PAGEFRAMES_TO_BYTES((UINT) pageFrame));
+        return true;
+    }
 
-    return success ? createPhysical(PAGEFRAMES_TO_BYTES((UINT)pageFrame)): PHYSICAL_NULL;
-
-    // There was an error in either s_isPagesFree or s_managePages
-    return PHYSICAL_NULL;
+    return false;
 }
 
 
