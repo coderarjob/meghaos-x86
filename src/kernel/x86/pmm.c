@@ -59,7 +59,7 @@ static void s_markFreeMemory (Bitmap *bitmap)
         if (lengthBytes == 0 || startAddress >= actualAddressableMemorySize) continue;
 
         // Check if addressing more than Addressable. Cap it to Max Addressable if so.
-        U64 endAddress = MIN(actualAddressableMemorySize, startAddress + lengthBytes - 1);
+        U64 endAddress = MIN(actualAddressableMemorySize - 1, startAddress + lengthBytes - 1);
         lengthBytes = endAddress - startAddress + 1;
 
         // If section length is less than 1 page size  (4096 bytes), we free the whole page.
