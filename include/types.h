@@ -21,7 +21,7 @@
 #endif
 
 /* Casts a bit field of n bits to UINT. */
-inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
+static inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
     return (UINT)(t & (UINT)((1 << n) -1));
 }
 
@@ -40,15 +40,10 @@ typedef union
 } __attribute__ ((packed)) Physical;
 
 #define PHYSICAL(address) {.val = address}
-#define PHYSICAL_NULL createPhysical(0)
 
 static inline Physical createPhysical (USYSINT address) {
     Physical p = {.val = address};
     return p;
-}
-
-static inline bool isPhysicalNull (Physical address) {
-    return address.val == 0;
 }
 
 #endif // PORTABLE_TYPES
