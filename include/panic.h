@@ -36,8 +36,9 @@
      * x86 machine.
      *
      * TODO: Find some way to make this host independent.
+     * NOTE: EAX is not preserved by GCC. So there is not point adding it to the clobber list.
      */
-    #define UNITTEST_RETURN() __asm__ volatile ("mov esp, ebp; pop ebp; ret;"::)
+    #define UNITTEST_RETURN() __asm__ volatile ("mov esp, ebp; pop ebp; mov eax, 0; ret;"::)
 
     #define k_panic(s, ...)  do {                                                                  \
         unittest_panic_handler("\r\nPanic! " s ". In %s:%u", __VA_ARGS__, __func__, __LINE__);     \
