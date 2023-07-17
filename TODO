@@ -8,6 +8,9 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     handler (demo)
 [ ] RAMDISK (INITRD.0) creation
     in build.sh
+[ ] unittest.h bugs
+    Function under test is called twice when
+    a scalar match fails.                     -
 [X] Physical memory allocator                 -
     [ ] Reimplement using common/bitmap       -
     [ ] Lock to protect the PAB.              -
