@@ -28,7 +28,7 @@ int ut_equal_string (const char *a, const char *b, int *i);
 
 #define TEST_SCALAR(a,o, b)                                                   \
     if (a o b) UT_PASSED(a o b);                                              \
-    else       UT_FAILED(a o b,"[Got: %d, Exp: %d]", a, b)                    \
+    else       UT_FAILED(a o b,"[%d !" #o " %d]", a, b)                       \
 
 #define TEST_MEM(a,o, b,sz) do {                                              \
     int i;                                                                    \
