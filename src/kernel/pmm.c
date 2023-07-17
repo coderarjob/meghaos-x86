@@ -227,6 +227,7 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
         return true;
     }
 
+    k_assert(false, "Not possible to come here.");
     return false;
 }
 
