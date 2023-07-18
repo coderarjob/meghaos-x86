@@ -27,7 +27,7 @@
 #include <x86/boot.h>
 #include <x86/paging.h>
 #include <x86/kernel.h>
-
+#include <panic.h>
 
 static void usermode_main ();
 static void display_system_info ();
@@ -190,11 +190,11 @@ void usermode_main ()
     kearly_printf ("\r\nLocation of kernel_main = %x", kernel_main);
     kearly_printf ("\r\nLocation of pab = %x",CAST_PA_TO_VA (g_pab));
 
-    extern void display_PageInfo ();
-    display_PageInfo();
+    //extern void display_PageInfo ();
+    //display_PageInfo();
 
-    *a = 0;
+    //*a = 0;
 
-    while (1);
+    k_halt();
 }
 
