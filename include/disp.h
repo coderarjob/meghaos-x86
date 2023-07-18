@@ -12,13 +12,10 @@
 #ifndef DISPTEXT_H
 #define DISPTEXT_H
 
+#include <stddef.h>
 #include <types.h>
 #include <stdarg.h>
 #include <buildcheck.h>
-
-#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
-    #include <x86/vgatext.h>
-#endif
 
 typedef enum DisplayControls 
 {
@@ -36,7 +33,7 @@ typedef enum DisplayControls
  *                  DisplayControls enum.
  * @param ...       Arguments for the specified operation. Provides input (is required)/output for
  *                  the specified operation.
- * @returns         On success, EXIT_SUCCESS is returned, otherwise EXIT_FAILURE.
+ * @returns         On success, KERNEL_EXIT_SUCCESS is returned, otherwise KERNEL_EXIT_FAILURE.
  **************************************************************************************************/
 INT kdisp_ioctl (INT request, ...);
 
@@ -75,5 +72,9 @@ bool kdisp_isInitialized ();
 INT kearly_printf (const CHAR *fmt, ...);
 INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);
 INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
+
+/* Message are printed on screen and if configured also on the debug console. */
+void kdisp_importantPrint(char *fmt, ...);
+void kdisp_show_call_trace();
 
 #endif // DISPTEXT_H

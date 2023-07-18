@@ -13,9 +13,8 @@
 #ifndef TYPES_H_X86
 #define TYPES_H_X86
 
-#include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
+#include <stddef.h>
 #include <buildcheck.h>
 
     typedef uint8_t  U8;
@@ -46,5 +45,7 @@
 
     /* Large enough to hold the largest address possible on a 32 bit system */
     typedef U32           USYSINT;
+    typedef uintptr_t     PTR;
+    typedef size_t        SIZE;
 
 #endif // TYPES_H_X86

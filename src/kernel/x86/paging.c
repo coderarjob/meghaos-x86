@@ -12,6 +12,7 @@
 #include <kdebug.h>
 #include <config.h>
 #include <disp.h>
+#include <types.h>
 
 void display_PageInfo ()
 {

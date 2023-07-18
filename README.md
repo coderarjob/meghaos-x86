@@ -20,7 +20,7 @@ This is the second iteration. The first OS was targeted to run on the 8086 proce
 written entirely in assembly language, due of a lack of proper higher level language compilers
 for the 8086 processor.
 
-The current, second version, targets the 80386 processor and the former unavailability of tools is
+The current, second version, targets the P6 processor and the former unavailability of tools is
 no longer there, and is thus mostly written in C.
 
 PS: OpenWatcom is a great C compiler, if you want to target 8086. However, I wanted to stick with

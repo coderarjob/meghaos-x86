@@ -22,13 +22,13 @@ int ut_equal_string (const char *a, const char *b, int *i);
 
 #define UT_FAILED(t, fnt, ...)                                                \
     do {                                                                      \
-         printf ("\n  %sFAIL%s: %-20s: ", COL_RED, COL_RESET, #t);            \
+         printf ("\n  %s** FAIL ** %s: %-20s: ", COL_RED, COL_RESET, #t);     \
          printf(fnt, __VA_ARGS__);                                            \
         } while(0)
 
 #define TEST_SCALAR(a,o, b)                                                   \
     if (a o b) UT_PASSED(a o b);                                              \
-    else       UT_FAILED(a o b,"[Got: %d, Exp: %d]", a, b)                    \
+    else       UT_FAILED(a o b,"[%d !" #o " %d]", a, b)                       \
 
 #define TEST_MEM(a,o, b,sz) do {                                              \
     int i;                                                                    \

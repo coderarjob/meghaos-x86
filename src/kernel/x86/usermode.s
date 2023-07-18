@@ -16,10 +16,11 @@ jump_to_usermode:
     mov gs, ax
 
     push eax                    ; Stack segment selector = DS
-    push esp                    ; User mode stack pointer
-    pushf
+    push 0xC0023BFF             ; User mode stack pointer
+    pushfd                      ; EFLAGS
     push dword [ebp + 8]        ; Code Segment selector
     push dword [ebp + 12]       ; Function pointer
+    xor ebp, ebp                ; Required for stack trace to work. Ends here.
 
     iret
 global jump_to_usermode

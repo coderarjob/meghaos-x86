@@ -92,6 +92,7 @@ section .text progbits alloc exec nowrite
         mov cr3, eax
     ; --
 
+    xor ebp, ebp        ; Required for stack_trace to end here.
     jmp kernel_main
     hlt
 ; ---------------------------------------------------------------------

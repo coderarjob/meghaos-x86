@@ -11,6 +11,7 @@
 #define UTILS_H
 
 #include <buildcheck.h>
+#include <types.h>
 
 /** Used to know the offset of a member in a structure type */
 #define offsetOf(type,member) ((size_t)(&((type *)0)->member))
@@ -34,6 +35,9 @@
 
 /** Minimum of two integers. If equal, returns 'b' */
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
+
+/** Power of two */
+UINT power_of_two(UINT e);
 
 /** Stringfy macros */
 #define STR_NDU(v) #v

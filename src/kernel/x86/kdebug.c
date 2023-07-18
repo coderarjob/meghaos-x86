@@ -9,15 +9,17 @@
 */
 #include <stdarg.h>
 #include <types.h>
-#include <io.h>
+#include <x86/io.h>
 #include <moslimits.h>
 #include <utils.h>
 #include <disp.h>
+#include <x86/vgatext.h>
+#include <kdebug.h>
 
 #if  defined (DEBUG)
 
 #if (DEBUG_LEVEL & 1)
-static void s_e9puts (const CHAR *string)
+static void s_qemu_debugPutString (const CHAR *string)
 {
     CHAR c;
     while ((c = *string++))
@@ -36,7 +38,7 @@ void kdebug_printf_ndu (const CHAR *fmt, ...)
 
 #if (DEBUG_LEVEL & 1)
     // Print to E9 port 
-    s_e9puts (buffer);
+    s_qemu_debugPutString (buffer);
 #endif
 
 #if (DEBUG_LEVEL & 2)
@@ -52,3 +54,17 @@ void kdebug_printf_ndu (const CHAR *fmt, ...)
 }
 
 #endif // DEBUG
+
+void kdebug_dump_call_trace(PTR *raddrs, INT count)
+{
+    typedef struct stack_frame {
+        struct stack_frame *ebp;
+        unsigned int eip;
+    } stack_frame;
+
+    stack_frame *frame;
+    __asm__ volatile( "mov %0, ebp;" : "=m" (frame));
+
+    for (; count && frame->ebp; count--, frame = frame->ebp)
+        *(raddrs++) = frame->eip;
+}

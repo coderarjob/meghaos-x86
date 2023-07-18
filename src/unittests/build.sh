@@ -17,19 +17,17 @@ source src/unittests/$ARCH/build.sh
 UNITTEST_BINDIR="build/bin/unittests"
 UNITTEST_OBJDIR="build/obj/unittests"
 
-UNITTEST_WOPTS="-Wpedantic   \
-                -Wpadded     \
-                -Wall        \
-                -Wextra      \
-                -Wconversion"
+UNITTEST_WOPTS="-Wall        \
+                -Wextra"
 
 # Note: Requires gcc-multilib package if compiling on a x86_64 machine.
 UNITTEST_CC="gcc -std=c99                   \
                  -g                         \
                  -m32                       \
                  -march=i386                \
+                 -masm=intel                \
                  --coverage                 \
-                 $UT_WOPTS                  \
+                 $UNITTEST_WOPTS            \
                  $GCC_INCPATH               \
                  -D UNITTEST                \
                  -D ARCH=$ARCH              \
@@ -37,7 +35,7 @@ UNITTEST_CC="gcc -std=c99                   \
                  -D DEBUG_LEVEL=$DEBUGLEVEL"
 
 LD_UNITTEST="gcc -m32"
-LD_UNITTEST_FLAGS="-lgcov"
+LD_UNITTEST_FLAGS="-lgcov -lm"
 
 # ---------------------------------------------------------------------------
 # Architecture independent Unit tests
@@ -45,6 +43,8 @@ UNITTESTS=(
     "c99_conformance"
     "printk"
     "mem"
+    "bitmap"
+    "pmm"
 )
 
 # Adds tests specific to the current architecture.
@@ -93,6 +93,20 @@ get_arch_independent_test_definition()
                         {
                             SRC=('kernel/mem.c'
                                  'unittests/mem_test.c'
+                                 'unittests/unittest.c')
+                        };;
+        bitmap)
+                        {
+                            SRC=('common/bitmap.c'
+                                 'unittests/bitmap_test.c'
+                                 'unittests/common.c'
+                                 'unittests/unittest.c')
+                        };;
+          pmm)          {
+                            SRC=('kernel/pmm.c'
+                                 'common/bitmap.c'
+                                 'unittests/common.c'
+                                 'unittests/pmm_test.c'
                                  'unittests/unittest.c')
                         };;
         *) return 1;;

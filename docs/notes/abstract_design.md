@@ -1,6 +1,8 @@
-## Megha Operating System V2 - x86
-## Abstraction is Key for a modular Operating System
+# Megha Operating System V2 - x86
 ------------------------------------------------------------------------------
+
+## Abstraction is Key for a modular Operating System
+categories: note, independent
 _25 June 2022_
 
 MeghaOS is after all a learning project, this means it should be easier to change parts of the OS
