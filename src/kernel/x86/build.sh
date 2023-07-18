@@ -23,5 +23,12 @@ C_FILES=(
     'kernel/x86/boot.c'
 )
 
+C_INTERRUPT_HANDLER_FILES=(
+    'kernel/x86/interrupts.c'
+)
+
 compile_nasm "$NASM32_ELF" "$OBJDIR" ${ASM_FILES[@]}
-compile_cc "$GCC32" "$OBJDIR" ${C_FILES[@]}
+compile_cc "$GCC32 $GCC32_FLAGS" "$OBJDIR" ${C_FILES[@]}
+compile_cc "$GCC32 $GCC32_INTERRUPT_HANDLER_FLAGS" \
+           "$OBJDIR"                               \
+           ${C_INTERRUPT_HANDLER_FILES[@]}

@@ -1,4 +1,4 @@
-#include <kernel.h>
+#include <types.h>
 #include <unittest/unittest.h>
 
 TEST(types.h, size_t_conformance)

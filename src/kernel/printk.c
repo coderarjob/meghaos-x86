@@ -10,9 +10,12 @@
 * Dated: 5th September 2021
 */
 
-#include <kernel.h>
+#include <disp.h>
+#include <types.h>
+#include <moslimits.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <utils.h>
 
 typedef enum IntTypes 
 {

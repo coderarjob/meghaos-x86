@@ -1,6 +1,8 @@
-## Megha Operating System V2 - x86
-## Physical Memory allocation
+# Megha Operating System V2 - x86
 ------------------------------------------------------------------------------
+
+## Physical Memory allocation - Making physical address 0x0000 invalid
+categories: note, x86
 __19 Nov 2022__
 
 With the latest change to the PMM, the physical address 0x0000 is now invalid. Think of it as `NULL`
@@ -117,11 +119,15 @@ and will match exactly the dump from previous (see below).
 ```
 
 ------------------------------------------------------------------------------
-__29 July 2022__
+
+## Physical Memory allocation - Dry run
+categories: note, x86, obsolete
+_29 July 2022_
 
 Here is a dry run of both the freeing and allocation procedures.
 
 First things first - Few basics and system configurations.
+
 ```
 Macro name                     Value(DEC)  Value(Hex)  Unit  Calculation
 ---------------------------    ----------- ---------- ---- ------------------------------------------
@@ -136,9 +142,7 @@ MAX_DMA_ADDRESSABLE_BYTE_COUNT 16777216    0x1000000  byte Min(MAX_DMA_BYTE_COUN
 MAX_DMA_ADDRESSABLE_PAGE_COUNT 4096        0x1000     page Min(MAX_DMA_PAGE_COUNT, MAX_ADDRESSABLE_PAGE_COUNT)
 MAX_DMA_ADDRESSABLE_BYTE       16777215    0xFFFFFF   byte MAX_DMA_ADDRESSABLE_BYTE_COUNT - 1
 MAX_DMA_ADDRESSABLE_PAGE       4095        0xFFF      page MAX_DMA_ADDRESSABLE_PAGE_COUNT - 1
-```
 
-```
 RAM Reported        = 4F0000 bytes  (5056 KiB)
 Page count          = 1264
 
@@ -163,6 +167,7 @@ FFFC0000 40000    2
 It does not effect our calculation, so lets continue.
 
 Few more basics:
+
 ```
 PAB_BYTE_INDEX = pageFrameIndex / 8
 PAB_BIT_INDEX = pageFrameIndex % 8
@@ -255,7 +260,10 @@ On error `EXIT_FAILURE` is returned. The exact cause of the error can found by r
 `k_errorNumber` global variable.
 
 ------------------------------------------------------------------------------
-_20 July 2022__
+
+## Physical Memory allocation - Notes on API
+categories: note, x86, obsolete
+_20 July 2022_
 
 Notes on the API:
 
@@ -268,11 +276,15 @@ enum AllocTypes {
 PADDR kpmm_alloc (INT size, AllocTypes type, INT start);
 UINT kpmm_free (PADDR address, INT size);
 ```
+
 GDT, IDT, DISP are all responsible to call `kpmm_alloc` to allocate the `FIXED` addresses for them.
 Or will they call virtual memory allocator methods??
 
 ------------------------------------------------------------------------------
-_19 July 2022__
+
+## Physical Memory allocation - Size of PAB in MeghaOS
+categories: note, x86
+_19 July 2022_
 
 Size of PAB array determines the maximum physical RAM that can be accessed. Each bit in this array
 represents 4KB of memory (i.e. one page). This means, one cannot allocate less than 4KB.

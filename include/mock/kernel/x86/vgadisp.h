@@ -2,7 +2,7 @@
 #define VGADISP_FAKE_H
 
 #include <unittest/fake.h>
-#include <kernel.h>
+#include <types.h>
 
 DECLARE_FUNC_VOID(kdisp_putc, CHAR);
 DECLARE_FUNC_VOID(kdisp_scrollDown);

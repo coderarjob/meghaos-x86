@@ -9,8 +9,13 @@
 ; ---------------------------------------------------------------------------
 */
 
-#include <kernel.h>
+#include <types.h>
+#include <moslimits.h>
+#include <x86/gdt.h>
 #include <x86/gdt_struct.h>
+#include <kdebug.h>
+#include <x86/memloc.h>
+#include <panic.h>
 
 /* -------------------------------------------------------------------------*/
 /* Variables */

@@ -7,7 +7,7 @@
 * Dated: 9th November 2020
 */
 
-#include <kernel.h>
+#include <kerror.h>
 
 /* This variable is globally used to set error codes*/
 KernelErrorCodes k_errorNumber;

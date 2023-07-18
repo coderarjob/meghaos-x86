@@ -19,7 +19,7 @@ export IMAGEDIR="build/diskimage/x86"
 export DISKTEMPDIR="build/diskimage/temp"
 
 export NASM_INCPATH="-I include/x86/asm -I include/asm"
-export GCC_INCPATH="-I include -I include/x86"
+export GCC_INCPATH="-I include"
 
 # ---------------------------------------------------------------------------
 # IMPORTAINT NOTES:
@@ -29,6 +29,12 @@ export GCC_INCPATH="-I include -I include/x86"
 # -fno-unit-at-a-time implies 
 # -fno-toplevel-reorder and -fno-section-anchors. 
 # -fno-toplevel-reorder prevents reordering of top level functions
+#
+# Required for stack trace to work
+#
+# -fno-omit-frame-pointer : Sometime GCC skips saving EBP, and uses ESP only.
+# -fno-inline-functions-called-once : Unnecessory inlining produces wrong stack
+#                                     trace results.
 # ---------------------------------------------------------------------------
 # If using GCC to compile assembly files in Intel syntax, use the following
 # options: 
@@ -50,21 +56,27 @@ WOPTS="-Wpedantic \
        -Wdangling-else \
        -Werror"
 
-export GCC32="i686-elf-gcc -std=c99\
-              -g \
-              -nostartfiles \
-              -ffreestanding \
-              -fno-pie \
-              -fno-stack-protector \
-              -fno-asynchronous-unwind-tables \
-              -m32 \
-              -march=i386 \
-              -masm=intel \
-              -mno-red-zone \
-              $WOPTS \
-              $GCC_INCPATH \
-              -O1 -fno-unit-at-a-time \
-              -D $DEBUG -D DEBUG_LEVEL=$DEBUGLEVEL" 
+export GCC32="i686-elf-gcc"
+export GCC32_FLAGS="-std=c99\
+                    -g \
+                    -nostartfiles \
+                    -ffreestanding \
+                    -fno-pie \
+                    -fno-stack-protector \
+                    -fno-asynchronous-unwind-tables \
+                    -m32 \
+                    -march=i386 \
+                    -masm=intel \
+                    -mno-red-zone \
+                    $WOPTS \
+                    $GCC_INCPATH \
+                    -O1 \
+                    -fno-unit-at-a-time \
+                    -fno-omit-frame-pointer \
+                    -fno-inline-functions-called-once \
+                    -D $DEBUG -D DEBUG_LEVEL=$DEBUGLEVEL"
+
+export GCC32_INTERRUPT_HANDLER_FLAGS="$GCC32_FLAGS -mgeneral-regs-only"
 
 export NASM32_ELF="nasm -f elf32 -g"
 export NASM32_BIN="nasm -f bin"
@@ -77,7 +89,7 @@ export NASM32_BIN="nasm -f bin"
 
 # Link using the ld program. 
 if [ $LINK_USING_LD -eq 1 ]; then
-    GCCVER=$(i686-elf-gcc -v 2>&1|tail - -n 1|awk '{print $3}')
+    GCCVER=$($GCC32 -v 2>&1|tail - -n 1|awk '{print $3}')
     LIBPATH=$(dirname $(readlink $(which i686-elf-ld)))/../lib/gcc/i686-elf
 
     export LD_OPTIONS="-lgcc"       
@@ -90,7 +102,7 @@ else
                        -nostdlib \
                        -lgcc"
      export LD_FLAGS="-T build/kernel.ld"
-     export LD_KERNEL="i686-elf-gcc"
+     export LD_KERNEL="$GCC32"
 fi
 
 export OBJCOPY="i686-elf-objcopy"
@@ -129,7 +141,7 @@ fi
 # ---------------------------------------------------------------------------
 # Build the floppy image
 echo "    [ Creating disk image ]    "
-mkdosfs -C $IMAGEDIR/mos.flp 1440 || exit
+mkdosfs -C $IMAGEDIR/mos.flp -F 12 1440 || exit
 
 # mount the Disk image
 echo "    [ Mounting Disk image ]    "
@@ -183,8 +195,10 @@ if [ ! -e "$LCOV_AVAILABLE" ] || [ ! -e "$GENHTML_AVAILABLE" ]; then
 else
     ./run.sh unittests > /dev/null 2>&1
     lcov --capture --directory . \
+         -rc lcov_branch_coverage=1 \
          --output-file build/coverage/capture.data > /dev/null  || exit
     genhtml build/coverage/capture.data \
+            --branch-coverage \
             -o build/coverage/report > /dev/null                || exit
 fi
 

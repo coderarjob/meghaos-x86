@@ -11,19 +11,27 @@
 * Dated: 20th September 2020
 */
 
-#include <kernel.h>
+#include <disp.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <types.h>
+#include <moslimits.h>
+#include <kdebug.h>
+#include <kerror.h>
+#include <x86/interrupt.h>
+#include <x86/vgatext.h>
+#include <x86/tss.h>
+#include <pmm.h>
+#include <x86/idt.h>
+#include <x86/gdt.h>
+#include <x86/boot.h>
+#include <x86/paging.h>
+#include <x86/kernel.h>
+#include <panic.h>
 
 static void usermode_main ();
-void __jump_to_usermode (U32 dataselector, 
-                        U32 codeselector, void (*user_func)());
-static void div_zero ();
-static void sys_dummy ();
-static void fault_gp ();
-static void page_fault ();
 static void display_system_info ();
-static void s_markMemoryOccupiedByModuleFiles ();
+static void s_markUsedMemory ();
 static void s_dumpPab ();
 
 /*
@@ -31,10 +39,10 @@ static void s_dumpPab ();
  0xc0000000 - 0xc03fffff -> 0x000000000000 - 0x0000003fffff
 */
 //volatile CHAR *a = (CHAR *)0x00300000;
-volatile CHAR *a = (CHAR *)0xc0400000;
+volatile CHAR *a = (CHAR *)0xC0300000;
 
 __attribute__ ((noreturn)) 
-void __kernel_main ()
+void kernel_main ()
 {
     kdisp_init ();
     kearly_printf ("\r\n[OK]\tPaging enabled.");
@@ -43,7 +51,7 @@ void __kernel_main ()
     kpmm_init ();
 
     // Mark memory already occupied by the modules.
-    s_markMemoryOccupiedByModuleFiles();
+    s_markUsedMemory();
 
     // TSS setup
     kearly_printf ("\r\n[  ]\tTSS setup.");
@@ -62,16 +70,15 @@ void __kernel_main ()
     kearly_printf ("\r\n[  ]\tIDT setup");
     kidt_init ();
 
-    kidt_edit (0, div_zero, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-    kidt_edit (14, page_fault, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-    kidt_edit (13, fault_gp,GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
-    kidt_edit (0x40, sys_dummy, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
+    kidt_edit (0, div_zero_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (14, page_fault_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (13, general_protection_fault_asm_handler,GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (0x40, sys_dummy_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
 
     kearly_printf ("\r[OK]");
 
     // Display available memory
     display_system_info ();
-
     
     s_dumpPab();
     // Paging information
@@ -81,7 +88,8 @@ void __kernel_main ()
     // Jump to user mode
     kearly_printf ("\r\nJumping to User mode..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,CYAN,0));
-    __jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
+
+    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
     
 }
@@ -90,13 +98,13 @@ void s_dumpPab ()
 {
 #if DEBUG
     U8 *s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
-    UINT bytes = 60;
+    UINT bytes = 120;
 
     while (bytes)
     {
         kdebug_printf ("\r\n%x:", s_pab);
-        for (int i = 0; i < 8 && bytes; bytes--, i++, s_pab++)
-            kdebug_printf ("\t%x ", *s_pab);
+        for (int i = 0; i < 16 && bytes; bytes--, i+=2, s_pab+=2)
+            kdebug_printf ("\t%x:%x ", *(s_pab + 1), *s_pab);
     }
 #endif // DEBUG
 }
@@ -120,7 +128,7 @@ void display_system_info ()
 
     INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
     kdebug_printf ("%s","\r\nBIOS Memory map:"); 
-    U64 available_memory = 0;
+    U64 installed_memory = 0;
     for (INT i = 0; i < memoryMapItemCount; i++)
     {
         BootMemoryMapItem* item = kBootLoaderInfo_getMemoryMapItem (mi, i);
@@ -128,21 +136,20 @@ void display_system_info ()
         U64 length_bytes = kBootMemoryMapItem_getLength (item);
         BootMemoryMapTypes type = kBootMemoryMapItem_getType (item);
 
-        available_memory += length_bytes;
+        installed_memory += length_bytes;
         kdebug_printf ("\r\n* map: Start = %llx, Length = %llx, Type = %u",
                          baseAddress, length_bytes, type);
     }
 
     kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
-    kdebug_printf ("\r\nAvailable RAM bytes: %llx bytes",available_memory);
-    kdebug_printf ("\r\nFree RAM bytes: %llx bytes", kpmm_getFreeMemorySize ());
-
-    UINT availablePageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (available_memory);
-    kdebug_printf ("\r\nAvailable RAM Pages: %u", availablePageCount);
-
     kdebug_printf ("\r\nMax RAM Pages: %u", MAX_PAB_ADDRESSABLE_PAGE_COUNT);
+    kdebug_printf ("\r\nInstalled RAM bytes: x:%llx bytes",installed_memory);
+    UINT installed_memory_pageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (installed_memory);
+    kdebug_printf ("\r\nInstalled RAM Pages: %u", installed_memory_pageCount);
+    kdebug_printf ("\r\nFree RAM bytes: x:%llx bytes", kpmm_getFreeMemorySize ());
 #endif // DEBUG
 }
+
 /***************************************************************************************************
  * Marks pages occupied by module files as occupied.
  *
@@ -153,7 +160,7 @@ void display_system_info ()
  * @return nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_markMemoryOccupiedByModuleFiles ()
+static void s_markUsedMemory ()
 {
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
@@ -166,64 +173,28 @@ static void s_markMemoryOccupiedByModuleFiles ()
 
         kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
                         , startAddress, lengthBytes, pageFrameCount);
-        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, FALSE) == false)
+        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, PMM_REGION_ANY) == false)
             k_assertOnError ();
     }
 }
 
-__attribute__ ((noreturn))
-void page_fault ()
-{
-    register INT fault_addr;
-    INT errorcode;
-    /* GCC does not preserve ESP in EBP for function with no arguments.
-     * This is the reason I am doing ESP + 0x24 (listing shows GCC does ESP - 0x24
-     * as the first instruction in this function)
-     * TODO: Implement the page_fault handler in assembly and then call a C
-     * function for printing messages etc.
-     * */
-    __asm__ volatile ("mov %%eax, [%%esp + 0x24]\r\n"
-                      "mov %0, %%eax":"=m"(errorcode)::"eax");
-    __asm__ volatile ("mov %0, %%cr2":"=r"(fault_addr));
-
-    k_panic ("Page fault when accessing address 0x%x (error: 0x%x)",
-            fault_addr,errorcode);
-}
-
-void sys_dummy ()
-{
-    kearly_printf ("\r\nInside sys_dummy routine..");
-    outb (0x80,4);
-    // Needs to IRET not RET
-}
-
-__attribute__ ((noreturn))
-void fault_gp ()
-{
-    k_panic ("%s","General protection fault."); 
-}
-
-__attribute__ ((noreturn))
-void div_zero ()
-{
-    k_panic ("%s","Error: Division by zero"); 
-}
-
 void usermode_main ()
 {
-    //__asm__ volatile ("INT 0x40");
-
     kearly_printf ("\r\nInside usermode..");
 
-    kearly_printf ("\r\nLocation of __kernel_main = %x",__kernel_main);
+    kbochs_breakpoint();
+    //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy_asm_handler));
+    __asm__ volatile ("INT 0x40");
+    kbochs_breakpoint();
+
+    kearly_printf ("\r\nLocation of kernel_main = %x", kernel_main);
     kearly_printf ("\r\nLocation of pab = %x",CAST_PA_TO_VA (g_pab));
 
-    //volatile char p = *(char *)0xC0300000;
-    //kdebug_printf ("\r\np is: %u", p);
+    //extern void display_PageInfo ();
+    //display_PageInfo();
 
-    //k_assert (1 < 0,"Nonsense");
     *a = 0;
 
-    while (1);
+    k_halt();
 }
 

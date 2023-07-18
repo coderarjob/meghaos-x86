@@ -7,10 +7,12 @@
 * --------------------------------------------------------------------------------------------------
 */
 
-#ifndef BOOT_H
-#define BOOT_H
+#ifndef BOOT_H_X86
+#define BOOT_H_X86
 
     #include <types.h>
+    #include <buildcheck.h>
+
     typedef enum BootMemoryMapTypes
     {
         MMTYPE_FREE = 1,
@@ -37,4 +39,4 @@
     U64 kBootMemoryMapItem_getBaseAddress (BootMemoryMapItem const* bmmi);
 
     ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli);
-#endif //BOOT_H
+#endif //BOOT_H_X86

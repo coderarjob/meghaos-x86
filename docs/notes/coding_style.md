@@ -1,7 +1,11 @@
-## Megha Operating System V2 - x86
-## Naming Conventions of Variables and Functions
+# Megha Operating System V2
 ------------------------------------------------------------------------------
+
+## MeghaOS code style
+categories: guideline, independent
 _19 December 2021_
+
+## Naming Conventions of Variables and Functions
 
 ### (1) Naming
 #### (1.1) Functions

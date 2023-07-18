@@ -4,6 +4,10 @@ ARCH=x86
 UNITTEST
 -D
 DEBUG
+-D
+DEBUG_LEVEL=3
+-m32
+-march=i386
 -I
 ./include
 -I
@@ -14,5 +18,3 @@ DEBUG
 ./include/mock/kernel/x86
 -I
 ./include/unittest
--I
-./include/x86

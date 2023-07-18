@@ -21,7 +21,7 @@ gdt32:
 .code:  dw      0xFFFF      ; Limit
         dw      0x0000      ; Base
         db      0x00        ; Base
-        db      0x9A        ; Access: System Descriptor, Code, 0 DPL, NC
+        db      0x9A        ; Access: Code, 0 DPL, NC
         db      0xCF        ; Limit: 0xF, AVL = 0 (can be anything)
                             ; Flags: 32Bit address, data, 4GB limit.
         db      0x00        ; Base

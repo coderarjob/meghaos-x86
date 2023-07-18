@@ -7,9 +7,26 @@
 #ifndef PMM_H_X86
 #define PMM_H_X86
 
-#include <kernel.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <types.h>
+#include <utils.h>
+#include <config.h>
+#include <common/bitmap.h>
 
 extern Physical g_pab; /* Address of Page Allocation Bitmap array */
+
+typedef enum KernelPhysicalMemoryRegions
+{
+    PMM_REGION_ANY
+} KernelPhysicalMemoryRegions;
+
+typedef enum KernelPhysicalMemoryStates {
+    PMM_STATE_FREE = 0,
+    PMM_STATE_USED,
+    PMM_STATE_RESERVED,
+    PMM_STATE_INVALID
+} KernelPhysicalMemoryStates;
 
 // Calculates number of bytes from page frame count 'fc'.
 #define PAGEFRAMES_TO_BYTES(fc) ((fc) * (CONFIG_PAGE_FRAME_SIZE_BYTES))
@@ -22,11 +39,14 @@ extern Physical g_pab; /* Address of Page Allocation Bitmap array */
     (ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES) / CONFIG_PAGE_FRAME_SIZE_BYTES)
 
 void kpmm_init ();
-bool kpmm_free (Physical startAddress, UINT pageCount);
-Physical kpmm_alloc (UINT pageCount, bool isDMA);
-bool kpmm_allocAt (Physical start, UINT pageCount, bool isDMA);
+void kpmm_arch_init (Bitmap *bitmap);
 bool kpmm_isInitialized ();
+
+bool kpmm_free (Physical startAddress, UINT pageCount);
+bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions reg);
+bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg);
+
 size_t kpmm_getFreeMemorySize ();
-size_t kpmm_getAddressableByteCount (bool isDMA);
-UINT kpmm_getAddressablePageCount (bool isDMA);
+U64 kpmm_arch_getInstalledMemoryByteCount ();
+USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg);
 #endif // PMM_H_X86

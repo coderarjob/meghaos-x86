@@ -54,6 +54,9 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
     FK_DEFINE_FUNC_STRUCT(f);                   \
     FK_DEFINE_FUNC_BODY(3, rt, f, __VA_ARGS__)
 
+#define DEFINE_FUNC_4(rt, f, ...)               \
+    FK_DEFINE_FUNC_STRUCT(f);                   \
+    FK_DEFINE_FUNC_BODY(4, rt, f, __VA_ARGS__)
 // ----
 #define DEFINE_FUNC_VOID_0(f, ...)               \
     FK_DEFINE_FUNC_STRUCT(f);                    \
@@ -71,6 +74,9 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
     FK_DEFINE_FUNC_STRUCT(f);                    \
     FK_DEFINE_FUNC_BODY_VOID(3, f, __VA_ARGS__)
 
+#define DEFINE_FUNC_VOID_4(f, ...)               \
+    FK_DEFINE_FUNC_STRUCT(f);                    \
+    FK_DEFINE_FUNC_BODY_VOID(4, f, __VA_ARGS__)
 // ----
 #define FK_DEFINE_FUNC_STRUCT(f)  FK_STRUCT_TAG(f) FK_STRUCT_VAR(f) = {}
 
@@ -89,11 +95,13 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
            ? FK_STRUCT_VAR(f).handler(FK_FUNC_ARG_ ## n())  \
            : FK_STRUCT_VAR(f).ret
 
+#define FK_FUNC_PARAMS_4(t,...) t d, FK_FUNC_PARAMS_3(__VA_ARGS__)
 #define FK_FUNC_PARAMS_3(t,...) t c, FK_FUNC_PARAMS_2(__VA_ARGS__)
 #define FK_FUNC_PARAMS_2(t,...) t b, FK_FUNC_PARAMS_1(__VA_ARGS__)
 #define FK_FUNC_PARAMS_1(t,...) t a
 #define FK_FUNC_PARAMS_0(...)
 
+#define FK_FUNC_ARG_4() d, FK_FUNC_PARAMS_3()
 #define FK_FUNC_ARG_3() c, FK_FUNC_PARAMS_2()
 #define FK_FUNC_ARG_2() b, FK_FUNC_PARAMS_1()
 #define FK_FUNC_ARG_1() a

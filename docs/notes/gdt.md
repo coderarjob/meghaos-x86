@@ -1,6 +1,8 @@
-## Megha Operating System V2 - x86
-## GDT entries
+# Megha Operating System V2 - x86
 ------------------------------------------------------------------------------
+
+## Physical memory map
+categories: feature, x86
 _15 November 2022_
 
 Revised physical memory map
@@ -13,6 +15,8 @@ Revised physical memory map
    allocated dynamically later after Virtual Memory Manager is in place.
 
 ### Memory Layout after boot1
+
+```
 * 0x000000  - 0x000FFF    -   Guard Null Page
 * 0x001000  - 0x0017FF    -   IDT               2   KB (256 IDT entries)
 * 0x001800  - 0x0027FF    -   GDT               4   KB (512 GDT entries)
@@ -22,21 +26,35 @@ Revised physical memory map
 * 0x007c00  - 0x007FFF    -   boot0             1   KB
 * 0x008000  - 0x017FFF    -   boot1            64   KB (Maximum boot1 size)
 * 0x018000  - 0x027FFF    -   boot1 buffer     64   KB
-* 0x003C00  - 0x043BFF    -   kernel stack    256   KB (boo1 space reused)
+* 0x003C00  - 0x023BFF    -   User stack      128   KB (boo1 space reused) (See Issue)
+* 0x023C00  - 0x043BFF    -   kernel stack    128   KB
 * 0x043C00  - 0x044BFF    -   Guard Null page   4   KB
 * 0x100000  - 0x110000    -   kernel           64   KB (Maximum kernel size)
+```
 
 The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine.
 It can load files at most 64 KB in size.
 
-The 1 KB for Boot Info structure is arbitarily large. The 1 KB is size should be
+The 1 KB for Boot Info structure is arbitrarily large. The 1 KB is size should be
 large for any x86-64 systems.
 
+**ISSUE**: Currently the same kernel stack is also used in user mode. This is wrong, because the CPU
+will set the stack pointer to `0x043BFF` (Kernel Stack Top) when going from user mode to kernel
+mode. Then any Push in the Kernel space will overwrite the user stack. The SS & ESP itself will be
+restored when returning from an Interrupt, however the because the memory remains the same, it gets
+modified by the stack operations of the Kernel mode.
+
+_Solution_: This is temporary solution. I reduced the Kernel stack to make space for the User stack.
+Such a separate fixed user stack may not be required as user stack allocation will be part of
+process creation - each process will have different physical memory allocated for their stack.
+
 ------------------------------------------------------------------------------
+
+## Where to keep the GDT?
+categories: note, x86, obsolete
 _23st October 2020_
 
-Where to keep the GDT? Two possible options:
-
+Two possible options:
 1. At a fixed physical location, say `0x00800`
 2. Keep two separate GDTs one in `boot1` and another in `kernel`. Why two?
    Because the kernel stack area overlaps the memory where `boot1` is loaded.
@@ -61,6 +79,8 @@ location **0x00800** with storage for 512 entries. Thus the memory looks like
 below (With just two segments, however). 
 
 ### Memory Layout after boot1
+
+```
 * 0x00000  - 0x007FF    -   IDT               2   KB (256 IDT entries)
 * 0x00800  - 0x017FF    -   GDT               4   KB (512 GDT entries)
 * 0x01800  - 0x07BFF    -   Free             25   KB
@@ -68,8 +88,12 @@ below (With just two segments, however).
 * 0x08000  - 0x17FFF    -   boot1            64   KB (Maximum boot1 size)
 *    -     - 0x27FFF    -   kernel stack    128   KB (boo1 space reused)
 * 0x28000  -            -   kernel          ---
+```
 
 ------------------------------------------------------------------------------
+
+## Why separate stack does not work with GCC
+categories: note, x86
 _21st October 2020_
 
 The below idea of separate segment for stack is not working because the GCC
@@ -96,17 +120,22 @@ as the processor only either can check for the Upper (Expand-Up) or Lower
 So basically we have just 2 segments, but the memory layout will remain the
 same.
 
+```
 1. A `null` segment descriptor  	- 
 2. A `code` segment descriptor.	    -       0   - 4 GB
 3. A `data` segment descriptor.	    -       0   - 4 GB
+```
 
 ### Memory Layout after boot1
+
+```
 * 0x00800  - 0x017FF    -   GDT               4   KB (512 GDT entries)
 * 0x01800  - 0x07BFF    -   Free             25   KB
 * 0x07c00  - 0x07FFF    -   boot0             1   KB 
 * 0x08000  - 0x17FFF    -   boot1            64   KB (Maximum boot1 size)
 *    -     - 0x27FFF    -   kernel stack    128   KB (boo1 space reused)
 * 0x28000  -            -   kernel          ---
+```
 
 One more change tough, the GDT that is setup by the `boot1` is local to it. The
 kernel must setup and initialize another GDT of its own. The reason for that is
@@ -119,7 +148,11 @@ Kernel.
 
 Paging and Virtual memory is quite important it seems with the available
 tools.
+
 ------------------------------------------------------------------------------
+
+## Stack overflow protection using GDT
+categories: note, x86
 _19th Oct 2020_
 
 Currently there is no separate stack segment in the GDT. It just resides at
@@ -127,26 +160,33 @@ some offset in the data segment. This presents the problem that in the event of
 stack overflow, it will override the data that lies beneath - processor cannot
 check because the stack size is never provided to the processor.
 
+```
 1. A `null` segment descriptor  	- 
 2. A `code` segment descriptor.	    -       0   - 4 GB
 3. A `data` segment descriptor.	    -       0   - 4 GB
+```
 
 ### GDT proposed:
 So it is beneficial for the stack to have a overlapping but separate segment in
 the GDT. The new GDT should look like this.
 
+```
 1. A `null` segment descriptor  	- 
 2. A `code` segment descriptor.	    -       0   - 4 GB
 3. A `data` segment descriptor.	    -       0   - 4 GB
 4. A `stack` segment descriptor.    - 0x08000   - 128 KB
+```
 
 ### Memory Layout after boot1
+
+```
 * 0x00800  - 0x017FF    -   GDT               4   KB (512 GDT entries)
 * 0x01800  - 0x07BFF    -   Free             25   KB
 * 0x07c00  - 0x07FFF    -   boot0             1   KB 
 * 0x08000  - 0x17FFF    -   boot1            64   KB (Maximum boot1 size)
 * 0x08000  - 0x27FFF    -   kernel stack    128   KB (boo1 space reused)
 * 0x28000  -            -   kernel          ---
+```
 
 The boot1 will setup the kernel GDT fully and the GDT will itself be placed at
 location 0x800. It will have 4 entries before jumping to the kernel.
@@ -160,16 +200,17 @@ will not check for under-flow. __Is there no bound check?__
 The above is striked because, having just a Expand Up segment is enough for the
 processor to check both the upper and lower bounds. 
 
+```
 |--------|-----------|----------------------|------------------------|
 | Origin |    Limit  |  Valid offset range  |   Valid Address range  |
 |--------|-----------|----------------------|------------------------|
 | 0x8000 |  0x1FFFF  |  0x0000 - 0x1FFFF    |   0x8000 - 0x27FFF     |
 |--------|-----------|----------------------|------------------------|
+```
 
-So with a GDT with `Origin = 0x08000` and `Limit = 0x1FFFF', 
+So with a GDT with `Origin = 0x08000` and `Limit = 0x1FFFF`, 
 the Valid range of offset is 0x0000 and 0x1FFFF (Limit value). Thus both
 overflow and underflow can be checked.
 
 The Kernel can add/override the existing entries, but the GDT itself will
 always remain at 0x800. Just like the IDT has a special memory location.
-------------------------------------------------------------------------------

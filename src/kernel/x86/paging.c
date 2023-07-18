@@ -8,7 +8,70 @@
 * Dated: 13 September 2021
 ; ---------------------------------------------------------------------------
 */
-#include <kernel.h>
+#include <x86/paging.h>
+#include <kdebug.h>
+#include <config.h>
+#include <disp.h>
+#include <types.h>
+
+void display_PageInfo ()
+{
+#define MASK(b) (~((1 << b) - 1))
+
+#define PDE_SHIFT   22
+#define PTE_SHIFT   12
+#define OFFSET_SHIFT 0
+
+#define PDE_MASK    0xFFC00000
+#define PTE_MASK    0x003FF000
+#define OFFSET_MASK 0x00000FFF
+
+    typedef struct PageInfo
+    {
+        UINT pdeIndex;
+        UINT pteIndex;
+        UINT offset;
+        PageDirectoryEntry4KB *pde;
+        PageTableEntry *pte;
+    } PageInfo;
+
+    uintptr_t va = 0xC01FFFFF;
+
+    PageInfo info = {0};
+    info.pdeIndex = (va & PDE_MASK) >> PDE_SHIFT;
+    info.pteIndex = (va & PTE_MASK) >> PTE_SHIFT;
+    info.offset = (va & OFFSET_MASK) >> OFFSET_SHIFT;
+
+    kdebug_printf ("\r\npde index: %x\r\npte index: %x\r\noffset: %x\r\n",
+                    info.pdeIndex, info.pteIndex, info.offset);
+
+    uintptr_t pdeAddr = (0x3FFU << PDE_SHIFT) |
+                        (0x3FFU << PTE_SHIFT) |
+                        (info.pdeIndex * sizeof(PageDirectoryEntry4KB));
+
+    kdebug_printf ("\r\npdeAddr: %lx", pdeAddr);
+
+    uintptr_t pteAddr = (0x3FFU        << PDE_SHIFT) |
+                        (info.pdeIndex << PTE_SHIFT) |
+                        (info.pteIndex * sizeof(PageTableEntry));
+
+    kdebug_printf ("\r\npteAddr: %lx", pteAddr);
+
+    info.pde = (PageDirectoryEntry4KB*)(pdeAddr);
+    if (info.pde->present)                  // Check if a page table address is present in the pde
+        info.pte = (PageTableEntry*)(pteAddr);
+
+    if (info.pte && info.pte->present)      // Check if a page frame address is present in the pte
+    {
+#if DEBUG
+        Physical paddr = createPhysical (info.pte->page_addr * CONFIG_PAGE_FRAME_SIZE_BYTES + info.offset);
+        kdebug_printf ("\r\n%lx --> %lx", va, paddr.val);
+#endif
+    }
+    else
+        kdebug_printf ("\r\n%lx --> unmapped", va);
+
+}
 
 void paging_print ()
 {

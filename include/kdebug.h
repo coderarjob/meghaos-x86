@@ -10,10 +10,11 @@
 *
 * Dated: 1st November 2020
 */
-#ifndef __KDEBUG_H__
-#define __KDEBUG_H__
+#ifndef KDEBUG_H
+#define KDEBUG_H
 
 #include <types.h>
+#include <buildcheck.h>
 
 /* Prints formatted string to 0xE9 port and can optionally print to vga
  * buffer.
@@ -25,4 +26,9 @@
     #define kdebug_printf(fmt,...) (void)0
 #endif
 
-#endif // __KDEBUG_H__
+/** Magic break point used by bochs emulator*/
+#define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
+
+void kdebug_dump_call_trace(PTR *raddrs, INT count);
+
+#endif // KDEBUG_H

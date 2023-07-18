@@ -3,6 +3,72 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
 
 # TASKS                                         Estimated       Actual
 
+[ ] Document BOOTINFO struct                  - 03 Feb 2021
+[ ] Basic keyboard IRQ                        - 18 Nov 2020
+    handler (demo)
+[ ] RAMDISK (INITRD.0) creation
+    in build.sh
+[ ] unittest.h bugs
+    Function under test is called twice when
+    a scalar match fails.                     -
+[X] Physical memory allocator                 -
+    [ ] Reimplement using common/bitmap       -
+    [ ] Lock to protect the PAB.              -
+[ ] Add -Wundedf compiler flags
+    [ ] define ARCH
+[ ] Have two macros like BUG_ON, WARN_ON
+    BUG_ON panics, WARN_ON prints warning
+    They will replace k_assert and remain
+    in release as well, thus these macros
+    must have little impact on binary
+    size - Loose the text description of
+    k_assert.
+[ ] Remove k_errorText. Has no use in the
+    kernel. It just wasts space.
+[ ] Space saving measures
+    [ ] \n instead of \r\n. No use or LF.     -
+    [ ] 0x printed automatically with %x.     -
+    [ ] Assert message inly valid for
+        unittests.                            -
+[ ] Virutal memory allocator                  -
+    [ ] How to do lazy allocation?
+    [ ] Allocate a new virtual address
+    [ ] Map a virtual to physical address
+[ ] Various functions like kdisp_ioctl, etc   -
+    must implement error reporting.
+    [X] kdisp_ioctl
+    Note: Afterthought: Is this a good idea?
+    Calls or or any of its parameters to these
+    functions come not from a human, but from
+    other parts of the OS, any wrong argument
+    getting to these functions means there
+    is something wrong within the kernel code.
+    We should fail fast the moment such
+    conditions occur in the kernel.
+[ ] Make symbols comply with the C99.         -                 30 Dec 2021
+    Symbols beginning with underscore is
+    reserved [7.13]. Rename them.
+    [X] Macros in header files.
+    [X] Variable names in C source.
+    [X] Members in struct.
+    [X] Function names.
+    [ ] Guard Macros in header files.
+[ ] Configuration header files for C and
+    assembly.                                 -
+    Note: This can be done using CMake.
+[ ] Script to auto generate the config
+    headers simultaneously for C and
+    assembly.                                 -
+    Note: This can be done using CMake, so
+    separate script is not required.
+[ ] There is a need to document the types
+    declared for MeghaOS like INT, LONG etc.
+    These do need to conform with C99, but
+    can be different from the compiler
+    versions. LONG for example must be 32
+    bits or more, but always large enough
+    to hold the largest addresses in the
+    architecture.                             -
 [-] Check the effect on kernel binary size,   -
     if the boot opaque types were removed.
     PMM or the Kernel accesses fields
@@ -12,6 +78,22 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     place asserts and other checks. And these
     checks are invaluable in finding and
     preventing bugs.
+
+[X] k_panic called from interrupt handlers
+    must show correct exception location.
+    Use the interrupt frame.                  -                 8 July 2023
+[X] Print interrupt frame in exception
+    handlers                                  -                 8 July 2023
+
+[X] Page fault handler in asm                 - 26 Jan 2021    22 Mar 2023
+    [-] Examine if EFLAGS register need to be
+        preserved by interrupt and exception
+        handlers.                             -
+        - EFLAGS are preserved in the
+          interrupt frame. Thus not a must.
+
+[X] Use true, false from stdbool.h instead
+    of macros defined in our types.h          -                 04 April 2023
 
 [X] Remove the transparent union for PHYSICAL -                 19 Nov 2022
     Type matching must be rigid to be useful.
@@ -33,40 +115,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     Not ERR_NONE, on Success, and -1 on
     failure.
     Issue first seen in kdisp module.
-[ ] Document BOOTINFO struct                  - 03 Feb 2021
-[ ] Basic keyboard IRQ                        - 18 Nov 2020
-    handler (demo)
-[ ] GP handler                                - 16 Nov 2020
-[ ] Page fault handler in asm                 - 26 Jan 2021
-[ ] RAMDISK (INITRD.0) creation
-    in build.sh
-[X] Physical memory allocator                 -
-    [ ] Lock to protect the PAB.              -
-[ ] Virutal memory allocator                  -
-[ ] Various functions like kdisp_ioctl, etc   -
-    must implement error reporting.
-    [X] kdisp_ioctl
-[ ] Make symbols comply with the C99.         -                 30 Dec 2021
-    Symbols beginning with underscore is
-    reserved [7.13]. Rename them.
-    [X] Macros in header files.
-    [X] Variable names in C source.
-    [X] Members in struct.
-    [X] Function names.
-    [ ] Guard Macros in header files.
-[ ] Configuration header files for C and
-    assembly.                                 -
-[ ] Script to auto generate the config
-    headers simultaneously for C and
-    assembly.                                 -
-[ ] There is a need to document the types
-    declared for MeghaOS like INT, LONG etc.
-    These do need to conform with C99, but
-    can be different from the compiler
-    versions. LONG for example must be 32
-    bits or more, but always large enough
-    to hold the largest addresses in the
-    architecture.                             -
+[X] GP handler                                - 16 Nov 2020    22 Mar 2023
 [X] Rename the accessor methods in boot.c to  - 11 Nov 2022     11 Nov 2022
     the following format:
     k<Boot Structure Name>_get<Field Name>

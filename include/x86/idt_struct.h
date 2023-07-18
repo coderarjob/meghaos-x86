@@ -6,13 +6,14 @@
 #ifndef IDT_STRUCT_H_X86
 #define IDT_STRUCT_H_X86
 
-#include <kernel.h>
+#include <types.h>
+#include <buildcheck.h>
 
 /* IDT Descriptor */
 struct IdtDescriptor
 {
     U16 offset_low;
-    U16 segment_tss_selector;
+    U16 segment_selector;
     U8  zeros;
     U8  type : 5;
     U8  dpl  : 2;

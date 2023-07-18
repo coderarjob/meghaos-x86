@@ -10,10 +10,11 @@
 ; ---------------------------------------------------------------------------
 */
 
-#include <kernel.h>
+#include <types.h>
+#include <buildcheck.h>
 
-#ifndef __PAGING_H_X86__
-#define __PAGING_H_X86__
+#ifndef PAGING_H_X86
+#define PAGING_H_X86
 
 extern Physical g_page_dir,     /* Address of the initial page dir */
                         g_page_table;   /* Address of the initial page table*/
@@ -79,4 +80,4 @@ typedef struct PageDirectoryEntry4KB
             pagetable_addr   :20;
 } __attribute__ ((packed)) PageDirectoryEntry4KB;
 
-#endif // __PAGING_H_X86__
+#endif // PAGING_H_X86

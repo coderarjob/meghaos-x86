@@ -11,7 +11,11 @@
 * Dated: 20th September 2020
 */
 
-#include <kernel.h>
+#include <types.h>
+#include <mem.h>
+#include <utils.h>
+#include <x86/gdt.h>
+#include <x86/memloc.h>
 
 #define IOMAP_SIZE 0x100        // Covers VGA ports and normal IO ports.
 
@@ -55,7 +59,7 @@ void ktss_init ()
 {
     // Deny permissions to all IO ports by setting all the bits
     k_memset (tss_entry.iomap, 0xFF, IOMAP_SIZE - 1);
-    tss_entry.iomap[29] &=0xFC;     // E9 Debug port
+    tss_entry.iomap[29] &=0xFD;     // E9 Debug port
     tss_entry.iomap[122] &=0xcf;    // VGA 3D4 and 3D5 ports
 
     // IOMAP area determines the io port permissions when CPL > IOPL.

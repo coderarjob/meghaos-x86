@@ -6,7 +6,8 @@
 * Dated: 1st November 2020
 */
 
-#include <kernel.h>
+#include <mem.h>
+#include <types.h>
 
 /* Copies n bytes from src to dest. Returns dest */
 void *k_memcpy (void *dest, const void *src, size_t n)

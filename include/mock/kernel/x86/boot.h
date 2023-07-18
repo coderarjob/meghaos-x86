@@ -2,7 +2,7 @@
 #define BOOT_FAKE_X86_H
 
 #include <unittest/fake.h>
-#include <kernel.h>
+#include <x86/boot.h>
 
 DECLARE_FUNC (BootLoaderInfo *, kboot_getCurrentBootLoaderInfo);
 DECLARE_FUNC (ULLONG, kboot_calculateAvailableMemory, BootLoaderInfo const*);

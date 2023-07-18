@@ -13,12 +13,12 @@
 ; ---------------------------------------------------------------------------
 */
 
-#ifndef __MEM_H__
-#define __MEM_H__
+#ifndef MEM_H
+#define MEM_H
 
-#if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
-    #include <x86/memloc.h>
-#endif
+#include <stddef.h>
+#include <types.h>
+#include <buildcheck.h>
 
 /* Copies n bytes from src to dest. Returns dest */
 void *k_memcpy (void *dest, const void *src, size_t n);
@@ -26,4 +26,4 @@ void *k_memcpy (void *dest, const void *src, size_t n);
 /* Fills memory with constant byte */
 void *k_memset (void *s, INT c, size_t n);
 
-#endif //__MEM_H__
+#endif //MEM_H

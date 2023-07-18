@@ -1,4 +1,6 @@
-#include <kernel.h>
+#include <types.h>
+#include <mem.h>
+#include <utils.h>
 #include <unittest/unittest.h>
 
 TEST(MEM, memset_one_byte)

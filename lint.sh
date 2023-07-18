@@ -17,6 +17,6 @@ cppcheck --language=c \
          --inconclusive \
          --quiet \
          --platform=unix32 \
-         -I include/ -I include/x86/ \
+         -I include \
          $EXTRAARGS \
-         src/kernel/*.c src/kernel/x86/*.c || exit
+         src/common src/kernel/ || exit

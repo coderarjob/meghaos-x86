@@ -9,10 +9,11 @@
 * Dated: 6th January 2020
 */
 
-#ifndef BOOT_STRUCT_H
-#define BOOT_STRUCT_H
+#ifndef BOOT_STRUCT_H_X86
+#define BOOT_STRUCT_H_X86
 
-    #include <kernel.h>
+    #include <types.h>
+    #include <buildcheck.h>
 
     struct BootMemoryMapItem
     {
@@ -30,9 +31,9 @@
     struct BootLoaderInfo
     {
         U16 filecount;
-        BootFileItem files[11];
+        struct BootFileItem files[11];
         U16 count;
-        BootMemoryMapItem items[];
+        struct BootMemoryMapItem items[];
     }__attribute__ ((packed));
 
-#endif //BOOT_STRUCT_H
+#endif //BOOT_STRUCT_H_X86

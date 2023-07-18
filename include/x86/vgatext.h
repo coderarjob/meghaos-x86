@@ -9,8 +9,10 @@
 *
 * Dated: 1st November 2020
 */
-#ifndef __VGA_TEXT_H__
-#define __VGA_TEXT_H__
+#ifndef VGA_TEXT_H_X86
+#define VGA_TEXT_H_X86
+
+#include <buildcheck.h>
 
 typedef enum DisplayVgaColors 
 {
@@ -34,4 +36,4 @@ typedef enum DisplayVgaColors
 
 #define k_dispAttr(bg,fg,b) ((b)<<7|(bg)<<4|(fg))
 
-#endif // __VGA_TEXT_H__
+#endif // VGA_TEXT_H_X86

@@ -1,7 +1,8 @@
-## Megha Operating System V2 - x86
-## Memory Mangement
-## GDT entries
+# Megha Operating System V2 - x86
 ------------------------------------------------------------------------------
+
+## Physical page allocation basics
+categories: note, x86
 
 Currently GDT, IDT are all at a fixed memory location. The GDT which is 
 initially set by 'boot1', is at physical 0x800 location and IDT is set by the 
