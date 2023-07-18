@@ -193,7 +193,7 @@ void usermode_main ()
     //extern void display_PageInfo ();
     //display_PageInfo();
 
-    //*a = 0;
+    *a = 0;
 
     k_halt();
 }
