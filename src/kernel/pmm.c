@@ -4,7 +4,6 @@
 *
 * Methods to allocate and free physical pages.
 * --------------------------------------------------------------------------------------------------
-*  TODO: Need to check if use of 'last byte/page' and 'byte/page' count concepts are used correctly.
 *  TODO: Make allocation and deallocation atomic.
 */
 
