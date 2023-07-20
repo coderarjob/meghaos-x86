@@ -26,9 +26,13 @@ int ut_equal_string (const char *a, const char *b, int *i);
          printf(fnt, __VA_ARGS__);                                            \
         } while(0)
 
-#define TEST_SCALAR(a,o, b)                                                   \
-    if (a o b) UT_PASSED(a o b);                                              \
-    else       UT_FAILED(a o b,"[%d !" #o " %d]", a, b)                       \
+#define TEST_SCALAR(a,o, b) do {                                              \
+    int ut_a = (a);                                                           \
+    int ut_b = (b);                                                           \
+    if (ut_a o ut_b) UT_PASSED(a o b);                                        \
+    else       UT_FAILED(a o b,"[%d !" #o " %d]", ut_a, ut_b);                \
+} while(0)
+
 
 #define TEST_MEM(a,o, b,sz) do {                                              \
     int i;                                                                    \
