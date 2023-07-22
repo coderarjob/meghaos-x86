@@ -38,14 +38,14 @@ int ut_equal_string (const char *a, const char *b, int *i);
     int i;                                                                    \
     if (ut_equal_mem (a, b, sz, &i) o 1)                                      \
            UT_PASSED(a o b);                                                  \
-    else   UT_FAILED(a o b,"[Idx: %d, Got: %XH, Exp: %s %XH]",i,a[i],#o,b[i]);\
+    else   UT_FAILED(a o b,"[Idx: %d, 0x%X !" #o " 0x%X]",i,a[i],b[i]);       \
 } while(0)
 
 #define TEST_STRING(a,o, b) do {                                              \
     int i;                                                                    \
     if (ut_equal_string (a, b, &i) o 1)                                       \
            UT_PASSED(a o b);                                                  \
-    else   UT_FAILED(a o b,"[Idx: %d, Got: %c, Exp: %s %c]",i,a[i],#o,b[i]);  \
+    else   UT_FAILED(a o b,"[Idx: %d, '%c' !" #o " '%c']",i,a[i],b[i]);       \
 } while(0)
 
 #define EQ_SCALAR(a,b)  TEST_SCALAR(a, ==, b)
