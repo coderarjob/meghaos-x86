@@ -16,13 +16,6 @@
 #include <kerror.h>
 #include <common/bitmap.h>
 
-typedef enum PhysicalMemoryBitmapState
-{
-    PMM_INIT_STATE_UNINITIALIZED,
-    PMM_INIT_STATE_PARTIAL,
-    PMM_INIT_STATE_COMPLETE
-} PhysicalMemoryBitmapState;
-
 typedef struct PhysicalMemoryRegion
 {
     Bitmap bitmap;
@@ -32,7 +25,7 @@ typedef struct PhysicalMemoryRegion
 
 static PhysicalMemoryRegion s_pmm_completeRegion = {0};
 static U8 *s_pab = NULL;
-static PhysicalMemoryBitmapState s_isInitialized = PMM_INIT_STATE_UNINITIALIZED;
+static bool s_isInitialized = false;
 static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg);
 
 static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions reg)
@@ -64,7 +57,7 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
     if (old == PMM_STATE_FREE && new == PMM_STATE_FREE)
         k_panic ("Double free: Page %u", pageFrame);
 
-    if (s_isInitialized == PMM_INIT_STATE_COMPLETE && old == PMM_STATE_RESERVED)
+    if (s_isInitialized && old == PMM_STATE_RESERVED)
         k_panic ("Use of Reserved page: Page %u", pageFrame);
 
     if (old == PMM_STATE_INVALID)
@@ -96,7 +89,7 @@ void kpmm_init ()
     kpmm_arch_init(&s_pmm_completeRegion.bitmap);
 
     // PMM is now initialized
-    s_isInitialized = PMM_INIT_STATE_COMPLETE;
+    s_isInitialized = true;
 }
 
 /***************************************************************************************************
@@ -239,7 +232,7 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
  **************************************************************************************************/
 bool kpmm_isInitialized ()
 {
-    return s_isInitialized == PMM_INIT_STATE_COMPLETE;
+    return s_isInitialized == true;
 }
 
 /***************************************************************************************************
