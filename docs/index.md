@@ -46,11 +46,11 @@
 - [Where should we initiate and start using paging? ](notes/paging.md#Where-should-we-initiate-and-start-using-paging-)
 - [How to use page tables to map Virtual Addresses to Physical Addresses?](notes/paging.md#How-to-use-page-tables-to-map-Virtual-Addresses-to-Physical-Addresses)
 - [Notes: Why not preallocate the whole 256 MB? ](notes/paging.md#Notes:-Why-not-preallocate-the-whole-256-MB-)
-- [Physical Memory allocation - Making physical address 0x0000 invalid](notes/physical_memory_allocation.md#Physical-Memory-allocation---Making-physical-address-0x0000-invalid)
-- [Physical Memory allocation - Size of PAB in MeghaOS](notes/physical_memory_allocation.md#Physical-Memory-allocation---Size-of-PAB-in-MeghaOS)
 - [Virtual Memory Manager and Recursive mapping](notes/virtual_memory_manager.md#Virtual-Memory-Manager-and-Recursive-mapping)
 - [Map virtual memory to physical memory](notes/virtual_memory_manager.md#Map-virtual-memory-to-physical-memory)
 ### Obsolete x86 Notes
 - [Where to keep the GDT?](notes/gdt.md#Where-to-keep-the-GDT)
+- [Physical Memory allocation - Making physical address 0x0000 invalid](notes/physical_memory_allocation.md#Physical-Memory-allocation---Making-physical-address-0x0000-invalid)
 - [Physical Memory allocation - Dry run](notes/physical_memory_allocation.md#Physical-Memory-allocation---Dry-run)
 - [Physical Memory allocation - Notes on API](notes/physical_memory_allocation.md#Physical-Memory-allocation---Notes-on-API)
+- [Physical Memory allocation - Size of PAB in MeghaOS](notes/physical_memory_allocation.md#Physical-Memory-allocation---Size-of-PAB-in-MeghaOS)

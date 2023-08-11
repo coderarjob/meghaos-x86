@@ -209,5 +209,3 @@ to be unseful (If we have remap, then there is not benefit of remapping)
 So it turns out, we need to do the opposite, the kernel must only preallocate
 what is only required, and keep most of the memory free for mapping as and when
 required.
-
-

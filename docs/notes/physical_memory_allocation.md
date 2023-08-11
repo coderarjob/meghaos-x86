@@ -2,7 +2,7 @@
 ------------------------------------------------------------------------------
 
 ## Physical Memory allocation - Making physical address 0x0000 invalid
-categories: note, x86
+categories: note, x86, obsolete
 __19 Nov 2022__
 
 With the latest change to the PMM, the physical address 0x0000 is now invalid. Think of it as `NULL`
@@ -283,7 +283,7 @@ Or will they call virtual memory allocator methods??
 ------------------------------------------------------------------------------
 
 ## Physical Memory allocation - Size of PAB in MeghaOS
-categories: note, x86
+categories: note, x86, obsolete
 _19 July 2022_
 
 Size of PAB array determines the maximum physical RAM that can be accessed. Each bit in this array
