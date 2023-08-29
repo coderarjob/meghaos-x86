@@ -23,6 +23,7 @@
 - [Physical memory map](notes/gdt.md#Physical-memory-map)
 - [Interrupt handling](notes/interrupt_handling.md#Interrupt-handling)
 - [Physical Memory allocation](notes/physical_memory_manager.md#Physical-Memory-allocation)
+- [Virtual memory map](notes/vmm.md#Virtual-memory-map)
 ### Obsolete x86 Features Docs
 
 ------------------------------------------------

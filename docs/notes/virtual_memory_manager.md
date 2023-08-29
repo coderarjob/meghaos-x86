@@ -42,7 +42,7 @@ a PDE (this is the PT we want to access), the next 12 bits is the offset into th
 access PTEs in the PT).
 
 With Higher mapped kernel, the kernel page tables can be accessed with virtual address in the range
-`0xFFF00000 – FFF00FFC`.
+`0xFFC00000 – FFC00FFC`.
 
 Special case of this is when the second 10 bits is also 0x3FF, then the 12 bits becomes of the
 offset into the PD and can be used to access PDEs - that is virtual address in the range
