@@ -76,6 +76,9 @@ export GCC32_FLAGS="-std=c99\
                     -fno-inline-functions-called-once \
                     -D $DEBUG -D DEBUG_LEVEL=$DEBUGLEVEL"
 
+# Interrupt and exception handlers only preserve general purpose registers, this
+# attribute prevents GCC to use any other registers (MMX, SSE etc) when
+# compiling interrupt handlers.
 export GCC32_INTERRUPT_HANDLER_FLAGS="$GCC32_FLAGS -mgeneral-regs-only"
 
 export NASM32_ELF="nasm -f elf32 -g"
