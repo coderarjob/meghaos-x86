@@ -15,25 +15,27 @@ Assumptions:
 
 ### Virtual memory map:
 
-```
-| Virtual address                       | Physical address | Usage                                |
-|---------------------------------------|------------------|--------------------------------------|
-| Start            Size           End   | Start            |                                      |
-|---------------------------------------|------------------|--------------------------------------|
-| 0                4KB            ...   | ...              | Null page                            |
-| 4KB              ...            3GB   | ...              | User space                           |
-| 3GB              KMEM_LOW_SZ    ...   | 0                | Kernel Stack, GDT, Boot info etc.    |
-| 3GB+640KB        ...            1MB   | 640KB            | System reserved, VGA memory etc      |
-| KMEM_MOD_ST      1MB            ...   | 1MB              | 11 Mod files (64KB max each) (704KB) |
-| KMEM_MOD_ST+1MB  1MB            ...   | KMEM_MOD_END     | Kernel Static Allocations            |
-| KMEM_MOD_ST+2MB  KHEAP_SZ       ...   | ...              | Kernel Heap                          |
-| FF800000         4MB        FFBFFFFF  | ...              | Temporary PDE/PTE mapping (for 1 PT) |
-| FFC00000         4MB        FFFFFFFC  | ...              | Recursive mapping                    |
-|                                       |                  | * FFC00000 - FFFFEFFC for PT access  |
-|                                       |                  | * FFFFF000 - FFFFFFFC for PD access  |
-|---------------------------------------|------------------|--------------------------------------|
+_Based on Proposed Physical memory map._
 
-KMEM_LOW_SZ  = 271KB (0x43C00) + 8KB (for initial PD & PT) = 279KB (0x45C00)
+```
+| Virtual address                      | Physical address | Usage                                |
+|--------------------------------------|------------------|--------------------------------------|
+| Start            Size           End  | Start            |                                      |
+|--------------------------------------|------------------|--------------------------------------|
+| 0                4KB            ...  | ...              | Null page                            |
+| 4KB              ...            3GB  | ...              | User space                           |
+| 3GB              KMEM_LOW_SZ    ...  | 0                | Kernel Stack, GDT, Boot info etc.    |
+| 3GB+640KB        ...            1MB  | 640KB            | System reserved, VGA memory etc      |
+| KMEM_MOD_ST      1MB            ...  | 1MB              | 11 Mod files (64KB max each) (704KB) |
+| KMEM_MOD_ST+1MB  1MB            ...  | KMEM_MOD_END     | Kernel Static Allocations            |
+| KMEM_MOD_ST+2MB  KHEAP_SZ       ...  | ...              | Kernel Heap                          |
+| FF800000         4MB        FFBFFFFF | ...              | Temporary PDE/PTE mapping (for 1 PT) |
+| FFC00000         4MB        FFFFFFFC | ...              | Recursive mapping                    |
+|                                      |                  | * FFC00000 - FFFFEFFC for PT access  |
+|                                      |                  | * FFFFF000 - FFFFFFFC for PD access  |
+|--------------------------------------|------------------|--------------------------------------|
+
+KMEM_LOW_SZ  = 268KB (0x43000) + 8KB (for initial PD & PT) = 276KB (0x45000)
 KMEM_MOD_ST  = 3GB + 1MB
 KMEM_MOD_END = 704KB Maximum (11 module files, 64KB each)
 KHEAP_SZ     = 512MB (arbitary size limit). Can be max ~1013MB; ending at Temporary mapping start.
@@ -55,19 +57,20 @@ KHEAP_SZ     = 512MB (arbitary size limit). Can be max ~1013MB; ending at Tempor
 
 There are two ways to go about the initial paging setup.
 
-1. Setup the paging just right and have the following mappings:
+1. Let the initial setup be just temporary, it sets up a higher-half kernel and lands us in
+   kernel_main. Kernel will re-setup paging as per OS requirements. If we go by this route, the
+   initial pageing setup in entry.s can be moved to the boot1 phase.
+
+2. Setup the paging just right and have the following mappings:
 
 ```
 | physical address range  | virtual address start | Usage                      |
 |-------------------------|-----------------------|----------------------------|
-| 0x000000 - 0x017FF      | unmapped              |                            |
-| 0x001800 - 0x43BFF      | 0xC0001800            | GDT, BootInfo, stack etc.  |
-| 0x043C00 - 0x45BFF      | 0xC0043C00            | Initial PD and PT.         |
+| 0x000000 - 0x42FFF      | 0xC0000000            | GDT, BootInfo, stack etc.  |
+| 0x043000 - 0x44FFF      | 0xC0043000            | Initial PD and PT.         |
 |                         |                       | * Should be reclamed later |
 | 0x100000 - KMEM_MOD_END | 0xC0100000            | Module binaries            |
 |-------------------------|-----------------------|----------------------------|
 ```
-
-2. Let the initial setup be just temporary, it sets up a higher-half kernel and lands us in
-   kernel_main. Kernel will re-setup paging as per OS requirements. If we go by this route, the
-   initial pageing setup in entry.s can be moved to the boot1 phase.
+This also will be temporary, for the PD and PT physical and virtual addresses are in the wrong
+place. 0xC0043000 address KMEM_LOW_SZ and not kernel heap, which it should.

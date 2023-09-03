@@ -20,16 +20,36 @@ categories: feature, x86
 
 ### Memory Layout after boot1
 
+#### Now
 ```
 | Physical address    | Size   | Usage                                              |
 |---------------------|--------|----------------------------------------------------|
 | 0x000000 - 0x000FFF | 4 KB   | Free                                               |
 | 0x001000 - 0x0017FF | 2 KB   | Free. For 256 IDT entries                          |
-| 0x001800 - 0x0027FF | 4 KB   | 512 GDT entries                                    |
-| 0x002800 - 0x002BFF | 1 KB   | Boot Info. 11 file items & 129 memory map items    |
+| 0x001800 - 0x0027FF | 4 KB   | 1024 GDT entries                                   |
+| 0x002800 - 0x002BFF | 1 KB   | Boot Info. 11 file items & 47 memory map items     |
 | 0x002C00 - 0x023BFF | 132 KB | User stack. boot0, boot1 space reused. (See Issue) |
 | 0x023C00 - 0x043BFF | 128 KB | Kernel Stack                                       |
 | 0x043C00 - 0x07FFFF | 241 KB | Free (End of 1st Free* region: Minimum required)   |
+| 0x080000 - 0x09FBFF | 127 KB | Free (End of 1st Free* region: Maximum on x86)     |
+| 0x100000 - 0x1B0000 | 704 KB | 11 module files, each of 64KB max size             |
+|---------------------|--------|----------------------------------------------------|
+```
+
+#### Proposed
+
+1. Free regions at the beginning are removed for the ease of paging.
+2. Memory region starts and ends at 4KB page boundaries.
+
+```
+| Physical address    | Size   | Usage                                              |
+|---------------------|--------|----------------------------------------------------|
+| 0x000000 - 0x000FFF | 4 KB   | Boot0 IVT. Kernel to reclame.                      |
+| 0x001000 - 0x001FFF | 4 KB   | 1024 GDT entries                                   |
+| 0x002000 - 0x002FFF | 4 KB   | Boot Info. 11 file items & 201 memory map items    |
+| 0x003000 - 0x022FFF | 128 KB | User stack. boot0, boot1 space reused. (See Issue) |
+| 0x023000 - 0x042FFF | 128 KB | Kernel Stack                                       |
+| 0x043000 - 0x07FFFF | 244 KB | Free (End of 1st Free* region: Minimum required)   |
 | 0x080000 - 0x09FBFF | 127 KB | Free (End of 1st Free* region: Maximum on x86)     |
 | 0x100000 - 0x1B0000 | 704 KB | 11 module files, each of 64KB max size             |
 |---------------------|--------|----------------------------------------------------|
