@@ -29,8 +29,7 @@
 ------------------------------------------------
 ### Notes
 - [Abstraction is Key for a modular Operating System](notes/abstract_design.md#Abstraction-is-Key-for-a-modular-Operating-System)
-- [Fixed - Assert/Panic handling in unittests](notes/assert-panic-in-meghaos.md#Fixed---Assert/Panic-handling-in-unittests)
-- [Asserts and Panics in Unittests in MeghaOS](notes/assert-panic-in-meghaos.md#Asserts-and-Panics-in-Unittests-in-MeghaOS)
+- [Assert/Panic handling in unittests](notes/assert-panic-in-meghaos.md#Assert/Panic-handling-in-unittests)
 - [To POSIX or not to POSIX](notes/general.md#To-POSIX-or-not-to-POSIX)
 - [Study on executable binary file format for the Kernel and other module files.](notes/object_file_format.md#Study-on-executable-binary-file-format-for-the-Kernel-and-other-module-files.)
 - [Is it required for all the structures to be opaque?](notes/opaque_data_types.md#Is-it-required-for-all-the-structures-to-be-opaque)
@@ -39,7 +38,7 @@
 - [Different ways to handle error/invalid input in Kernel](notes/when-to-assert.md#Different-ways-to-handle-error/invalid-input-in-Kernel)
 - [When to panic in a kernel?](notes/when-to-assert.md#When-to-panic-in-a-kernel)
 ### Obsolete Notes
-
+- [Asserts and Panics in Unittests in MeghaOS](notes/assert-panic-in-meghaos.md#Asserts-and-Panics-in-Unittests-in-MeghaOS)
 ### x86 Notes
 - [Why separate stack does not work with GCC](notes/gdt.md#Why-separate-stack-does-not-work-with-GCC)
 - [Stack overflow protection using GDT](notes/gdt.md#Stack-overflow-protection-using-GDT)
