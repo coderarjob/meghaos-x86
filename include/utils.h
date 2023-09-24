@@ -39,6 +39,9 @@
 /** Power of two */
 UINT power_of_two(UINT e);
 
+/** Bit mask */
+#define BIT_MASK(r, l) (((1 << ((r) - (l) + 1)) - 1) << l)
+
 /** Stringfy macros */
 #define STR_NDU(v) #v
 #define STR(v) STR_NDU(v)

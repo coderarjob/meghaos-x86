@@ -28,6 +28,8 @@
 #include <x86/paging.h>
 #include <x86/kernel.h>
 #include <panic.h>
+#include <paging.h>
+#include <utils.h>
 
 static void usermode_main ();
 static void display_system_info ();
@@ -94,6 +96,26 @@ void kernel_main ()
     
 }
 
+void setup_paging()
+{
+    /* Create new PD, PT at where? */
+    //paging_recurseSetup (PD)
+
+    /* NOTE: PD must have physically backed PT for the addresses passed in to paging_map. Later on
+     * with demand creation, unbacked PTs will work.*/
+    //paging_setPT (PD, 3GB, PT);
+
+    /* Higher half map
+     * - NULL            >> (0          ) to (4KB        )
+     * - 0 to 268KB      >> (3GB        ) to (3GB + 268KB)    Physically backed
+     * - 640KB to 1MB    >> (3GB + 640KB) to (3GB + 1MB)      Physically backed (reserved section)
+     * - 1MB to KBIN_END >> (3GB + 1MB  ) to (3GB + KBIN_END) Physically backed*/
+    //paging_map (PD, NULL, 0, 1, UNUSED);
+    //paging_map (PD, BACKED, 3GB, 268KB, &PHYSICAL(0));
+    //paging_map (PD, BACKED, 3GB+640KB, (1MB-640KB), &PHYSICAL(640KB));
+    //paging_map (PD, BACKED, 3GB+1MB, KBIN_END, &PHYSICAL(1MB));
+}
+
 void s_dumpPab ()
 {
 #if DEBUG
@@ -104,7 +126,7 @@ void s_dumpPab ()
     {
         kdebug_printf ("\r\n%x:", s_pab);
         for (int i = 0; i < 16 && bytes; bytes--, i+=2, s_pab+=2)
-            kdebug_printf ("\t%x:%x ", *(s_pab + 1), *s_pab);
+            kdebug_printf ("\t%x:%x ", *s_pab, *(s_pab + 1));
     }
 #endif // DEBUG
 }
@@ -182,18 +204,35 @@ void usermode_main ()
 {
     kearly_printf ("\r\nInside usermode..");
 
-    kbochs_breakpoint();
     //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy_asm_handler));
     __asm__ volatile ("INT 0x40");
-    kbochs_breakpoint();
 
     kearly_printf ("\r\nLocation of kernel_main = %x", kernel_main);
     kearly_printf ("\r\nLocation of pab = %x",CAST_PA_TO_VA (g_pab));
+    kearly_printf ("\r\nSize of PTR = %u", sizeof(PTR));
+    kearly_printf ("\r\nMASK(19,0) is %x", BIT_MASK(19, 0));
 
-    //extern void display_PageInfo ();
-    //display_PageInfo();
+    kbochs_breakpoint();
+    /*Physical pa = PHYSICAL(0x100000);
+    PageDirectory pd = kpg_getcurrentpd();
+    kpg_map(&pd, PAGE_MAP_BACKED, 0xC01FF000, 1, &pa);*/
+    void salloc_init ();
+    void *salloc(UINT byte);
+    salloc_init();
+    kbochs_breakpoint();
+    kearly_printf("\r\n%x", (PTR)salloc(10));
+    kearly_printf("\r\n%x", (PTR)salloc(4096));
+    kearly_printf("\r\n%x", (PTR)salloc(2));
+    kearly_printf("\r\n%x", (PTR)salloc(1));
+    /*extern void display_arch_PageInfo (PTR va);
+    display_arch_PageInfo((PTR)kernel_main);
 
-    *a = 0;
+    extern PageInfo kpg_arch_deconstructVA (PTR va);
+    PageInfo info = kpg_arch_deconstructVA((PTR)kernel_main);
+    kdebug_printf_ndu("\r\npde index: %u, pte index: %u, offset %u",
+                      info.pdeIndex, info.pteIndex, info.offset );*/
+    //*a = 0;
+    kdebug_printf("\r\nPD: %x, PT: %x", g_page_dir.val, g_page_table.val);
 
     k_halt();
 }

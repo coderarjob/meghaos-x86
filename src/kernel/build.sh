@@ -17,6 +17,7 @@ C_FILES=(
     'kernel/pmm.c'
     'common/bitmap.c'
     'common/utils.c'
+    'kernel/salloc.c'
 )
 
 compile_cc "$GCC32 $GCC32_FLAGS" $OBJDIR ${C_FILES[@]}
