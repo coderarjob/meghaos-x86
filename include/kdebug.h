@@ -19,7 +19,7 @@
 /* Prints formatted string to 0xE9 port and can optionally print to vga
  * buffer.
  */
-#if defined (DEBUG)
+#if defined (DEBUG) && !defined (UNITTEST)
     void kdebug_printf_ndu (const CHAR *fmt, ...);
     #define kdebug_printf(fmt,...) kdebug_printf_ndu (fmt,__VA_ARGS__)
 #else
