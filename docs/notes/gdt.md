@@ -49,17 +49,24 @@ categories: feature, x86
 | 0x002000 - 0x002FFF | 4 KB   | Boot Info. 11 file items & 201 memory map items    |
 | 0x003000 - 0x022FFF | 128 KB | User stack. boot0, boot1 space reused. (See Issue) |
 | 0x023000 - 0x042FFF | 128 KB | Kernel Stack                                       |
-| 0x043000 - 0x07FFFF | 244 KB | Free (End of 1st Free* region: Minimum required)   |
+| 0x043000 - 0x044FFF | 8 KB   | Kernel PD/PT                                       |
+| 0x045000 - 0x07FFFF | 236 KB | Free (End of 1st Free* region: Minimum required)   |
 | 0x080000 - 0x09FBFF | 127 KB | Free (End of 1st Free* region: Maximum on x86)     |
 | 0x100000 - 0x1B0000 | 704 KB | 11 module files, each of 64KB max size             |
 |---------------------|--------|----------------------------------------------------|
 ```
 
-The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine.
-It can load files at most 64 KB in size.
+Note:
+1.  Given that the initial PT/PD resides from 0x43000 to 0x44FFF, and kernel static allocation
+    starts immediately after from 0x45000, one can think that the later starts at 0x43000 - this is
+    because the initial tables are static allocations also (their physical memory will never be
+    deallocated).
 
-The 1 KB for Boot Info structure is arbitrarily large. The 1 KB is size should be
-large for any x86-64 systems.
+2.  The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine. It can load
+    files of at most 64 KB in size.
+
+3. The 1 KB for Boot Info structure is arbitrarily large. The 1 KB is size should be large for any
+   x86_64 system.
 
 **ISSUE**: The same kernel stack was also used in user mode, which caused stack corruption. The CPU
 sets the stack pointer to `0x043BFF` (Kernel Stack Top) when going from user mode to kernel mode.

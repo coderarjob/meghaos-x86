@@ -24,21 +24,21 @@ _Based on Proposed Physical memory map._
 |--------------------------------------|------------------|--------------------------------------|
 | 0                4KB            ...  | ...              | Null page                            |
 | 4KB              ...            3GB  | ...              | User space                           |
-| 3GB              KMEM_LOW_SZ    ...  | 0                | Kernel Stack, GDT, Boot info etc.    |
+| 3GB              LOW_MEM_SIZE    ... | 0                | Kernel Stack, GDT, Boot info etc.    |
 | 3GB+640KB        ...            1MB  | 640KB            | System reserved, VGA memory etc      |
-| KMEM_MOD_ST      1MB            ...  | 1MB              | 11 Mod files (64KB max each) (704KB) |
-| KMEM_MOD_ST+1MB  1MB            ...  | KMEM_MOD_END     | Kernel Static Allocations            |
-| KMEM_MOD_ST+2MB  KHEAP_SZ       ...  | ...              | Kernel Heap                          |
+| MOD_START        1MB            ...  | 1MB              | 11 Mod files (64KB max each) (704KB) |
+| MOD_START+1MB    1MB            ...  | MOD_END          | Kernel Static Allocations            |
+| MOD_START+2MB    KHEAP_SZ       ...  | ...              | Kernel Heap                          |
 | FF800000         4MB        FFBFFFFF | ...              | Temporary PDE/PTE mapping (for 1 PT) |
 | FFC00000         4MB        FFFFFFFC | ...              | Recursive mapping                    |
 |                                      |                  | * FFC00000 - FFFFEFFC for PT access  |
 |                                      |                  | * FFFFF000 - FFFFFFFC for PD access  |
 |--------------------------------------|------------------|--------------------------------------|
 
-KMEM_LOW_SZ  = 268KB (0x43000) + 8KB (for initial PD & PT) = 276KB (0x45000)
-KMEM_MOD_ST  = 3GB + 1MB
-KMEM_MOD_END = 704KB Maximum (11 module files, 64KB each)
-KHEAP_SZ     = 512MB (arbitary size limit). Can be max ~1013MB; ending at Temporary mapping start.
+LOW_MEM_SIZE  = 268KB (0x43000) + 8KB (for initial PD & PT) = 276KB (0x45000)
+MOD_START     = 3GB + 1MB
+MOD_END       = 1 MB + 704KB Maximum (11 module files, 64KB each) = 0x1B0000
+KHEAP_SZ      = 512MB (arbitary size limit). Can be max ~1013MB; ending at Temporary mapping start.
 ```
 
 1. Unlike PMM, VMM does not provide any operation to search and allocate for free virtual addresses.
@@ -57,20 +57,22 @@ KHEAP_SZ     = 512MB (arbitary size limit). Can be max ~1013MB; ending at Tempor
 
 There are two ways to go about the initial paging setup.
 
-1. Let the initial setup be just temporary, it sets up a higher-half kernel and lands us in
+1. Setup the paging just right and have the following mappings:
+
+```
+| physical address range | virtual address start | Usage                      |
+|------------------------|-----------------------|----------------------------|
+| 0x000000 - 0x42FFF     | 0xC0000000            | GDT, BootInfo, stack etc.  |
+| 0x043000 - 0x44FFF     | 0xC0043000            | Initial PD and PT.         |
+|                        |                       | * Should be reclamed later |
+| 0x100000 - MOD_END     | 0xC0100000            | Module binaries            |
+|------------------------|-----------------------|----------------------------|
+```
+2. Let the initial setup be just temporary, it sets up a higher-half kernel and lands us in
    kernel_main. Kernel will re-setup paging as per OS requirements. If we go by this route, the
-   initial pageing setup in entry.s can be moved to the boot1 phase.
+   initial paging setup in entry.s can be moved to the boot1 phase.
 
-2. Setup the paging just right and have the following mappings:
-
-```
-| physical address range  | virtual address start | Usage                      |
-|-------------------------|-----------------------|----------------------------|
-| 0x000000 - 0x42FFF      | 0xC0000000            | GDT, BootInfo, stack etc.  |
-| 0x043000 - 0x44FFF      | 0xC0043000            | Initial PD and PT.         |
-|                         |                       | * Should be reclamed later |
-| 0x100000 - KMEM_MOD_END | 0xC0100000            | Module binaries            |
-|-------------------------|-----------------------|----------------------------|
-```
-This also will be temporary, for the PD and PT physical and virtual addresses are in the wrong
-place. 0xC0043000 address KMEM_LOW_SZ and not kernel heap, which it should.
+I will go with the 1st option, it makes little sense to create a temporary mapping just to be
+replaced by the kernel. The 1st option requires no extra space and little change is required from
+the current implementation. The only thing required for this option to work is to fix a physical
+region for the initial PD/PT to reside. This fixed region are defined in "[gdt](gdt.md)".
