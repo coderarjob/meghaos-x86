@@ -15,30 +15,22 @@ Assumptions:
 
 ### Virtual memory map:
 
-_Based on Proposed Physical memory map._
-
 ```
-| Virtual address                      | Physical address | Usage                                |
-|--------------------------------------|------------------|--------------------------------------|
-| Start            Size           End  | Start            |                                      |
-|--------------------------------------|------------------|--------------------------------------|
-| 0                4KB            ...  | ...              | Null page                            |
-| 4KB              ...            3GB  | ...              | User space                           |
-| 3GB              LOW_MEM_SIZE    ... | 0                | Kernel Stack, GDT, Boot info etc.    |
-| 3GB+640KB        ...            1MB  | 640KB            | System reserved, VGA memory etc      |
-| MOD_START        1MB            ...  | 1MB              | 11 Mod files (64KB max each) (704KB) |
-| MOD_START+1MB    1MB            ...  | MOD_END          | Kernel Static Allocations            |
-| MOD_START+2MB    KHEAP_SZ       ...  | ...              | Kernel Heap                          |
-| FF800000         4MB        FFBFFFFF | ...              | Temporary PDE/PTE mapping (for 1 PT) |
-| FFC00000         4MB        FFFFFFFC | ...              | Recursive mapping                    |
-|                                      |                  | * FFC00000 - FFFFEFFC for PT access  |
-|                                      |                  | * FFFFF000 - FFFFFFFC for PD access  |
-|--------------------------------------|------------------|--------------------------------------|
-
-LOW_MEM_SIZE  = 268KB (0x43000) + 8KB (for initial PD & PT) = 276KB (0x45000)
-MOD_START     = 3GB + 1MB
-MOD_END       = 1 MB + 704KB Maximum (11 module files, 64KB each) = 0x1B0000
-KHEAP_SZ      = 512MB (arbitary size limit). Can be max ~1013MB; ending at Temporary mapping start.
+| Virtual address         | Size  | Physical address    | Usage                                |
+|-------------------------|-------|---------------------|--------------------------------------|
+| 0x00000000 - 0x00000FFF | 4KB   | ...                 | Null page                            |
+| 0x00001000 - 0xBFFFFFFF | 3GB   | ...                 | User space                           |
+| 0xC0000000 - 0xC0045FFF | 280KB | 0x000000 - 0x045FFF | Kernel Static/Fixed memory           |
+| 0xC0046000 - 0xC009FFFF | 360KB | ...                 | Unused                               |
+| 0xC00A0000 - 0xC00FFFFF | 384KB | 0x0A0000 - 0x0FFFFF | System reserved, VGA memory etc      |
+| 0xC0100000 - 0xC01AFFFF | 704KB | 0x100000 - 0x1AFFFF | 11 Mod files (64KB max each) (704KB) |
+| 0xC0200000 - 0xC02FFFFF | 1MB   | dynamic             | Static Allocations                   |
+| 0xC0300000 - 0xE02FFFFF | 512MB | dynamic             | Kernel Heap                          |
+| 0xFF800000 - 0xFFBFFFFF |       | ...                 | Temporary PDE/PTE mapping (for 1 PT) |
+| 0xFFC00000 - 0xFFFFFFFC |       | ...                 | Recursive mapping                    |
+|                         |       |                     | * FFC00000 - FFFFEFFC for PT access  |
+|                         |       |                     | * FFFFF000 - FFFFFFFC for PD access  |
+|-------------------------|-------|---------------------|--------------------------------------|
 ```
 
 1. Unlike PMM, VMM does not provide any operation to search and allocate for free virtual addresses.
@@ -65,7 +57,7 @@ There are two ways to go about the initial paging setup.
 | 0x000000 - 0x42FFF     | 0xC0000000            | GDT, BootInfo, stack etc.  |
 | 0x043000 - 0x44FFF     | 0xC0043000            | Initial PD and PT.         |
 |                        |                       | * Should be reclamed later |
-| 0x100000 - MOD_END     | 0xC0100000            | Module binaries            |
+| 0x100000 - ...         | 0xC0100000            | Module binaries            |
 |------------------------|-----------------------|----------------------------|
 ```
 2. Let the initial setup be just temporary, it sets up a higher-half kernel and lands us in
