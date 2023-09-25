@@ -1,13 +1,6 @@
-; Megha Operating System V2 - x86 Kernel - Paging
-; ---------------------------------------------------------------------------
-; Paging structure initialization and setting up of Higher-half kernel.
+; Megha Operating System V2 - x86 Kernel Entry
 ;
-; Dated: 18th December 2020
-; ---------------------------------------------------------------------------
-;  Change Log
-; ---------------------------------------------------------------------------
-; Build - 20201218
-; - Intiial version. Identity paging implementation
+; Paging structure initialization and setting up of Higher-half kernel.
 ; ---------------------------------------------------------------------------
 
 extern kernel_main
@@ -32,21 +25,12 @@ section .prepage.text progbits alloc exec nowrite
 
 g_kernel_entry:
 
-    ; Calculates based on the last file loaded by boot1, the
-    ; 4KB aligned location to place page directory.
-        call s_calculate_page_dir_location
-        mov [PHY(g_page_dir)], eax
-    ; --
+    ; Save the static addresses to global variables
+    mov [PHY(g_page_dir)], DWORD KERNEL_PAGE_DIR_MEM
+    mov [PHY(g_page_table)], DWORD KERNEL_PAGE_TABLE_MEM
+    mov [PHY(g_pab)], DWORD KERNEL_PAB_MEM
 
-    ; Page table is placed 4KB from the Page directory.
-        add eax, 0x1000
-        mov [PHY(g_page_table)], eax
-
-    ; Page allocation bitmap is placed after the Page table.
-        add eax, 0x1000
-        mov [PHY(g_pab)], eax
-    ; --
-
+    ; Initialise the PD and PT
     call s_fill_pd
     call s_fill_pt
 
@@ -153,38 +137,3 @@ s_fill_pt:
         loop .write_next_pte
     popad
     ret
-
-; ---------------------------------------------------------------------
-; Calculates the locattion where to place the page directory.
-; This address is located at the next 4 KB aligned location afer the
-; last loaded file.
-; Input:
-;   None
-; Ouptut:
-;   EAX - Location where to place the page directory.
-; ---------------------------------------------------------------------
-s_calculate_page_dir_location:
-    pushad
-        xor  edi, edi
-        mov  di , [BOOT_INFO_MEM + boot_info_t.file_count]
-        dec  edi
-        imul edi, file_des_t_size
-
-        lea  edi, [BOOT_INFO_MEM + boot_info_t.file_dec_items + edi]
-        mov  eax, [edi + file_des_t.StartLocation]
-        add  ax , [edi + file_des_t.Length]
-        adc  eax, 0                   ; Adds any carry from the previous ADD.
-
-        ; Aligns the address to the next 4KB location.
-        ; ADDR_ALIGNED_4KB = (INT(ADDR/4096) + 1) * 4096
-            shr eax, 12
-            inc eax
-            shl eax, 12
-        ; --
-
-        mov [.ret_value], eax
-    popad
-    mov eax, [.ret_value]
-    ret
-.ret_value: dd 0
-; ---------------------------------------------------------------------

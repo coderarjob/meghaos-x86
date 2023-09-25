@@ -14,26 +14,29 @@
 #include <panic.h>
 #include <paging.h>
 
-#define SALLOC_VA_MEM_START (3 * GB + 2 * MB)
-#define SALLOC_VA_MEM_SIZE  (1 * MB)
-#define SALLOC_PA_MEM_START (1 * MB + 704 * KB)
-#define SALLOC_GRANUALITY   (8 * Byte)
+#define SALLOC_MEM_START  (3 * GB + 2 * MB)
+#define SALLOC_MEM_SIZE   (1 * MB)
+#define SALLOC_GRANUALITY (8 * Byte)
 void *next = NULL; // Points to the start of next allocation.
 
 void salloc_init()
 {
-    /* Pre Map SALLOC_PA_MEM_START with SALLOC_VA_MEM_START in the kernel. */
-    // paging_map (PD, UNBACKED, SALLOC_VA_MEM_START, SALLOC_VA_MEM_SIZE, UNUSED);
+    /* Pre Map SALLOC_PA_MEM_START with SALLOC_MEM_START in the kernel. */
+    // paging_map (PD, UNBACKED, SALLOC_MEM_START, SALLOC_MEM_SIZE, UNUSED);
 
     /* Physically back 1 page for the heap */
-    Physical pa = PHYSICAL (SALLOC_PA_MEM_START);
-    if (kpmm_allocAt (pa, 1, PMM_REGION_ANY) == false) k_panic ("%s", "Memory allocaiton failed");
-    // paging_map (PD, BACKED, SALLOC_VA_MEM_START, 4096, &pa);
+    /* Physical pa = PHYSICAL (SALLOC_PA_MEM_START);
+       if (kpmm_allocAt (pa, 1, PMM_REGION_ANY) == false)
+        k_panic ("%s", "Memory allocaiton failed");*/
+    Physical pa;
+    if (kpmm_alloc (&pa, 1, PMM_REGION_ANY) == false)
+        k_panic ("%s", "Memory allocaiton failed");
+    // paging_map (PD, BACKED, SALLOC_MEM_START, 4096, &pa);
     PageDirectory pd = kpg_getcurrentpd();
-    if (kpg_map (&pd, 0, SALLOC_VA_MEM_START, 1, &pa) == false)
+    if (kpg_map (&pd, 0, SALLOC_MEM_START, 1, &pa) == false)
         k_panic ("%s", "Memory allocaiton failed");
 
-    next = (void *)SALLOC_VA_MEM_START;
+    next = (void *)SALLOC_MEM_START;
 }
 
 void *salloc (UINT bytes)
@@ -53,7 +56,7 @@ void *salloc (UINT bytes)
     }*/
 
     PTR nextaddr = (PTR)next;
-    if (nextaddr < (SALLOC_VA_MEM_START + SALLOC_VA_MEM_SIZE))
+    if (nextaddr < (SALLOC_MEM_START + SALLOC_MEM_SIZE))
     {
         nextaddr += allocSize;
         next = (void *)nextaddr;

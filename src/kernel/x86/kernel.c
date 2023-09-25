@@ -184,6 +184,12 @@ void display_system_info ()
  **************************************************************************************************/
 static void s_markUsedMemory ()
 {
+    /* Kernel reserved */
+    UINT pageCount = 0x46000 / CONFIG_PAGE_FRAME_SIZE_BYTES;
+    if (kpmm_allocAt (createPhysical(0), pageCount, PMM_REGION_ANY) == false)
+        k_assertOnError ();
+
+    /* Module files */
     BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
     INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
     for (INT i = 0; i < filesCount; i++)
@@ -193,8 +199,6 @@ static void s_markUsedMemory ()
         USYSINT lengthBytes = (USYSINT)kBootFileItem_getLength (fileinfo);
         UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
 
-        kdebug_printf ("\r\nI: Allocate startAddress: %px, byteCount: %px, pageFrames: %u."
-                        , startAddress, lengthBytes, pageFrameCount);
         if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, PMM_REGION_ANY) == false)
             k_assertOnError ();
     }
