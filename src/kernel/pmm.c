@@ -188,9 +188,9 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
  * Note: This function can only be called once PMM is initialized. This is because it reads PAB to
  * make find pages which can be allocated.
  *
- * @Input address       Allocated physical address
- * @Input pageCount     Number of byte frames to allocate.
- * @Input reg           Physical memory region.
+ * @Output address      Allocated physical address
+ * @Input  pageCount    Number of byte frames to allocate.
+ * @Input  reg          Physical memory region.
  * @return              If successful returns true, otherwise returns false and error code is set.
  **************************************************************************************************/
 bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions reg)

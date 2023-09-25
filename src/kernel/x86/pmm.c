@@ -69,9 +69,6 @@ static void s_markFreeMemory (Bitmap *bitmap)
         UINT pageFrameCount = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)lengthBytes);
         UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)startAddress);
 
-        kdebug_printf ("\r\nI: Freeing startAddress: %llx, byteCount: %llx, pageFrames: %u."
-                        , startAddress, lengthBytes, pageFrameCount);
-
         bool success = bitmap_setContinous(bitmap, startPageFrame, pageFrameCount,
                                            PMM_STATE_FREE);
         if (!success)
