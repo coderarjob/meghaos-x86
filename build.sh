@@ -147,16 +147,16 @@ mkdosfs -C $IMAGEDIR/mos.flp -F 12 1440 || exit
 
 # mount the Disk image
 echo "    [ Mounting Disk image ]    "
-runas mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
+sudo mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
 # ---------------------------------------------------------------------------
 # Copy the files needed to the floppy
 echo "    [ Copy files to floppy ]    "
-runas cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
-runas cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
 
 # Unmount the image
 echo "    [ Copy of files done. Unmounting image ]    "
-runas umount $DISKTEMPDIR || exit
+sudo umount $DISKTEMPDIR || exit
 
 # Wrtie the bootloader
 echo "    [ Writing bootloader to floppy image ]    "
