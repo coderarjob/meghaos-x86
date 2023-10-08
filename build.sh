@@ -49,7 +49,6 @@ export GCC_INCPATH="-I include"
 # -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
 # ---------------------------------------------------------------------------
 WOPTS="-Wpedantic \
-       -Wpadded \
        -Wall \
        -Wextra \
        -Wconversion \
