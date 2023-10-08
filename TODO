@@ -12,7 +12,7 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     Function under test is called twice when
     a scalar match fails.                     -                 20 July 2023
 [X] Physical memory allocator                 -
-    [ ] Reimplement using common/bitmap       -
+    [X] Reimplement using common/bitmap       -
     [ ] Lock to protect the PAB.              -
 [ ] Add -Wundedf compiler flags
     [ ] define ARCH
@@ -30,6 +30,9 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     [ ] 0x printed automatically with %x.     -
     [ ] Assert message inly valid for
         unittests.                            -
+[ ] Create a Kernel context Structure
+    It will contain various global pointers
+    state, etc required by the kernel.        -
 [ ] Virutal memory allocator                  -
     [ ] How to do lazy allocation?
     [ ] Allocate a new virtual address
