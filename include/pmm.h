@@ -32,6 +32,8 @@ typedef enum KernelPhysicalMemoryStates {
 #define PAGEFRAMES_TO_BYTES(fc) ((fc) * (CONFIG_PAGE_FRAME_SIZE_BYTES))
 
 /** Number of complete page frames from at-most 'b' number of bytes. */
+/* TODO: BYTES_TO_PAGEFRAMES_FLOOR, BYTES_TO_PAGEFRAMES_CEILING seems duplicate of
+ * PHYSICAL_TO_PAGEFRAME macro.*/
 #define BYTES_TO_PAGEFRAMES_FLOOR(b)  ((b) / (CONFIG_PAGE_FRAME_SIZE_BYTES))
 
 /** Number of complete page frames from at-least 'b' number of bytes. */
