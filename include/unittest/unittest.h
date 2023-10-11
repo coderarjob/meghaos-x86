@@ -40,8 +40,8 @@ int ut_equal_string (const char *a, const char *b, int *i);
     __auto_type ut_b = (b);                                                   \
     int i;                                                                    \
     if (ut_equal_mem (ut_a, ut_b, sz, &i) o 1)                                \
-           UT_PASSED(ut_a o ut_b);                                            \
-    else   UT_FAILED(ut_a o ut_b,"[Idx: %d, 0x%X !" #o " 0x%X]",i,ut_a[i],    \
+           UT_PASSED(a o b);                                                  \
+    else   UT_FAILED(a o b,"[Idx: %d, 0x%X !" #o " 0x%X]",i,ut_a[i],          \
                      ut_b[i]);                                                \
 } while(0)
 
@@ -50,8 +50,8 @@ int ut_equal_string (const char *a, const char *b, int *i);
     __auto_type ut_b = (b);                                                   \
     int i;                                                                    \
     if (ut_equal_string (ut_a, ut_b, &i) o 1)                                 \
-           UT_PASSED(ut_a o ut_b);                                            \
-    else   UT_FAILED(ut_a o ut_b,"[Idx: %d, '%c' !" #o " '%c']",i,ut_a[i],    \
+           UT_PASSED(a o b);                                                  \
+    else   UT_FAILED(a o b,"[Idx: %d, '%c' !" #o " '%c']",i,ut_a[i],          \
                     ut_b[i]);                                                 \
 } while(0)
 
