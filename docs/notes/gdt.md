@@ -27,7 +27,7 @@ Features/Changes from the last:
 ```
 | Physical address    | Size   | Usage                                              |             |
 |---------------------|--------|----------------------------------------------------|-------------|
-| 0x000000 - 0x000FFF | 4 KB   | Boot0 IVT. Kernel IDT (256 IDT entries)            | OS Reserved |
+| 0x000000 - 0x000FFF | 4 KB   | Boot0 IVT. Kernel IDT (256 IDT entries)(see todo)  | OS Reserved |
 | 0x001000 - 0x001FFF | 4 KB   | 512 GDT entries                                    | OS Reserved |
 | 0x002000 - 0x002FFF | 4 KB   | Boot Info. 11 file items & 201 memory map items    | OS Reserved |
 | 0x003000 - 0x022FFF | 128 KB | User stack. boot0, boot1 space reused. (See Issue) | OS Reserved |
@@ -39,6 +39,10 @@ Features/Changes from the last:
 | 0x100000 - 0x1AFFFF | 704 KB | 11 module files, each of 64KB max size             | OS Reserved |
 |---------------------|--------|----------------------------------------------------|-------------|
 ```
+
+TODO:
+`0x0000 - 0x000FFF` physical range should be kept for the Real Mode IVT and not overridden by the
+protected mode Kernel, otherwise entering real mode will become difficult and error prone.
 
 Note:
 1.  Given that the initial PT/PD, PAB resides from 0x43000 to 0x45FFF, and kernel static allocation

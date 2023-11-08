@@ -1,8 +1,48 @@
 # Megha Operating System V2 - General
 ------------------------------------------------------------------------------
+## Rethinking the idea of Files
+categories: note, independent, feature
+_8th Nov 2023_
+
+Think of a magical world, where document's context changes automatically based on edits make in
+another document. In this world there data is not constraints of a specific file.
+
+When I started thinking on these lines, it was clear that such a system will provide several
+advantages, such as eliminating the need to manually update dependent documents.
+
+In this data-centric approach, traditional concept of files becomes just one way to view the data.
+Think of an endless desk or notebook, divided into distinct 'areas'. When you start working, you
+create a new area (akin to clearing your desk).
+
+Take the example of a simple C project. You create an area and simply start writing your program and
+documentation together, without the concept of traditional files. Specific "views" can then be
+created to show specific sections of this area. These "views" are similar to traditional files.
+For instance a 'Readme' view may show the documentation, usage and example from the area, while a
+"main.c" view would show the C functions and interface documentation.
+
+Furthermore, views can have a formatting & layout information for its "data". This means Rich format
+documents is also possible.
+
+The concept of "area" and "views" serves as the base for sharing data at a higher level, but will
+sharing data work within a single "area" without duplication. For instance, if a financial or phone
+number appears in multiple locations with this "area". One approach can be to attach metadata (such
+as a name) to this number the first time it's used, and then refer to that metadata in other
+instances. This way duplicates are removed. Keeping only the first occurrence writable we can also
+have some control who gets to change this number.
+
+### Doubts and questions:
+1. When a content of file is linked to content in another file, how to have backups or see the
+   previous version?
+2. For simple text documents, a modified text editor will be able to compile and display without a
+   problem. But what happens to a computer language compiler?
+3. How to export/import data to and from conventional file systems?
+   Well export may mean to flatten the different views into separate files. Import may work the
+   opposite way - there will be one area per file and one view showing the complete file.
+
+------------------------------------------------------------------------------
 
 ## User Interface notes
-categories: note, independent
+categories: note, independent, feature
 _4th Dec 2020_
 
 Here are the **goals**. 
