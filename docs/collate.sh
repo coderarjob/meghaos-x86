@@ -42,6 +42,7 @@ doc_categories=('guideline independent'
                 'note independent'
                 'note x86'
                 'note independent obsolete'
+                'note independent feature'
                 'note x86 obsolete')
 
 ################################################################################
