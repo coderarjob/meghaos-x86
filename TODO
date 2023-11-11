@@ -81,7 +81,8 @@ MEGHA OPERATING SYSTEM V2 - x86                                   THINGS TO DO
     place asserts and other checks. And these
     checks are invaluable in finding and
     preventing bugs.
-
+[ ] Using Flawfinder to check for security flaws
+    seem intersting.
 [X] k_panic called from interrupt handlers
     must show correct exception location.
     Use the interrupt frame.                  -                 8 July 2023
