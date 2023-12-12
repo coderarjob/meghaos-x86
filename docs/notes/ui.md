@@ -4,8 +4,8 @@
 categories: note, independent, feature
 _8th Nov 2023_
 
-Think of a magical world, where document's context changes automatically based on edits make in
-another document. In this world there data is not constraints of a specific file.
+Think of a magical world, where document's context changes automatically based on edits made in
+another document. In this world there data is not constrained to a specific file.
 
 When I started thinking on these lines, it was clear that such a system will provide several
 advantages, such as eliminating the need to manually update dependent documents.
@@ -82,3 +82,6 @@ Here are the **goals**.
   displaying of output. That is, when the same command is executed with the
   same argument, it will be displayed in the same window.
 
+* Though I like wot work on the command line, I find that it can be made more useful. These terminal
+  emulators are graphical applications without graphics. In the end, I do no want to imitate
+  teletype in MeghaOS - makes no sense for me copy UNIX ideas.
