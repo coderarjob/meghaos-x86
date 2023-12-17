@@ -124,10 +124,9 @@ PageDirectory kpg_getcurrentpd()
     return pd;
 }
 
-bool kpg_map (PageDirectory *pd, PageMapAttributes attr, PTR va, SIZE sz, Physical *pa)
+bool kpg_map (PageDirectory *pd, PageMapAttributes attr, PTR va, Physical *pa)
 {
     (void)attr;
-    (void)sz;
 
     k_assert (pd != NULL, "PD is null");
 
@@ -139,6 +138,8 @@ bool kpg_map (PageDirectory *pd, PageMapAttributes attr, PTR va, SIZE sz, Physic
     if (!pde.present) RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
     // In order to access the page table a temporary mapping is required.
+    // Note: An alternate to temporary map can to have recursive map within each page table as well.
+    // However the temporary map solution seems better to me.
     Physical ptaddr         = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde.pageTableFrame));
     PTR tempva              = kpg_temporaryMap (ptaddr);
     ArchPageTableEntry *pte = &((ArchPageTableEntry *)tempva)[info.pteIndex];
