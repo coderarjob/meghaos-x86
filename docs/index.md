@@ -55,6 +55,7 @@
 - [Where should we initiate and start using paging? ](notes/paging.md#Where-should-we-initiate-and-start-using-paging-)
 - [How to use page tables to map Virtual Addresses to Physical Addresses?](notes/paging.md#How-to-use-page-tables-to-map-Virtual-Addresses-to-Physical-Addresses)
 - [Notes: Why not preallocate the whole 256 MB? ](notes/paging.md#Notes:-Why-not-preallocate-the-whole-256-MB-)
+- [Why I am skipping Virtual Memory manager for now](notes/virtual_memory_manager.md#Why-I-am-skipping-Virtual-Memory-manager-for-now)
 - [Virtual Memory Manager and Recursive mapping](notes/virtual_memory_manager.md#Virtual-Memory-Manager-and-Recursive-mapping)
 - [Map virtual memory to physical memory](notes/virtual_memory_manager.md#Map-virtual-memory-to-physical-memory)
 

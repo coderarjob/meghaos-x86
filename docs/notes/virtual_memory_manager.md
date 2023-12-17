@@ -1,6 +1,31 @@
 # Megha Operating System V2 - x86
 ----------------------------------------------------------------------------------------------------
 
+## Why I am skipping Virtual Memory manager for now
+categories: note, x86
+_16 Dec 2022_
+
+From what I have read and understood, the VMM's does the following:
+1. Though paging module also have a `map` function, the `map` of VMM is different. In the former
+   case we dont have to specify any PA, it will be allocated by the kernel later on demand.
+2. This simplifies some aspects of mapping, where we can over-map VMM and not worry about physical
+   memory usage.
+3. VMM manages `regions/address spaces`, which are a portion of VA assigned for a purpose (Kernel
+   heap has one region, Static allocator has another region, Stack has another region etc). One can
+   then ask to expand these `region` and VMM will make sure that we are crashing into another
+   region.
+4. Prodives data structure to quickly search the VA-PA mapping. Provided a VA we can search which PA
+   is assigned to it. We can parse page tables, but it will be arch dependent and slow.
+5. VMM may also automatically assign a VA range when region gets created. Currently we are planning
+   and hardcoding each reagion by hand.
+
+Though all of the above points are important, they are not crutial or blocking. With a `Static
+allocator` and `Heap allocator` ready, I can proceed with other parts of the OS and come back to
+implement VMM at a later time. I think I will be able to appreciate VMM better once I see the
+problem it is solving and also I am kind of bored with the VMM at this time.
+
+----------------------------------------------------------------------------------------------------
+
 ## Virtual Memory Manager and Recursive mapping
 categories: note, x86
 _16 Dec 2022_
