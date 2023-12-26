@@ -1,20 +1,20 @@
 #include <mock/kernel/x86/boot.h>
 #include <unittest/fake.h>
 
-DEFINE_FUNC_0 (BootLoaderInfo*, kboot_getCurrentBootLoaderInfo);
-DEFINE_FUNC_1 (ULLONG, kboot_calculateAvailableMemory, BootLoaderInfo const*);
+DEFINE_FUNC (BootLoaderInfo*, kboot_getCurrentBootLoaderInfo);
+DEFINE_FUNC (ULLONG, kboot_calculateAvailableMemory, BootLoaderInfo const*);
 
-DEFINE_FUNC_1 (U16, kBootFileItem_getLength, BootFileItem const*);
-DEFINE_FUNC_1 (U32, kBootFileItem_getStartLocation, BootFileItem const*);
+DEFINE_FUNC (U16, kBootFileItem_getLength, BootFileItem const*);
+DEFINE_FUNC (U32, kBootFileItem_getStartLocation, BootFileItem const*);
 
-DEFINE_FUNC_1 (BootMemoryMapTypes, kBootMemoryMapItem_getType, BootMemoryMapItem const*);
-DEFINE_FUNC_1 (U64, kBootMemoryMapItem_getLength, BootMemoryMapItem const*);
-DEFINE_FUNC_1 (U64, kBootMemoryMapItem_getBaseAddress, BootMemoryMapItem const*);
+DEFINE_FUNC (BootMemoryMapTypes, kBootMemoryMapItem_getType, BootMemoryMapItem const*);
+DEFINE_FUNC (U64, kBootMemoryMapItem_getLength, BootMemoryMapItem const*);
+DEFINE_FUNC (U64, kBootMemoryMapItem_getBaseAddress, BootMemoryMapItem const*);
 
-DEFINE_FUNC_1 (U16, kBootLoaderInfo_getMemoryMapItemCount, BootLoaderInfo const*);
-DEFINE_FUNC_1 (U16, kBootLoaderInfo_getFilesCount, BootLoaderInfo const*);
-DEFINE_FUNC_2 (BootFileItem*, kBootLoaderInfo_getFileItem, BootLoaderInfo const*, INT);
-DEFINE_FUNC_2 (BootMemoryMapItem*, kBootLoaderInfo_getMemoryMapItem, BootLoaderInfo const*, INT);
+DEFINE_FUNC (U16, kBootLoaderInfo_getMemoryMapItemCount, BootLoaderInfo const*);
+DEFINE_FUNC (U16, kBootLoaderInfo_getFilesCount, BootLoaderInfo const*);
+DEFINE_FUNC (BootFileItem*, kBootLoaderInfo_getFileItem, BootLoaderInfo const*, INT);
+DEFINE_FUNC (BootMemoryMapItem*, kBootLoaderInfo_getMemoryMapItem, BootLoaderInfo const*, INT);
 
 void resetBootFake()
 {

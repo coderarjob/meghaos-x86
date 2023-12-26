@@ -1,7 +1,7 @@
 #include <mock/common/utils.h>
 #include <unittest/fake.h>
 
-DEFINE_FUNC_1(UINT, power_of_two, UINT);
+DEFINE_FUNC(UINT, power_of_two, UINT);
 
 void resetUtilsFake()
 {

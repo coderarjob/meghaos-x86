@@ -1,13 +1,13 @@
 #include <unittest/fake.h>
 #include <mock/kernel/pmm.h>
 
-DEFINE_FUNC_VOID_0(kpmm_init);
-DEFINE_FUNC_2(bool, kpmm_free, Physical, UINT);
-DEFINE_FUNC_3(bool, kpmm_alloc, Physical*, UINT, KernelPhysicalMemoryRegions);
-DEFINE_FUNC_3(bool, kpmm_allocAt, Physical, UINT, KernelPhysicalMemoryRegions);
-DEFINE_FUNC_0(bool, kpmm_isInitialized);
-DEFINE_FUNC_0(size_t,  kpmm_getFreeMemorySize);
-DEFINE_FUNC_1(USYSINT, kpmm_getUsableMemorySize, KernelPhysicalMemoryRegions);
+DEFINE_FUNC_VOID(kpmm_init);
+DEFINE_FUNC(bool, kpmm_free, Physical, UINT);
+DEFINE_FUNC(bool, kpmm_alloc, Physical*, UINT, KernelPhysicalMemoryRegions);
+DEFINE_FUNC(bool, kpmm_allocAt, Physical, UINT, KernelPhysicalMemoryRegions);
+DEFINE_FUNC(bool, kpmm_isInitialized);
+DEFINE_FUNC(size_t,  kpmm_getFreeMemorySize);
+DEFINE_FUNC(USYSINT, kpmm_getUsableMemorySize, KernelPhysicalMemoryRegions);
 
 void resetPmm()
 {

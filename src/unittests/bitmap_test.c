@@ -13,7 +13,7 @@
 /* Using fake functions to implement isValid gives better control when its behaviour can varry from
  * one test case to another.*/
 DECLARE_FUNC(bool, isValid, UINT, BitmapState, BitmapState);
-DEFINE_FUNC_3(bool, isValid, UINT, BitmapState, BitmapState);
+DEFINE_FUNC(bool, isValid, UINT, BitmapState, BitmapState);
 
 /*
                          TEST CASES
