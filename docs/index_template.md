@@ -3,6 +3,9 @@
 
 **Run this command to refresh documents list: `bash collate.sh`**
 
+### TODO
+- [TODO](notes/TODO.md)
+
 ### Guidelines Docs
 %{guideline independent}%
 

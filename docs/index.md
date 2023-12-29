@@ -3,6 +3,9 @@
 
 **Run this command to refresh documents list: `bash collate.sh`**
 
+### TODO
+- [TODO](notes/TODO.md)
+
 ### Guidelines Docs
 - [MeghaOS code style](notes/coding_style.md#MeghaOS-code-style)
 - [Cross platform guidelines](notes/CrossPlatform.md#Cross-platform-guidelines)
