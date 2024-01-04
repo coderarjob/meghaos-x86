@@ -183,12 +183,13 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
 }
 
 /***************************************************************************************************
- * Tries to allocates pages starting at the physical address that is provided.
+ * Searches for free physical pages and allocates contiguous pages as requested. The returned
+ * address is the start of the first allocated page.
  *
  * Note: This function can only be called once PMM is initialized. This is because it reads PAB to
  * make find pages which can be allocated.
  *
- * @Output address      Allocated physical address
+ * @Output address      Allocated physical address. Is always page aligned.
  * @Input  pageCount    Number of byte frames to allocate.
  * @Input  reg          Physical memory region.
  * @return              If successful returns true, otherwise returns false and error code is set.
@@ -216,6 +217,7 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
                                 PMM_STATE_USED))
     {
         *address = createPhysical(PAGEFRAMES_TO_BYTES((UINT) pageFrame));
+        k_assert (IS_ALIGNED (address->val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
         return true;
     }
 
