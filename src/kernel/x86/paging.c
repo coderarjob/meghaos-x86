@@ -6,7 +6,8 @@
  * use as well as when allocating memory for user space processes.
  * ---------------------------------------------------------------------------
  */
-#include "x86/config.h"
+#include <mem.h>
+#include <pmm.h>
 #include <kerror.h>
 #include <x86/paging.h>
 #include <paging.h>
@@ -28,7 +29,7 @@ static IndexInfo s_getTableIndices (PTR va);
 static void s_setupPTE (ArchPageTableEntry *pte, const Physical *pageFrame);
 static void s_setupPDE (ArchPageDirectoryEntry *pde, const Physical *pageFrame);
 static ArchPageDirectoryEntry *s_getPTE (UINT pdeIndex, UINT pteIndex);
-// static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde);
+//static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde);
 
 #define PAGE_FRAME_SIZE_BITS      (31U - CONFIG_PAGE_SIZE_BITS)
 #define PAGEFRAME_TO_PHYSICAL(pf) ((USYSINT)(pf) << CONFIG_PAGE_SIZE_BITS)
@@ -56,7 +57,7 @@ static ArchPageDirectoryEntry *s_getPDE (UINT pdeIndex)
 
 static ArchPageDirectoryEntry *s_getPTE (UINT pdeIndex, UINT pteIndex)
 {
-    k_assert ((pdeIndex < 1024) && (pdeIndex < 1024), "Invalid PD/PT/offset index");
+    k_assert ((pdeIndex < 1024) && (pteIndex < 1024), "Invalid PD/PT/offset index");
     PTR addr = (RECURSIVE_PD_INDEX << PDE_SHIFT) | (pdeIndex << PTE_SHIFT) |
                (pteIndex * sizeof (ArchPageTableEntry));
     return (ArchPageDirectoryEntry *)addr;
@@ -120,11 +121,10 @@ PTR kpg_temporaryMap (Physical pageFrame)
 PageDirectory kpg_getcurrentpd()
 {
     ArchPageDirectoryEntry *pde = s_getPDE (0);
-    PageDirectory pd            = { .pd = pde, .attr = { 0 } };
-    return pd;
+    return (PageDirectory) pde;
 }
 
-bool kpg_map (PageDirectory *pd, PageMapAttributes attr, PTR va, Physical *pa)
+bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa)
 {
     (void)attr;
 
@@ -134,8 +134,23 @@ bool kpg_map (PageDirectory *pd, PageMapAttributes attr, PTR va, Physical *pa)
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
 
     IndexInfo info             = s_getTableIndices (va);
-    ArchPageDirectoryEntry pde = pd->pd[info.pdeIndex];
-    if (!pde.present) RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    ArchPageDirectoryEntry pde = pd[info.pdeIndex];
+    if (!pde.present) {
+        // Allocate phy mem for new page table.
+        Physical pa_new;
+        if (kpmm_alloc(&pa_new, 1, PMM_REGION_ANY) == false)
+            k_panic ("%s", "Memory allocaiton failed");
+
+        // Initialize the page table.
+        /* TODO: A more easy sollution than Temporary map would be to reference the page table
+         * at pde and then the start of the new page table is (info.pdeIndex << PDE_SHIFT). */
+        PTR tempva = kpg_temporaryMap(pa_new);
+        k_memset((void *)tempva, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
+        kpg_temporaryUnmap();
+
+        // Referene the page table in the PDE.
+        s_setupPDE(&pde, &pa_new);
+    }
 
     // In order to access the page table a temporary mapping is required.
     // Note: An alternate to temporary map can to have recursive map within each page table as well.
@@ -143,9 +158,7 @@ bool kpg_map (PageDirectory *pd, PageMapAttributes attr, PTR va, Physical *pa)
     Physical ptaddr         = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde.pageTableFrame));
     PTR tempva              = kpg_temporaryMap (ptaddr);
     ArchPageTableEntry *pte = &((ArchPageTableEntry *)tempva)[info.pteIndex];
-
     s_setupPTE (pte, pa);
-
     kpg_temporaryUnmap();
     return true;
 }

@@ -26,17 +26,8 @@ typedef struct PageAttributes
 typedef struct ArchPageDirectoryEntry ArchPageDirectoryEntry;
 typedef struct ArchPageTableEntry ArchPageTableEntry;
 
-typedef struct PageDirectory
-{
-    PageAttributes attr;
-    ArchPageDirectoryEntry *pd;
-} PageDirectory;
-
-typedef struct PageTable
-{
-    PageAttributes attr;
-    ArchPageTableEntry *pt;
-} PageTable;
+typedef ArchPageDirectoryEntry* PageDirectory;
+typedef ArchPageTableEntry* PageTable;
 
 typedef enum PageMapAttributes
 {
@@ -46,9 +37,9 @@ typedef enum PageMapAttributes
 } PageMapAttributes;
 
 PageDirectory kpg_getcurrentpd();
-void kpg_setupPD (PageDirectory *pd, PageAttributes *attr);
-void kpg_setPT (PageDirectory *pd, PageTable *pt, PTR start);
-bool kpg_map (PageDirectory *pd, PageMapAttributes attr, PTR va, Physical *pa);
+void kpg_setupPD (PageDirectory pd, PageAttributes *attr);
+void kpg_setPT (PageDirectory pd, PageTable *pt, PTR start);
+bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa);
 PTR kpg_temporaryMap (Physical pageFrame);
 void kpg_temporaryUnmap();
 
