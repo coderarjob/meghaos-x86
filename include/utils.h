@@ -39,7 +39,8 @@
 /** Power of two */
 UINT power_of_two(UINT e);
 
-/** Bit mask */
+/** Bit mask
+ * Example: BIT_MASK(19, 1) = 0xFFFFE */
 #define BIT_MASK(r, l) (((1 << ((r) - (l) + 1)) - 1) << l)
 
 /** Stringfy macros */
