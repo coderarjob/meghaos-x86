@@ -45,6 +45,7 @@ UNITTESTS=(
     "mem"
     "bitmap"
     "pmm"
+    "utils"
 )
 
 # Adds tests specific to the current architecture.
@@ -107,6 +108,11 @@ get_arch_independent_test_definition()
                                  'common/bitmap.c'
                                  'unittests/common.c'
                                  'unittests/pmm_test.c'
+                                 'unittests/unittest.c')
+                        };;
+          utils)        {
+                            SRC=('common/utils.c'
+                                 'unittests/utils_test.c'
                                  'unittests/unittest.c')
                         };;
         *) return 1;;
