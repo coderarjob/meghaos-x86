@@ -79,7 +79,8 @@
 | [X] Physical memory allocator                                           |           | 20 JUL 23  |
 | ::: [X] Reimplement using common/bitmap                                 |           |            |
 | ::: [ ] Lock to protect the PAB.                                        |           |            |
-| ::: [ ] PAGEFRAMES_TO_BYTES seems duplicate of PAGEFRAME_TO_PHYSICAL    | 4 JAN 24  |            |
+| ::: [ ] Make allocation and deallocation atomic                         |           |            |
+| ::: [ ] PAGEFRAMES_TO_BYTES seems duplicate of PAGEFRAME_TO_PHYSICAL    | 4 JAN 24  | 09 JAN 24  |
 | [ ] Have two macros like BUG_ON, WARN_ON BUG_ON panics, WARN_ON         |           |            |
 | prints warning. They will replace k_assert and remain in release        |           |            |
 | as well, thus these macros must have little impact on binary size       |           |            |
