@@ -46,6 +46,7 @@ UNITTESTS=(
     "bitmap"
     "pmm"
     "utils"
+    "paging"
 )
 
 # Adds tests specific to the current architecture.
@@ -113,6 +114,10 @@ get_arch_independent_test_definition()
           utils)        {
                             SRC=('common/utils.c'
                                  'unittests/utils_test.c'
+                                 'unittests/unittest.c')
+                        };;
+          paging)       {
+                            SRC=('unittests/paging_test.c'
                                  'unittests/unittest.c')
                         };;
         *) return 1;;
