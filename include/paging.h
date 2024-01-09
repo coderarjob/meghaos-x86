@@ -37,12 +37,13 @@ typedef enum PageMapAttributes
     PAGE_MAP_UNBACKED
 } PageMapAttributes;
 
+// Physical start of the page frame 'pf'.
 #define PAGEFRAME_TO_PHYSICAL(pf) ((USYSINT)(pf) << CONFIG_PAGE_SIZE_BITS)
+
+// Page frame from the physical start address of the page frame.
+// Assumption is 'addr' to always be page aligned.
 #define PHYSICAL_TO_PAGEFRAME(addr)                                                                \
     ((addr / CONFIG_PAGE_FRAME_SIZE_BYTES) & BIT_MASK (CONFIG_PAGE_FRAME_SIZE_BITS, 0))
-
-// Number of bytes in 'fc' number of pages
-#define PAGEFRAMES_TO_BYTES(fc) (PAGEFRAME_TO_PHYSICAL(fc))
 
 // Number of complete pages from at-most 'b' number of bytes.
 #define BYTES_TO_PAGEFRAMES_FLOOR(b)  (PHYSICAL_TO_PAGEFRAME(b))

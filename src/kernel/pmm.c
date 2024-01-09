@@ -217,7 +217,7 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
                                 pageCount,
                                 PMM_STATE_USED))
     {
-        *address = createPhysical(PAGEFRAMES_TO_BYTES((UINT) pageFrame));
+        *address = createPhysical(PAGEFRAME_TO_PHYSICAL((UINT) pageFrame));
         k_assert (IS_ALIGNED (address->val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
         return true;
     }
@@ -257,7 +257,7 @@ size_t kpmm_getFreeMemorySize ()
         freePages++;
 
     k_assert(freePages <= kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY), "Invalid frames");
-    return PAGEFRAMES_TO_BYTES(freePages);
+    return PAGEFRAME_TO_PHYSICAL(freePages);
 }
 
 /***************************************************************************************************
