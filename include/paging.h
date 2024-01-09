@@ -13,6 +13,7 @@
 
 #include <types.h>
 #include <stdbool.h>
+#include <config.h>
 
 typedef struct PageAttributes
 {
@@ -35,6 +36,20 @@ typedef enum PageMapAttributes
     PAGE_MAP_BACKED,
     PAGE_MAP_UNBACKED
 } PageMapAttributes;
+
+#define PAGEFRAME_TO_PHYSICAL(pf) ((USYSINT)(pf) << CONFIG_PAGE_SIZE_BITS)
+#define PHYSICAL_TO_PAGEFRAME(addr)                                                                \
+    ((addr / CONFIG_PAGE_FRAME_SIZE_BYTES) & BIT_MASK (CONFIG_PAGE_FRAME_SIZE_BITS, 0))
+
+// Number of bytes in 'fc' number of pages
+#define PAGEFRAMES_TO_BYTES(fc) (PAGEFRAME_TO_PHYSICAL(fc))
+
+// Number of complete pages from at-most 'b' number of bytes.
+#define BYTES_TO_PAGEFRAMES_FLOOR(b)  (PHYSICAL_TO_PAGEFRAME(b))
+
+// Number of complete pages from at-least 'b' number of bytes.
+#define BYTES_TO_PAGEFRAMES_CEILING(b)  \
+    (PHYSICAL_TO_PAGEFRAME(ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES)))
 
 PageDirectory kpg_getcurrentpd();
 void kpg_setupPD (PageDirectory pd, PageAttributes *attr);

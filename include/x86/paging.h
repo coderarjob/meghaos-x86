@@ -10,12 +10,11 @@
 ; ---------------------------------------------------------------------------
 */
 
-#include <types.h>
-#include <paging.h>
-#include <buildcheck.h>
-
 #ifndef PAGING_H_X86
 #define PAGING_H_X86
+
+#include <types.h>
+#include <buildcheck.h>
 
 #define RECURSIVE_PD_INDEX 1023U
 #define TEMPORARY_PD_INDEX 1022U
@@ -38,7 +37,6 @@ static inline void* CAST_PA_TO_VA (Physical a)
     return (void *)a.val;
 #endif
 }
-
 
 extern Physical g_page_dir,     /* Address of the initial page dir */
                 g_page_table;   /* Address of the initial page table*/

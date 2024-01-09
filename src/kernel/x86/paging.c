@@ -31,11 +31,6 @@ static void s_setupPDE (ArchPageDirectoryEntry *pde, const Physical *pageFrame);
 static ArchPageDirectoryEntry *s_getPTE (UINT pdeIndex, UINT pteIndex);
 //static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde);
 
-#define PAGE_FRAME_SIZE_BITS      (31U - CONFIG_PAGE_SIZE_BITS)
-#define PAGEFRAME_TO_PHYSICAL(pf) ((USYSINT)(pf) << CONFIG_PAGE_SIZE_BITS)
-#define PHYSICAL_TO_PAGEFRAME(addr)                                                                \
-    ((addr / CONFIG_PAGE_FRAME_SIZE_BYTES) & BIT_MASK (PAGE_FRAME_SIZE_BITS, 0))
-
 /*static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde)
 {
     PageAttributes pa = { 0 };

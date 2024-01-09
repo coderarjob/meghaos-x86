@@ -24,4 +24,8 @@
     #define CONFIG_MAX_CALL_TRACE_DEPTH     10
     #define CONFIG_PAB_NUMBER_OF_PAGES      1 /* Must be 1. Limitations of current Physical Map */
 
+    /** Derived Configs
+     * SHOULD NOT BE EDITTED MANUALLY */
+    #define CONFIG_PAGE_FRAME_SIZE_BITS     (31U - CONFIG_PAGE_SIZE_BITS)
+
 #endif // MOS_CONFIG_H_X86

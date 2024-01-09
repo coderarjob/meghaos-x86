@@ -15,6 +15,7 @@
 
 #include <buildcheck.h>
 #include <config.h>
+#include <paging.h>
 
 #define MAX_VGA_COLUMNS             80U
 #define MAX_VGA_ROWS                50U

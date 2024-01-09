@@ -14,6 +14,7 @@
 #include <x86/boot.h>
 #include <kerror.h>
 #include <panic.h>
+#include <paging.h>
 #include <mem.h>
 
 static void s_markFreeMemory (Bitmap *bitmap);

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <utils.h>
 #include <moslimits.h>
+#include <paging.h>
 #include <kerror.h>
 #include <pmm.h>
 #include <math.h>
