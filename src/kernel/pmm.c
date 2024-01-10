@@ -108,8 +108,6 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
 {
     k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
-    PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
-
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
@@ -125,6 +123,7 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
     // Note: As startAddress is already aligned, both floor or ceiling are same here.
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (startAddress.val);
 
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
     bool success = bitmap_setContinous(&region->bitmap,
                                        startPageFrame,
                                        pageCount,
@@ -151,8 +150,6 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
-    PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
-
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = start.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
     if (allocation_end_byte >= kpmm_getUsableMemorySize (reg))
@@ -166,6 +163,8 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
 
     // Check if all the pages can be allocated at the provided location.
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
+
     bool found = bitmap_findContinousAt(&region->bitmap,
                                         PMM_STATE_FREE,
                                         pageCount,
