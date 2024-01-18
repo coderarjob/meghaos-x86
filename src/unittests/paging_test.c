@@ -1,7 +1,7 @@
 #include <paging.h>
 #include <unittest/unittest.h>
 
-TEST (paging, pagefrmae_to_physical) {
+TEST (paging, pageframe_to_physical) {
     EQ_SCALAR(PAGEFRAME_TO_PHYSICAL(0x3), 0x3 * CONFIG_PAGE_FRAME_SIZE_BYTES);
     EQ_SCALAR(PAGEFRAME_TO_PHYSICAL(0x0), 0x0);
     END();
@@ -28,7 +28,7 @@ void reset() {
 }
 
 int main() {
-    pagefrmae_to_physical();
+    pageframe_to_physical();
     bytes_to_pageframes_ceiling();
     bytes_to_pageframes_floor();
     return 0;
