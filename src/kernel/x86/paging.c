@@ -28,7 +28,8 @@ typedef struct IndexInfo
 static IndexInfo s_getTableIndices (PTR va);
 static void s_setupPTE (ArchPageTableEntry *pte, const Physical *pageFrame);
 static void s_setupPDE (ArchPageDirectoryEntry *pde, const Physical *pageFrame);
-static ArchPageDirectoryEntry *s_getPTE (UINT pdeIndex, UINT pteIndex);
+static ArchPageDirectoryEntry *s_getPDE (UINT pdeIndex);
+static ArchPageTableEntry *s_getPTE (UINT pdeIndex, UINT pteIndex);
 //static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde);
 
 /*static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde)
@@ -42,6 +43,11 @@ static ArchPageDirectoryEntry *s_getPTE (UINT pdeIndex, UINT pteIndex);
     return pa;
 }*/
 
+#ifndef UNITTEST
+// TODO: Functions whose both declaration and its implementation are arch dependent can be named
+// differently, to indicate that such functions must never be called from any other architecture.
+// TODO: The above statement can be extended to other types like constants, macros, types. Those
+// items which uniquely exists for a architecture can be named accordingly.
 static ArchPageDirectoryEntry *s_getPDE (UINT pdeIndex)
 {
     k_assert ((pdeIndex < 1024), "Invalid PD/PT/offset index");
@@ -50,13 +56,14 @@ static ArchPageDirectoryEntry *s_getPDE (UINT pdeIndex)
     return (ArchPageDirectoryEntry *)addr;
 }
 
-static ArchPageDirectoryEntry *s_getPTE (UINT pdeIndex, UINT pteIndex)
+static ArchPageTableEntry *s_getPTE (UINT pdeIndex, UINT pteIndex)
 {
     k_assert ((pdeIndex < 1024) && (pteIndex < 1024), "Invalid PD/PT/offset index");
     PTR addr = (RECURSIVE_PD_INDEX << PDE_SHIFT) | (pdeIndex << PTE_SHIFT) |
                (pteIndex * sizeof (ArchPageTableEntry));
-    return (ArchPageDirectoryEntry *)addr;
+    return (ArchPageTableEntry *)addr;
 }
+#endif
 
 static IndexInfo s_getTableIndices (PTR va)
 {

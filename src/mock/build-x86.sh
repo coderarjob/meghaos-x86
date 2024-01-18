@@ -45,5 +45,12 @@ function add_mock_source()
                                  'mock/common/utils.c'
                                )
                 };;
+       paging_x86) {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/kernel/mem.c'
+                                 'mock/kernel/pmm.c'
+                                 'mock/kernel/x86/paging.c'
+                               )
+                };;
     esac
 }
