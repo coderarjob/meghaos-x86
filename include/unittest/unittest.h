@@ -14,6 +14,7 @@
 int ut_equal_mem (const void *a, const void *b, unsigned long size, int *i);
 int ut_equal_string (const char *a, const char *b, int *i);
 
+#define COL_GRAY  "\x1b[90m"
 #define COL_RED   "\x1b[31m"
 #define COL_GREEN "\x1b[32m"
 #define COL_RESET "\x1b[0m"
