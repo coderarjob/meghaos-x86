@@ -57,7 +57,7 @@ PageDirectory kpg_getcurrentpd();
 void kpg_setupPD (PageDirectory pd, PageAttributes *attr);
 void kpg_setPT (PageDirectory pd, PageTable *pt, PTR start);
 bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa);
-PTR kpg_temporaryMap (Physical pageFrame);
+void* kpg_temporaryMap (Physical pageFrame);
 void kpg_temporaryUnmap();
 
 #endif // PAGING_H

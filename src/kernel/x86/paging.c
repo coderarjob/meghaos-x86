@@ -109,15 +109,16 @@ void kpg_temporaryUnmap()
     pd->present = 0;
 }
 
-PTR kpg_temporaryMap (Physical pageFrame)
+void* kpg_temporaryMap (Physical pageFrame)
 {
-    k_assert (IS_ALIGNED (pageFrame.val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
+    if (!IS_ALIGNED (pageFrame.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, NULL);
 
     ArchPageDirectoryEntry *pde = s_getPDE (TEMPORARY_PD_INDEX);
     k_assert (pde->present == 0, "Temporary mapping already present");
 
     s_setupPDE (pde, &pageFrame);
-    return (PTR)s_getPTE (TEMPORARY_PD_INDEX, 0);
+    return (void *)s_getPTE (TEMPORARY_PD_INDEX, 0);
 }
 
 PageDirectory kpg_getcurrentpd()
@@ -130,7 +131,8 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa)
 {
     (void)attr;
 
-    k_assert (pd != NULL, "PD is null");
+    if (pd == NULL) 
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
     if (!IS_ALIGNED (pa->val, CONFIG_PAGE_FRAME_SIZE_BYTES))
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
@@ -146,8 +148,8 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa)
         // Initialize the page table.
         /* TODO: A more easy sollution than Temporary map would be to reference the page table
          * at pde and then the start of the new page table is (info.pdeIndex << PDE_SHIFT). */
-        PTR tempva = kpg_temporaryMap(pa_new);
-        k_memset((void *)tempva, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
+        void* tempva = kpg_temporaryMap(pa_new);
+        k_memset(tempva, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
         kpg_temporaryUnmap();
 
         // Referene the page table in the PDE.
@@ -158,7 +160,7 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa)
     // Note: An alternate to temporary map can to have recursive map within each page table as well.
     // However the temporary map solution seems better to me.
     Physical ptaddr         = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde.pageTableFrame));
-    PTR tempva              = kpg_temporaryMap (ptaddr);
+    void* tempva              = kpg_temporaryMap (ptaddr);
     ArchPageTableEntry *pte = &((ArchPageTableEntry *)tempva)[info.pteIndex];
     s_setupPTE (pte, pa);
     kpg_temporaryUnmap();
