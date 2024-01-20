@@ -56,8 +56,8 @@ typedef enum PageMapAttributes
 PageDirectory kpg_getcurrentpd();
 void kpg_setupPD (PageDirectory pd, PageAttributes *attr);
 void kpg_setPT (PageDirectory pd, PageTable *pt, PTR start);
-bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa);
-void* kpg_temporaryMap (Physical pageFrame);
+bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa);
+void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();
 
 #endif // PAGING_H
