@@ -134,7 +134,8 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical *pa)
     if (pd == NULL) 
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 
-    if (!IS_ALIGNED (pa->val, CONFIG_PAGE_FRAME_SIZE_BYTES))
+    if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES) ||
+        !IS_ALIGNED (pa->val, CONFIG_PAGE_FRAME_SIZE_BYTES))
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
 
     IndexInfo info             = s_getTableIndices (va);
