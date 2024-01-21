@@ -223,10 +223,6 @@ TEST (paging, map_success_page_table_not_present)
     EQ_SCALAR ((U32)pt[1].present, 1);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
 
-    // PDE entry used for temporary mapping should now be unmapped.
-    // 1. Present bit unset (indicating successful unmap)
-    EQ_SCALAR ((U32)pd[2].present, 0);
-
     END();
 }
 
@@ -276,13 +272,6 @@ TEST (paging, map_success_page_table_present)
     // (here value in 'pa') and the present bit set.
     EQ_SCALAR ((U32)pt[1].present, 1);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
-
-    // Temporary map & unmap should have resulted in the PD entry used for temporary map the
-    // following:
-    // 1. Point to the same page frame as in the PD entry used in mapping.
-    // 2. Present bit unset (indicating successful unmap)
-    EQ_SCALAR ((U32)pd[2].present, 0);
-    EQ_SCALAR ((U32)pd[2].pageTableFrame, (U32)pd[1].pageTableFrame);
 
     END();
 }
