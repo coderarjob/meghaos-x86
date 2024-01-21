@@ -137,12 +137,15 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
     IndexInfo info               = s_getTableIndices (va);
     ArchPageDirectoryEntry *pde  = &pd[info.pdeIndex];
+    k_assert(pde->present, "Page table is already unmapped.");
+
     Physical pt_phyaddr = PHYSICAL(PAGEFRAME_TO_PHYSICAL(pde->pageTableFrame));
     PageTable pt = (PageTable)kpg_temporaryMap(pt_phyaddr);
     ArchPageTableEntry *pte = &pt[info.pteIndex];
 
     if (!pte->present) {
         kpg_temporaryUnmap();
+        // Should this be a panic! or an assert!??
         RETURN_ERROR (ERR_DOUBLE_FREE, false);
     }
 
@@ -189,6 +192,13 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
     Physical ptaddr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
     PageTable tempva = (PageTable)kpg_temporaryMap (ptaddr);
     ArchPageTableEntry *pte = &tempva[info.pteIndex];
+
+    if (pte->present) {
+        kpg_temporaryUnmap();
+        // Should this be a panic! or an assert!??
+        RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
+    }
+
     s_setupPTE (pte, pa);
     kpg_temporaryUnmap();
     return true;
