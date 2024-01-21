@@ -127,6 +127,31 @@ PageDirectory kpg_getcurrentpd()
     return (PageDirectory)pde;
 }
 
+bool kpg_unmap (PageDirectory pd, PTR va)
+{
+    if (pd == NULL)
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+
+    if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES))
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
+
+    IndexInfo info               = s_getTableIndices (va);
+    ArchPageDirectoryEntry *pde  = &pd[info.pdeIndex];
+    Physical pt_phyaddr = PHYSICAL(PAGEFRAME_TO_PHYSICAL(pde->pageTableFrame));
+    PageTable pt = (PageTable)kpg_temporaryMap(pt_phyaddr);
+    ArchPageTableEntry *pte = &pt[info.pteIndex];
+
+    if (!pte->present) {
+        kpg_temporaryUnmap();
+        RETURN_ERROR (ERR_DOUBLE_FREE, false);
+    }
+
+    pte->present = false;
+    kpg_temporaryUnmap();
+
+    return true;
+}
+
 bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
 {
     (void)attr;
@@ -162,8 +187,8 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
     // Note: An alternate to temporary map can to have recursive map within each page table as well.
     // However the temporary map solution seems better to me.
     Physical ptaddr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-    void *tempva = kpg_temporaryMap (ptaddr);
-    ArchPageTableEntry *pte = &((ArchPageTableEntry *)tempva)[info.pteIndex];
+    PageTable tempva = (PageTable)kpg_temporaryMap (ptaddr);
+    ArchPageTableEntry *pte = &tempva[info.pteIndex];
     s_setupPTE (pte, pa);
     kpg_temporaryUnmap();
     return true;

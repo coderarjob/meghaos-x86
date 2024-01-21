@@ -277,6 +277,50 @@ TEST (paging, map_success_page_table_present)
 }
 
 // ------------------------------------------------------------------------------------------------
+// Test: Unmapping virtual addresses
+// ------------------------------------------------------------------------------------------------
+
+TEST (paging, unmap_success)
+{
+    PTR      va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
+    Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
+
+    // Page Table requires at-least two entries.
+    __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
+        { .present = 0 }, // Not used.
+        { .present   = 1,
+          .pageFrame = PHYSICAL_TO_PAGEFRAME (pa.val) } // PDE which changes as result of map.
+    };
+
+    // Page directory with three entries. As per the choice of virtual address here (value in 'va')
+    // entry at index 1 is required to have the following setup:
+    // 1. Preset bit set to 1. (To indicate page table exists).
+    // 2. pageTableFrame setup is only necessary to check if temporary map & unmap was called.
+    __attribute__ ((aligned (4096))) ArchPageDirectoryEntry pd[] = {
+        { .present = 0 }, // Not used.
+        { .present = 1 }, // Page table exists
+        { .present = 0 }  // PDE which is used for temporary map.
+    };
+
+    // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
+    // 1. Present bit is 0 (To indicate that nothing is already mapped).
+    // 2. s_getPDE to return virtual address of the PD entry used for temporary map.
+    s_getPdeFromCurrentPd_fake.ret = &pd[2];
+
+    // Since we are not working with physical addresses in the test we do not require the temporary
+    // mapping of the Page Table physical address to get a temporary virtual address (we already
+    // have a working virtual address for the Page Table). This is done in the following way:
+    // 1. s_getPTE returns the virtual address of the PT.
+    s_getPteFromCurrentPd_fake.ret = pt;
+
+    EQ_SCALAR(kpg_unmap(pd, va), true);
+
+    EQ_SCALAR ((U32)pt[1].present, 0);
+
+    END();
+}
+
+// ------------------------------------------------------------------------------------------------
 
 void reset()
 {
@@ -300,6 +344,7 @@ int main()
     map_failure_new_page_table_creation_failed();
     map_failure_pa_not_aligned();
     map_failure_va_not_aligned();
+    unmap_success();
 
     return 0;
 }

@@ -57,6 +57,7 @@ PageDirectory kpg_getcurrentpd();
 void kpg_setupPD (PageDirectory pd, PageAttributes *attr);
 void kpg_setPT (PageDirectory pd, PageTable *pt, PTR start);
 bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa);
+bool kpg_unmap (PageDirectory pd, PTR va);
 void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();
 
