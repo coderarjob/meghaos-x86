@@ -4,8 +4,8 @@
 #include <unittest/fake.h>
 #include <paging.h>
 
-DECLARE_FUNC(ArchPageDirectoryEntry*, s_getPDE, UINT);
-DECLARE_FUNC(ArchPageTableEntry*, s_getPTE, UINT);
+DECLARE_FUNC(ArchPageDirectoryEntry*, s_getPdeFromCurrentPd, UINT);
+DECLARE_FUNC(ArchPageTableEntry*, s_getPteFromCurrentPd, UINT);
 
 void resetPagingFake();
 

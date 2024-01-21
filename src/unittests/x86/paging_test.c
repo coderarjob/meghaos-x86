@@ -15,8 +15,8 @@ KernelErrorCodes k_errorNumber;
 // ------------------------------------------------------------------------------------------------
 TEST (paging, temporary_unmap_success)
 {
-    ArchPageDirectoryEntry pde = { .present = 1 };
-    s_getPDE_fake.ret          = &pde;
+    ArchPageDirectoryEntry pde     = { .present = 1 };
+    s_getPdeFromCurrentPd_fake.ret = &pde;
 
     kpg_temporaryUnmap();
     EQ_SCALAR ((int)pde.present, 0);
@@ -25,8 +25,8 @@ TEST (paging, temporary_unmap_success)
 
 TEST (paging, temporary_unmap_failure_already_unmapped)
 {
-    ArchPageDirectoryEntry pde = { 0 };
-    s_getPDE_fake.ret          = &pde;
+    ArchPageDirectoryEntry pde     = { 0 };
+    s_getPdeFromCurrentPd_fake.ret = &pde;
 
     kpg_temporaryUnmap();
     EQ_SCALAR (panic_invoked, true);
@@ -36,8 +36,8 @@ TEST (paging, temporary_unmap_failure_already_unmapped)
 
 TEST (paging, temporary_map_success)
 {
-    ArchPageDirectoryEntry pde = { 0 };
-    s_getPDE_fake.ret          = &pde;
+    ArchPageDirectoryEntry pde     = { 0 };
+    s_getPdeFromCurrentPd_fake.ret = &pde;
 
     Physical pa = PHYSICAL (0x12000); // 0x12000 is just a valid physical address.
     kpg_temporaryMap (pa);
@@ -50,8 +50,8 @@ TEST (paging, temporary_map_success)
 
 TEST (paging, temporary_map_failure_already_mapped)
 {
-    ArchPageDirectoryEntry pde = { .present = 1 };
-    s_getPDE_fake.ret          = &pde;
+    ArchPageDirectoryEntry pde     = { .present = 1 };
+    s_getPdeFromCurrentPd_fake.ret = &pde;
 
     Physical pa = PHYSICAL (0x12000);
     kpg_temporaryMap (pa);
@@ -63,8 +63,8 @@ TEST (paging, temporary_map_failure_already_mapped)
 
 TEST (paging, temporary_map_failure_input_not_aligned)
 {
-    ArchPageDirectoryEntry pde = { 0 };
-    s_getPDE_fake.ret          = &pde;
+    ArchPageDirectoryEntry pde     = { 0 };
+    s_getPdeFromCurrentPd_fake.ret = &pde;
 
     Physical pa = PHYSICAL (0x12); // Address is not page aligned.
     EQ_SCALAR ((PTR)NULL, (PTR)kpg_temporaryMap (pa));
@@ -76,8 +76,8 @@ TEST (paging, temporary_map_failure_input_not_aligned)
 
 TEST (paging, get_currentpd_success)
 {
-    ArchPageDirectoryEntry pde = { .pageTableFrame = 0xFFBB }; // Some magic number that's all.
-    s_getPDE_fake.ret          = &pde;
+    ArchPageDirectoryEntry pde     = { .pageTableFrame = 0xFFBB }; // Some magic number that's all.
+    s_getPdeFromCurrentPd_fake.ret = &pde;
     EQ_MEM (kpg_getcurrentpd(), &pde, sizeof (PageDirectory));
     END();
 }
@@ -201,13 +201,13 @@ TEST (paging, map_success_page_table_not_present)
     // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
     // 1. Present bit is 0 (To indicate that nothing is already mapped).
     // 2. s_getPDE to return virtual address of this PD entry used for temporary map.
-    s_getPDE_fake.ret = &pd[2];
+    s_getPdeFromCurrentPd_fake.ret = &pd[2];
 
     // Since we are not working with physical addresses in the test we do not require the temporary
     // mapping of the Page Table physical address to get a temporary virtual address (we already
     // have a working virtual address for the Page Table). This is done in the following way:
     // 1. s_getPTE returns the virtual address of the PT.
-    s_getPTE_fake.ret = pt;
+    s_getPteFromCurrentPd_fake.ret = pt;
 
     EQ_SCALAR (kpg_map (pd, pma, va, pa), true);
 
@@ -258,13 +258,13 @@ TEST (paging, map_success_page_table_present)
     // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
     // 1. Present bit is 0 (To indicate that nothing is already mapped).
     // 2. s_getPDE to return virtual address of the PD entry used for temporary map.
-    s_getPDE_fake.ret = &pd[2];
+    s_getPdeFromCurrentPd_fake.ret = &pd[2];
 
     // Since we are not working with physical addresses in the test we do not require the temporary
     // mapping of the Page Table physical address to get a temporary virtual address (we already
     // have a working virtual address for the Page Table). This is done in the following way:
     // 1. s_getPTE returns the virtual address of the PT.
-    s_getPTE_fake.ret = pt;
+    s_getPteFromCurrentPd_fake.ret = pt;
 
     EQ_SCALAR (kpg_map (pd, 0, va, pa), true);
 

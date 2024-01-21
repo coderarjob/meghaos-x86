@@ -28,8 +28,8 @@ typedef struct IndexInfo
 static IndexInfo s_getTableIndices (PTR va);
 static void s_setupPTE (ArchPageTableEntry *pte, Physical pa);
 static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa);
-static ArchPageDirectoryEntry *s_getPDE (UINT pdeIndex);
-static ArchPageTableEntry *s_getPTE (UINT pdeIndex, UINT pteIndex);
+static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex);
+static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
 //static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde);
 
 /*static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde)
@@ -48,7 +48,7 @@ static ArchPageTableEntry *s_getPTE (UINT pdeIndex, UINT pteIndex);
 // differently, to indicate that such functions must never be called from any other architecture.
 // TODO: The above statement can be extended to other types like constants, macros, types. Those
 // items which uniquely exists for a architecture can be named accordingly.
-static ArchPageDirectoryEntry *s_getPDE (UINT pdeIndex)
+static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex)
 {
     k_assert ((pdeIndex < 1024), "Invalid PD/PT/offset index");
     PTR addr = (RECURSIVE_PD_INDEX << PDE_SHIFT) | (RECURSIVE_PD_INDEX << PTE_SHIFT) |
@@ -56,7 +56,7 @@ static ArchPageDirectoryEntry *s_getPDE (UINT pdeIndex)
     return (ArchPageDirectoryEntry *)addr;
 }
 
-static ArchPageTableEntry *s_getPTE (UINT pdeIndex, UINT pteIndex)
+static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex)
 {
     k_assert ((pdeIndex < 1024) && (pteIndex < 1024), "Invalid PD/PT/offset index");
     PTR addr = (RECURSIVE_PD_INDEX << PDE_SHIFT) | (pdeIndex << PTE_SHIFT) |
@@ -104,7 +104,7 @@ static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa)
 
 void kpg_temporaryUnmap()
 {
-    ArchPageDirectoryEntry *pd = s_getPDE (TEMPORARY_PD_INDEX);
+    ArchPageDirectoryEntry *pd = s_getPdeFromCurrentPd (TEMPORARY_PD_INDEX);
     k_assert (pd->present == 1, "Temporary mapping not present");
     pd->present = 0;
 }
@@ -114,16 +114,16 @@ void *kpg_temporaryMap (Physical pa)
     if (!IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, NULL);
 
-    ArchPageDirectoryEntry *pde = s_getPDE (TEMPORARY_PD_INDEX);
+    ArchPageDirectoryEntry *pde = s_getPdeFromCurrentPd (TEMPORARY_PD_INDEX);
     k_assert (pde->present == 0, "Temporary mapping already present");
 
     s_setupPDE (pde, pa);
-    return (void *)s_getPTE (TEMPORARY_PD_INDEX, 0);
+    return (void *)s_getPteFromCurrentPd (TEMPORARY_PD_INDEX, 0);
 }
 
 PageDirectory kpg_getcurrentpd()
 {
-    ArchPageDirectoryEntry *pde = s_getPDE (0);
+    ArchPageDirectoryEntry *pde = s_getPdeFromCurrentPd (0);
     return (PageDirectory)pde;
 }
 
