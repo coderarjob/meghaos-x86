@@ -129,8 +129,7 @@ PageDirectory kpg_getcurrentpd()
 
 bool kpg_unmap (PageDirectory pd, PTR va)
 {
-    if (pd == NULL)
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    k_assert(pd != NULL, "Page Directory is null.");
 
     if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES))
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
@@ -145,7 +144,8 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
     if (!pte->present) {
         kpg_temporaryUnmap();
-        // Should this be a panic! or an assert!??
+        // Panic or assert may not be the right decision here. At this time I want the caller to
+        // take action. The caller will be at a better position to take decision.
         RETURN_ERROR (ERR_DOUBLE_FREE, false);
     }
 
@@ -159,8 +159,7 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
 {
     (void)attr;
 
-    if (pd == NULL)
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    k_assert(pd != NULL, "Page Directory is null.");
 
     if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES) ||
         !IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
@@ -195,7 +194,6 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
 
     if (pte->present) {
         kpg_temporaryUnmap();
-        // Should this be a panic! or an assert!??
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 

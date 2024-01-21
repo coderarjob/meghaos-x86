@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <types.h>
 #include <paging.h>
 #include <x86/paging.h>
@@ -195,7 +194,7 @@ TEST (paging, map_failure_pd_is_null)
     Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
     EQ_SCALAR (kpg_map (NULL, 0, va, pa), false);
 
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (panic_invoked, true);
 
     END();
 }
@@ -438,7 +437,7 @@ TEST (paging, unmap_failure_pd_is_null)
     PTR va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
     EQ_SCALAR (kpg_unmap (NULL, va), false);
 
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (panic_invoked, true);
 
     END();
 }
