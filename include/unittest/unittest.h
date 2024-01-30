@@ -14,10 +14,11 @@
 int ut_equal_mem (const void *a, const void *b, unsigned long size, int *i);
 int ut_equal_string (const char *a, const char *b, int *i);
 
-#define COL_GRAY  "\x1b[90m"
-#define COL_RED   "\x1b[31m"
-#define COL_GREEN "\x1b[32m"
-#define COL_RESET "\x1b[0m"
+#define COL_GRAY      "\x1b[90m"
+#define COL_RED       "\x1b[31m"
+#define COL_GREEN     "\x1b[32m"
+#define COL_RESET     "\x1b[0m"
+#define COL_HIGHLIGHT "\x1b[0;47m"
 
 #define UT_PASSED(t) printf ("\n  %sPass%s: %-20s", COL_GREEN, COL_RESET, #t)
 
@@ -71,6 +72,6 @@ int ut_equal_string (const char *a, const char *b, int *i);
 
 #define TEST(tf, fn) static void fn () {                                      \
                         reset();                                              \
-                        printf ("TEST (%s) %s", #tf, #fn); do
+                        printf ("%s:%s:: %s%s", COL_HIGHLIGHT, #tf, #fn, COL_RESET); do
 #define END()       } while(0); printf("\n")
 #endif // UNITTEST_H
