@@ -310,15 +310,15 @@ TEST (paging, map_success_page_table_present)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), true);
+    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_WRITABLE), true);
 
     // After kpg_map, the entry at index 1 should have the Page frame of the physical address
     // (here value in 'pa') and the present bit set.
     EQ_SCALAR ((U32)pt[1].present, 1);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
     EQ_SCALAR ((U32)pt[1].write_allowed, 1);
-    EQ_SCALAR ((U32)pt[1].user_accessable, 0);
-    EQ_SCALAR ((U32)pt[1].cache_disabled, 0);
+    EQ_SCALAR ((U32)pt[1].user_accessable, 1);
+    EQ_SCALAR ((U32)pt[1].cache_disabled, 1);
     END();
 }
 
