@@ -43,6 +43,20 @@ UINT power_of_two(UINT e);
  * Example: BIT_MASK(19, 1) = 0xFFFFE */
 #define BIT_MASK(r, l) (((1 << ((r) - (l) + 1)) - 1) << l)
 
+/**Bit test
+ * Checks is bit s (represented by the shifted value) is set in w.
+ * NOTE: `& 0x1` makes the GCC happy when assigning to bit field.*/
+#define BIT_ISSET(w, s)             \
+    (__extension__({                \
+         INT w_ = (w);      \
+         INT s_ = (s);      \
+         (w_ & s_) == s_ ? 1U : 0U; \
+     }) & 0x1)
+
+/**Bit test
+ * Checks is bit s (represented by the shifted value) is not set in w. */
+#define BIT_ISUNSET(w, s) ((BIT_ISSET (w, s) == 1U ? 0U : 1U) & 0x1)
+
 /** Stringfy macros */
 #define STR_NDU(v) #v
 #define STR(v) STR_NDU(v)

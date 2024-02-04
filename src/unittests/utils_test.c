@@ -97,6 +97,32 @@ TEST (utils, Stringfy) {
     END();
 }
 
+TEST (utils, bit_isunset) {
+    int flags = (1 << 13) | (1 << 10) | (1 << 2);
+
+    EQ_SCALAR(0U, BIT_ISUNSET(flags, (1 << 13)));
+    EQ_SCALAR(0U, BIT_ISUNSET(flags, (1 << 10)));
+    EQ_SCALAR(0U, BIT_ISUNSET(flags, (1 << 2)));
+
+    EQ_SCALAR(1U, BIT_ISUNSET(flags, (1 << 12)));
+    EQ_SCALAR(1U, BIT_ISUNSET(flags, (1 << 24)));
+    EQ_SCALAR(1U, BIT_ISUNSET(flags, (1 << 1)));
+    END();
+}
+
+TEST (utils, bit_isset) {
+    int flags = (1 << 13) | (1 << 10) | (1 << 2);
+
+    EQ_SCALAR(1U, BIT_ISSET(flags, (1 << 13)));
+    EQ_SCALAR(1U, BIT_ISSET(flags, (1 << 10)));
+    EQ_SCALAR(1U, BIT_ISSET(flags, (1 << 2)));
+
+    EQ_SCALAR(0U, BIT_ISSET(flags, (1 << 24)));
+    EQ_SCALAR(0U, BIT_ISSET(flags, (1 << 14)));
+    EQ_SCALAR(0U, BIT_ISSET(flags, (1 << 1)));
+    END();
+}
+
 void reset() {}
 
 int main() {
@@ -110,4 +136,6 @@ int main() {
     IsAligned();
     ArrayLength();
     OffsetOf();
+    bit_isset();
+    bit_isunset();
 }
