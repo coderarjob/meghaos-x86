@@ -36,7 +36,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | BUILD SYSTEM                                                            |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 JAN 14 |            |
+| [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 14 |            |
 | variants in C.                                                          |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
 | [ ] Configuration header files for C and assembly.                      |           |            |
@@ -76,9 +76,14 @@
 | ::: [ ] Guard Macros in header files.                                   |           |            |
 | [X] Use true, false from stdbool.h instead of macros defined in         |           | 04 APR 23  |
 | our types.h                                                             |           |            |
+| [ ] Spaces before paramter need to be rethought.                        | 04 Feb 24 |            |
+| May be `ControlStatementsExceptControlMacros` is better than            |           |            |
+| `NonEmptyParentheses`                                                   |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |
+| `statement-expressions` to mitigate these.                              |           |            |
 | [X] Physical memory allocator                                           |           | 20 JUL 23  |
 | ::: [X] Reimplement using common/bitmap                                 |           |            |
 | ::: [ ] Lock to protect the PAB.                                        |           |            |
