@@ -36,6 +36,8 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | BUILD SYSTEM                                                            |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 JAN 14 |            |
+| variants in C.                                                          |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
 | [ ] Configuration header files for C and assembly.                      |           |            |
 | Note: This can be done using CMake.                                     |           |            |
