@@ -6,17 +6,21 @@ categories: note, x86
 _16 Dec 2022_
 
 From what I have read and understood, the VMM's does the following:
-1. Though paging module also have a `map` function, the `map` of VMM is different. In the former
-   case we dont have to specify any PA, it will be allocated by the kernel later on demand.
-2. This simplifies some aspects of mapping, where we can over-map VMM and not worry about physical
+1. Like the physical memory manager, virtual memory manager also has as AllocPages function. It
+   looks for free virtual pages. It might not allocate physical memory, but just mark those pages as
+   allocated.
+2. Related to the above point is the `map` function of VMM. It keeps note of the allocated VAs which
+   the OS will use later when allocating physical pages. I could be that this is a sub function of
+   the `AllocPages` function.
+3. This simplifies some aspects of mapping, where we can over-map VMM and not worry about physical
    memory usage.
-3. VMM manages `regions/address spaces`, which are a portion of VA assigned for a purpose (Kernel
+4. VMM manages `regions/address spaces`, which are a portion of VA assigned for a purpose (Kernel
    heap has one region, Static allocator has another region, Stack has another region etc). One can
    then ask to expand these `region` and VMM will make sure that we are crashing into another
    region.
-4. Prodives data structure to quickly search the VA-PA mapping. Provided a VA we can search which PA
+5. Prodives data structure to quickly search the VA-PA mapping. Provided a VA we can search which PA
    is assigned to it. We can parse page tables, but it will be arch dependent and slow.
-5. VMM may also automatically assign a VA range when region gets created. Currently we are planning
+6. VMM may also automatically assign a VA range when region gets created. Currently we are planning
    and hardcoding each reagion by hand.
 
 Though all of the above points are important, they are not crutial or blocking. With a `Static
