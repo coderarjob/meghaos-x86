@@ -26,22 +26,10 @@ typedef struct IndexInfo
 } IndexInfo;
 
 static IndexInfo s_getTableIndices (PTR va);
-static void s_setupPTE (ArchPageTableEntry *pte, Physical pa);
-static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa);
+static void s_setupPTE (ArchPageTableEntry *pte, Physical pa, PagingMapFlags flags);
+static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags flags);
 static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex);
 static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
-//static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde);
-
-/*static PageAttributes s_extractPDAttributes (ArchPageDirectoryEntry *pde)
-{
-    PageAttributes pa = { 0 };
-    pa.present        = pde->present == 1;
-    pa.writable       = pde->write_allowed == 1;
-    pa.userAccessable = pde->user_accessable == 1;
-    pa.cacheDisable   = pde->cache_disabled == 1;
-    pa.writeThrough   = pde->write_through_cache == 1;
-    return pa;
-}*/
 
 #ifndef UNITTEST
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
@@ -78,28 +66,28 @@ static IndexInfo s_getTableIndices (PTR va)
     return info;
 }
 
-static void s_setupPTE (ArchPageTableEntry *pte, Physical pa)
+static void s_setupPTE (ArchPageTableEntry *pte, Physical pa, PagingMapFlags flags)
 {
     k_assert (IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
     pte->pageFrame            = PHYSICAL_TO_PAGEFRAME (pa.val);
     pte->present              = 1;
     pte->page_attribute_table = 0;
     pte->global_page          = 0;
-    pte->cache_disabled       = 1;
+    pte->cache_disabled       = BIT_ISUNSET(flags, PG_MAP_CACHE_ENABLED);
     pte->write_through_cache  = 1;
-    pte->write_allowed        = 1;
-    pte->user_accessable      = 1;
+    pte->write_allowed        = BIT_ISSET(flags, PG_MAP_WRITABLE);
+    pte->user_accessable      = BIT_ISUNSET(flags, PG_MAP_KERNEL);
 }
 
-static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa)
+static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags flags)
 {
     k_assert (IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
     pde->pageTableFrame      = PHYSICAL_TO_PAGEFRAME (pa.val);
     pde->present             = 1;
-    pde->user_accessable     = 1;
-    pde->write_allowed       = 1;
+    pde->user_accessable     = BIT_ISUNSET(flags, PG_MAP_KERNEL);
+    pde->write_allowed       = BIT_ISSET(flags, PG_MAP_WRITABLE);
     pde->write_through_cache = 0;
-    pde->cache_disabled      = 1;
+    pde->cache_disabled      = BIT_ISUNSET(flags, PG_MAP_CACHE_ENABLED);
 }
 
 void kpg_temporaryUnmap()
@@ -117,8 +105,9 @@ void *kpg_temporaryMap (Physical pa)
     ArchPageDirectoryEntry *pde = s_getPdeFromCurrentPd (TEMPORARY_PD_INDEX);
     k_assert (pde->present == 0, "Temporary mapping already present");
 
-    s_setupPDE (pde, pa);
-    return (void *)s_getPteFromCurrentPd (TEMPORARY_PD_INDEX, 0);
+    // TODO: Temporary mapping must always be for Kernel.
+    s_setupPDE(pde, pa, PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED);
+    return (void*)s_getPteFromCurrentPd(TEMPORARY_PD_INDEX, 0);
 }
 
 PageDirectory kpg_getcurrentpd()
@@ -155,10 +144,8 @@ bool kpg_unmap (PageDirectory pd, PTR va)
     return true;
 }
 
-bool kpg_map (PageDirectory pd, PTR va, Physical pa, INT flags)
+bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
 {
-    (void)flags;
-
     k_assert(pd != NULL, "Page Directory is null.");
 
     if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES) ||
@@ -180,7 +167,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, INT flags)
         kpg_temporaryUnmap();
 
         // Referene the page table in the PDE.
-        s_setupPDE (pde, pa_new);
+        s_setupPDE (pde, pa_new, flags);
     }
 
     // In order to access the page table a temporary mapping is required.
@@ -193,7 +180,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, INT flags)
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 
-    s_setupPTE (pte, pa);
+    s_setupPTE (pte, pa, flags);
     kpg_temporaryUnmap();
     return true;
 }

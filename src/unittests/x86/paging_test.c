@@ -9,7 +9,7 @@
 
 KernelErrorCodes k_errorNumber;
 
-#define UNITTEST_PG_MAP_DONT_CARE PG_MAP_KERNEL
+#define UNITTEST_PG_MAP_DONT_CARE PG_MAP_KERNEL | PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED
 
 // ------------------------------------------------------------------------------------------------
 // Test: Temporary map and unmap scenarios
@@ -45,6 +45,8 @@ TEST (paging, temporary_map_success)
 
     EQ_SCALAR ((U32)pde.pageTableFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
     EQ_SCALAR ((U32)pde.present, 1);
+    EQ_SCALAR ((U32)pde.write_allowed, 1);
+    EQ_SCALAR ((U32)pde.user_accessable, 0);
 
     END();
 }
@@ -204,7 +206,7 @@ TEST (paging, map_failure_pd_is_null)
 // ------------------------------------------------------------------------------------------------
 // Test: Successful mapping scenarios
 // ------------------------------------------------------------------------------------------------
-bool kpmm_alloc_handler_map_success_page_table_not_present (Physical *address, UINT pageCount,
+bool kpmm_alloc_handler_map_success_page_table_not_present (Physical* address, UINT pageCount,
                                                             KernelPhysicalMemoryRegions reg)
 {
     address->val = 0x13000; // Can be Page aligned any  number.
@@ -250,7 +252,7 @@ TEST (paging, map_success_page_table_not_present)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), true);
+    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_KERNEL | PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED), true);
 
     // New page table should be added to PDE at index 1. We should expect the following:
     // 1. Preset bit is set.
@@ -258,12 +260,17 @@ TEST (paging, map_success_page_table_not_present)
     // will be equal to the value in the PD entry used for temporary map.
     EQ_SCALAR ((U32)pd[1].present, 1);
     EQ_SCALAR ((U32)pd[1].pageTableFrame, (U32)pd[2].pageTableFrame);
+    EQ_SCALAR ((U32)pd[1].write_allowed, 1);
+    EQ_SCALAR ((U32)pd[1].user_accessable, 0);
+    EQ_SCALAR ((U32)pd[1].cache_disabled, 0);
 
     // After kpg_map, the entry at index 1 should have the Page frame of the physical address
     // (here value in 'pa') and the present bit set.
     EQ_SCALAR ((U32)pt[1].present, 1);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
-
+    EQ_SCALAR ((U32)pt[1].write_allowed, 1);
+    EQ_SCALAR ((U32)pt[1].user_accessable, 0);
+    EQ_SCALAR ((U32)pt[1].cache_disabled, 0);
     END();
 }
 
@@ -309,7 +316,9 @@ TEST (paging, map_success_page_table_present)
     // (here value in 'pa') and the present bit set.
     EQ_SCALAR ((U32)pt[1].present, 1);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
-
+    EQ_SCALAR ((U32)pt[1].write_allowed, 1);
+    EQ_SCALAR ((U32)pt[1].user_accessable, 0);
+    EQ_SCALAR ((U32)pt[1].cache_disabled, 0);
     END();
 }
 
