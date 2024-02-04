@@ -31,12 +31,10 @@ typedef struct ArchPageTableEntry ArchPageTableEntry;
 typedef ArchPageDirectoryEntry* PageDirectory;
 typedef ArchPageTableEntry* PageTable;
 
-typedef enum PageMapAttributes
-{
-    PAGE_MAP_UNMAPED,
-    PAGE_MAP_BACKED,
-    PAGE_MAP_UNBACKED
-} PageMapAttributes;
+#define PG_MAP_USER             (1 << 0)
+#define PG_MAP_KERNEL           (1 << 1)
+#define PG_MAP_CACHE_ENABLED    (1 << 2)
+#define PG_MAP_WRITABLE         (1 << 3)
 
 // Physical start of the page frame 'pf'.
 #define PAGEFRAME_TO_PHYSICAL(pf) ((USYSINT)(pf) << CONFIG_PAGE_SIZE_BITS)
@@ -56,7 +54,7 @@ typedef enum PageMapAttributes
 PageDirectory kpg_getcurrentpd();
 void kpg_setupPD (PageDirectory pd, PageAttributes *attr);
 void kpg_setPT (PageDirectory pd, PageTable *pt, PTR start);
-bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa);
+bool kpg_map (PageDirectory pd, PTR va, Physical pa, INT flags);
 bool kpg_unmap (PageDirectory pd, PTR va);
 void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();

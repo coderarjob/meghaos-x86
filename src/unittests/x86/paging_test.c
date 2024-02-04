@@ -9,6 +9,8 @@
 
 KernelErrorCodes k_errorNumber;
 
+#define UNITTEST_PG_MAP_DONT_CARE PG_MAP_KERNEL
+
 // ------------------------------------------------------------------------------------------------
 // Test: Temporary map and unmap scenarios
 // ------------------------------------------------------------------------------------------------
@@ -121,7 +123,7 @@ TEST (paging, map_failure_double_allocate)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, 0, va, pa), false);
+    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_KERNEL), false);
 
     EQ_SCALAR (k_errorNumber, ERR_DOUBLE_ALLOC);
 
@@ -156,7 +158,7 @@ TEST (paging, map_failure_new_page_table_creation_failed)
     // Physical address for the new page table
     kpmm_alloc_fake.ret = false;
 
-    EQ_SCALAR (kpg_map (pd, 0, va, pa), false);
+    EQ_SCALAR (kpg_map (pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
     EQ_SCALAR (panic_invoked, true);
 
     END();
@@ -168,7 +170,7 @@ TEST (paging, map_failure_va_not_aligned)
     Physical               pa = PHYSICAL (0x12000); // Any Page Aligned number will work.
     ArchPageDirectoryEntry pd = { 0 };
 
-    EQ_SCALAR (kpg_map (&pd, 0, va, pa), false);
+    EQ_SCALAR (kpg_map (&pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
 
     EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
 
@@ -181,7 +183,7 @@ TEST (paging, map_failure_pa_not_aligned)
     Physical pa = PHYSICAL (0x12001);                      // Any Page Aligned number will work.
     ArchPageDirectoryEntry pd = { 0 };
 
-    EQ_SCALAR (kpg_map (&pd, 0, va, pa), false);
+    EQ_SCALAR (kpg_map (&pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
 
     EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
 
@@ -192,7 +194,7 @@ TEST (paging, map_failure_pd_is_null)
 {
     PTR      va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
     Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
-    EQ_SCALAR (kpg_map (NULL, 0, va, pa), false);
+    EQ_SCALAR (kpg_map (NULL, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
 
     EQ_SCALAR (panic_invoked, true);
 
@@ -248,7 +250,7 @@ TEST (paging, map_success_page_table_not_present)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, 0, va, pa), true);
+    EQ_SCALAR (kpg_map (pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), true);
 
     // New page table should be added to PDE at index 1. We should expect the following:
     // 1. Preset bit is set.
@@ -301,7 +303,7 @@ TEST (paging, map_success_page_table_present)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, 0, va, pa), true);
+    EQ_SCALAR (kpg_map (pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), true);
 
     // After kpg_map, the entry at index 1 should have the Page frame of the physical address
     // (here value in 'pa') and the present bit set.

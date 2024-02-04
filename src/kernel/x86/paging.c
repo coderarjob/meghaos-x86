@@ -155,9 +155,9 @@ bool kpg_unmap (PageDirectory pd, PTR va)
     return true;
 }
 
-bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
+bool kpg_map (PageDirectory pd, PTR va, Physical pa, INT flags)
 {
-    (void)attr;
+    (void)flags;
 
     k_assert(pd != NULL, "Page Directory is null.");
 
@@ -175,8 +175,6 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
             k_panic ("%s", "Memory allocaiton failed");
 
         // Initialize the page table.
-        /* TODO: A more easy sollution than Temporary map would be to reference the page table
-         * at pde and then the start of the new page table is (info.pdeIndex << PDE_SHIFT). */
         void *tempva = kpg_temporaryMap (pa_new);
         k_memset (tempva, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
         kpg_temporaryUnmap();
@@ -186,8 +184,6 @@ bool kpg_map (PageDirectory pd, PageMapAttributes attr, PTR va, Physical pa)
     }
 
     // In order to access the page table a temporary mapping is required.
-    // Note: An alternate to temporary map can to have recursive map within each page table as well.
-    // However the temporary map solution seems better to me.
     Physical ptaddr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
     PageTable tempva = (PageTable)kpg_temporaryMap (ptaddr);
     ArchPageTableEntry *pte = &tempva[info.pteIndex];
