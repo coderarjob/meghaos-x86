@@ -31,6 +31,9 @@ static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags
 static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex);
 static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
 
+#define tlb_inval(addr) __asm__ volatile ("invlpg %0;"::"m"(addr))
+#define tlb_inval_complete() __asm__ volatile ("mov %%eax, %%cr3; mov %%cr3, %%eax;":::"eax")
+
 #ifndef UNITTEST
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
 // differently, to indicate that such functions must never be called from any other architecture.
@@ -95,6 +98,7 @@ void kpg_temporaryUnmap()
     ArchPageDirectoryEntry *pd = s_getPdeFromCurrentPd (TEMPORARY_PD_INDEX);
     k_assert (pd->present == 1, "Temporary mapping not present");
     pd->present = 0;
+    tlb_inval_complete();
 }
 
 void *kpg_temporaryMap (Physical pa)
@@ -106,7 +110,11 @@ void *kpg_temporaryMap (Physical pa)
     k_assert (pde->present == 0, "Temporary mapping already present");
 
     // TODO: Temporary mapping must always be for Kernel.
-    s_setupPDE(pde, pa, PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED);
+    s_setupPDE(pde, pa, PG_MAP_KERNEL | PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED);
+
+    tlb_inval_complete();
+//    PTR temp_va = (PTR)s_getPteFromCurrentPd(TEMPORARY_PD_INDEX, 0);
+//    tlb_inval(temp_va);
     return (void*)s_getPteFromCurrentPd(TEMPORARY_PD_INDEX, 0);
 }
 
