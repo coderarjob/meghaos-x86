@@ -61,4 +61,6 @@ UINT power_of_two(UINT e);
 #define STR_NDU(v) #v
 #define STR(v) STR_NDU(v)
 
+#define NORETURN() __builtin_unreachable()
+
 #endif // UTILS_H

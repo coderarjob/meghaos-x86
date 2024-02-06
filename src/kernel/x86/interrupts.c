@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <types.h>
 #include <x86/interrupt.h>
+#include <utils.h>
 #include <disp.h>
 #include <panic.h>
 #include <kdebug.h>
@@ -57,6 +58,7 @@ void page_fault_handler (InterruptFrame *frame, UINT errorcode)
                        err->Present, err->WriteFault, err->UserMode, err->ReserveViolation,
                        err->InstrucionFetchFault, err->ProtectionkeyViolation,
                        err->ShadowStackAccessFault, err->SGXViolation);
+    NORETURN();
 }
 
 EXCEPTION_WITH_CODE_HANDLER(general_protection_fault)
@@ -68,15 +70,15 @@ void general_protection_fault_handler (InterruptFrame *frame, UINT errorcode)
                             err->ext,
                             err->table,
                             err->index);
-
+    NORETURN();
 }
 
 EXCEPTION_HANDLER(div_zero)
 __attribute__ ((noreturn))
 void div_zero_handler (InterruptFrame *frame)
 {
-    (void)frame;
     s_callPanic(frame,"%s","Division by zero.");
+    NORETURN();
 }
 
 __attribute__ ((noreturn))
@@ -96,6 +98,7 @@ static void s_callPanic(InterruptFrame *frame, char *fmt, ...)
     s_appendStackFrame(frame, buffer + len, size - len);
 
     k_panic("%s", buffer);
+    NORETURN();
 }
 
 static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size)
