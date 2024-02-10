@@ -1,15 +1,44 @@
 #!/bin/bash
 
+# ---------------------------------------------------------------------------
+# DEFAULT OPTIONS:
+# ---------------------------------------------------------------------------
 export ARCH=x86
 export DEBUG=DEBUG
+export LINK_USING_LD=1
+
 # DEBUG LEVEL BITS
 # x x x x x x [Screen] [E9]
 export DEBUGLEVEL=3
-LINK_USING_LD=1
 
-if [ $# -ge 1 ]; then ARCH=$1; fi
-if [ $# -ge 2 ]; then DEBUG=$2; fi
+# ---------------------------------------------------------------------------
+# ARGUMENT PARSING
+# ---------------------------------------------------------------------------
+BUILDMODES=(KERNEL LINT ALL)
 
+BUILDMODES_COUNT=${#BUILDMODES[@]}
+for ((i=0; i < $BUILDMODES_COUNT; i++)); do
+    mode=${BUILDMODES[i]}
+    declare -ir $mode=$i
+done
+
+export BUILDMODE=KERNEL
+if [ ! -z $1 ]; then
+    case "$1" in
+        --arch   ) ARCH=$2        ;;
+        --release) DEBUG=NDEBUG   ;;
+        --lint   ) BUILDMODE=LINT ;;
+        --all    ) BUILDMODE=ALL  ;;
+        *        )
+            echo "Invalid command $@"
+            exit 1
+            ;;
+    esac
+fi
+
+# ---------------------------------------------------------------------------
+# DEFAULT PATHS:
+# ---------------------------------------------------------------------------
 export REPORTSDIR="build/reports"
 export TEMPDIR="build/temp"
 export OBJDIR="build/obj"
@@ -124,7 +153,12 @@ mkdir -p $DISKTEMPDIR  || exit
 mkdir $OBJDIR          || exit
 mkdir -p $IMAGEDIR     || exit
 mkdir $LISTDIR         || exit
+
 # ---------------------------------------------------------------------------
+# Build complete kernel and disk image
+# ---------------------------------------------------------------------------
+[[ $BUILDMODE -ge $KERNEL ]] || exit 0
+
 # Build the bootloaders
 bash src/bootloader/x86/build.sh  || exit
 
@@ -161,7 +195,12 @@ sudo umount $DISKTEMPDIR || exit
 # Wrtie the bootloader
 echo "    [ Writing bootloader to floppy image ]    "
 dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
+
 # ---------------------------------------------------------------------------
+# Lint and compiler warning reports
+# ---------------------------------------------------------------------------
+[[ $BUILDMODE -ge $LINT ]] || exit 0
+
 echo "    [ Running linting tool ]"
 ./lint.sh -D__i386__ \
           -D$DEBUG \
@@ -184,6 +223,10 @@ echo "Total compiler warnings: $WARNCOUNT_GCC"
 echo "Total lint warnings: $WARNCOUNT_LINT"
 
 # ---------------------------------------------------------------------------
+# Build unittest and coverage reports
+# ---------------------------------------------------------------------------
+[[ $BUILDMODE -ge $ALL ]] || exit 0
+
 echo "    [ Buliding Unittests ]"
 bash src/unittests/build.sh || exit
 
