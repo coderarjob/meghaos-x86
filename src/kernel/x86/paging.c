@@ -11,7 +11,6 @@
 #include <kerror.h>
 #include <x86/paging.h>
 #include <paging.h>
-#include <kdebug.h>
 #include <config.h>
 #include <disp.h>
 #include <types.h>
@@ -31,8 +30,13 @@ static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags
 static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex);
 static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
 
-#define tlb_inval(addr) __asm__ volatile ("invlpg %0;"::"m"(addr))
-#define tlb_inval_complete() __asm__ volatile ("mov %%eax, %%cr3; mov %%cr3, %%eax;":::"eax")
+#ifndef UNITTEST
+    #define tlb_inval(addr)      __asm__ volatile("invlpg %0;" ::"m"(addr))
+    #define tlb_inval_complete() __asm__ volatile("mov %%eax, %%cr3; mov %%cr3, %%eax;" ::: "eax")
+#else
+    #define tlb_inval(addr)      (void)0
+    #define tlb_inval_complete() (void)0
+#endif
 
 #ifndef UNITTEST
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
@@ -72,25 +76,34 @@ static IndexInfo s_getTableIndices (PTR va)
 static void s_setupPTE (ArchPageTableEntry *pte, Physical pa, PagingMapFlags flags)
 {
     k_assert (IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
-    pte->pageFrame            = PHYSICAL_TO_PAGEFRAME (pa.val);
-    pte->present              = 1;
-    pte->page_attribute_table = 0;
-    pte->global_page          = 0;
-    pte->cache_disabled       = BIT_ISUNSET(flags, PG_MAP_CACHE_ENABLED);
-    pte->write_through_cache  = 1;
-    pte->write_allowed        = BIT_ISSET(flags, PG_MAP_WRITABLE);
-    pte->user_accessable      = BIT_ISUNSET(flags, PG_MAP_KERNEL);
+
+    ArchPageTableEntry newPTE;
+    newPTE.pageFrame            = PHYSICAL_TO_PAGEFRAME (pa.val);
+    newPTE.present              = BIT_ISUNSET(flags, PG_MAP_FLAG_NOT_PRESENT);
+    newPTE.page_attribute_table = 0;
+    newPTE.global_page          = 0;
+    newPTE.cache_disabled       = BIT_ISUNSET(flags, PG_MAP_FLAG_CACHE_ENABLED);
+    newPTE.write_through_cache  = 0;
+    newPTE.write_allowed        = BIT_ISSET (flags, PG_MAP_FLAG_WRITABLE);
+
+    k_memcpy (pte, &newPTE, sizeof (ArchPageTableEntry));
+    tlb_inval_complete();
 }
 
 static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags flags)
 {
     k_assert (IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
-    pde->pageTableFrame      = PHYSICAL_TO_PAGEFRAME (pa.val);
-    pde->present             = 1;
-    pde->user_accessable     = BIT_ISUNSET(flags, PG_MAP_KERNEL);
-    pde->write_allowed       = BIT_ISSET(flags, PG_MAP_WRITABLE);
-    pde->write_through_cache = 0;
-    pde->cache_disabled      = BIT_ISUNSET(flags, PG_MAP_CACHE_ENABLED);
+
+    ArchPageDirectoryEntry newPDE;
+    newPDE.pageTableFrame      = PHYSICAL_TO_PAGEFRAME (pa.val);
+    newPDE.present             = BIT_ISUNSET(flags, PG_MAP_FLAG_NOT_PRESENT);
+    newPDE.user_accessable     = BIT_ISUNSET(flags, PG_MAP_FLAG_KERNEL);
+    newPDE.write_allowed       = BIT_ISSET(flags, PG_MAP_FLAG_WRITABLE);
+    newPDE.write_through_cache = 0;
+    newPDE.cache_disabled      = BIT_ISUNSET(flags, PG_MAP_FLAG_CACHE_ENABLED);
+
+    k_memcpy (pde, &newPDE, sizeof (ArchPageDirectoryEntry));
+    tlb_inval_complete();
 }
 
 void kpg_temporaryUnmap()
@@ -110,11 +123,8 @@ void *kpg_temporaryMap (Physical pa)
     k_assert (pde->present == 0, "Temporary mapping already present");
 
     // TODO: Temporary mapping must always be for Kernel.
-    s_setupPDE(pde, pa, PG_MAP_KERNEL | PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED);
+    s_setupPDE(pde, pa, PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
 
-    tlb_inval_complete();
-//    PTR temp_va = (PTR)s_getPteFromCurrentPd(TEMPORARY_PD_INDEX, 0);
-//    tlb_inval(temp_va);
     return (void*)s_getPteFromCurrentPd(TEMPORARY_PD_INDEX, 0);
 }
 

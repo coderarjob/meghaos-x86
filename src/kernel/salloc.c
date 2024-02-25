@@ -33,7 +33,7 @@ void salloc_init()
         k_panic ("%s", "Memory allocaiton failed");
 
     PageDirectory pd = kpg_getcurrentpd();
-    if (kpg_map (pd, SALLOC_MEM_START, pa, PG_MAP_KERNEL) == false)
+    if (kpg_map (pd, SALLOC_MEM_START, pa, PG_MAP_FLAG_KERNEL) == false)
         k_panic ("%s", "Page map failed");
 
     next = (void *)SALLOC_MEM_START;

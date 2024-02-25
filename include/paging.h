@@ -33,9 +33,10 @@ typedef ArchPageTableEntry* PageTable;
 
 typedef enum PagingMapFlags
 {
-    PG_MAP_KERNEL        = (1 << 0),
-    PG_MAP_CACHE_ENABLED = (1 << 1),
-    PG_MAP_WRITABLE      = (1 << 2),
+    PG_MAP_FLAG_KERNEL        = (1 << 0),
+    PG_MAP_FLAG_CACHE_ENABLED = (1 << 1),
+    PG_MAP_FLAG_WRITABLE      = (1 << 2),
+    PG_MAP_FLAG_NOT_PRESENT   = (1 << 3),
 } PagingMapFlags;
 
 // Physical start of the page frame 'pf'.

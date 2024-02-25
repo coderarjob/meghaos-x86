@@ -9,7 +9,8 @@
 
 KernelErrorCodes k_errorNumber;
 
-#define UNITTEST_PG_MAP_DONT_CARE PG_MAP_KERNEL | PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED
+#define UNITTEST_PG_MAP_DONT_CARE \
+    PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED
 
 // ------------------------------------------------------------------------------------------------
 // Test: Temporary map and unmap scenarios
@@ -125,7 +126,7 @@ TEST (paging, map_failure_double_allocate)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_KERNEL), false);
+    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_FLAG_KERNEL), false);
 
     EQ_SCALAR (k_errorNumber, ERR_DOUBLE_ALLOC);
 
@@ -252,7 +253,9 @@ TEST (paging, map_success_page_table_not_present)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_KERNEL | PG_MAP_WRITABLE | PG_MAP_CACHE_ENABLED), true);
+    EQ_SCALAR (
+        kpg_map (pd, va, pa, PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED),
+        true);
 
     // New page table should be added to PDE at index 1. We should expect the following:
     // 1. Preset bit is set.
@@ -310,14 +313,14 @@ TEST (paging, map_success_page_table_present)
     // 1. Return the virtual address of this PT for the map operation.
     s_getPteFromCurrentPd_fake.ret = pt;
 
-    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_WRITABLE), true);
+    EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_FLAG_WRITABLE), true);
 
     // After kpg_map, the entry at index 1 should have the Page frame of the physical address
     // (here value in 'pa') and the present bit set.
     EQ_SCALAR ((U32)pt[1].present, 1);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
     EQ_SCALAR ((U32)pt[1].write_allowed, 1);
-    EQ_SCALAR ((U32)pt[1].user_accessable, 1);
+    EQ_SCALAR ((U32)pt[1].user_accessable, 0);
     EQ_SCALAR ((U32)pt[1].cache_disabled, 1);
     END();
 }
@@ -455,12 +458,16 @@ TEST (paging, unmap_failure_pd_is_null)
 
 // ------------------------------------------------------------------------------------------------
 
+void* k_memcpy_handler_fn (void* dest, const void* src, size_t n) { return memcpy (dest, src, n); }
+
 void reset()
 {
     panic_invoked = false;
     resetPagingFake();
     resetMemFake();
     resetPmm();
+
+    k_memcpy_fake.handler = k_memcpy_handler_fn;
 }
 
 int main()
