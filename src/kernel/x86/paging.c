@@ -43,20 +43,19 @@ static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
 // differently, to indicate that such functions must never be called from any other architecture.
 // TODO: The above statement can be extended to other types like constants, macros, types. Those
 // items which uniquely exists for a architecture can be named accordingly.
-static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex)
+static ArchPageDirectoryEntry* s_getPdeFromCurrentPd (UINT pdeIndex)
 {
     k_assert ((pdeIndex < 1024), "Invalid PD/PT/offset index");
-    PTR addr = (RECURSIVE_PD_INDEX << PDE_SHIFT) | (RECURSIVE_PD_INDEX << PTE_SHIFT) |
-               (pdeIndex * sizeof (ArchPageDirectoryEntry));
-    return (ArchPageDirectoryEntry *)addr;
+    PTR addr = LINEAR_ADDR (RECURSIVE_PD_INDEX, RECURSIVE_PD_INDEX,
+                            pdeIndex * sizeof (ArchPageDirectoryEntry));
+    return (ArchPageDirectoryEntry*)addr;
 }
 
-static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex)
+static ArchPageTableEntry* s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex)
 {
     k_assert ((pdeIndex < 1024) && (pteIndex < 1024), "Invalid PD/PT/offset index");
-    PTR addr = (RECURSIVE_PD_INDEX << PDE_SHIFT) | (pdeIndex << PTE_SHIFT) |
-               (pteIndex * sizeof (ArchPageTableEntry));
-    return (ArchPageTableEntry *)addr;
+    PTR addr = LINEAR_ADDR (RECURSIVE_PD_INDEX, pdeIndex, pteIndex * sizeof (ArchPageTableEntry));
+    return (ArchPageTableEntry*)addr;
 }
 #endif
 
@@ -108,24 +107,34 @@ static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags
 
 void kpg_temporaryUnmap()
 {
-    ArchPageDirectoryEntry *pd = s_getPdeFromCurrentPd (TEMPORARY_PD_INDEX);
-    k_assert (pd->present == 1, "Temporary mapping not present");
-    pd->present = 0;
+    // TODO: As KERNEL_PDE will always be present and same across every process, recursive mapping
+    // is not really required. That is to say the address of the PTE used for temporary mapping is
+    // constant.
+    // NOTE: The Kernel PT will be mapped in every process and as we are using one of its entry for
+    // temporary mapping, a temporary map is global (not specific to a particular process). This
+    // means in between temporary map and unmap we must not switch processes.
+    ArchPageTableEntry *pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
+    k_assert (pte->present == 1, "Temporary mapping not present");
+    pte->present = 0;
     tlb_inval_complete();
 }
 
 void *kpg_temporaryMap (Physical pa)
 {
+    // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
+    // to say the address of the PTE used for temporary mapping is constant.
+    // NOTE: The Kernel PT will be mapped in every process and as we are using one of its entry for
+    // temporary mapping, a temporary map is global (not specific to a particular process). This
+    // means in between temporary map and unmap we must not switch processes.
     if (!IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, NULL);
 
-    ArchPageDirectoryEntry *pde = s_getPdeFromCurrentPd (TEMPORARY_PD_INDEX);
-    k_assert (pde->present == 0, "Temporary mapping already present");
+    ArchPageTableEntry *pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
+    k_assert (pte->present == 0, "Temporary mapping already present");
 
-    // TODO: Temporary mapping must always be for Kernel.
-    s_setupPDE(pde, pa, PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
+    s_setupPTE(pte, pa, PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
 
-    return (void*)s_getPteFromCurrentPd(TEMPORARY_PD_INDEX, 0);
+    return (void*)TEMPORARY_MAP_ADDR;
 }
 
 PageDirectory kpg_getcurrentpd()

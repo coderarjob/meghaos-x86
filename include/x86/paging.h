@@ -16,17 +16,21 @@
 #include <types.h>
 #include <buildcheck.h>
 
-#define RECURSIVE_PD_INDEX 1023U
-#define TEMPORARY_PD_INDEX 1022U
 
-#define PDE_SHIFT       22U
-#define PDE_MASK        0xFFC00000U
+#define PDE_SHIFT    22U
+#define PTE_SHIFT    12U
+#define OFFSET_SHIFT 00U
 
-#define PTE_SHIFT       12U
-#define PTE_MASK        0x003FF000U
+#define PDE_MASK    0xFFC00000U
+#define PTE_MASK    0x003FF000U
+#define OFFSET_MASK 0x00000FFFU
 
-#define OFFSET_SHIFT    00U
-#define OFFSET_MASK     0x00000FFFU
+#define RECURSIVE_PDE_INDEX 1023U
+#define KERNEL_PDE_INDEX    768U
+#define TEMPORARY_PTE_INDEX 1023U
+
+#define LINEAR_ADDR(pde_idx, pte_idx, offset) (((pde_idx) << PDE_SHIFT) | ((pte_idx) << PTE_SHIFT) | (offset))
+#define TEMPORARY_MAP_ADDR (LINEAR_ADDR(KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX,0))
 
 /* Casts a linear mapped physical address to virtual address */
 static inline void* CAST_PA_TO_VA (Physical a)
