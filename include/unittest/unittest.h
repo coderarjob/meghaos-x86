@@ -18,7 +18,7 @@ int ut_equal_string (const char *a, const char *b, int *i);
 #define COL_RED       "\x1b[31m"
 #define COL_GREEN     "\x1b[32m"
 #define COL_RESET     "\x1b[0m"
-#define COL_HIGHLIGHT "\x1b[0;47m"
+#define COL_HIGHLIGHT "\x1b[97;100m"
 
 #define UT_PASSED(t) printf ("\n  %sPass%s: %-20s", COL_GREEN, COL_RESET, #t)
 
@@ -72,6 +72,6 @@ int ut_equal_string (const char *a, const char *b, int *i);
 
 #define TEST(tf, fn) static void fn () {                                      \
                         reset();                                              \
-                        printf ("%s:%s:: %s%s", COL_HIGHLIGHT, #tf, #fn, COL_RESET); do
+                        printf ("%s[%20s - %-20s]%s", COL_HIGHLIGHT, #tf, #fn, COL_RESET); do
 #define END()       } while(0); printf("\n")
 #endif // UNITTEST_H
