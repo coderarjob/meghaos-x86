@@ -46,7 +46,7 @@ static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
 static ArchPageDirectoryEntry* s_getPdeFromCurrentPd (UINT pdeIndex)
 {
     k_assert ((pdeIndex < 1024), "Invalid PD/PT/offset index");
-    PTR addr = LINEAR_ADDR (RECURSIVE_PD_INDEX, RECURSIVE_PD_INDEX,
+    PTR addr = LINEAR_ADDR (RECURSIVE_PDE_INDEX, RECURSIVE_PDE_INDEX,
                             pdeIndex * sizeof (ArchPageDirectoryEntry));
     return (ArchPageDirectoryEntry*)addr;
 }
@@ -54,7 +54,7 @@ static ArchPageDirectoryEntry* s_getPdeFromCurrentPd (UINT pdeIndex)
 static ArchPageTableEntry* s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex)
 {
     k_assert ((pdeIndex < 1024) && (pteIndex < 1024), "Invalid PD/PT/offset index");
-    PTR addr = LINEAR_ADDR (RECURSIVE_PD_INDEX, pdeIndex, pteIndex * sizeof (ArchPageTableEntry));
+    PTR addr = LINEAR_ADDR (RECURSIVE_PDE_INDEX, pdeIndex, pteIndex * sizeof (ArchPageTableEntry));
     return (ArchPageTableEntry*)addr;
 }
 #endif
