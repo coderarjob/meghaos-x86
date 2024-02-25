@@ -43,6 +43,15 @@ void sys_dummy_handler (InterruptFrame *frame)
     //outb (0x80,4);
 }
 
+EXCEPTION_WITH_CODE_HANDLER(double_fault)
+__attribute__ ((noreturn))
+void double_fault_handler (InterruptFrame *frame, UINT errorcode)
+{
+    (void)frame;        // Frame is not guaranteed to be valid
+    k_panic("%s", "Double fault - Fatal error (Error code: %u)", errorcode);
+    NORETURN();
+}
+
 EXCEPTION_WITH_CODE_HANDLER(page_fault)
 __attribute__ ((noreturn))
 void page_fault_handler (InterruptFrame *frame, UINT errorcode)

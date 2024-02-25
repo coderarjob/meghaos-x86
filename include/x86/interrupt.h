@@ -93,6 +93,7 @@ typedef struct InterruptFrame  {
 void sys_dummy_asm_handler ();
 void page_fault_asm_handler ();
 void page_fault_asm_handler ();
+void double_fault_asm_handler();
 void general_protection_fault_asm_handler ();
 void div_zero_asm_handler ();
 
