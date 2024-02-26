@@ -21,6 +21,7 @@ static void s_markFreeMemory (Bitmap *bitmap);
 
 /***************************************************************************************************
  * Initializes PAB array for x86 architecture.
+ * All physical memory that is not Free (0) or Used (1) will be marked Reserved (2).
  *
  * @input   pab      Pointer to arch independent PAB.
  * @return  nothing
@@ -49,7 +50,6 @@ static void s_markFreeMemory (Bitmap *bitmap)
         BootMemoryMapItem* memmap = kBootLoaderInfo_getMemoryMapItem (bootloaderinfo, i);
         BootMemoryMapTypes type = kBootMemoryMapItem_getType (memmap);
 
-        //if (type != MMTYPE_RESERVED && type != MMTYPE_ACPI_RECLAIM) continue;
         if (type != MMTYPE_FREE) continue;
 
         U64 startAddress = kBootMemoryMapItem_getBaseAddress (memmap);
@@ -73,7 +73,7 @@ static void s_markFreeMemory (Bitmap *bitmap)
         bool success = bitmap_setContinous(bitmap, startPageFrame, pageFrameCount,
                                            PMM_STATE_FREE);
         if (!success)
-            k_panic("%s", "PAB cannot be initialized.");
+            k_panic("PAB cannot be initialized.");
     }
 }
 

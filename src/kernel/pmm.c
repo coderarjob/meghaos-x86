@@ -76,7 +76,7 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
 void kpmm_init ()
 {
     if (kpmm_isInitialized())
-        k_panic ("%s", "Called after PMM initialization.");
+        k_panic ("Called after PMM initialization.");
 
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
 

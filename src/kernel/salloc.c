@@ -30,11 +30,11 @@ void salloc_init()
     /* Physically back 1 page for the heap */
     Physical pa;
     if (kpmm_alloc (&pa, 1, PMM_REGION_ANY) == false)
-        k_panic ("%s", "Memory allocaiton failed");
+        k_panic ("Memory allocaiton failed");
 
     PageDirectory pd = kpg_getcurrentpd();
     if (kpg_map (pd, SALLOC_MEM_START, pa, PG_MAP_FLAG_KERNEL) == false)
-        k_panic ("%s", "Page map failed");
+        k_panic ("Page map failed");
 
     next = (void *)SALLOC_MEM_START;
 }
@@ -52,7 +52,7 @@ void *salloc (UINT bytes)
         // the whole Heap address space.
         Physical pa;
         if (kpmm_alloc(&pa, 1, PMM_REGION_ANY) == false)
-            k_panic("%s", "Memory allocaiton failed");
+            k_panic("Memory allocaiton failed");
 
         //paging_map (paging_getCurrentPD(), BACKED, next, 4096, &pa);
     }*/

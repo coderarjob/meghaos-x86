@@ -192,7 +192,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
         // Allocate phy mem for new page table.
         Physical pa_new;
         if (kpmm_alloc (&pa_new, 1, PMM_REGION_ANY) == false)
-            k_panic ("%s", "Memory allocaiton failed");
+            k_panic ("Memory allocaiton failed");
 
         // Initialize the page table.
         void *tempva = kpg_temporaryMap (pa_new);
