@@ -20,10 +20,6 @@ categories: feature, x86
 
 ### Memory Layout after boot1
 
-Features/Changes from the last:
-1. Free regions at the beginning are removed for the ease of paging.
-2. Memory region starts and ends at 4KB page boundaries.
-
 ```
 | Physical address    | Size   | Usage                                              |             |
 |---------------------|--------|----------------------------------------------------|-------------|
@@ -34,28 +30,26 @@ Features/Changes from the last:
 | 0x023000 - 0x042FFF | 128 KB | Kernel Stack                                       | OS Reserved |
 | 0x043000 - 0x044FFF | 8 KB   | Kernel PD/PT                                       | OS Reserved |
 | 0x045000 - 0x045FFF | 4 KB   | PAB                                                | OS Reserved |
-| 0x046000 - 0x07FFFF | 232 KB | Free (End of 1st Free* region: Minimum required)   | Dynamic     |
-| 0x080000 - 0x09FBFF | 127 KB | Free (End of 1st Free* region: Maximum on x86)     | Dynamic     |
 | 0x100000 - 0x1AFFFF | 704 KB | 11 module files, each of 64KB max size             | OS Reserved |
 |---------------------|--------|----------------------------------------------------|-------------|
 ```
 
-TODO:
-`0x0000 - 0x000FFF` physical range should be kept for the Real Mode IVT and not overridden by the
-protected mode Kernel, otherwise entering real mode will become difficult and error prone.
+The presence of PMM diminishes (but not completely eliminates) the need for a fixed physical memory
+map. The above table is the bare minimum fixed mapping required and following kernel initialization,
+every allocation goes through the PMM (which finds fixed physical pages to be used). This is the
+reason the above table does not have mappings for kernel static allocations.
 
-Note:
-1.  Given that the initial PT/PD, PAB resides from 0x43000 to 0x45FFF, and kernel static allocation
-    starts immediately after from 0x46000, one can think that the later starts at 0x43000 because
-    the initial tables & PAB are static allocations which are never deallocated.
-
-2.  The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine. It can load
-    files of at most 64 KB in size.
-
+There are however a few assumptions:
+1. The first 0x46000 bytes are free, which the BIOS memory map must reflect this. In my experience
+   this has been always the case (first 0x9FC00 bytes are almost always free).
+2. The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine. It can load
+   files of at most 64 KB in size.
 3. The 1 KB for Boot Info structure is arbitrarily large. The 1 KB is size should be large for any
    x86_64 system.
 
-**ISSUE**: The same kernel stack was also used in user mode, which caused stack corruption. The CPU
+#### Known issue
+
+The same kernel stack was also used in user mode, which caused stack corruption. The CPU
 sets the stack pointer to `Kernel Stack Top` when going from user mode to kernel mode.
 Then any Push in the Kernel space will overwrite the user stack. The SS & ESP itself will be
 restored when returning from an Interrupt, however the because the memory remains the common, it

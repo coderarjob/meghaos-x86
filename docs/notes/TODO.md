@@ -23,11 +23,11 @@
 | from the compiler versions. LONG for example must be 32 bits or more,   |           |            |
 | but always large enough to hold the largest addresses in the            |           |            |
 | architecture.                                                           |           |            |
-| [[ ]] Physical Map bug: Every region must end at a page boundary.       | 29 Dec 23 |            |
+| [X] Physical Map bug: Every region must end at a page boundary.         | 29 Dec 23 | 27 Feb 24  |
 | Free region starting 0x90000 ends at 0x9FBFF. PAB keeps track of pages, |           |            |
 | it cannot track page half used.                                         |           |            |
-| [[ ]] Kernel IDT cannot be at 0x00000. The 1st should be kept for real  | 29 Dec 23 |            |
-| mode IVT and must not be overriden.                                     |           |            |
+| [[ ]] Kernel IDT cannot be at 0x00000. It contains the real mode IVT    | 29 Dec 23 |            |
+| must not be overriden.                                                  |           |            |
 | [X] Document TSS for later                                              |           | 28 JUN 21  |
 | [X] Document IDT for later                                              |           | 28 JUN 21  |
 | [X] Document Call Gates                                                 |           | 28 JUN 21  |
@@ -36,6 +36,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | BUILD SYSTEM                                                            |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Logging with function name and arguments                            | 26 Feb 14 |            |
 | [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 14 |            |
 | variants in C.                                                          |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
