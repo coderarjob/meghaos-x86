@@ -6,6 +6,7 @@
  * use as well as when allocating memory for user space processes.
  * ---------------------------------------------------------------------------
  */
+#include "x86/types.h"
 #include <mem.h>
 #include <pmm.h>
 #include <kerror.h>
@@ -29,16 +30,12 @@ static void s_setupPTE (ArchPageTableEntry *pte, Physical pa, PagingMapFlags fla
 static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags flags);
 static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex);
 static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
+static void *s_getLinearAddress(UINT pdeIndex, UINT pteIndex, UINT offset);
 
 #ifndef UNITTEST
     #define tlb_inval(addr)      __asm__ volatile("invlpg %0;" ::"m"(addr))
     #define tlb_inval_complete() __asm__ volatile("mov %%eax, %%cr3; mov %%cr3, %%eax;" ::: "eax")
-#else
-    #define tlb_inval(addr)      (void)0
-    #define tlb_inval_complete() (void)0
-#endif
 
-#ifndef UNITTEST
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
 // differently, to indicate that such functions must never be called from any other architecture.
 // TODO: The above statement can be extended to other types like constants, macros, types. Those
@@ -57,6 +54,14 @@ static ArchPageTableEntry* s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex)
     PTR addr = LINEAR_ADDR (RECURSIVE_PDE_INDEX, pdeIndex, pteIndex * sizeof (ArchPageTableEntry));
     return (ArchPageTableEntry*)addr;
 }
+
+static void *s_getLinearAddress(UINT pdeIndex, UINT pteIndex, UINT offset) 
+{
+    return (void*)LINEAR_ADDR(pdeIndex, pteIndex, offset);
+}
+#else
+    #define tlb_inval(addr)      (void)0
+    #define tlb_inval_complete() (void)0
 #endif
 
 static IndexInfo s_getTableIndices (PTR va)
@@ -84,6 +89,7 @@ static void s_setupPTE (ArchPageTableEntry *pte, Physical pa, PagingMapFlags fla
     newPTE.cache_disabled       = BIT_ISUNSET(flags, PG_MAP_FLAG_CACHE_ENABLED);
     newPTE.write_through_cache  = 0;
     newPTE.write_allowed        = BIT_ISSET (flags, PG_MAP_FLAG_WRITABLE);
+    newPTE.user_accessable      = BIT_ISUNSET(flags, PG_MAP_FLAG_KERNEL);
 
     k_memcpy (pte, &newPTE, sizeof (ArchPageTableEntry));
     tlb_inval_complete();
@@ -134,7 +140,7 @@ void *kpg_temporaryMap (Physical pa)
 
     s_setupPTE(pte, pa, PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
 
-    return (void*)TEMPORARY_MAP_ADDR;
+    return s_getLinearAddress(KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0);
 }
 
 PageDirectory kpg_getcurrentpd()

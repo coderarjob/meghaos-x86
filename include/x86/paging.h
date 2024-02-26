@@ -29,8 +29,8 @@
 #define KERNEL_PDE_INDEX    768U
 #define TEMPORARY_PTE_INDEX 1023U
 
-#define LINEAR_ADDR(pde_idx, pte_idx, offset) (((pde_idx) << PDE_SHIFT) | ((pte_idx) << PTE_SHIFT) | (offset))
-#define TEMPORARY_MAP_ADDR (LINEAR_ADDR(KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX,0))
+#define LINEAR_ADDR(pde_idx, pte_idx, offset) \
+    (((pde_idx) << PDE_SHIFT) | ((pte_idx) << PTE_SHIFT) | (offset))
 
 /* Casts a linear mapped physical address to virtual address */
 static inline void* CAST_PA_TO_VA (Physical a)

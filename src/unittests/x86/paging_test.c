@@ -17,45 +17,45 @@ KernelErrorCodes k_errorNumber;
 // ------------------------------------------------------------------------------------------------
 TEST (paging, temporary_unmap_success)
 {
-    ArchPageDirectoryEntry pde     = { .present = 1 };
-    s_getPdeFromCurrentPd_fake.ret = &pde;
+    ArchPageTableEntry pte     = { .present = 1 };
+    s_getPteFromCurrentPd_fake.ret = &pte;
 
     kpg_temporaryUnmap();
-    EQ_SCALAR ((int)pde.present, 0);
+    EQ_SCALAR ((int)pte.present, 0);
     END();
 }
 
 TEST (paging, temporary_unmap_failure_already_unmapped)
 {
-    ArchPageDirectoryEntry pde     = { 0 };
-    s_getPdeFromCurrentPd_fake.ret = &pde;
+    ArchPageTableEntry pte     = { 0 };
+    s_getPteFromCurrentPd_fake.ret = &pte;
 
     kpg_temporaryUnmap();
     EQ_SCALAR (panic_invoked, true);
-    EQ_SCALAR ((int)pde.present, 0);
+    EQ_SCALAR ((int)pte.present, 0);
     END();
 }
 
 TEST (paging, temporary_map_success)
 {
-    ArchPageDirectoryEntry pde     = { 0 };
-    s_getPdeFromCurrentPd_fake.ret = &pde;
+    ArchPageTableEntry pte     = { 0 };
+    s_getPteFromCurrentPd_fake.ret = &pte;
 
     Physical pa = PHYSICAL (0x12000); // 0x12000 is just a valid physical address.
     kpg_temporaryMap (pa);
 
-    EQ_SCALAR ((U32)pde.pageTableFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
-    EQ_SCALAR ((U32)pde.present, 1);
-    EQ_SCALAR ((U32)pde.write_allowed, 1);
-    EQ_SCALAR ((U32)pde.user_accessable, 0);
+    EQ_SCALAR ((U32)pte.pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
+    EQ_SCALAR ((U32)pte.present, 1);
+    EQ_SCALAR ((U32)pte.write_allowed, 1);
+    EQ_SCALAR ((U32)pte.user_accessable, 0);
 
     END();
 }
 
 TEST (paging, temporary_map_failure_already_mapped)
 {
-    ArchPageDirectoryEntry pde     = { .present = 1 };
-    s_getPdeFromCurrentPd_fake.ret = &pde;
+    ArchPageTableEntry pte     = { .present = 1 };
+    s_getPteFromCurrentPd_fake.ret = &pte;
 
     Physical pa = PHYSICAL (0x12000);
     kpg_temporaryMap (pa);
@@ -67,8 +67,8 @@ TEST (paging, temporary_map_failure_already_mapped)
 
 TEST (paging, temporary_map_failure_input_not_aligned)
 {
-    ArchPageDirectoryEntry pde     = { 0 };
-    s_getPdeFromCurrentPd_fake.ret = &pde;
+    ArchPageTableEntry pte     = { 0 };
+    s_getPteFromCurrentPd_fake.ret = &pte;
 
     Physical pa = PHYSICAL (0x12); // Address is not page aligned.
     EQ_SCALAR ((PTR)NULL, (PTR)kpg_temporaryMap (pa));
@@ -103,28 +103,28 @@ TEST (paging, map_failure_double_allocate)
     // Page Table requires at-least two entries.
     __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
         { .present = 0 }, // Not used.
-        { .present = 1 }  // PDE which changes as result of map. Here setup to show already mapped.
+        { .present = 1 }, // PTE which changes as result of map. Here setup to show already mapped.
+        { .present = 0 }  // PTE which is used for temporary map.
     };
 
-    // Page directory with three entries. As per the choice of virtual address here (value in 'va')
+    // Page directory with two entries. As per the choice of virtual address here (value in 'va')
     // entry at index 1 is required to have the following setup:
     // 1. Preset bit set to 1. (To indicate page table exists).
     __attribute__ ((aligned (4096))) ArchPageDirectoryEntry pd[] = {
         { .present = 0 }, // Not used.
         { .present = 1 }, // Page table exists
-        { .present = 0 }  // PDE which is used for temporary map.
     };
 
-    // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
+    // 1. We want the PTE entry at index 2 for temporary map, so we set it up as follows.
     // 1. Present bit is 0 (To indicate that nothing is already mapped).
-    // 2. Return virtual address of this PD entry for temporary map.
-    s_getPdeFromCurrentPd_fake.ret = &pd[2];
+    // 2. Return virtual address of this PT entry for temporary map.
+    s_getPteFromCurrentPd_fake.ret = &pt[2];
 
     // Since we are not working with physical addresses in the test we do not require the temporary
     // mapping of the Page Table physical address to get a temporary virtual address (we already
     // have a working virtual address for the Page Table). This is done in the following way:
     // 1. Return the virtual address of this PT for the map operation.
-    s_getPteFromCurrentPd_fake.ret = pt;
+    s_getLinearAddress_fake.ret = pt;
 
     EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_FLAG_KERNEL), false);
 
@@ -227,31 +227,31 @@ TEST (paging, map_success_page_table_not_present)
     // Page Table requires at-least two entries.
     __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
         { .present = 0 }, // Not used.
-        { .present = 0 }  // PDE which changes as result of map.
+        { .present = 0 }, // PTE which changes as result of map.
+        { .present = 0 }  // PTE which is used for temporary map.
     };
 
-    // Page directory with three entries. As per the choice of virtual address here (value in 'va')
+    // Page directory with two entries. As per the choice of virtual address here (value in 'va')
     // entry at index 1 is required to have the following setup:
     // 1. Preset bit set to 0. (To indicate page table absent).
     __attribute__ ((aligned (4096))) ArchPageDirectoryEntry pd[] = {
         { .present = 0 }, // Not used.
         { .present = 0 }, // Page table does not exists. kpg_map should create a new one.
-        { .present = 0 }  // PDE which is used for temporary map.
     };
 
     // Physical address for the new page table
     kpmm_alloc_fake.handler = kpmm_alloc_handler_map_success_page_table_not_present;
 
-    // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
+    // 1. We want the PTE entry at index 2 for temporary map, so we set it up as follows.
     // 1. Present bit is 0 (To indicate that nothing is already mapped).
-    // 2. Return virtual address of this PD entry for temporary map.
-    s_getPdeFromCurrentPd_fake.ret = &pd[2];
+    // 2. Return virtual address of this PT entry for temporary map.
+    s_getPteFromCurrentPd_fake.ret = &pt[2];
 
     // Since we are not working with physical addresses in the test we do not require the temporary
     // mapping of the Page Table physical address to get a temporary virtual address (we already
     // have a working virtual address for the Page Table). This is done in the following way:
     // 1. Return the virtual address of this PT for the map operation.
-    s_getPteFromCurrentPd_fake.ret = pt;
+    s_getLinearAddress_fake.ret = pt;
 
     EQ_SCALAR (
         kpg_map (pd, va, pa, PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED),
@@ -260,9 +260,9 @@ TEST (paging, map_success_page_table_not_present)
     // New page table should be added to PDE at index 1. We should expect the following:
     // 1. Preset bit is set.
     // 2. Page frame should point to the physical address of the new page table. That in this case
-    // will be equal to the value in the PD entry used for temporary map.
+    // will be equal to the value in the PT entry used for temporary map.
     EQ_SCALAR ((U32)pd[1].present, 1);
-    EQ_SCALAR ((U32)pd[1].pageTableFrame, (U32)pd[2].pageTableFrame);
+    EQ_SCALAR ((U32)pd[1].pageTableFrame, (U32)pt[2].pageFrame);
     EQ_SCALAR ((U32)pd[1].write_allowed, 1);
     EQ_SCALAR ((U32)pd[1].user_accessable, 0);
     EQ_SCALAR ((U32)pd[1].cache_disabled, 0);
@@ -283,35 +283,33 @@ TEST (paging, map_success_page_table_present)
     // Since we do not have physical addresses, we mock them in the following ways:
     // 1. Use virtual addresses.
     // 2. Use any valid number.
-
     PTR      va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
     Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
 
     // Page Table requires at-least two entries.
     __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
         { .present = 0 }, // Not used.
-        { .present = 0 }  // PDE which changes as result of map.
+        { .present = 0 }, // PTE which changes as result of map.
+        { .present = 0 }  // PTE which is used for temporary map.
     };
 
-    // Page directory with three entries. As per the choice of virtual address here (value in 'va')
+    // Page directory with two entries. As per the choice of virtual address here (value in 'va')
     // entry at index 1 is required to have the following setup:
     // 1. Preset bit set to 1. (To indicate page table exists).
     __attribute__ ((aligned (4096))) ArchPageDirectoryEntry pd[] = {
         { .present = 0 }, // Not used.
         { .present = 1 }, // Page table exists
-        { .present = 0 }  // PDE which is used for temporary map.
     };
 
-    // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
+    // 1. We want the PTE entry at index 2 for temporary map, so we set it up as follows.
     // 1. Present bit is 0 (To indicate that nothing is already mapped).
-    // 2. Return virtual address of this PD entry for temporary map.
-    s_getPdeFromCurrentPd_fake.ret = &pd[2];
+    // 2. Return virtual address of this PT entry for temporary map.
+    s_getPteFromCurrentPd_fake.ret = &pt[2];
 
     // Since we are not working with physical addresses in the test we do not require the temporary
     // mapping of the Page Table physical address to get a temporary virtual address (we already
     // have a working virtual address for the Page Table). This is done in the following way:
-    // 1. Return the virtual address of this PT for the map operation.
-    s_getPteFromCurrentPd_fake.ret = pt;
+    s_getLinearAddress_fake.ret = pt;
 
     EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_FLAG_WRITABLE), true);
 
@@ -320,7 +318,7 @@ TEST (paging, map_success_page_table_present)
     EQ_SCALAR ((U32)pt[1].present, 1);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
     EQ_SCALAR ((U32)pt[1].write_allowed, 1);
-    EQ_SCALAR ((U32)pt[1].user_accessable, 0);
+    EQ_SCALAR ((U32)pt[1].user_accessable, 1);
     EQ_SCALAR ((U32)pt[1].cache_disabled, 1);
     END();
 }
@@ -338,28 +336,28 @@ TEST (paging, unmap_success)
     __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
         { .present = 0 }, // Not used.
         { .present   = 1,
-          .pageFrame = PHYSICAL_TO_PAGEFRAME (pa.val) } // PDE which changes as result of map.
+          .pageFrame = PHYSICAL_TO_PAGEFRAME (pa.val) },// PTE which changes as result of unmap.
+        { .present = 0 }  // PTE which is used for temporary map.
     };
 
-    // Page directory with three entries. As per the choice of virtual address here (value in 'va')
+    // Page directory with two entries. As per the choice of virtual address here (value in 'va')
     // entry at index 1 is required to have the following setup:
     // 1. Preset bit set to 1. (To indicate page table exists).
     __attribute__ ((aligned (4096))) ArchPageDirectoryEntry pd[] = {
         { .present = 0 }, // Not used.
         { .present = 1 }, // Page table exists
-        { .present = 0 }  // PDE which is used for temporary map.
     };
 
-    // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
+    // 1. We want the PTE entry at index 2 for temporary map, so we set it up as follows.
     // 1. Present bit is 0 (To indicate that nothing is already mapped).
-    // 2. Return virtual address of this PD entry for temporary map.
-    s_getPdeFromCurrentPd_fake.ret = &pd[2];
+    // 2. Return virtual address of this PT entry for temporary map.
+    s_getPteFromCurrentPd_fake.ret = &pt[2];
 
     // Since we are not working with physical addresses in the test we do not require the temporary
     // mapping of the Page Table physical address to get a temporary virtual address (we already
     // have a working virtual address for the Page Table). This is done in the following way:
     // 1. Return the virtual address of this PT for the unmap operation.
-    s_getPteFromCurrentPd_fake.ret = pt;
+    s_getLinearAddress_fake.ret = pt;
 
     EQ_SCALAR (kpg_unmap (pd, va), true);
 
@@ -403,28 +401,28 @@ TEST (paging, unmap_failure_double_unmap)
     // Page Table requires at-least two entries.
     __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
         { .present = 0 }, // Not used.
-        { .present = 0 }  // PDE already unmapped.
+        { .present = 0 }, // PTE already unmapped.
+        { .present = 0 }  // PTE which is used for temporary map.
     };
 
-    // Page directory with three entries. As per the choice of virtual address here (value in 'va')
+    // Page directory with two entries. As per the choice of virtual address here (value in 'va')
     // entry at index 1 is required to have the following setup:
     // 1. Preset bit set to 1. (To indicate page table exists).
     __attribute__ ((aligned (4096))) ArchPageDirectoryEntry pd[] = {
         { .present = 0 }, // Not used.
         { .present = 1 }, // Page table exists
-        { .present = 0 }  // PDE which is used for temporary map.
     };
 
-    // 1. We want the PDE entry at index 2 for temporary map, so we set it up as follows.
+    // 1. We want the PTE entry at index 2 for temporary map, so we set it up as follows.
     // 1. Present bit is 0 (To indicate that nothing is already mapped).
-    // 2. Return virtual address of this PD entry for temporary map.
-    s_getPdeFromCurrentPd_fake.ret = &pd[2];
+    // 2. Return virtual address of this PT entry for temporary map.
+    s_getPteFromCurrentPd_fake.ret = &pt[2];
 
     // Since we are not working with physical addresses in the test we do not require the temporary
     // mapping of the Page Table physical address to get a temporary virtual address (we already
     // have a working virtual address for the Page Table). This is done in the following way:
     // 1. Return the virtual address of this PT for the unmap operation.
-    s_getPteFromCurrentPd_fake.ret = pt;
+    s_getLinearAddress_fake.ret = pt;
 
     EQ_SCALAR (kpg_unmap (pd, va), false);
 

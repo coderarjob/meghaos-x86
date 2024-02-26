@@ -6,6 +6,7 @@
 
 DECLARE_FUNC(ArchPageDirectoryEntry*, s_getPdeFromCurrentPd, UINT);
 DECLARE_FUNC(ArchPageTableEntry*, s_getPteFromCurrentPd, UINT);
+DECLARE_FUNC (void *, s_getLinearAddress, UINT, UINT, UINT);
 
 void resetPagingFake();
 
