@@ -85,11 +85,10 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |
 | `statement-expressions` to mitigate these.                              |           |            |
-| [X] Physical memory allocator                                           |           | 20 JUL 23  |
-| ::: [X] Reimplement using common/bitmap                                 |           |            |
-| ::: [ ] Lock to protect the PAB.                                        |           |            |
-| ::: [ ] Make allocation and deallocation atomic                         |           |            |
-| ::: [X] PAGEFRAMES_TO_BYTES seems duplicate of PAGEFRAME_TO_PHYSICAL    | 4 JAN 24  | 09 JAN 24  |
+| [ ] Log and print to E9 port the following:                             |           |            |
+| ::: [ ] Function name & location when entering and leaving functions    |           |            |
+| ::: [ ] Just before change to PT/PD etc.                                | 03 Mar 24 |            |
+| [ ] Println and Print instead of printf                                 | 03 Mar 24 |            |
 | [ ] Have two macros like BUG_ON, WARN_ON BUG_ON panics, WARN_ON         |           |            |
 | prints warning. They will replace k_assert and remain in release        |           |            |
 | as well, thus these macros must have little impact on binary size       |           |            |
@@ -105,6 +104,15 @@
 | ::: [ ] How to do lazy allocation?                                      |           |            |
 | ::: [ ] Allocate a new virtual address                                  |           |            |
 | ::: [ ] Map a virtual to physical address                               |           |            |
+| ::: [[ ]] Higher half mapping maps first 2MiB physical memory           |           |            |
+| entirely to 0xC0000000. Initially only the physical memory where the    |           |            |
+| Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
+| through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
+| [X] Physical memory allocator                                           |           | 20 JUL 23  |
+| ::: [X] Reimplement using common/bitmap                                 |           |            |
+| ::: [ ] Lock to protect the PAB.                                        |           |            |
+| ::: [ ] Make allocation and deallocation atomic                         |           |            |
+| ::: [X] PAGEFRAMES_TO_BYTES seems duplicate of PAGEFRAME_TO_PHYSICAL    | 4 JAN 24  | 09 JAN 24  |
 | [ ] Various functions like kdisp_ioctl, etc must implement error        |           |            |
 | reporting.                                                              |           |            |
 | ::: [X] kdisp_ioctl                                                     |           |            |
