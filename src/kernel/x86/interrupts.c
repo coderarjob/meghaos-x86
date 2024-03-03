@@ -57,7 +57,7 @@ __attribute__ ((noreturn))
 void page_fault_handler (InterruptFrame *frame, UINT errorcode)
 {
     register INT fault_addr;
-    __asm__ volatile ("mov %0, %%cr2":"=r"(fault_addr));
+    __asm__ volatile ("mov %0, cr2":"=r"(fault_addr));
 
     PageFaultError *err = (PageFaultError*) &errorcode;
     s_callPanic(frame, "Page fault when accessing address 0x%x (error: 0x%x)"

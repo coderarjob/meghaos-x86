@@ -34,7 +34,7 @@ static void *s_getLinearAddress(UINT pdeIndex, UINT pteIndex, UINT offset);
 
 #ifndef UNITTEST
     #define tlb_inval(addr)      __asm__ volatile("invlpg %0;" ::"m"(addr))
-    #define tlb_inval_complete() __asm__ volatile("mov %%eax, %%cr3; mov %%cr3, %%eax;" ::: "eax")
+    #define tlb_inval_complete() __asm__ volatile("mov eax, cr3; mov cr3, eax;" ::: "eax")
 
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
 // differently, to indicate that such functions must never be called from any other architecture.
