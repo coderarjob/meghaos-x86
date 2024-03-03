@@ -5,6 +5,7 @@
 
 ### TODO
 - [TODO](notes/TODO.md)
+- [Scratch](notes/Scratch.md)
 
 ### Guidelines Docs
 - [MeghaOS code style](notes/coding_style.md#MeghaOS-code-style)
@@ -59,6 +60,7 @@
 - [How to use page tables to map Virtual Addresses to Physical Addresses?](notes/paging.md#How-to-use-page-tables-to-map-Virtual-Addresses-to-Physical-Addresses)
 - [Notes: Why not preallocate the whole 256 MB? ](notes/paging.md#Notes:-Why-not-preallocate-the-whole-256-MB-)
 - [Recursive mapping and temporary mapping in Kernel](notes/recursive_map_clarity_with_example.md#Recursive-mapping-and-temporary-mapping-in-Kernel)
+- [Strange behaviour because of Stale TLB](notes/Scratch.md#Strange-behaviour-because-of-Stale-TLB)
 - [Why I am skipping Virtual Memory manager for now](notes/virtual_memory_manager.md#Why-I-am-skipping-Virtual-Memory-manager-for-now)
 - [Virtual Memory Manager and Recursive mapping](notes/virtual_memory_manager.md#Virtual-Memory-Manager-and-Recursive-mapping)
 - [Map virtual memory to physical memory](notes/virtual_memory_manager.md#Map-virtual-memory-to-physical-memory)

@@ -5,6 +5,7 @@
 
 ### TODO
 - [TODO](notes/TODO.md)
+- [Scratch](notes/Scratch.md)
 
 ### Guidelines Docs
 %{guideline independent}%
