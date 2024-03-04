@@ -6,7 +6,6 @@
  * use as well as when allocating memory for user space processes.
  * ---------------------------------------------------------------------------
  */
-#include "x86/types.h"
 #include <mem.h>
 #include <pmm.h>
 #include <kerror.h>
@@ -17,6 +16,7 @@
 #include <types.h>
 #include <assert.h>
 #include <utils.h>
+#include <panic.h>
 
 typedef struct IndexInfo
 {
