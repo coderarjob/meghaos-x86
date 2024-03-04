@@ -196,6 +196,9 @@ sudo umount $DISKTEMPDIR || exit
 echo "    [ Writing bootloader to floppy image ]    "
 dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
 
+echo "    [ Report: Storage Utilization ]"
+wc -c $OBJDIR/*.flt
+
 # ---------------------------------------------------------------------------
 # Lint and compiler warning reports
 # ---------------------------------------------------------------------------
@@ -213,9 +216,6 @@ echo "    [ Cleaning up ]"
 rm -f -r $DISKTEMPDIR || exit
 
 # ---------------------------------------------------------------------------
-echo "    [ Report: Storage Utilization ]"
-wc -c $OBJDIR/*.flt
-
 echo "    [ Report: Warning count ]"
 WARNCOUNT_GCC=`grep -c -r "warning:" build/reports/build_warnings.txt`
 WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`
