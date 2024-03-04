@@ -36,8 +36,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | BUILD SYSTEM                                                            |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] Logging with function name and arguments                            | 26 Feb 14 |            |
-| [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 14 |            |
+| [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 24 |            |
 | variants in C.                                                          |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
 | [ ] Configuration header files for C and assembly.                      |           |            |
@@ -87,7 +86,7 @@
 | `statement-expressions` to mitigate these.                              |           |            |
 | [ ] Log and print to E9 port the following:                             |           |            |
 | ::: [ ] Function name & location when entering and leaving functions    |           |            |
-| ::: [ ] Just before change to PT/PD etc.                                | 03 Mar 24 |            |
+| ::: [ ] Just before change to PT/PD etc.                                | 26 FEB 24 |            |
 | [ ] Println and Print instead of printf                                 | 03 Mar 24 |            |
 | [ ] Have two macros like BUG_ON, WARN_ON BUG_ON panics, WARN_ON         |           |            |
 | prints warning. They will replace k_assert and remain in release        |           |            |
