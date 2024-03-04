@@ -36,8 +36,7 @@ kgdt_write ()
         .location = (U32)s_gdt
     };
 
-    kdebug_printf("GDT {size = 0x%x, location = 0x%x}",
-                   gdt_size_and_loc.size, gdt_size_and_loc.location);
+    INFO ("GDT {size = 0x%x, location = 0x%x}", gdt_size_and_loc.size, gdt_size_and_loc.location);
 
     // NOTE: No need to load the SS, DS, ES or CS registers, as it already
     // contains the values needs (from boo1)

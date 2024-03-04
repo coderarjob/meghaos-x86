@@ -65,8 +65,7 @@ s_idt_write ()
         .location = (U32)s_idt
     };
 
-    kdebug_printf("IDT {limit = 0x%x, location = 0x%x}",
-                   idt_size_and_loc.limit, idt_size_and_loc.location);
+    INFO ("IDT {limit = 0x%x, location = 0x%x}", idt_size_and_loc.limit, idt_size_and_loc.location);
 
     __asm__ ( "lidt [%0]"
              :

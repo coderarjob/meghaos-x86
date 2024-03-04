@@ -26,9 +26,31 @@
     #define kdebug_printf(fmt,...) (void)0
 #endif
 
-/** Magic break point used by bochs emulator*/
-#define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
+/***************************************************************************************************
+ * Moves to the next line and prints formatted input on the screen and E9 port.
+ *
+ * @return      Nothing
+ **************************************************************************************************/
+#define kdebug_println(...) kdebug_printf("\r\n" __VA_ARGS__)
 
+/***************************************************************************************************
+ * Magic break point used by bochs emulator
+ *
+ * @return      Nothing
+ **************************************************************************************************/
+#define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
 void kdebug_dump_call_trace(PTR *raddrs, INT count);
+
+#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
+void kdebug_log_ndu (const char* type, const char* funcname, UINT linenumber, char* fmt, ...);
+
+    #define INFO(...)  kdebug_log_ndu ("Info", __func__, __LINE__, __VA_ARGS__)
+    #define WARN(...)  kdebug_log_ndu ("Warn", __func__, __LINE__, __VA_ARGS__)
+    #define ERROR(...) kdebug_log_ndu ("Error", __func__, __LINE__, __VA_ARGS__)
+#else
+    #define INFO(...)  (void)0
+    #define WARN(...)  (void)0
+    #define ERROR(...) (void)0
+#endif // DEBUG_LEVEL & 1
 
 #endif // KDEBUG_H

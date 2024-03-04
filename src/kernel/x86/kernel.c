@@ -47,7 +47,7 @@ __attribute__ ((noreturn))
 void kernel_main ()
 {
     kdisp_init ();
-    kearly_printf ("\r\n[OK]\tPaging enabled.");
+    kearly_println ("[OK]\tPaging enabled.");
 
     // Initilaize Physical Memory Manger
     kpmm_init ();
@@ -56,12 +56,12 @@ void kernel_main ()
     s_markUsedMemory();
 
     // TSS setup
-    kearly_printf ("\r\n[  ]\tTSS setup.");
+    kearly_println ("[  ]\tTSS setup.");
     ktss_init ();
     kearly_printf ("\r[OK]");
 
     // Usermode code segment
-    kearly_printf ("\r\n[  ]\tUser mode GDT setup.");
+    kearly_println ("[  ]\tUser mode GDT setup.");
     kgdt_edit (GDT_INDEX_UCODE, 0, 0xFFFFF, 0xFA, 0xD);
     // Usermode data segment
     kgdt_edit (GDT_INDEX_UDATA, 0, 0xFFFFF, 0xF2, 0xD);
@@ -69,7 +69,7 @@ void kernel_main ()
     kearly_printf ("\r[OK]");
 
     // Setup IDT
-    kearly_printf ("\r\n[  ]\tIDT setup");
+    kearly_println ("[  ]\tIDT setup");
     kidt_init ();
 
     kidt_edit (0, div_zero_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
@@ -89,7 +89,7 @@ void kernel_main ()
     //paging_print ();
 
     // Jump to user mode
-    kearly_printf ("\r\nJumping to User mode..");
+    INFO ("Jumping to User mode..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,CYAN,0));
 
     jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
@@ -117,59 +117,57 @@ void setup_paging()
     //paging_map (PD, BACKED, 3GB+1MB, KBIN_END, &PHYSICAL(1MB));
 }
 
-void s_dumpPab ()
+void s_dumpPab()
 {
 #if DEBUG
-    U8 *s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
+    U8*  s_pab = (U8*)CAST_PA_TO_VA (g_pab);
     UINT bytes = 120;
 
     while (bytes)
     {
-        kdebug_printf ("\r\n%x:", s_pab);
-        for (int i = 0; i < 16 && bytes; bytes--, i+=2, s_pab+=2)
+        kdebug_println ("%x:", s_pab);
+        for (int i = 0; i < 16 && bytes; bytes--, i += 2, s_pab += 2)
             kdebug_printf ("\t%x:%x ", *s_pab, *(s_pab + 1));
     }
 #endif // DEBUG
 }
 
-void display_system_info ()
+void display_system_info()
 {
 #if DEBUG
-    BootLoaderInfo *mi = kboot_getCurrentBootLoaderInfo ();
-    INT loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
+    BootLoaderInfo* mi               = kboot_getCurrentBootLoaderInfo();
+    INT             loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
 
-    kdebug_printf ("%s","\r\nLoaded kernel files:");
-    for (INT i = 0; i < loadedFilesCount; i++){
-        BootFileItem* file = kBootLoaderInfo_getFileItem (mi, i);
-        UINT startLocation = (UINT)kBootFileItem_getStartLocation (file);
-        UINT length_bytes = (UINT)kBootFileItem_getLength (file);
+    INFO ("Loaded kernel files:");
+    for (INT i = 0; i < loadedFilesCount; i++)
+    {
+        BootFileItem* file          = kBootLoaderInfo_getFileItem (mi, i);
+        UINT          startLocation = (UINT)kBootFileItem_getStartLocation (file);
+        UINT          length_bytes  = (UINT)kBootFileItem_getLength (file);
 
-        kdebug_printf ("\r\n* file: Start = %x, Length = %x",
-                startLocation, length_bytes);
+        INFO ("* file: Start = %x, Length = %x", startLocation, length_bytes);
     }
 
-
     INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
-    kdebug_printf ("%s","\r\nBIOS Memory map:"); 
+    INFO ("BIOS Memory map:");
     U64 installed_memory = 0;
     for (INT i = 0; i < memoryMapItemCount; i++)
     {
-        BootMemoryMapItem* item = kBootLoaderInfo_getMemoryMapItem (mi, i);
-        U64 baseAddress = kBootMemoryMapItem_getBaseAddress (item);
-        U64 length_bytes = kBootMemoryMapItem_getLength (item);
-        BootMemoryMapTypes type = kBootMemoryMapItem_getType (item);
+        BootMemoryMapItem* item         = kBootLoaderInfo_getMemoryMapItem (mi, i);
+        U64                baseAddress  = kBootMemoryMapItem_getBaseAddress (item);
+        U64                length_bytes = kBootMemoryMapItem_getLength (item);
+        BootMemoryMapTypes type         = kBootMemoryMapItem_getType (item);
 
         installed_memory += length_bytes;
-        kdebug_printf ("\r\n* map: Start = %llx, Length = %llx, Type = %u",
-                         baseAddress, length_bytes, type);
+        INFO ("* map: Start = %llx, Length = %llx, Type = %u", baseAddress, length_bytes, type);
     }
 
-    kdebug_printf ("\r\nKernel files loaded: %u", loadedFilesCount);
-    kdebug_printf ("\r\nMax RAM Pages: %u", MAX_PAB_ADDRESSABLE_PAGE_COUNT);
-    kdebug_printf ("\r\nInstalled RAM bytes: x:%llx bytes",installed_memory);
+    INFO ("Kernel files loaded: %u", loadedFilesCount);
+    INFO ("Max RAM Pages: %u", MAX_PAB_ADDRESSABLE_PAGE_COUNT);
+    INFO ("Installed RAM bytes: x:%llx bytes", installed_memory);
     UINT installed_memory_pageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (installed_memory);
-    kdebug_printf ("\r\nInstalled RAM Pages: %u", installed_memory_pageCount);
-    kdebug_printf ("\r\nFree RAM bytes: x:%llx bytes", kpmm_getFreeMemorySize ());
+    INFO ("Installed RAM Pages: %u", installed_memory_pageCount);
+    INFO ("Free RAM bytes: x:%llx bytes", kpmm_getFreeMemorySize());
 #endif // DEBUG
 }
 
@@ -207,37 +205,33 @@ static void s_markUsedMemory ()
 
 void usermode_main ()
 {
-    kearly_printf ("\r\nInside usermode..");
+    INFO ("Inside usermode..");
 
     //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy_asm_handler));
     __asm__ volatile ("INT 0x40");
 
-    kearly_printf ("\r\nLocation of kernel_main = %x", kernel_main);
-    kearly_printf ("\r\nLocation of pab = %x",CAST_PA_TO_VA (g_pab));
-    kearly_printf ("\r\nSize of PTR = %u", sizeof(PTR));
-    kearly_printf ("\r\nMASK(19,0) is %x", BIT_MASK(19, 0));
+    INFO ("Location of kernel_main = %x", kernel_main);
+    INFO ("Location of pab = %x", CAST_PA_TO_VA (g_pab));
+    INFO ("Size of PTR = %u", sizeof (PTR));
+    INFO ("MASK(19,0) is %x", BIT_MASK (19, 0));
 
     kbochs_breakpoint();
     /*Physical pa = PHYSICAL(0x100000);
     PageDirectory pd = kpg_getcurrentpd();
     kpg_map(&pd, PAGE_MAP_BACKED, 0xC01FF000, 1, &pa);*/
-    void salloc_init ();
-    void *salloc(UINT byte);
-    salloc_init();
-    kbochs_breakpoint();
-    kearly_printf("\r\n%x", (PTR)salloc(10));
-    kearly_printf("\r\n%x", (PTR)salloc(4096));
-    kearly_printf("\r\n%x", (PTR)salloc(2));
-    kearly_printf("\r\n%x", (PTR)salloc(1));
+    //void salloc_init ();
+    //void *salloc(UINT byte);
+    //salloc_init();
+    //kbochs_breakpoint();
+    //kearly_println("%x", (PTR)salloc(10));
+    //kearly_println("%x", (PTR)salloc(4096));
+    //kearly_println("%x", (PTR)salloc(2));
+    //kearly_println("%x", (PTR)salloc(1));
     /*extern void display_arch_PageInfo (PTR va);
-    display_arch_PageInfo((PTR)kernel_main);
+    display_arch_PageInfo((PTR)kernel_main);*/
 
-    extern PageInfo kpg_arch_deconstructVA (PTR va);
-    PageInfo info = kpg_arch_deconstructVA((PTR)kernel_main);
-    kdebug_printf_ndu("\r\npde index: %u, pte index: %u, offset %u",
-                      info.pdeIndex, info.pteIndex, info.offset );*/
     //*a = 0;
-    kdebug_printf("\r\nPD: %x, PT: %x", g_page_dir.val, g_page_table.val);
+    INFO ("PD: %x, PT: %x", g_page_dir.val, g_page_table.val);
 
     k_halt();
 }

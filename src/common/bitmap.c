@@ -118,7 +118,7 @@ BitmapState bitmap_get (Bitmap *b, UINT index)
  **************************************************************************************************/
 bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state)
 {
-    kdebug_printf("\r\n::INFO:: Setting %u indexes starting %u to state %u", len, index, state);
+    INFO ("Setting %u indexes starting %u to state %u", len, index, state);
     k_assert(b != NULL, "Cannot be null");
     k_assert(b->allow != NULL, "Cannot be null");
     k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
