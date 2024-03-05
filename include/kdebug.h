@@ -16,6 +16,12 @@
 #include <types.h>
 #include <buildcheck.h>
 
+#define ANSI_COL_GRAY   "\x1b[90m"
+#define ANSI_COL_YELLOW "\x1b[93m"
+#define ANSI_COL_RED    "\x1b[31m"
+#define ANSI_COL_GREEN  "\x1b[32m"
+#define ANSI_COL_RESET  "\x1b[0m"
+
 typedef enum KernelDebugLogType
 {
     KDEBUG_LOG_TYPE_INFO,
@@ -57,7 +63,6 @@ void kdebug_dump_call_trace (PTR* raddrs, INT count);
         kdebug_log_ndu (KDEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "Args: " __VA_ARGS__)
 #else
     #define INFO(...)       (void)0
-    #define WARN(...)       (void)0
     #define ERROR(...)      (void)0
     #define FUNC_ENTRY(...) (void)0
 #endif // DEBUG_LEVEL & 1
