@@ -119,6 +119,8 @@ void setup_paging()
 
 void s_dumpPab()
 {
+    FUNC_ENTRY();
+
 #if DEBUG
     U8*  s_pab = (U8*)CAST_PA_TO_VA (g_pab);
     UINT bytes = 120;
@@ -134,6 +136,8 @@ void s_dumpPab()
 
 void display_system_info()
 {
+    FUNC_ENTRY();
+
 #if DEBUG
     BootLoaderInfo* mi               = kboot_getCurrentBootLoaderInfo();
     INT             loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
@@ -183,6 +187,8 @@ void display_system_info()
  **************************************************************************************************/
 static void s_markUsedMemory ()
 {
+    FUNC_ENTRY();
+
     /* Kernel reserved */
     UINT pageCount = 0x46000 / CONFIG_PAGE_FRAME_SIZE_BYTES;
     if (kpmm_allocAt (createPhysical(0), pageCount, PMM_REGION_ANY) == false)
@@ -205,6 +211,8 @@ static void s_markUsedMemory ()
 
 void usermode_main ()
 {
+    FUNC_ENTRY();
+
     INFO ("Inside usermode..");
 
     //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy_asm_handler));
@@ -232,6 +240,9 @@ void usermode_main ()
 
     //*a = 0;
     INFO ("PD: %x, PT: %x", g_page_dir.val, g_page_table.val);
+
+    Physical addr;
+    kpmm_alloc(&addr, 1, PMM_REGION_ANY);
 
     k_halt();
 }

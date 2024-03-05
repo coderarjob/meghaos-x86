@@ -31,6 +31,8 @@ static void s_idt_write ();
 void
 kidt_init ()
 {
+    FUNC_ENTRY();
+
     s_idt = (IdtDescriptor *)INTEL_32_IDT_LOCATION;
     k_memset ((void *)s_idt, 0, IDT_BYTES);
     s_idt_write ();
@@ -44,6 +46,9 @@ kidt_edit (INT                index,
            IDTDescriptorTypes type,
            U8                 dpl)
 {
+    FUNC_ENTRY ("index: 0x%x, func: 0x%px, seg_sel: 0x%x, type: 0x%x, dpl: 0x%x", index, func,
+                seg_selector, type, dpl);
+
     U32 offset = (U32)func;
 
     s_idt[index].offset_low           = offset & 0xFFFF;

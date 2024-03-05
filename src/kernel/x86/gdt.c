@@ -30,6 +30,8 @@ static          U16            s_gdt_count = MIN_GDT_INDEX;
 void
 kgdt_write ()
 {
+    FUNC_ENTRY();
+
     volatile GdtMeta gdt_size_and_loc =
     {
         .size     = (U16)(sizeof (GdtDescriptor) * s_gdt_count - 1),
@@ -55,7 +57,10 @@ kgdt_edit (U16 gdt_index,
            U32 limit,
            U8  access,
            U8  flags)
-{ 
+{
+    FUNC_ENTRY ("index: 0x%x, base: 0x%x, limit: 0x%x, access: 0x%x, flags: 0x%x", gdt_index, base,
+                limit, access, flags);
+
     s_gdt = (GdtDescriptor *)INTEL_32_GDT_LOCATION;
 
     // Valid range is MIN_INDEX < index < s_gdt_count < GDT_MAX_COUNT

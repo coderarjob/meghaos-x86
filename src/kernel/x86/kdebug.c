@@ -70,23 +70,44 @@ void kdebug_dump_call_trace(PTR *raddrs, INT count)
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 /***************************************************************************************************
- * Moves to the next line and prints log to the E9 port. When DEBUG is defined also prints the 
+ * Moves to the next line and prints log to the E9 port. When DEBUG is defined also prints the
  * function name and line number.
  *
  * @return      Nothing
  **************************************************************************************************/
-void kdebug_log_ndu (const char* type, const char* funcname, UINT linenumber, char* fmt, ...)
+void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...)
 {
+    int  len = 0;
     char buffer[MAX_PRINTABLE_STRING_LENGTH];
 
-    INT len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer),
+    switch (type)
+    {
+    case KDEBUG_LOG_TYPE_INFO:
+    {
     #ifdef DEBUG
-                               "\r\n[ %s ] %s:%u | ", type, funcname, linenumber);
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n  [ INFO ] %s:%u | ", func,
+                               line);
     #else
-                               "\r\n[ %s ] ", type);
-    (void)funcname;
-    (void)linenumber;
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n  [ INFO ] ");
     #endif // DEBUG
+    }
+    break;
+    case KDEBUG_LOG_TYPE_ERROR:
+    {
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n  [ ERROR ] %s:%u | ", func,
+                               line);
+    }
+    break;
+    case KDEBUG_LOG_TYPE_FUNC:
+    {
+    #ifdef DEBUG
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n[ %s:%u ] ", func, line);
+    #else
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n[ %s ] ", func);
+    #endif // DEBUG
+    }
+    break;
+    }
 
     va_list l;
     va_start (l, fmt);

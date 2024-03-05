@@ -16,6 +16,13 @@
 #include <types.h>
 #include <buildcheck.h>
 
+typedef enum KernelDebugLogType
+{
+    KDEBUG_LOG_TYPE_INFO,
+    KDEBUG_LOG_TYPE_ERROR,
+    KDEBUG_LOG_TYPE_FUNC
+} KernelDebugLogType;
+
 /* Prints formatted string to 0xE9 port and can optionally print to vga
  * buffer.
  */
@@ -38,19 +45,21 @@
  *
  * @return      Nothing
  **************************************************************************************************/
-#define kbochs_breakpoint() __asm__ volatile ("xchg bx, bx")
-void kdebug_dump_call_trace(PTR *raddrs, INT count);
+#define kbochs_breakpoint() __asm__ volatile("xchg bx, bx")
+void kdebug_dump_call_trace (PTR* raddrs, INT count);
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
-void kdebug_log_ndu (const char* type, const char* funcname, UINT linenumber, char* fmt, ...);
+    void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...);
 
-    #define INFO(...)  kdebug_log_ndu ("Info", __func__, __LINE__, __VA_ARGS__)
-    #define WARN(...)  kdebug_log_ndu ("Warn", __func__, __LINE__, __VA_ARGS__)
-    #define ERROR(...) kdebug_log_ndu ("Error", __func__, __LINE__, __VA_ARGS__)
+    #define INFO(...)  kdebug_log_ndu (KDEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
+    #define ERROR(...) kdebug_log_ndu (KDEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
+    #define FUNC_ENTRY(...) \
+        kdebug_log_ndu (KDEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "Args: " __VA_ARGS__)
 #else
-    #define INFO(...)  (void)0
-    #define WARN(...)  (void)0
-    #define ERROR(...) (void)0
+    #define INFO(...)       (void)0
+    #define WARN(...)       (void)0
+    #define ERROR(...)      (void)0
+    #define FUNC_ENTRY(...) (void)0
 #endif // DEBUG_LEVEL & 1
 
 #endif // KDEBUG_H

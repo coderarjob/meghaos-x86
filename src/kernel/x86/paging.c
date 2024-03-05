@@ -17,6 +17,7 @@
 #include <assert.h>
 #include <utils.h>
 #include <panic.h>
+#include <kdebug.h>
 
 typedef struct IndexInfo
 {
@@ -113,6 +114,8 @@ static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags
 
 void kpg_temporaryUnmap()
 {
+    FUNC_ENTRY();
+
     // TODO: As KERNEL_PDE will always be present and same across every process, recursive mapping
     // is not really required. That is to say the address of the PTE used for temporary mapping is
     // constant.
@@ -127,6 +130,8 @@ void kpg_temporaryUnmap()
 
 void *kpg_temporaryMap (Physical pa)
 {
+    FUNC_ENTRY();
+
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.
     // NOTE: The Kernel PT will be mapped in every process and as we are using one of its entry for
@@ -145,12 +150,16 @@ void *kpg_temporaryMap (Physical pa)
 
 PageDirectory kpg_getcurrentpd()
 {
+    FUNC_ENTRY();
+
     ArchPageDirectoryEntry *pde = s_getPdeFromCurrentPd (0);
     return (PageDirectory)pde;
 }
 
 bool kpg_unmap (PageDirectory pd, PTR va)
 {
+    FUNC_ENTRY("PD: 0x%px, VA: 0x%px", pd, va);
+
     k_assert(pd != NULL, "Page Directory is null.");
 
     if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES))
@@ -179,6 +188,8 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
 bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
 {
+    FUNC_ENTRY("PD: 0x%px, VA: 0x%px, PA: 0x%px, flags: 0x%x", pd, va, pa.val, flags);
+
     k_assert(pd != NULL, "Page Directory is null.");
 
     if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES) ||

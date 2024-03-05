@@ -15,6 +15,7 @@
 #include <kerror.h>
 #include <panic.h>
 #include <paging.h>
+#include <kdebug.h>
 #include <mem.h>
 
 static void s_markFreeMemory (Bitmap *bitmap);
@@ -28,6 +29,8 @@ static void s_markFreeMemory (Bitmap *bitmap);
  **************************************************************************************************/
 void kpmm_arch_init (Bitmap *bitmap)
 {
+    FUNC_ENTRY();
+
     k_memset (bitmap->bitmap, 0xAA, PAB_SIZE_BYTES);
     s_markFreeMemory (bitmap);
 }
@@ -86,8 +89,11 @@ static void s_markFreeMemory (Bitmap *bitmap)
  **************************************************************************************************/
 U64 kpmm_arch_getInstalledMemoryByteCount ()
 {
+    FUNC_ENTRY();
+
     BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
     U64 RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
+    INFO ("RAMSizeBytes = 0x%llx", RAMSizeBytes);
 
     return RAMSizeBytes;
 }
