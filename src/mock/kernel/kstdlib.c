@@ -1,4 +1,4 @@
-#include <mock/kernel/mem.h>
+#include <mock/kernel/kstdlib.h>
 #include <unittest/fake.h>
 
 DEFINE_FUNC(void *, k_memcpy, void *, const void *, size_t);

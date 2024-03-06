@@ -1,5 +1,5 @@
 #include <unittest/unittest.h>
-#include <mock/kernel/mem.h>
+#include <mock/kernel/kstdlib.h>
 #include <mock/kernel/x86/pmm.h>
 #include <mock/common/utils.h>
 #include <string.h>

@@ -1,5 +1,5 @@
 #include <types.h>
-#include <mem.h>
+#include <kstdlib.h>
 #include <utils.h>
 #include <unittest/unittest.h>
 

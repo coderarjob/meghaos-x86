@@ -11,7 +11,7 @@ echo "    [ Compiling Kernel: Platform independent parts ]    "
 
 C_FILES=(
     'kernel/printk.c'
-    'kernel/mem.c'
+    'kernel/kstdlib.c'
     'kernel/disp.c'
     'kernel/kerror.c'
     'kernel/pmm.c'

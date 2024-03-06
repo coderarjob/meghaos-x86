@@ -2,7 +2,7 @@
 #include <paging.h>
 #include <x86/paging.h>
 #include <unittest/unittest.h>
-#include <mock/kernel/mem.h>
+#include <mock/kernel/kstdlib.h>
 #include <mock/kernel/x86/paging.h>
 #include <mock/kernel/pmm.h>
 #include <kerror.h>

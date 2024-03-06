@@ -9,7 +9,7 @@
 */
 
 #include <x86/idt.h>
-#include <mem.h>
+#include <kstdlib.h>
 #include <x86/memloc.h>
 #include <moslimits.h>
 #include <kdebug.h>

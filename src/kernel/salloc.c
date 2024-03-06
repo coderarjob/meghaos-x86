@@ -13,7 +13,7 @@
 #include <pmm.h>
 #include <panic.h>
 #include <paging.h>
-#include <mem.h>
+#include <kstdlib.h>
 
 /* TODO: Move to x86/memloc.h
  * TODO: Create some way to keep memory start and size. */

@@ -42,7 +42,7 @@ LD_UNITTEST_FLAGS="-lgcov -lm"
 UNITTESTS=(
     "c99_conformance"
     "printk"
-    "mem"
+    "kstdlib"
     "bitmap"
     "pmm"
     "utils"
@@ -91,10 +91,10 @@ get_arch_independent_test_definition()
                                  'unittests/printk_test.c'
                                  'unittests/unittest.c')
                         };;
-        mem)
+        kstdlib)
                         {
-                            SRC=('kernel/mem.c'
-                                 'unittests/mem_test.c'
+                            SRC=('kernel/kstdlib.c'
+                                 'unittests/kstdlib_test.c'
                                  'unittests/unittest.c')
                         };;
         bitmap)

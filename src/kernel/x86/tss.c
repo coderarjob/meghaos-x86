@@ -12,7 +12,7 @@
 */
 
 #include <types.h>
-#include <mem.h>
+#include <kstdlib.h>
 #include <utils.h>
 #include <x86/gdt.h>
 #include <x86/memloc.h>

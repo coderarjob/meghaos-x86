@@ -34,7 +34,7 @@ function add_mock_source()
                 };;
        pmm_x86) {
                     export SRC=( $SRC_ARRAY
-                                 'mock/kernel/mem.c'
+                                 'mock/kernel/kstdlib.c'
                                  'mock/common/bitmap.c'
                                  'mock/kernel/pmm.c'
                                  'mock/kernel/x86/boot.c'
@@ -47,7 +47,7 @@ function add_mock_source()
                 };;
        paging_x86) {
                     export SRC=( $SRC_ARRAY
-                                 'mock/kernel/mem.c'
+                                 'mock/kernel/kstdlib.c'
                                  'mock/kernel/pmm.c'
                                  'mock/kernel/x86/paging.c'
                                )

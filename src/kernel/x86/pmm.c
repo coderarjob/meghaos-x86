@@ -16,7 +16,7 @@
 #include <panic.h>
 #include <paging.h>
 #include <kdebug.h>
-#include <mem.h>
+#include <kstdlib.h>
 
 static void s_markFreeMemory (Bitmap *bitmap);
 

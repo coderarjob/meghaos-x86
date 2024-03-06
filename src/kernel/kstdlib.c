@@ -1,12 +1,12 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Cross platform Kernel - Memory handling functions
+* Megha Operating System V2 - Cross platform Kernel - Common stdlib functions
 * ---------------------------------------------------------------------------
 *
 * Dated: 1st November 2020
 */
 
-#include <mem.h>
+#include <kstdlib.h>
 #include <types.h>
 
 /* Copies n bytes from src to dest. Returns dest */
@@ -23,8 +23,7 @@ void *k_memcpy (void *dest, const void *src, size_t n)
             *cdest-- = *csrc--;
     }
     else {
-        while (n--)
-            *cdest++ = *csrc++;
+        __builtin_memcpy(dest, src, n);
     }
 
     return (CHAR *)dest + n;
@@ -33,12 +32,6 @@ void *k_memcpy (void *dest, const void *src, size_t n)
 /* Fills memory with constant byte */
 void *k_memset (void *s, INT c, size_t n)
 {
-    U8 *cs = (U8 *)s;
-    U8 ch = (U8)c;
-
-    while (n--)
-        *cs++ = ch;
-
-    return cs;
+    return __builtin_memset(s, c, n);
 }
 
