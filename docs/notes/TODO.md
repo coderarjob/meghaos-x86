@@ -39,6 +39,7 @@
 | [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 24 |            |
 | variants in C.                                                          |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
+| [ ] Remove libgcc. Write two macros do_div() for div & mod opeartions   | 06 Mar 24 |            |
 | [ ] Configuration header files for C and assembly.                      |           |            |
 | Note: This can be done using CMake.                                     |           |            |
 | [ ] Script to auto generate the config headers simultaneously for       |           |            |
@@ -84,6 +85,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |
 | `statement-expressions` to mitigate these.                              |           |            |
+| [ ] String functions like strcmp etc                                    | 06 Mar 24 |            |
 | [X] Log and print to E9 port the following:                             |           | 06 Mar 24  |
 | ::: [X] Function name & location when entering and leaving functions    |           | 06 Mar 24  |
 | FUNC_ENTRY macro can be used for this. Not doing Logging when leaving.  |           |            |
