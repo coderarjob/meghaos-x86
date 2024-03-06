@@ -96,6 +96,7 @@ export GCC32_FLAGS="-std=c99\
                     -march=i386 \
                     -masm=intel \
                     -mno-red-zone \
+                    -mno-sse \
                     $WOPTS \
                     $GCC_INCPATH \
                     -O1 \
