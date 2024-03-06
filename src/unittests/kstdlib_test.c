@@ -6,7 +6,7 @@
 TEST(MEM, memset_one_byte)
 {
     U8 dest;
-    k_memset (&dest, 0x1A, 1);
+    EQ_SCALAR((PTR)k_memset (&dest, 0x1A, 1), (PTR)&dest);
     EQ_SCALAR(dest, 0x1A);
     END();
 }
@@ -25,7 +25,7 @@ TEST(MEM, memcpy_overlap)
     CHAR *src = &memory[0];
     CHAR *dest = &memory[5];
 
-    k_memcpy (dest, src, 10);
+    EQ_SCALAR((PTR)k_memcpy (dest, src, 10), (PTR)dest);
 
     for (int i = 0; i < 10; i++)
         EQ_SCALAR(dest[i], i + 1);              // Dest[0 to 9] has 1 to 10
@@ -43,7 +43,7 @@ TEST(MEM, memcpy_normal)
     CHAR *src = "123456789ABCDEF0";
     CHAR dest[10];
 
-    k_memcpy (dest, src, ARRAY_LENGTH(dest));
+    EQ_SCALAR((PTR)k_memcpy (dest, src, ARRAY_LENGTH(dest)), (PTR)&dest);
 
     for (int i = 0; i < ARRAY_LENGTH(dest); i++)
         EQ_SCALAR(dest[i], src[i]);
@@ -54,9 +54,8 @@ TEST(MEM, memcpy_normal)
 TEST(MEM, memset_normal)
 {
     U8 dest[10];
-    U8 *ret = (U8*)k_memset (dest, 0x1A, ARRAY_LENGTH(dest));
 
-    EQ_SCALAR((INT)ret, (INT)&dest);
+    EQ_SCALAR((PTR)k_memset (dest, 0x1A, ARRAY_LENGTH(dest)), (PTR)&dest);
 
     for (int i = 0; i < ARRAY_LENGTH(dest); i++)
         EQ_SCALAR(dest[i], 0x1A);
