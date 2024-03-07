@@ -70,8 +70,8 @@ void kdebug_dump_call_trace(PTR *raddrs, INT count)
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 /***************************************************************************************************
- * Moves to the next line and prints log to the E9 port. When DEBUG is defined also prints the
- * function name and line number.
+ * Prints log to the host console in a new line. When DEBUG is defined also prints the function name
+ * and line number.
  *
  * @return      Nothing
  **************************************************************************************************/
