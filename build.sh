@@ -9,7 +9,7 @@ export LINK_USING_LD=1
 
 # DEBUG LEVEL BITS
 # x x x x x x [Screen] [E9]
-export DEBUGLEVEL=3
+export DEBUGLEVEL=1
 
 # ---------------------------------------------------------------------------
 # ARGUMENT PARSING
