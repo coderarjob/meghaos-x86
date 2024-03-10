@@ -47,6 +47,7 @@ UNITTESTS=(
     "pmm"
     "utils"
     "paging"
+    "intrusive_list"
 )
 
 # Adds tests specific to the current architecture.
@@ -81,44 +82,48 @@ get_arch_independent_test_definition()
 
     case $TEST in
         c99_conformance)
-                        {
-                            SRC=('unittests/c99_conformance_test.c'
-                                 'unittests/unittest.c')
-                        };;
+                            {
+                                SRC=('unittests/c99_conformance_test.c'
+                                     'unittests/unittest.c')
+                            };;
         printk)
-                        {
-                            SRC=('kernel/printk.c'
-                                 'unittests/printk_test.c'
-                                 'unittests/unittest.c')
-                        };;
+                            {
+                                SRC=('kernel/printk.c'
+                                     'unittests/printk_test.c'
+                                     'unittests/unittest.c')
+                            };;
         kstdlib)
-                        {
-                            SRC=('kernel/kstdlib.c'
-                                 'unittests/kstdlib_test.c'
-                                 'unittests/unittest.c')
-                        };;
+                            {
+                                SRC=('kernel/kstdlib.c'
+                                     'unittests/kstdlib_test.c'
+                                     'unittests/unittest.c')
+                            };;
         bitmap)
-                        {
-                            SRC=('common/bitmap.c'
-                                 'unittests/bitmap_test.c'
-                                 'unittests/common.c'
-                                 'unittests/unittest.c')
-                        };;
-          pmm)          {
-                            SRC=('kernel/pmm.c'
-                                 'common/bitmap.c'
-                                 'unittests/common.c'
-                                 'unittests/pmm_test.c'
-                                 'unittests/unittest.c')
-                        };;
-          utils)        {
-                            SRC=('common/utils.c'
-                                 'unittests/utils_test.c'
-                                 'unittests/unittest.c')
-                        };;
-          paging)       {
-                            SRC=('unittests/paging_test.c'
-                                 'unittests/unittest.c')
+                            {
+                                SRC=('common/bitmap.c'
+                                     'unittests/bitmap_test.c'
+                                     'unittests/common.c'
+                                     'unittests/unittest.c')
+                            };;
+          pmm)              {
+                                SRC=('kernel/pmm.c'
+                                     'common/bitmap.c'
+                                     'unittests/common.c'
+                                     'unittests/pmm_test.c'
+                                     'unittests/unittest.c')
+                            };;
+          utils)            {
+                                SRC=('common/utils.c'
+                                     'unittests/utils_test.c'
+                                     'unittests/unittest.c')
+                            };;
+          paging)           {
+                                SRC=('unittests/paging_test.c'
+                                     'unittests/unittest.c')
+                            };;
+          intrusive_list)   {
+                                SRC=('unittests/intrusive_list_test.c'
+                                    'unittests/unittest.c')
                         };;
         *) return 1;;
     esac
