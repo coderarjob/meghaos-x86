@@ -26,17 +26,17 @@ typedef struct IndexInfo
     UINT offset;
 } IndexInfo;
 
-static IndexInfo s_getTableIndices (PTR va);
-static void s_setupPTE (ArchPageTableEntry *pte, Physical pa, PagingMapFlags flags);
-static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags flags);
-static ArchPageDirectoryEntry *s_getPdeFromCurrentPd (UINT pdeIndex);
-static ArchPageTableEntry *s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
-static void *s_getLinearAddress(UINT pdeIndex, UINT pteIndex, UINT offset);
+static IndexInfo               s_getTableIndices (PTR va);
+static ArchPageDirectoryEntry* s_getPdeFromCurrentPd (UINT pdeIndex);
+static ArchPageTableEntry*     s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex);
+static void*                   s_getLinearAddress (UINT pdeIndex, UINT pteIndex, UINT offset);
+
+static void s_setupPTE (PTR associatedVA, ArchPageTableEntry* pte, Physical pa,
+                        PagingMapFlags flags);
+static void s_setupPDE (PTR associatedVA, ArchPageDirectoryEntry* pde, Physical pa,
+                        PagingMapFlags flags);
 
 #ifndef UNITTEST
-    #define tlb_inval(addr)      __asm__ volatile("invlpg %0;" ::"m"(addr))
-    #define tlb_inval_complete() __asm__ volatile("mov eax, cr3; mov cr3, eax;" ::: "eax")
-
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
 // differently, to indicate that such functions must never be called from any other architecture.
 // TODO: The above statement can be extended to other types like constants, macros, types. Those
@@ -56,13 +56,12 @@ static ArchPageTableEntry* s_getPteFromCurrentPd (UINT pdeIndex, UINT pteIndex)
     return (ArchPageTableEntry*)addr;
 }
 
+/* A separate function is required so that we can override it in Unittests. If this was a const
+ * variable I see no way to make it work in unittests. */
 static void *s_getLinearAddress(UINT pdeIndex, UINT pteIndex, UINT offset) 
 {
     return (void*)LINEAR_ADDR(pdeIndex, pteIndex, offset);
 }
-#else
-    #define tlb_inval(addr)      (void)0
-    #define tlb_inval_complete() (void)0
 #endif
 
 static IndexInfo s_getTableIndices (PTR va)
@@ -78,38 +77,40 @@ static IndexInfo s_getTableIndices (PTR va)
     return info;
 }
 
-static void s_setupPTE (ArchPageTableEntry *pte, Physical pa, PagingMapFlags flags)
+static void s_setupPTE (PTR associatedVA, ArchPageTableEntry* pte, Physical pa,
+                        PagingMapFlags flags)
 {
     k_assert (IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
 
-    ArchPageTableEntry newPTE;
+    ArchPageTableEntry newPTE   = { 0 };
     newPTE.pageFrame            = PHYSICAL_TO_PAGEFRAME (pa.val);
-    newPTE.present              = BIT_ISUNSET(flags, PG_MAP_FLAG_NOT_PRESENT);
+    newPTE.present              = BIT_ISUNSET (flags, PG_MAP_FLAG_NOT_PRESENT);
     newPTE.page_attribute_table = 0;
     newPTE.global_page          = 0;
-    newPTE.cache_disabled       = BIT_ISUNSET(flags, PG_MAP_FLAG_CACHE_ENABLED);
+    newPTE.cache_disabled       = BIT_ISUNSET (flags, PG_MAP_FLAG_CACHE_ENABLED);
     newPTE.write_through_cache  = 0;
     newPTE.write_allowed        = BIT_ISSET (flags, PG_MAP_FLAG_WRITABLE);
-    newPTE.user_accessable      = BIT_ISUNSET(flags, PG_MAP_FLAG_KERNEL);
+    newPTE.user_accessable      = BIT_ISUNSET (flags, PG_MAP_FLAG_KERNEL);
 
     k_memcpy (pte, &newPTE, sizeof (ArchPageTableEntry));
-    tlb_inval_complete();
+    x86_TLB_INVAL_SINGLE (associatedVA);
 }
 
-static void s_setupPDE (ArchPageDirectoryEntry *pde, Physical pa, PagingMapFlags flags)
+static void s_setupPDE (PTR associatedVA, ArchPageDirectoryEntry* pde, Physical pa,
+                        PagingMapFlags flags)
 {
     k_assert (IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
 
-    ArchPageDirectoryEntry newPDE;
-    newPDE.pageTableFrame      = PHYSICAL_TO_PAGEFRAME (pa.val);
-    newPDE.present             = BIT_ISUNSET(flags, PG_MAP_FLAG_NOT_PRESENT);
-    newPDE.user_accessable     = BIT_ISUNSET(flags, PG_MAP_FLAG_KERNEL);
-    newPDE.write_allowed       = BIT_ISSET(flags, PG_MAP_FLAG_WRITABLE);
-    newPDE.write_through_cache = 0;
-    newPDE.cache_disabled      = BIT_ISUNSET(flags, PG_MAP_FLAG_CACHE_ENABLED);
+    ArchPageDirectoryEntry newPDE = { 0 };
+    newPDE.pageTableFrame         = PHYSICAL_TO_PAGEFRAME (pa.val);
+    newPDE.present                = BIT_ISUNSET (flags, PG_MAP_FLAG_NOT_PRESENT);
+    newPDE.user_accessable        = BIT_ISUNSET (flags, PG_MAP_FLAG_KERNEL);
+    newPDE.write_allowed          = BIT_ISSET (flags, PG_MAP_FLAG_WRITABLE);
+    newPDE.write_through_cache    = 0;
+    newPDE.cache_disabled         = BIT_ISUNSET (flags, PG_MAP_FLAG_CACHE_ENABLED);
 
     k_memcpy (pde, &newPDE, sizeof (ArchPageDirectoryEntry));
-    tlb_inval_complete();
+    x86_TLB_INVAL_SINGLE (associatedVA);
 }
 
 void kpg_temporaryUnmap()
@@ -125,7 +126,8 @@ void kpg_temporaryUnmap()
     ArchPageTableEntry *pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
     k_assert (pte->present == 1, "Temporary mapping not present");
     pte->present = 0;
-    tlb_inval_complete();
+
+    x86_TLB_INVAL_SINGLE (s_getLinearAddress (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0));
 }
 
 void *kpg_temporaryMap (Physical pa)
@@ -140,12 +142,14 @@ void *kpg_temporaryMap (Physical pa)
     if (!IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, NULL);
 
-    ArchPageTableEntry *pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
+    void* temporaryAddress  = s_getLinearAddress (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0);
+    ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
     k_assert (pte->present == 0, "Temporary mapping already present");
 
-    s_setupPTE(pte, pa, PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
+    s_setupPTE ((PTR)temporaryAddress, pte, pa,
+                PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
 
-    return s_getLinearAddress(KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0);
+    return temporaryAddress;
 }
 
 PageDirectory kpg_getcurrentpd()
@@ -181,6 +185,8 @@ bool kpg_unmap (PageDirectory pd, PTR va)
     }
 
     pte->present = false;
+    x86_TLB_INVAL_SINGLE(va);       // This PTE effects virtual address VA. Thus flushing va.
+
     kpg_temporaryUnmap();
 
     return true;
@@ -203,15 +209,15 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
         // Allocate phy mem for new page table.
         Physical pa_new;
         if (kpmm_alloc (&pa_new, 1, PMM_REGION_ANY) == false)
-            k_panic ("Memory allocaiton failed");
+            k_panic ("Memory allocation failed");
 
         // Initialize the page table.
         void *tempva = kpg_temporaryMap (pa_new);
         k_memset (tempva, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
         kpg_temporaryUnmap();
 
-        // Referene the page table in the PDE.
-        s_setupPDE (pde, pa_new, flags);
+        // Reference the page table in the PDE.
+        s_setupPDE (va, pde, pa_new, flags);
     }
 
     // In order to access the page table a temporary mapping is required.
@@ -224,7 +230,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 
-    s_setupPTE (pte, pa, flags);
+    s_setupPTE (va, pte, pa, flags);
     kpg_temporaryUnmap();
     return true;
 }

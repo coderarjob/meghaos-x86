@@ -32,6 +32,21 @@
 #define LINEAR_ADDR(pde_idx, pte_idx, offset) \
     (((pde_idx) << PDE_SHIFT) | ((pte_idx) << PTE_SHIFT) | (offset))
 
+#ifndef UNITTEST
+    #define x86_TLB_INVAL_SINGLE(addr) __asm__ volatile("invlpg %0;" ::"m"(*(char*)addr))
+    #define X86_TLB_INVAL_COMPLETE()                  \
+        do                                            \
+        {                                             \
+            int temp;                                 \
+            __asm__ volatile("mov %0, cr3; "          \
+                             "mov cr3, %0;"           \
+                             : "=r"(temp)::"memory"); \
+        } while (0)
+#else
+    #define x86_TLB_INVAL_SINGLE(addr) (void)0
+    #define X86_TLB_INVAL_COMPLETE()   (void)0
+#endif
+
 /* Casts a linear mapped physical address to virtual address */
 static inline void* CAST_PA_TO_VA (Physical a)
 {
