@@ -48,6 +48,7 @@ UNITTESTS=(
     "utils"
     "paging"
     "intrusive_list"
+    "kmalloc"
 )
 
 # Adds tests specific to the current architecture.
@@ -123,8 +124,14 @@ get_arch_independent_test_definition()
                             };;
           intrusive_list)   {
                                 SRC=('unittests/intrusive_list_test.c'
-                                    'unittests/unittest.c')
-                        };;
+                                     'unittests/unittest.c')
+                            };;
+          kmalloc)          {
+                                SRC=('unittests/kmalloc_test.c'
+                                     'common/kmalloc.c'
+                                     'unittests/common.c'
+                                     'unittests/unittest.c')
+                            };;
         *) return 1;;
     esac
 }
