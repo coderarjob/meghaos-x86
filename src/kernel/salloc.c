@@ -5,6 +5,9 @@
  * Static memories are for permanent allocations.
  * --------------------------------------------------------------------------------------------------
  */
+#include <kdebug.h>
+#include <assert.h>
+#include <config.h>
 #include <kerror.h>
 #include <stdbool.h>
 #include <utils.h>
@@ -14,63 +17,64 @@
 #include <panic.h>
 #include <paging.h>
 #include <kstdlib.h>
+#include <memmanage.h>
+#if defined(__i386__)
+    #include <x86/memloc.h>
+#endif
 
-/* TODO: Move to x86/memloc.h
- * TODO: Create some way to keep memory start and size. */
-#define SALLOC_MEM_START  (3 * GB + 2 * MB)
-#define SALLOC_MEM_SIZE   (1 * MB)
-#define SALLOC_GRANUALITY (8 * Byte)
+#define SALLOC_MEM_END (SALLOC_MEM_START + (SALLOC_MEM_SIZE_PAGES * CONFIG_PAGE_FRAME_SIZE_BYTES))
+
 void *next = NULL; // Points to the start of next allocation.
 
 void salloc_init()
 {
-    /* Pre Map SALLOC_PA_MEM_START with SALLOC_MEM_START in the kernel. */
-    // paging_map (PD, UNBACKED, SALLOC_MEM_START, SALLOC_MEM_SIZE, UNUSED);
+    FUNC_ENTRY();
 
-    /* Physically back 1 page for the heap */
+    /* Pre-allocate all memory for salloc */
     Physical pa;
-    if (kpmm_alloc (&pa, 1, PMM_REGION_ANY) == false)
+    if (kpmm_alloc (&pa, SALLOC_MEM_SIZE_PAGES, PMM_REGION_ANY) == false)
         k_panic ("Memory allocaiton failed");
 
     PageDirectory pd = kpg_getcurrentpd();
-    if (kpg_map (pd, SALLOC_MEM_START, pa, PG_MAP_FLAG_KERNEL) == false)
-        k_panic ("Page map failed");
 
-    next = (void *)SALLOC_MEM_START;
+    /* As we are pre-allocating all the physical pages, we have also map the virtual pages. This is
+     * required because there is no other way to reserve virtual pages */
+    for (UINT pageIndex = 0; pageIndex < SALLOC_MEM_SIZE_PAGES; pageIndex++)
+    {
+        PTR this_va = SALLOC_MEM_START + (pageIndex * CONFIG_PAGE_FRAME_SIZE_BYTES);
+        Physical this_pa = PHYSICAL(pa.val + (pageIndex * CONFIG_PAGE_FRAME_SIZE_BYTES));
+        if (kpg_map (pd, this_va, this_pa, PG_MAP_FLAG_KERNEL) == false)
+            k_panic ("Page map failed");
+    }
+
+    next = (void*)SALLOC_MEM_START;
 }
 
 // TODO: salloc should take flags for alignment requirements to meet various placement requirements.
 // For example: Page boundary must not ocour within TSS.
 void *salloc (UINT bytes)
 {
+    FUNC_ENTRY("Bytes: 0x%px", bytes);
+
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);
+    INFO("Size after aligning: 0x%px", allocSize);
 
-    /*if (paging_ismapped(next, bytes) == false)
+    if ((PTR)next >= SALLOC_MEM_END)
     {
-        // NOTE: New PT may need to be created here and associate it with the current PD. Later on
-        // with demand creation, this will not be required; salloc_init will map unbacked PTs for
-        // the whole Heap address space.
-        Physical pa;
-        if (kpmm_alloc(&pa, 1, PMM_REGION_ANY) == false)
-            k_panic("Memory allocaiton failed");
-
-        //paging_map (paging_getCurrentPD(), BACKED, next, 4096, &pa);
-    }*/
-
-    if ((PTR)next < (SALLOC_MEM_START + SALLOC_MEM_SIZE))
-    {
-        next = (void *)((PTR)next + allocSize);
-        return (void *)((PTR)next - allocSize);
+        RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
     }
 
-    RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
+    next = (void *)((PTR)next + allocSize);
+    return (void *)((PTR)next - allocSize);
+
 }
 
 void *scalloc (UINT bytes)
 {
+    FUNC_ENTRY("Bytes: 0x%px", bytes);
+
     void *mem = salloc (bytes);
     if (mem != NULL)
         k_memset(mem, 0, bytes);
     return mem;
 }
-
