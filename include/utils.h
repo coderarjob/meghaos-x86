@@ -12,6 +12,8 @@
 
 #include <buildcheck.h>
 #include <types.h>
+#include <assert.h>
+#include <config.h>
 
 /** Used to know the offset of a member in a structure type */
 #define offsetOf(type,member) ((size_t)(&((type *)0)->member))
@@ -53,6 +55,17 @@ UINT power_of_two(UINT e);
          (w_ & s_) == s_ ? 1U : 0U; \
      }) & 0x1)
 
+// Number of complete pages from at-most 'b' number of bytes.
+#define BYTES_TO_PAGEFRAMES_FLOOR(b) \
+    ((b) / CONFIG_PAGE_FRAME_SIZE_BYTES & BIT_MASK (CONFIG_PAGE_FRAME_SIZE_BITS, 0))
+
+// Number of complete pages from at-least 'b' number of bytes.
+#define BYTES_TO_PAGEFRAMES_CEILING(b) \
+    BYTES_TO_PAGEFRAMES_FLOOR (ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES))
+
+// Number of bytes in 'pf' number of pages.
+#define PAGEFRAMES_TO_BYTES(pf) ((USYSINT)(pf) << CONFIG_PAGE_SIZE_BITS)
+
 /**Bit test
  * Checks is bit s (represented by the shifted value) is not set in w. */
 #define BIT_ISUNSET(w, s) ((BIT_ISSET (w, s) == 1U ? 0U : 1U) & 0x1)
@@ -62,5 +75,6 @@ UINT power_of_two(UINT e);
 #define STR(v) STR_NDU(v)
 
 #define NORETURN() __builtin_unreachable()
+#define UNREACHABLE() k_assert(false, "Unreachable code")
 
 #endif // UTILS_H

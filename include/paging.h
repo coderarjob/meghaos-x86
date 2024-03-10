@@ -40,19 +40,10 @@ typedef enum PagingMapFlags
 } PagingMapFlags;
 
 // Physical start of the page frame 'pf'.
-#define PAGEFRAME_TO_PHYSICAL(pf) ((USYSINT)(pf) << CONFIG_PAGE_SIZE_BITS)
+#define PAGEFRAME_TO_PHYSICAL(pf) (PAGEFRAMES_TO_BYTES(pf))
 
-// Page frame from the physical start address of the page frame.
-// Assumption is 'addr' to always be page aligned.
-#define PHYSICAL_TO_PAGEFRAME(addr)                                                                \
-    ((addr / CONFIG_PAGE_FRAME_SIZE_BYTES) & BIT_MASK (CONFIG_PAGE_FRAME_SIZE_BITS, 0))
-
-// Number of complete pages from at-most 'b' number of bytes.
-#define BYTES_TO_PAGEFRAMES_FLOOR(b)  (PHYSICAL_TO_PAGEFRAME(b))
-
-// Number of complete pages from at-least 'b' number of bytes.
-#define BYTES_TO_PAGEFRAMES_CEILING(b)  \
-    (PHYSICAL_TO_PAGEFRAME(ALIGN_UP ((b), CONFIG_PAGE_FRAME_SIZE_BYTES)))
+// A linear address to corresponding number of page frames.
+#define PHYSICAL_TO_PAGEFRAME(addr) (BYTES_TO_PAGEFRAMES_FLOOR(addr))
 
 PageDirectory kpg_getcurrentpd();
 void kpg_setupPD (PageDirectory pd, PageAttributes *attr);

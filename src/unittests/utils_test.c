@@ -123,6 +123,31 @@ TEST (utils, bit_isset) {
     END();
 }
 
+TEST (utils, bytes_to_pageframes_floor) {
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(0x1), 0x0);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4095), 0x0);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4096), 0x1);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4097), 0x1);
+    END();
+}
+
+TEST (utils, bytes_to_pageframes_ceiling) {
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(0x1), 0x1);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4095), 0x1);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4096), 0x1);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4097), 0x2);
+
+    END();
+}
+
+TEST (utils, pageframes_to_bytes) {
+    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x0), 0x0);
+    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x1), CONFIG_PAGE_FRAME_SIZE_BYTES);
+    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x5), 5 * CONFIG_PAGE_FRAME_SIZE_BYTES);
+
+    END();
+}
+
 void reset() {}
 
 int main() {
@@ -138,4 +163,7 @@ int main() {
     OffsetOf();
     bit_isset();
     bit_isunset();
+    pageframes_to_bytes();
+    bytes_to_pageframes_ceiling();
+    bytes_to_pageframes_floor();
 }
