@@ -1,4 +1,4 @@
-#include <mock/common/kmalloc.h>
+#include <mock/kernel/kmalloc.h>
 #include <unittest/fake.h>
 
 DEFINE_FUNC(void*, s_PreAllocateMemory);

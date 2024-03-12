@@ -1,6 +1,6 @@
 #include <kmalloc.h>
 #include <intrusive_list.h>
-#include <mock/common/kmalloc.h>
+#include <mock/kernel/kmalloc.h>
 #include <unittest/unittest.h>
 #include <stdlib.h>
 #include <stdio.h>

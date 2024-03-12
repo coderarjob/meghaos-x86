@@ -128,7 +128,7 @@ get_arch_independent_test_definition()
                             };;
           kmalloc)          {
                                 SRC=('unittests/kmalloc_test.c'
-                                     'common/kmalloc.c'
+                                     'kernel/kmalloc.c'
                                      'unittests/common.c'
                                      'unittests/unittest.c')
                             };;
