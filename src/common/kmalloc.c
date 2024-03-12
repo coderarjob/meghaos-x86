@@ -1,19 +1,16 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdbool.h>
+#include <kerror.h>
+#include <types.h>
 #include <assert.h>
 #include <kmalloc.h>
 #include <intrusive_list.h>
 #include <kdebug.h>
 #include <utils.h>
-
-#ifdef DEBUG
-    #define PRINT(...) INFO (__VA_ARGS)
-#else
-    #define PRINT(fnt, ...) (void)0
+#include <paging.h>
+#if defined(__i386__)
+    #include <x86/memloc.h>
 #endif
+
+#define KMALLOC_SIZE_BYTES PAGEFRAMES_TO_BYTES (KMALLOC_SIZE_PAGES)
 
 typedef enum KMallocLists
 {
@@ -34,25 +31,61 @@ static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* nod
 static ListNode*     s_getListHead (KMallocLists list);
 static void          s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr);
 static void          s_combineAdjFreeNodes (MallocHeader* node);
+static void*         s_PreAllocateMemory();
+
+static void* buffer;
+
+#ifndef UNITTEST
+static void* s_PreAllocateMemory()
+{
+    // Allocate physical pages
+    Physical start;
+    if (kpmm_alloc (&pa, KMALLOC_SIZE_PAGES, PMM_REGION_ANY) == false)
+        k_panic ("Memoty allocation failed");
+
+    // Allocate virutal pages
+    PageDirectory pd = kpg_getcurrentpd();
+
+    // Because we are pre-allocating physical memory, we have to map these pages to virtual pages to
+    // be useful.
+    for (UINT pageIndex = 0; pageIndex < KMALLOC_SIZE_PAGES; pageIndex++)
+    {
+        Physical pa = PHYSICAL (start.val + PAGEFRAMES_TO_BYTES (pageIndex));
+        PTR      va = KMALLOC_MEM_START + PAGEFRAMES_TO_BYTES (pageIndex);
+        if (kpg_map (pd, va, pa,
+                     PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED) ==
+            false)
+            k_panic ("Page map failed");
+    }
+
+    return (void*)KMALLOC_MEM_START;
+}
+#endif
 
 void kmalloc_init()
 {
+    FUNC_ENTRY();
+
     list_init (&freeHead);
     list_init (&allocHead);
     list_init (&adjHead);
 
-    MallocHeader* newH = s_createNewNode (buffer, INITIAL_HEAP_SIZE);
+    buffer = s_PreAllocateMemory();
+
+    MallocHeader* newH = s_createNewNode (buffer, KMALLOC_SIZE_BYTES);
     list_add_before (&freeHead, &newH->freenode);
     list_add_before (&adjHead, &newH->adjnode);
 
-    PRINT ("Size of MallocHeader: %lu bytes", sizeof (MallocHeader));
-    PRINT ("Malloc buffer is at: %p", buffer);
+    INFO ("Size of MallocHeader: %lu bytes", sizeof (MallocHeader));
+    INFO ("Malloc buffer is at: %p", buffer);
 }
 
 void* kmalloc (size_t bytes)
 {
+    FUNC_ENTRY ("Bytes: 0x%x", bytes);
+
     size_t netAllocSize = (bytes + sizeof (MallocHeader));
-    PRINT ("Requested net size of %lu bytes", netAllocSize);
+    INFO ("Requested net size of %lu bytes", netAllocSize);
 
     // Search for suitable node
     size_t        searchAllocSize = (bytes + 2 * sizeof (MallocHeader));
@@ -67,20 +100,21 @@ void* kmalloc (size_t bytes)
     }
     else
     {
-        // Ask for new memory
-        PRINT ("Require mode memory.");
+        RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
     }
     return NULL;
 }
 
 void kfree (void* addr)
 {
+    FUNC_ENTRY ("Address: 0x%px", addr);
+
     void*         headerAddress = addr - sizeof (MallocHeader);
     MallocHeader* allocHdr      = s_findFirst (ALLOC_LIST, FIND_CRIT_NODE_ADDRESS,
                                                (uintptr_t)headerAddress);
     if (allocHdr != NULL)
     {
-        PRINT ("Free at %p, Size = %lu", allocHdr, allocHdr->netNodeSize);
+        INFO ("Free at %p, Size = %lu", allocHdr, allocHdr->netNodeSize);
         list_remove (&allocHdr->allocnode);
         list_add_after (&freeHead, &allocHdr->freenode);
         allocHdr->isAllocated = false;
@@ -89,7 +123,7 @@ void kfree (void* addr)
     }
     else
     {
-        PRINT ("Adderss not found.");
+        INFO ("Adderss not found.");
     }
 }
 
@@ -101,12 +135,12 @@ static void s_combineAdjFreeNodes (MallocHeader* node)
     MallocHeader* next = LIST_ITEM (node->adjnode.next, MallocHeader, adjnode);
     MallocHeader* prev = LIST_ITEM (node->adjnode.prev, MallocHeader, adjnode);
 
-    PRINT ("Prev: 0x%p Sz: %lu <-> Current: 0x%p Sz: %lu <-> Next: 0x%p Sz: %lu", prev,
-           prev->netNodeSize, current, current->netNodeSize, next, next->netNodeSize);
+    INFO ("Prev: 0x%p Sz: %lu <-> Current: 0x%p Sz: %lu <-> Next: 0x%p Sz: %lu", prev,
+          prev->netNodeSize, current, current->netNodeSize, next, next->netNodeSize);
 
     if (!next->isAllocated)
     {
-        PRINT ("Combining NEXT into CURRENT");
+        INFO ("Combining NEXT into CURRENT");
         current->netNodeSize += next->netNodeSize;
         list_remove (&next->freenode);
         list_remove (&next->adjnode);
@@ -114,7 +148,7 @@ static void s_combineAdjFreeNodes (MallocHeader* node)
 
     if (!prev->isAllocated)
     {
-        PRINT ("Combining CURRENT into PREV");
+        INFO ("Combining CURRENT into PREV");
         prev->netNodeSize += current->netNodeSize;
         list_remove (&current->freenode);
         list_remove (&current->adjnode);
@@ -124,9 +158,9 @@ static void s_combineAdjFreeNodes (MallocHeader* node)
 static MallocHeader* s_createNewNode (void* at, size_t netSize)
 {
     uintptr_t end = (uintptr_t)at + netSize - 1;
-    if (end >= (uintptr_t)(buffer + INITIAL_HEAP_SIZE))
+    if (end >= (uintptr_t)(buffer + KMALLOC_SIZE_BYTES))
     {
-        PRINT ("FAIL: No space.");
+        INFO ("FAIL: No space.");
         return NULL;
     }
 
@@ -176,12 +210,12 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
     ListNode*     node   = NULL;
     MallocHeader* header = NULL;
 
-    PRINT ("Searching for value %lu (0x%lx)", value, value);
+    INFO ("Searching for value %lu (0x%lx)", value, value);
 
     list_for_each (head, node)
     {
         header = s_getMallocHeaderFromList (list, node);
-        PRINT ("  (%p) Size = %lu...", header, header->netNodeSize);
+        INFO ("  (%p) Size = %lu...", header, header->netNodeSize);
 
         switch (criteria)
         {
@@ -195,7 +229,7 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
 
         if (found)
         {
-            PRINT ("Found.");
+            INFO ("Found.");
             break;
         }
     }

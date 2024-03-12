@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <intrusive_list.h>
 
-#define INITIAL_HEAP_SIZE      (4096U * 2U)
+#define KMALLOC_SIZE_PAGES     (5)
 #define ALLOCATION_GRANULARITY 0x10
 
 typedef struct MallocHeader
@@ -21,6 +21,5 @@ void* kmalloc (size_t bytes);
 void  kfree (void* addr);
 void  kmalloc_init();
 
-extern char     buffer[INITIAL_HEAP_SIZE];
 extern ListNode freeHead, allocHead, adjHead;
 #endif // KMALLOC_H

@@ -52,5 +52,10 @@ function add_mock_source()
                                  'mock/kernel/x86/paging.c'
                                )
                 };;
+       kmalloc) {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/common/kmalloc.c'
+                               )
+                };;
     esac
 }

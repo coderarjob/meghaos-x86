@@ -1,13 +1,14 @@
 #include <kmalloc.h>
 #include <intrusive_list.h>
+#include <mock/common/kmalloc.h>
 #include <unittest/unittest.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdio.h>
+#include <kerror.h>
+#include <utils.h>
 
-#define ARRAY_LEN(a) (sizeof (a) / sizeof ((a)[0]))
+#define KMALLOC_SIZE_BYTES PAGEFRAMES_TO_BYTES (KMALLOC_SIZE_PAGES)
+
 #ifdef DEBUG
     #define PRINT_EVERY_LIST(title)                     \
         do                                              \
@@ -32,8 +33,6 @@ typedef enum MallocLists
 
 ListNode freeHead, allocHead, adjHead;
 
-__attribute__ ((aligned (4096))) char buffer[INITIAL_HEAP_SIZE];
-
 static void                 printList (MallocLists list);
 static inline size_t        getNodeSize (size_t allocSz);
 static inline MallocHeader* calculateHeaderLocation (void* usableAddrStart);
@@ -42,12 +41,17 @@ static MallocHeader*        getMallocHeaderFromList (MallocLists list, ListNode*
 static bool                 isAddressFoundInList (void* addr, MallocLists list);
 static size_t               getCapacity (MallocLists list);
 
+__attribute__ ((aligned (4096))) char kmalloc_buffer[KMALLOC_SIZE_BYTES];
+
+KernelErrorCodes k_errorNumber;
+char*            k_errorText[] = {};
+
 TEST (kmalloc, allocation_space_available)
 {
     // Pre-Condition: Nothing
     // ------------------------------------------------------------------------------------------
-    void* addr1 = kmalloc (INITIAL_HEAP_SIZE / 3);
-    void* addr2 = kmalloc (INITIAL_HEAP_SIZE / 4);
+    void* addr1 = kmalloc (KMALLOC_SIZE_BYTES / 3);
+    void* addr2 = kmalloc (KMALLOC_SIZE_BYTES / 4);
 
     // Two addresses must be different.
     NEQ_SCALAR (addr2, addr1);
@@ -66,7 +70,7 @@ TEST (kmalloc, allocation_space_available)
 TEST (kmalloc, allocation_space_uavailable)
 {
     // Pre-condition: This large allocation causes the 2nd allocation to fail.
-    size_t allocSz = INITIAL_HEAP_SIZE - sizeof (MallocHeader) * 2;
+    size_t allocSz = KMALLOC_SIZE_BYTES - sizeof (MallocHeader) * 2;
     NEQ_SCALAR (kmalloc (allocSz), NULL);
     size_t freeListCapPrev  = getCapacity (FREE_LIST);
     size_t allocListCapPrev = getCapacity (ALLOC_LIST);
@@ -86,13 +90,13 @@ TEST (kmalloc, adj_list_continous)
 {
     // Pre-condition: A number of successful allocations and freeing done.
     void* addr;
-    NEQ_SCALAR (kmalloc (INITIAL_HEAP_SIZE / 5), NULL);
-    NEQ_SCALAR ((addr = kmalloc (INITIAL_HEAP_SIZE / 4)), NULL);
-    NEQ_SCALAR (kmalloc (INITIAL_HEAP_SIZE / 7), NULL);
+    NEQ_SCALAR (kmalloc (KMALLOC_SIZE_BYTES / 5), NULL);
+    NEQ_SCALAR ((addr = kmalloc (KMALLOC_SIZE_BYTES / 4)), NULL);
+    NEQ_SCALAR (kmalloc (KMALLOC_SIZE_BYTES / 7), NULL);
 
     kfree (addr);
 
-    NEQ_SCALAR (kmalloc (INITIAL_HEAP_SIZE / 7), NULL);
+    NEQ_SCALAR (kmalloc (KMALLOC_SIZE_BYTES / 7), NULL);
     // ------------------------------------------------------------------------------------------
     // Adjacent list must have nodes in sorted order of addresses.
     MallocHeader* prevHeader = NULL;
@@ -106,7 +110,7 @@ TEST (kmalloc, adj_list_continous)
     }
 
     // The total capacity of Adj list must always be equal to HEAP size.
-    EQ_SCALAR (getCapacity (ADJ_LIST), INITIAL_HEAP_SIZE);
+    EQ_SCALAR (getCapacity (ADJ_LIST), KMALLOC_SIZE_BYTES);
 
     END();
 }
@@ -136,7 +140,7 @@ TEST (kfree, kfree_combining_adj_nodes)
         { getNodeSize (100), true },
         { getNodeSize (30), false },
         { getNodeSize (20), true },
-        { INITIAL_HEAP_SIZE - getNodeSize (100) - getNodeSize (30) - getNodeSize (20), false }
+        { KMALLOC_SIZE_BYTES - getNodeSize (100) - getNodeSize (30) - getNodeSize (20), false }
     };
 
     ListNode*     node   = NULL;
@@ -159,8 +163,12 @@ TEST (kfree, kfree_combining_adj_nodes)
 // fesible either!
 
 TEST(kmalloc, allocation_alignment) {
-    // Pre-condition: INITIAL_HEAP_SIZE > 4096 (1 page size)
+    // Pre-condition: KMALLOC_SIZE_BYTES > 4096 (1 page size)
     // ------------------------------------------------------------------------------------------
+
+    //time_t epoch_seconds;
+    //time (&epoch_seconds);
+    //srand (epoch_seconds);
 
     void *addr = NULL;
     for (size_t size = 10; (addr = kmalloc(size)) != NULL; size = rand() % 1000) {
@@ -183,17 +191,17 @@ TEST (kmalloc, allocation_list_capacity)
     // list.
     size_t totalNodeSizes = 0;
 
-    NEQ_SCALAR (kmalloc (INITIAL_HEAP_SIZE / 3), NULL);
-    NEQ_SCALAR (kmalloc (INITIAL_HEAP_SIZE / 4), NULL);
-    totalNodeSizes += getNodeSize (INITIAL_HEAP_SIZE / 3);
-    totalNodeSizes += getNodeSize (INITIAL_HEAP_SIZE / 4);
+    NEQ_SCALAR (kmalloc (KMALLOC_SIZE_BYTES / 3), NULL);
+    NEQ_SCALAR (kmalloc (KMALLOC_SIZE_BYTES / 4), NULL);
+    totalNodeSizes += getNodeSize (KMALLOC_SIZE_BYTES / 3);
+    totalNodeSizes += getNodeSize (KMALLOC_SIZE_BYTES / 4);
     // ------------------------------------------------------------------------------------------
 
     // Total capacity must combine to be equal to buffer size.
-    EQ_SCALAR (getCapacity (FREE_LIST) + getCapacity (ALLOC_LIST), INITIAL_HEAP_SIZE);
+    EQ_SCALAR (getCapacity (FREE_LIST) + getCapacity (ALLOC_LIST), KMALLOC_SIZE_BYTES);
 
     // Free list capacity must reduce equal to the node size.
-    EQ_SCALAR (getCapacity (FREE_LIST), (INITIAL_HEAP_SIZE - totalNodeSizes));
+    EQ_SCALAR (getCapacity (FREE_LIST), (KMALLOC_SIZE_BYTES - totalNodeSizes));
 
     // Alloc list capacity must increase equal to the node size.
     EQ_SCALAR (getCapacity (ALLOC_LIST), totalNodeSizes);
@@ -205,9 +213,9 @@ TEST (kfree, kfree_success)
 {
     // Pre-condition: Allocations are successfull, such that there is little space left in free
     // list.
-    void* addr1 = kmalloc (INITIAL_HEAP_SIZE / 5);
-    void* addr2 = kmalloc (INITIAL_HEAP_SIZE / 4);
-    void* addr3 = kmalloc (INITIAL_HEAP_SIZE / 7);
+    void* addr1 = kmalloc (KMALLOC_SIZE_BYTES / 5);
+    void* addr2 = kmalloc (KMALLOC_SIZE_BYTES / 4);
+    void* addr3 = kmalloc (KMALLOC_SIZE_BYTES / 7);
 
     NEQ_SCALAR (addr1, NULL);
     NEQ_SCALAR (addr2, NULL);
@@ -241,13 +249,13 @@ TEST (kmalloc, kmalloc_header_placement)
 {
     // Pre-condition: Allocations are successfull, such that there is little space left in free
     // list.
-    void*         addr1 = kmalloc (INITIAL_HEAP_SIZE / 5);
+    void*         addr1 = kmalloc (KMALLOC_SIZE_BYTES / 5);
     MallocHeader* node1 = calculateHeaderLocation (addr1);
 
-    void*         addr2 = kmalloc (INITIAL_HEAP_SIZE / 6);
+    void*         addr2 = kmalloc (KMALLOC_SIZE_BYTES / 6);
     MallocHeader* node2 = calculateHeaderLocation (addr2);
 
-    void*         addr3 = kmalloc (INITIAL_HEAP_SIZE / 10);
+    void*         addr3 = kmalloc (KMALLOC_SIZE_BYTES / 10);
     MallocHeader* node3 = calculateHeaderLocation (addr3);
 
     NEQ_SCALAR (addr1, NULL);
@@ -255,17 +263,15 @@ TEST (kmalloc, kmalloc_header_placement)
     NEQ_SCALAR (addr3, NULL);
     // ------------------------------------------------------------------------------------------
 
-    EQ_MEM (buffer, node1, sizeof (MallocHeader));
-    EQ_MEM (buffer + node1->netNodeSize, node2, sizeof (MallocHeader));
-    EQ_MEM (buffer + node1->netNodeSize + node2->netNodeSize, node3, sizeof (MallocHeader));
+    EQ_MEM (kmalloc_buffer, node1, sizeof (MallocHeader));
+    EQ_MEM (kmalloc_buffer + node1->netNodeSize, node2, sizeof (MallocHeader));
+    EQ_MEM (kmalloc_buffer + node1->netNodeSize + node2->netNodeSize, node3, sizeof (MallocHeader));
     END();
 }
 
 void reset()
 {
-    time_t epoch_seconds;
-    time (&epoch_seconds);
-    srand (epoch_seconds);
+    s_PreAllocateMemory_fake.ret = kmalloc_buffer;
 
     kmalloc_init();
 }

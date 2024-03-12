@@ -21,5 +21,6 @@
     #define KERNEL_PAGE_TABLE       0xC0044000
     #define KERNEL_PAB              0xC0045000
     #define SALLOC_MEM_START        (3 * GB + 2 * MB)
+    #define KMALLOC_MEM_START       (3 * GB + 3 * MB)
 
 #endif //MEM_LOC_H_X86
