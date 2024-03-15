@@ -14,7 +14,7 @@
         do                                              \
         {                                               \
             printf ("\n=======[ %s ]=======\n", title); \
-            printf ("Buffer is at %p", buffer);         \
+            printf ("Buffer is at %p", kmalloc_buffer); \
             printList (FREE_LIST);                      \
             printList (ALLOC_LIST);                     \
             printList (ADJ_LIST);                       \
@@ -31,20 +31,21 @@ typedef enum MallocLists
     ADJ_LIST
 } MallocLists;
 
-ListNode freeHead, allocHead, adjHead;
+extern ListNode s_freeHead, s_allocHead, s_adjHead;
+ListNode s_freeHead, s_allocHead, s_adjHead;
 
-static void                 printList (MallocLists list);
-static inline size_t        getNodeSize (size_t allocSz);
+static void printList (MallocLists list);
+static inline size_t getNodeSize (size_t allocSz);
 static inline MallocHeader* calculateHeaderLocation (void* usableAddrStart);
-static bool                 headerContainsAddress (uintptr_t addr, MallocHeader* node);
-static MallocHeader*        getMallocHeaderFromList (MallocLists list, ListNode* node);
-static bool                 isAddressFoundInList (void* addr, MallocLists list);
-static size_t               getCapacity (MallocLists list);
+static bool headerContainsAddress (uintptr_t addr, MallocHeader* node);
+static MallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node);
+static bool isAddressFoundInList (void* addr, MallocLists list);
+static size_t getCapacity (MallocLists list);
 
 __attribute__ ((aligned (4096))) char kmalloc_buffer[KMALLOC_SIZE_BYTES];
 
 KernelErrorCodes k_errorNumber;
-char*            k_errorText[] = {};
+char* k_errorText[] = {};
 
 TEST (kmalloc, allocation_space_available)
 {
@@ -101,8 +102,8 @@ TEST (kmalloc, adj_list_continous)
     // Adjacent list must have nodes in sorted order of addresses.
     MallocHeader* prevHeader = NULL;
     MallocHeader* header     = NULL;
-    ListNode*     node       = NULL;
-    list_for_each (&adjHead, node)
+    ListNode* node           = NULL;
+    list_for_each (&s_adjHead, node)
     {
         header = LIST_ITEM (node, MallocHeader, adjnode);
         GEQ_SCALAR (header, prevHeader);
@@ -135,7 +136,7 @@ TEST (kfree, kfree_combining_adj_nodes)
     struct nodeAttrib
     {
         size_t nodeSize;
-        bool   isAllocated;
+        bool isAllocated;
     } expNodeAttribs[] = {
         { getNodeSize (100), true },
         { getNodeSize (30), false },
@@ -143,10 +144,10 @@ TEST (kfree, kfree_combining_adj_nodes)
         { KMALLOC_SIZE_BYTES - getNodeSize (100) - getNodeSize (30) - getNodeSize (20), false }
     };
 
-    ListNode*     node   = NULL;
+    ListNode* node       = NULL;
     MallocHeader* header = NULL;
-    int           i      = 0;
-    list_for_each (&adjHead, node)
+    int i                = 0;
+    list_for_each (&s_adjHead, node)
     {
         header = LIST_ITEM (node, MallocHeader, adjnode);
         EQ_SCALAR (header->netNodeSize, expNodeAttribs[i].nodeSize);
@@ -249,13 +250,13 @@ TEST (kmalloc, kmalloc_header_placement)
 {
     // Pre-condition: Allocations are successfull, such that there is little space left in free
     // list.
-    void*         addr1 = kmalloc (KMALLOC_SIZE_BYTES / 5);
+    void* addr1         = kmalloc (KMALLOC_SIZE_BYTES / 5);
     MallocHeader* node1 = calculateHeaderLocation (addr1);
 
-    void*         addr2 = kmalloc (KMALLOC_SIZE_BYTES / 6);
+    void* addr2         = kmalloc (KMALLOC_SIZE_BYTES / 6);
     MallocHeader* node2 = calculateHeaderLocation (addr2);
 
-    void*         addr3 = kmalloc (KMALLOC_SIZE_BYTES / 10);
+    void* addr3         = kmalloc (KMALLOC_SIZE_BYTES / 10);
     MallocHeader* node3 = calculateHeaderLocation (addr3);
 
     NEQ_SCALAR (addr1, NULL);
@@ -288,11 +289,11 @@ static ListNode* getListHead (MallocLists list)
     switch (list)
     {
     case FREE_LIST:
-        return &freeHead;
+        return &s_freeHead;
     case ALLOC_LIST:
-        return &allocHead;
+        return &s_allocHead;
     case ADJ_LIST:
-        return &adjHead;
+        return &s_adjHead;
     };
 }
 
@@ -327,7 +328,7 @@ static size_t getCapacity (MallocLists list)
 {
     ListNode* head = getListHead (list);
     ListNode* node = NULL;
-    size_t    capa = 0;
+    size_t capa    = 0;
 
     list_for_each (head, node) { capa += getMallocHeaderFromList (list, node)->netNodeSize; }
 

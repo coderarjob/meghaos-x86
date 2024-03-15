@@ -1,11 +1,12 @@
-#include <kerror.h>
-#include <types.h>
 #include <assert.h>
-#include <kmalloc.h>
 #include <intrusive_list.h>
 #include <kdebug.h>
-#include <utils.h>
+#include <kerror.h>
+#include <kmalloc.h>
 #include <paging.h>
+#include <pmm.h>
+#include <types.h>
+#include <utils.h>
 #if defined(__i386__)
     #include <x86/memloc.h>
 #endif
@@ -28,30 +29,33 @@ typedef enum FindCriteria
 static MallocHeader* s_createNewNode (void* at, size_t netSize);
 static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint32_t value);
 static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* node);
-static ListNode*     s_getListHead (KMallocLists list);
-static void          s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr);
-static void          s_combineAdjFreeNodes (MallocHeader* node);
-static void*         s_PreAllocateMemory();
+static ListNode* s_getListHead (KMallocLists list);
+static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr);
+static void s_combineAdjFreeNodes (MallocHeader* node);
+static void* s_PreAllocateMemory();
 
-static void* buffer;
+extern ListNode s_freeHead, s_allocHead, s_adjHead;
+static void* s_buffer;
 
 #ifndef UNITTEST
+ListNode s_freeHead, s_allocHead, s_adjHead;
+
 static void* s_PreAllocateMemory()
 {
     // Allocate physical pages
     Physical start;
-    if (kpmm_alloc (&pa, KMALLOC_SIZE_PAGES, PMM_REGION_ANY) == false)
-        k_panic ("Memoty allocation failed");
+    if (kpmm_alloc (&start, KMALLOC_SIZE_PAGES, PMM_REGION_ANY) == false)
+        k_panic ("Memory allocation failed");
 
     // Allocate virutal pages
     PageDirectory pd = kpg_getcurrentpd();
 
-    // Because we are pre-allocating physical memory, we have to map these pages to virtual pages to
-    // be useful.
+    // Because we are pre-allocating physical memory, we have to map these pages
+    // to virtual pages to be useful.
     for (UINT pageIndex = 0; pageIndex < KMALLOC_SIZE_PAGES; pageIndex++)
     {
         Physical pa = PHYSICAL (start.val + PAGEFRAMES_TO_BYTES (pageIndex));
-        PTR      va = KMALLOC_MEM_START + PAGEFRAMES_TO_BYTES (pageIndex);
+        PTR va      = KMALLOC_MEM_START + PAGEFRAMES_TO_BYTES (pageIndex);
         if (kpg_map (pd, va, pa,
                      PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED) ==
             false)
@@ -66,18 +70,18 @@ void kmalloc_init()
 {
     FUNC_ENTRY();
 
-    list_init (&freeHead);
-    list_init (&allocHead);
-    list_init (&adjHead);
+    list_init (&s_freeHead);
+    list_init (&s_allocHead);
+    list_init (&s_adjHead);
 
-    buffer = s_PreAllocateMemory();
+    s_buffer = s_PreAllocateMemory();
 
-    MallocHeader* newH = s_createNewNode (buffer, KMALLOC_SIZE_BYTES);
-    list_add_before (&freeHead, &newH->freenode);
-    list_add_before (&adjHead, &newH->adjnode);
+    MallocHeader* newH = s_createNewNode (s_buffer, KMALLOC_SIZE_BYTES);
+    list_add_before (&s_freeHead, &newH->freenode);
+    list_add_before (&s_adjHead, &newH->adjnode);
 
     INFO ("Size of MallocHeader: %lu bytes", sizeof (MallocHeader));
-    INFO ("Malloc buffer is at: %p", buffer);
+    INFO ("Malloc buffer is at: %p", s_buffer);
 }
 
 void* kmalloc (size_t bytes)
@@ -88,15 +92,15 @@ void* kmalloc (size_t bytes)
     INFO ("Requested net size of %lu bytes", netAllocSize);
 
     // Search for suitable node
-    size_t        searchAllocSize = (bytes + 2 * sizeof (MallocHeader));
-    MallocHeader* node            = s_findFirst (FREE_LIST, FIND_CRIT_NODE_SIZE, searchAllocSize);
+    size_t searchAllocSize = (bytes + 2 * sizeof (MallocHeader));
+    MallocHeader* node     = s_findFirst (FREE_LIST, FIND_CRIT_NODE_SIZE, searchAllocSize);
 
     if (node != NULL)
     {
         // Split the free node into two.
         k_assert (node->netNodeSize >= netAllocSize, "");
         s_splitFreeNode (bytes, node);
-        return (void*)node + sizeof (MallocHeader);
+        return (void*)((PTR)node + sizeof (MallocHeader));
     }
     else
     {
@@ -109,14 +113,13 @@ void kfree (void* addr)
 {
     FUNC_ENTRY ("Address: 0x%px", addr);
 
-    void*         headerAddress = addr - sizeof (MallocHeader);
-    MallocHeader* allocHdr      = s_findFirst (ALLOC_LIST, FIND_CRIT_NODE_ADDRESS,
-                                               (uintptr_t)headerAddress);
+    void* headerAddress    = (void*)((PTR)addr - sizeof (MallocHeader));
+    MallocHeader* allocHdr = s_findFirst (ALLOC_LIST, FIND_CRIT_NODE_ADDRESS, (PTR)headerAddress);
     if (allocHdr != NULL)
     {
         INFO ("Free at %p, Size = %lu", allocHdr, allocHdr->netNodeSize);
         list_remove (&allocHdr->allocnode);
-        list_add_after (&freeHead, &allocHdr->freenode);
+        list_add_after (&s_freeHead, &allocHdr->freenode);
         allocHdr->isAllocated = false;
 
         s_combineAdjFreeNodes (allocHdr);
@@ -157,8 +160,8 @@ static void s_combineAdjFreeNodes (MallocHeader* node)
 
 static MallocHeader* s_createNewNode (void* at, size_t netSize)
 {
-    uintptr_t end = (uintptr_t)at + netSize - 1;
-    if (end >= (uintptr_t)(buffer + KMALLOC_SIZE_BYTES))
+    PTR end = (PTR)at + netSize - 1;
+    if (end >= ((PTR)s_buffer + KMALLOC_SIZE_BYTES))
     {
         INFO ("FAIL: No space.");
         return NULL;
@@ -178,11 +181,11 @@ static ListNode* s_getListHead (KMallocLists list)
     switch (list)
     {
     case FREE_LIST:
-        return &freeHead;
+        return &s_freeHead;
     case ALLOC_LIST:
-        return &allocHead;
+        return &s_allocHead;
     case ADJ_LIST:
-        return &adjHead;
+        return &s_adjHead;
     default:
         UNREACHABLE();
     };
@@ -205,9 +208,9 @@ static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* nod
 
 static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint32_t value)
 {
-    bool          found  = false;
-    ListNode*     head   = s_getListHead (list);
-    ListNode*     node   = NULL;
+    bool found           = false;
+    ListNode* head       = s_getListHead (list);
+    ListNode* node       = NULL;
     MallocHeader* header = NULL;
 
     INFO ("Searching for value %lu (0x%lx)", value, value);
@@ -220,8 +223,8 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
         switch (criteria)
         {
         case FIND_CRIT_NODE_ADDRESS:
-            found = ((uintptr_t)header == value); //
-            break;                                //
+            found = ((PTR)header == value); //
+            break;                          //
         case FIND_CRIT_NODE_SIZE:
             found = (header->netNodeSize >= value); //
             break;                                  //
@@ -238,9 +241,9 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
 
 static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr)
 {
-    size_t    netAllocSize  = bytes + sizeof (MallocHeader);
-    uintptr_t splitAt       = (uintptr_t)freeNodeHdr + netAllocSize;
-    size_t    remainingSize = freeNodeHdr->netNodeSize - netAllocSize;
+    size_t netAllocSize  = bytes + sizeof (MallocHeader);
+    PTR splitAt          = (PTR)freeNodeHdr + netAllocSize;
+    size_t remainingSize = freeNodeHdr->netNodeSize - netAllocSize;
     k_assert (remainingSize >= sizeof (MallocHeader), "");
 
     MallocHeader* newFreeNodeHdr = s_createNewNode ((void*)splitAt, remainingSize);
@@ -249,5 +252,5 @@ static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr)
     list_add_after (&freeNodeHdr->freenode, &newFreeNodeHdr->freenode);
     list_add_after (&freeNodeHdr->adjnode, &newFreeNodeHdr->adjnode);
     list_remove (&freeNodeHdr->freenode);
-    list_add_before (&allocHead, &freeNodeHdr->allocnode);
+    list_add_before (&s_allocHead, &freeNodeHdr->allocnode);
 }
