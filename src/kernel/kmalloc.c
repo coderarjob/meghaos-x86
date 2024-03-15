@@ -81,7 +81,7 @@ void kmalloc_init()
     list_add_before (&s_adjHead, &newH->adjnode);
 
     INFO ("Size of MallocHeader: %lu bytes", sizeof (MallocHeader));
-    INFO ("Malloc buffer is at: %p", s_buffer);
+    INFO ("Malloc buffer is at: %px", s_buffer);
 }
 
 void* kmalloc (size_t bytes)
@@ -117,7 +117,7 @@ void kfree (void* addr)
     MallocHeader* allocHdr = s_findFirst (ALLOC_LIST, FIND_CRIT_NODE_ADDRESS, (PTR)headerAddress);
     if (allocHdr != NULL)
     {
-        INFO ("Free at %p, Size = %lu", allocHdr, allocHdr->netNodeSize);
+        INFO ("Free at %px, Size = %lu", allocHdr, allocHdr->netNodeSize);
         list_remove (&allocHdr->allocnode);
         list_add_after (&s_freeHead, &allocHdr->freenode);
         allocHdr->isAllocated = false;
@@ -138,7 +138,7 @@ static void s_combineAdjFreeNodes (MallocHeader* node)
     MallocHeader* next = LIST_ITEM (node->adjnode.next, MallocHeader, adjnode);
     MallocHeader* prev = LIST_ITEM (node->adjnode.prev, MallocHeader, adjnode);
 
-    INFO ("Prev: 0x%p Sz: %lu <-> Current: 0x%p Sz: %lu <-> Next: 0x%p Sz: %lu", prev,
+    INFO ("Prev: 0x%px Sz: %lu <-> Current: 0x%px Sz: %lu <-> Next: 0x%px Sz: %lu", prev,
           prev->netNodeSize, current, current->netNodeSize, next, next->netNodeSize);
 
     if (!next->isAllocated)
@@ -218,7 +218,7 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
     list_for_each (head, node)
     {
         header = s_getMallocHeaderFromList (list, node);
-        INFO ("  (%p) Size = %lu...", header, header->netNodeSize);
+        INFO ("  (%px) Size = %lu...", header, header->netNodeSize);
 
         switch (criteria)
         {
