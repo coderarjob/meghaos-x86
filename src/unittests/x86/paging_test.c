@@ -463,7 +463,7 @@ void reset()
 {
     panic_invoked = false;
     resetPagingFake();
-    resetMemFake();
+    resetStdLibFake();
     resetPmm();
 
     k_memcpy_fake.handler = k_memcpy_handler_fn;

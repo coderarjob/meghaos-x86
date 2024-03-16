@@ -1,7 +1,5 @@
 #include <unittest/unittest.h>
 #include <mock/kernel/x86/boot.h>
-#include <mock/kernel/kstdlib.h>
-#include <mock/common/bitmap.h>
 #include <moslimits.h>
 #include <pmm.h>
 #include <kerror.h>
@@ -26,8 +24,6 @@ TEST(PMM, actual_accessable_ram)
 void reset()
 {
     resetBootFake();
-    resetMemFake();
-    resetBitmapFake();
 }
 
 int main()

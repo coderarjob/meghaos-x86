@@ -270,13 +270,6 @@ TEST (kmalloc, kmalloc_header_placement)
     END();
 }
 
-void reset()
-{
-    kmalloc_arch_preAllocateMemory_fake.ret = kmalloc_buffer;
-
-    kmalloc_init();
-}
-
 static bool headerContainsAddress (uintptr_t addr, MallocHeader* node)
 {
     uintptr_t start = (uintptr_t)node;
@@ -371,6 +364,14 @@ static void printList (MallocLists list)
     }
 
     printf ("[{%p}]", node);
+}
+
+void reset()
+{
+    resetX86MemManageFake();
+    kmalloc_arch_preAllocateMemory_fake.ret = kmalloc_buffer;
+
+    kmalloc_init();
 }
 
 int main()

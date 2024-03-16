@@ -4,7 +4,8 @@
 #include <unittest/fake.h>
 
 DECLARE_FUNC(void*, kmalloc_arch_preAllocateMemory);
+DECLARE_FUNC(void*, salloc_arch_preAllocateMemory);
 
-void resetKmallocFake();
+void resetX86MemManageFake();
 
 #endif // KMALLOC_FAKE_H
