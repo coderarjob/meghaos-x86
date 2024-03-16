@@ -6,6 +6,7 @@
 #include <mock/kernel/x86/paging.h>
 #include <mock/kernel/pmm.h>
 #include <kerror.h>
+#include <panic.h>
 
 KernelErrorCodes k_errorNumber;
 
