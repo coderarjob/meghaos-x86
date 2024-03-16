@@ -44,6 +44,11 @@ ListNode s_freeHead, s_allocHead, s_adjHead;
 // kmalloc unit test must provide definitions for the list head variables
 #endif
 
+/***************************************************************************************************
+ * Initializes virtual & physical memory for kmalloc.
+ *
+ * @return    None
+ **************************************************************************************************/
 void kmalloc_init()
 {
     FUNC_ENTRY();
@@ -62,6 +67,15 @@ void kmalloc_init()
     INFO ("Malloc buffer is at: %px", s_buffer);
 }
 
+/***************************************************************************************************
+ * Allocates at least 'bytes' number of bytes from the kmalloc memory.
+ *
+ * TODO: kalloc may take flags for alignment requirements to meet various placement requirements.
+ *
+ * @Input   bytes   Number of bytes to allocate.
+ * @return          Poiter to the start of the allocated memory. Or NULL on failure.
+ * @error           ERR_OUT_OF_MEM    - There is less memory than requested.
+ **************************************************************************************************/
 void* kmalloc (size_t bytes)
 {
     FUNC_ENTRY ("Bytes: 0x%x", bytes);
@@ -79,14 +93,18 @@ void* kmalloc (size_t bytes)
         s_splitFreeNode (bytes, node);
         return (void*)((PTR)node + sizeof (MallocHeader));
     }
-    else
-    {
-        RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
-    }
-    return NULL;
+
+    RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
 }
 
-void kfree (void* addr)
+/***************************************************************************************************
+ * Marks previously allocated memory starting at 'addr' as free.
+ *
+ * @Input   addr    Pointer to start of a kmalloc allocated memory.
+ * @return          True on success. False otherwise.
+ * @error           ERR_INVALID_ARGUMENT  - If the input address was not found.
+ **************************************************************************************************/
+bool kfree (void* addr)
 {
     FUNC_ENTRY ("Address: 0x%px", addr);
 
@@ -100,11 +118,11 @@ void kfree (void* addr)
         allocHdr->isAllocated = false;
 
         s_combineAdjFreeNodes (allocHdr);
+        return true;
     }
-    else
-    {
-        INFO ("Adderss not found.");
-    }
+
+    INFO ("Adderss not found.");
+    RETURN_ERROR(ERR_INVALID_ARGUMENT, false);
 }
 
 static void s_combineAdjFreeNodes (MallocHeader* node)

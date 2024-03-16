@@ -34,7 +34,7 @@ void* scalloc (UINT bytes);
 void* salloc_arch_preAllocateMemory();
 
 void* kmalloc (size_t bytes);
-void kfree (void* addr);
+bool kfree (void* addr);
 void kmalloc_init();
 void* kmalloc_arch_preAllocateMemory();
 

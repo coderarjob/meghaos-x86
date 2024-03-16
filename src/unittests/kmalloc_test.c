@@ -223,7 +223,7 @@ TEST (kfree, kfree_success)
     NEQ_SCALAR (addr3, NULL);
     // ------------------------------------------------------------------------------------------
 
-    kfree (addr2);
+    EQ_SCALAR(true, kfree (addr2));
 
     // Free list must now contain the freed address
     EQ_SCALAR (false, isAddressFoundInList (addr1, FREE_LIST));
