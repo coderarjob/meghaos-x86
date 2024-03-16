@@ -3,7 +3,7 @@
 
 #include <unittest/fake.h>
 
-DECLARE_FUNC(void*, s_PreAllocateMemory);
+DECLARE_FUNC(void*, kmalloc_arch_preAllocateMemory);
 
 void resetKmallocFake();
 

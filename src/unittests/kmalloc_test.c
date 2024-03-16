@@ -1,6 +1,6 @@
-#include <kmalloc.h>
+#include <memmanage.h>
 #include <intrusive_list.h>
-#include <mock/kernel/kmalloc.h>
+#include <mock/kernel/x86/kmalloc.h>
 #include <unittest/unittest.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -272,7 +272,7 @@ TEST (kmalloc, kmalloc_header_placement)
 
 void reset()
 {
-    s_PreAllocateMemory_fake.ret = kmalloc_buffer;
+    kmalloc_arch_preAllocateMemory_fake.ret = kmalloc_buffer;
 
     kmalloc_init();
 }

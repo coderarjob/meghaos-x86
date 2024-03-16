@@ -54,7 +54,7 @@ function add_mock_source()
                 };;
        kmalloc) {
                     export SRC=( $SRC_ARRAY
-                                 'mock/kernel/kmalloc.c'
+                                 'mock/kernel/x86/kmalloc.c'
                                )
                 };;
     esac
