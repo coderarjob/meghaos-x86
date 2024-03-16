@@ -78,7 +78,7 @@ INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
  *
  * @return      For description for `kearly_vsnprintf`.
  **************************************************************************************************/
-#define kearly_println(...) kearly_printf ("\r\n" __VA_ARGS__)
+#define kearly_println(...) kearly_printf ("\n" __VA_ARGS__)
 
 /* Message are printed on screen and if configured also on the debug console. */
 void kdisp_importantPrint(char *fmt, ...);

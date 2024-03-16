@@ -37,7 +37,7 @@ INTERRUPT_HANDLER(sys_dummy)
 void sys_dummy_handler (InterruptFrame *frame)
 {
     (void)frame;
-    kearly_printf ("\r\nInside sys_dummy routine..");
+    kearly_println ("Inside sys_dummy routine..");
     __asm__ volatile ("mov ebx, %0"::"i"(0xffa1):"ebx");
     kbochs_breakpoint();
     //outb (0x80,4);
@@ -61,8 +61,8 @@ void page_fault_handler (InterruptFrame *frame, UINT errorcode)
 
     PageFaultError *err = (PageFaultError*) &errorcode;
     s_callPanic(frame, "Page fault when accessing address 0x%x (error: 0x%x)"
-                       "\r\n\r\n- P: %x\r\n- Write: %x\r\n- UserM: %x\r\n- ResV: %x"
-                       "\r\n- InsF: %x\r\n- PKV: %x\r\n- SSA: %x\r\n- SGX: %x",
+                       "\n\n- P: %x\n- Write: %x\n- UserM: %x\n- ResV: %x"
+                       "\n- InsF: %x\n- PKV: %x\n- SSA: %x\n- SGX: %x",
                        fault_addr, errorcode,
                        err->Present, err->WriteFault, err->UserMode, err->ReserveViolation,
                        err->InstrucionFetchFault, err->ProtectionkeyViolation,
@@ -75,7 +75,7 @@ __attribute__ ((noreturn))
 void general_protection_fault_handler (InterruptFrame *frame, UINT errorcode)
 {
     GenProcFaultError *err = (GenProcFaultError*) &errorcode;
-    s_callPanic(frame, "General Protection Fault.\r\n- Ext: %x\r\n- Table: %x\r\n- Index: %x",
+    s_callPanic(frame, "General Protection Fault.\n- Ext: %x\n- Table: %x\n- Index: %x",
                             err->ext,
                             err->table,
                             err->index);
@@ -115,8 +115,8 @@ static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size)
     k_assert(size > 0, "Buffer size too small.");
 
     size -= kearly_snprintf(buffer, (size_t) size,
-            "\r\n\r\nInterrupt Frame:"
-             "\r\n- EIP: 0x%x\r\n- CS: 0x%x\r\n- EFLAGS: 0x%x\r\n- ESP: 0x%x\r\n- SS: 0x%x",
+            "\n\nInterrupt Frame:"
+             "\n- EIP: 0x%x\n- CS: 0x%x\n- EFLAGS: 0x%x\n- ESP: 0x%x\n- SS: 0x%x",
              frame->ip, frame->cs, frame->flags, frame->sp, frame->ss);
 
     k_assert(size > 0, "Buffer size too small.");

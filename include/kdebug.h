@@ -44,7 +44,7 @@ typedef enum KernelDebugLogType
  *
  * @return      Nothing
  **************************************************************************************************/
-#define kdebug_println(...) kdebug_printf("\r\n" __VA_ARGS__)
+#define kdebug_println(...) kdebug_printf("\n" __VA_ARGS__)
 
 /***************************************************************************************************
  * Magic break point used by bochs emulator

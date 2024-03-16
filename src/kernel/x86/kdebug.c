@@ -85,27 +85,27 @@ void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char*
     case KDEBUG_LOG_TYPE_INFO:
     {
     #ifdef DEBUG
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n  %s[ INFO ]%s %s:%u %s| ",
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ INFO ]%s %s:%u %s| ",
                                ANSI_COL_GREEN, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
     #else
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n  %s[ INFO ]%s ", ANSI_COL_GREEN,
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ INFO ]%s ", ANSI_COL_GREEN,
                                ANSI_COL_RESET);
     #endif // DEBUG
     }
     break;
     case KDEBUG_LOG_TYPE_ERROR:
     {
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n  %s[ ERROR ]%s %s:%u %s| ",
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ ERROR ]%s %s:%u %s| ",
                                ANSI_COL_RED, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
     }
     break;
     case KDEBUG_LOG_TYPE_FUNC:
     {
     #ifdef DEBUG
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n%s[ %s:%u ]%s ", ANSI_COL_YELLOW,
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[ %s:%u ]%s ", ANSI_COL_YELLOW,
                                func, line, ANSI_COL_RESET);
     #else
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\r\n%s[ %s ]%s ", ANSI_COL_YELLOW,
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[ %s ]%s ", ANSI_COL_YELLOW,
                                func, ANSI_COL_RESET);
     #endif // DEBUG
     }
