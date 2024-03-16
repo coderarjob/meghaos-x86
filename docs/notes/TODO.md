@@ -98,7 +98,8 @@
 | and loose the text description of k_assert.                             |           |            |
 | [ ] Remove k_errorText. Has no use in the kernel. It just wasts space.  |           |            |
 | [ ] Space saving measures                                               |           |            |
-| ::: [ ] \n instead of \r\n. No use or LF.                               |           |            |
+| ::: [X] \n instead of \r\n. No use of LF.                               |           | 16 Mar 24  |
+| Did nothing for space saving for some reason.                           |           |            |
 | ::: [ ] 0x printed automatically with %x.                               |           |            |
 | ::: [ ] Assert message only valid for unittests.                        |           |            |
 | [ ] Create a Kernel context Structure. It will contain various          |           |            |
