@@ -57,5 +57,11 @@ function add_mock_source()
                                  'mock/kernel/x86/memmanage.c'
                                )
                 };;
+       salloc)  {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/kernel/x86/memmanage.c'
+                                 'mock/kernel/kstdlib.c'
+                               )
+                };;
     esac
 }

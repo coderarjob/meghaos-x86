@@ -8,6 +8,7 @@
 #define MEMMANAGE_H
 
 #include <types.h>
+#include <utils.h>
 #include <intrusive_list.h>
 
 #define SALLOC_MEM_SIZE_PAGES (5) // 5 pages to begin with. Virtual MemMap doc says 256 pages.

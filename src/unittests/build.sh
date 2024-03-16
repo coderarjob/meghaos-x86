@@ -49,6 +49,7 @@ UNITTESTS=(
     "paging"
     "intrusive_list"
     "kmalloc"
+    "salloc"
 )
 
 # Adds tests specific to the current architecture.
@@ -129,6 +130,12 @@ get_arch_independent_test_definition()
           kmalloc)          {
                                 SRC=('unittests/kmalloc_test.c'
                                      'kernel/kmalloc.c'
+                                     'unittests/common.c'
+                                     'unittests/unittest.c')
+                            };;
+          salloc)           {
+                                SRC=('unittests/salloc_test.c'
+                                     'kernel/salloc.c'
                                      'unittests/common.c'
                                      'unittests/unittest.c')
                             };;
