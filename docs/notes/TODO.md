@@ -83,15 +83,11 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
+| [ ] Rename include/assert.h to kassert.h.                               | 16 Mar 24 |            |
 | [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |
 | `statement-expressions` to mitigate these.                              |           |            |
 | [ ] String functions like strcmp etc                                    | 06 Mar 24 |            |
-| [X] Log and print to E9 port the following:                             |           | 06 Mar 24  |
-| ::: [X] Function name & location when entering and leaving functions    |           | 06 Mar 24  |
-| FUNC_ENTRY macro can be used for this. Not doing Logging when leaving.  |           |            |
-| ::: [X] Just before change to PT/PD etc.                                | 26 FEB 24 | 06 Mar 24  |
-| Can be acheived using the INFO macro.                                   |           |            |
-| [X] Println and Print instead of printf                                 | 03 Mar 24 | 06 Mar 24  |
 | [ ] Have two macros like BUG_ON, WARN_ON BUG_ON panics, WARN_ON         |           |            |
 | prints warning. They will replace k_assert and remain in release        |           |            |
 | as well, thus these macros must have little impact on binary size       |           |            |
@@ -112,6 +108,12 @@
 | entirely to 0xC0000000. Initially only the physical memory where the    |           |            |
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
+| [X] Log and print to E9 port the following:                             |           | 06 Mar 24  |
+| ::: [X] Function name & location when entering and leaving functions    |           | 06 Mar 24  |
+| FUNC_ENTRY macro can be used for this. Not doing Logging when leaving.  |           |            |
+| ::: [X] Just before change to PT/PD etc.                                | 26 FEB 24 | 06 Mar 24  |
+| Can be acheived using the INFO macro.                                   |           |            |
+| [X] Println and Print instead of printf                                 | 03 Mar 24 | 06 Mar 24  |
 | [X] Physical memory allocator                                           |           | 20 JUL 23  |
 | ::: [X] Reimplement using common/bitmap                                 |           |            |
 | ::: [ ] Lock to protect the PAB.                                        |           |            |
