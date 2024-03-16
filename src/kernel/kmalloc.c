@@ -36,6 +36,8 @@ static void s_combineAdjFreeNodes (MallocHeader* node);
 extern ListNode s_freeHead, s_allocHead, s_adjHead;
 static void* s_buffer;
 
+#define NET_ALLOCATION_SIZE(sz_bytes) (sz_bytes + sizeof (MallocHeader))
+
 #ifndef UNITTEST
 ListNode s_freeHead, s_allocHead, s_adjHead;
 #else
@@ -64,8 +66,7 @@ void* kmalloc (size_t bytes)
 {
     FUNC_ENTRY ("Bytes: 0x%x", bytes);
 
-    size_t netAllocSize = (bytes + sizeof (MallocHeader));
-    INFO ("Requested net size of %lu bytes", netAllocSize);
+    INFO ("Requested net size of %lu bytes", NET_ALLOCATION_SIZE(bytes));
 
     // Search for suitable node
     size_t searchAllocSize = (bytes + 2 * sizeof (MallocHeader));
@@ -74,7 +75,7 @@ void* kmalloc (size_t bytes)
     if (node != NULL)
     {
         // Split the free node into two.
-        k_assert (node->netNodeSize >= netAllocSize, "");
+        k_assert (node->netNodeSize >= NET_ALLOCATION_SIZE(bytes), "");
         s_splitFreeNode (bytes, node);
         return (void*)((PTR)node + sizeof (MallocHeader));
     }
@@ -162,9 +163,9 @@ static ListNode* s_getListHead (KMallocLists list)
         return &s_allocHead;
     case ADJ_LIST:
         return &s_adjHead;
-    default:
-        UNREACHABLE();
     };
+    UNREACHABLE();
+    return NULL;
 }
 
 static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* node)
@@ -177,9 +178,9 @@ static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* nod
         return LIST_ITEM (node, MallocHeader, allocnode);
     case ADJ_LIST:
         return LIST_ITEM (node, MallocHeader, adjnode);
-    default:
-        UNREACHABLE();
     };
+    UNREACHABLE();
+    return NULL;
 }
 
 static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint32_t value)
@@ -217,7 +218,7 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
 
 static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr)
 {
-    size_t netAllocSize  = bytes + sizeof (MallocHeader);
+    size_t netAllocSize  = NET_ALLOCATION_SIZE(bytes);
     PTR splitAt          = (PTR)freeNodeHdr + netAllocSize;
     size_t remainingSize = freeNodeHdr->netNodeSize - netAllocSize;
     k_assert (remainingSize >= sizeof (MallocHeader), "");

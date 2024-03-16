@@ -6,31 +6,23 @@
  * --------------------------------------------------------------------------------------------------
  */
 #include <kdebug.h>
-#include <assert.h>
-#include <config.h>
 #include <kerror.h>
-#include <stdbool.h>
 #include <utils.h>
 #include <types.h>
-#include <config.h>
-#include <pmm.h>
-#include <panic.h>
-#include <paging.h>
 #include <kstdlib.h>
 #include <memmanage.h>
-#if defined(__i386__)
-    #include <x86/memloc.h>
-#endif
 
-#define SALLOC_MEM_END (SALLOC_MEM_START + SALLOC_SIZE_BYTES)
+#define SPACE_USED()                 ((PTR)s_next - s_start)
+#define IS_SPACE_AVAILABLE(sz_bytes) ((SPACE_USED() + (sz_bytes)) < SALLOC_SIZE_BYTES)
 
 static void* s_next = NULL; // Points to the start of next allocation.
+static PTR s_start  = 0;    // Points to the start salloc buffer.
 
 void salloc_init()
 {
     FUNC_ENTRY();
-
-    s_next = salloc_arch_preAllocateMemory();
+    s_start = (PTR)salloc_arch_preAllocateMemory();
+    s_next  = (void*)s_start;
 }
 
 // TODO: salloc should take flags for alignment requirements to meet various placement requirements.
@@ -42,7 +34,7 @@ void* salloc (UINT bytes)
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);
     INFO ("Size after aligning: 0x%px", allocSize);
 
-    if ((PTR)s_next >= SALLOC_MEM_END)
+    if (!IS_SPACE_AVAILABLE (allocSize))
     {
         RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
     }

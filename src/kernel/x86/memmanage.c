@@ -9,6 +9,7 @@
 #include <paging.h>
 #include <pmm.h>
 #include <memmanage.h>
+#include <panic.h>
 #include <kdebug.h>
 
 static void s_preAllocateMemory (SIZE sz_pages, PTR va_start)
