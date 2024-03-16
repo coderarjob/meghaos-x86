@@ -1,4 +1,4 @@
-#include <mock/kernel/x86/kmalloc.h>
+#include <mock/kernel/x86/memmanage.h>
 #include <unittest/fake.h>
 
 DEFINE_FUNC(void*, kmalloc_arch_preAllocateMemory);

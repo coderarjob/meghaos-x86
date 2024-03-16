@@ -22,32 +22,15 @@
     #include <x86/memloc.h>
 #endif
 
-#define SALLOC_MEM_END (SALLOC_MEM_START + PAGEFRAMES_TO_BYTES (SALLOC_MEM_SIZE_PAGES))
+#define SALLOC_MEM_END (SALLOC_MEM_START + SALLOC_SIZE_BYTES)
 
-void* next = NULL; // Points to the start of next allocation.
+static void* s_next = NULL; // Points to the start of next allocation.
 
 void salloc_init()
 {
     FUNC_ENTRY();
 
-    /* Pre-allocate all memory for salloc */
-    Physical pa;
-    if (kpmm_alloc (&pa, SALLOC_MEM_SIZE_PAGES, PMM_REGION_ANY) == false)
-        k_panic ("Memory allocaiton failed");
-
-    PageDirectory pd = kpg_getcurrentpd();
-
-    /* As we are pre-allocating all the physical pages, we have also map the virtual pages. This is
-     * required because there is no other way to reserve virtual pages */
-    for (UINT pageIndex = 0; pageIndex < SALLOC_MEM_SIZE_PAGES; pageIndex++)
-    {
-        PTR      this_va = SALLOC_MEM_START + PAGEFRAMES_TO_BYTES (pageIndex);
-        Physical this_pa = PHYSICAL (pa.val + PAGEFRAMES_TO_BYTES (pageIndex));
-        if (kpg_map (pd, this_va, this_pa, PG_MAP_FLAG_KERNEL) == false)
-            k_panic ("Page map failed");
-    }
-
-    next = (void*)SALLOC_MEM_START;
+    s_next = salloc_arch_preAllocateMemory();
 }
 
 // TODO: salloc should take flags for alignment requirements to meet various placement requirements.
@@ -59,13 +42,13 @@ void* salloc (UINT bytes)
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);
     INFO ("Size after aligning: 0x%px", allocSize);
 
-    if ((PTR)next >= SALLOC_MEM_END)
+    if ((PTR)s_next >= SALLOC_MEM_END)
     {
         RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
     }
 
-    next = (void*)((PTR)next + allocSize);
-    return (void*)((PTR)next - allocSize);
+    s_next = (void*)((PTR)s_next + allocSize);
+    return (void*)((PTR)s_next - allocSize);
 }
 
 void* scalloc (UINT bytes)
