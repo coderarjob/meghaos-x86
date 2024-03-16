@@ -7,7 +7,7 @@
 ; ---------------------------------------------------------------------------
 */
 
-#ifndef MEM_LOC_H_X86
+#if !defined(MEM_LOC_H_X86) && !defined (UNITTEST)
 #define MEM_LOC_H_X86
 
     #include <buildcheck.h>
