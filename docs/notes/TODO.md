@@ -84,7 +84,7 @@
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
-| [ ] Rename include/assert.h to kassert.h.                               | 16 Mar 24 |            |
+| [X] Rename include/assert.h to kassert.h.                               | 16 Mar 24 | 17 Mar 24  |
 | [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |
 | `statement-expressions` to mitigate these.                              |           |            |
 | [ ] String functions like strcmp etc                                    | 06 Mar 24 |            |

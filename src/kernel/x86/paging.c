@@ -14,7 +14,7 @@
 #include <config.h>
 #include <disp.h>
 #include <types.h>
-#include <assert.h>
+#include <kassert.h>
 #include <utils.h>
 #include <panic.h>
 #include <kdebug.h>

@@ -9,8 +9,8 @@
 *
 * Dated: 5st November 2020
 */
-#ifndef ASSERT_H
-#define ASSERT_H
+#ifndef KASSERT_H
+#define KASSERT_H
 
 #include <buildcheck.h>
 
@@ -42,4 +42,4 @@
     #define k_staticAssert(t) (void)0
 #endif // DEBUG
 
-#endif // ASSERT_H
+#endif // KASSERT_H

@@ -5,7 +5,7 @@
  * This is one of be basic Heap allocators in the kernel
  * --------------------------------------------------------------------------------------------------
  */
-#include <assert.h>
+#include <kassert.h>
 #include <intrusive_list.h>
 #include <kdebug.h>
 #include <kerror.h>

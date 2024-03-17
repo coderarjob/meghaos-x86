@@ -11,7 +11,7 @@
 #define ERRORNO_H
 
 #include <types.h>
-#include <assert.h>
+#include <kassert.h>
 #include <kdebug.h>
 
 /* Error codes that can be set inside the kernel.*/

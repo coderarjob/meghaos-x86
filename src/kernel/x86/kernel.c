@@ -11,6 +11,7 @@
 * Dated: 20th September 2020
 */
 
+#include <kassert.h>
 #include <disp.h>
 #include <stdarg.h>
 #include <limits.h>

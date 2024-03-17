@@ -5,7 +5,7 @@
 #include <disp.h>
 #include <panic.h>
 #include <kdebug.h>
-#include <assert.h>
+#include <kassert.h>
 #include <moslimits.h>
 
 typedef struct GPFError

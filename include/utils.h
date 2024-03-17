@@ -12,7 +12,7 @@
 
 #include <buildcheck.h>
 #include <types.h>
-#include <assert.h>
+#include <kassert.h>
 #include <config.h>
 
 /** Used to know the offset of a member in a structure type */
