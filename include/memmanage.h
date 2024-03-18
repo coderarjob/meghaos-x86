@@ -21,11 +21,11 @@
 
 typedef struct MallocHeader
 {
-    size_t netNodeSize;
-    bool isAllocated;
-    ListNode adjnode;
-    ListNode freenode;
-    ListNode allocnode;
+    size_t netNodeSize; /// Size of a region together with the header size.
+    bool isAllocated;   /// Is the region allocated or free.
+    ListNode adjnode;   /// A node in the Adjacent list.
+    ListNode freenode;  /// A node in the Free list.
+    ListNode allocnode; /// A node in the Allocation list
 } MallocHeader;
 
 void salloc_init();

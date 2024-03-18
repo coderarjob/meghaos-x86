@@ -89,7 +89,7 @@ void* kmalloc (size_t bytes)
     if (node != NULL)
     {
         // Split the free node into two.
-        k_assert (node->netNodeSize >= NET_ALLOCATION_SIZE(bytes), "");
+        k_assert (node->netNodeSize >= NET_ALLOCATION_SIZE(bytes), "Found node too small");
         s_splitFreeNode (bytes, node);
         return (void*)((PTR)node + sizeof (MallocHeader));
     }
@@ -128,7 +128,7 @@ bool kfree (void* addr)
 static void s_combineAdjFreeNodes (MallocHeader* node)
 {
     MallocHeader* current = node;
-    k_assert (current->isAllocated == false, "");
+    k_assert (current->isAllocated == false, "Cannot combine allocated node. Invalid input.");
 
     MallocHeader* next = LIST_ITEM (node->adjnode.next, MallocHeader, adjnode);
     MallocHeader* prev = LIST_ITEM (node->adjnode.prev, MallocHeader, adjnode);
@@ -239,7 +239,7 @@ static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr)
     size_t netAllocSize  = NET_ALLOCATION_SIZE(bytes);
     PTR splitAt          = (PTR)freeNodeHdr + netAllocSize;
     size_t remainingSize = freeNodeHdr->netNodeSize - netAllocSize;
-    k_assert (remainingSize >= sizeof (MallocHeader), "");
+    k_assert (remainingSize >= sizeof (MallocHeader), "Not enough space for kmalloc header");
 
     MallocHeader* newFreeNodeHdr = s_createNewNode ((void*)splitAt, remainingSize);
     freeNodeHdr->netNodeSize     = netAllocSize;
