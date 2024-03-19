@@ -23,7 +23,7 @@
 
 ------------------------------------------------
 ### Features Docs
-
+- [Kmalloc working](notes/kmalloc.md#Kmalloc-working)
 
 ### Obsolete Features Docs
 
