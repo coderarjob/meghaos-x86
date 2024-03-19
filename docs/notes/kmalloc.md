@@ -29,7 +29,7 @@ described later.
 Sections in the free and allocation list can appear in any order - last added section first or last
 added section last. This becomes a problem when we want to merge two or more consecutive freed
 sections. This is the reason for the adjacent list. In the adjacent list, the order is important and
-sections apprear in the order they exist in the kmalloc buffer.
+sections appear in the order they exist in the kmalloc buffer.
 
 I am curious what will happen if we only have the adjacent list. It enlists every section so in 
 theory kmalloc can operate with this one list. The search operations (for suitable free section and
@@ -49,9 +49,13 @@ so it is very important that that the whole buffer is accounted for in the lists
 * Total size of sections in the free list + Total size of sections in the free list = buffer size.
 * Total size of every section in the adj list = buffer size.
 
-At the time of allocation, kmalloc first searches for a section whose "net size" >=
-"requested net size". If such a section was found, it splits that into two. One half of "requested
-net size" bytes is added to the allocation list and the remaining bytes will form a new section that
+At the time of allocation, kmalloc first searches for a section what is larger than the requested
+size. If such a section was found, it splits that into two. One half of "requested
+net size" bytes is added to the allocation list and the remaining bytes forms a new section that
 is added to the free list. To ensure that the later section never goes out of the buffer boundaries,
 kmalloc actually searches for a section whose "net size" >= "requested net size" + header size. This
 makes sure that there is at least "header size" amount of bytes in the section after the split.
+
+At the time of freeing, kfree checks if two consecutive sections are also free. If so it combines
+the sections to form a larger section. This prevents fragmentation of the buffer which speeds up
+the search process in kmalloc (for free section) and kfree  (for a particular section).
