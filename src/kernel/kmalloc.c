@@ -31,7 +31,7 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
 static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* node);
 static ListNode* s_getListHead (KMallocLists list);
 static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr);
-static void s_combineAdjFreeNodes (MallocHeader* node);
+static void s_combineAdjFreeNodes (MallocHeader* currentNode);
 
 extern ListNode s_freeHead, s_allocHead, s_adjHead;
 static void* s_buffer;
@@ -83,13 +83,14 @@ void* kmalloc (size_t bytes)
     INFO ("Requested net size of %lu bytes", NET_ALLOCATION_SIZE(bytes));
 
     // Search for suitable node
-    size_t searchAllocSize = (bytes + 2 * sizeof (MallocHeader));
+    size_t searchAllocSize = NET_ALLOCATION_SIZE(bytes) +  sizeof (MallocHeader);
     MallocHeader* node     = s_findFirst (FREE_LIST, FIND_CRIT_NODE_SIZE, searchAllocSize);
 
     if (node != NULL)
     {
-        // Split the free node into two.
         k_assert (node->netNodeSize >= NET_ALLOCATION_SIZE(bytes), "Found node too small");
+
+        // Split the free node into two.
         s_splitFreeNode (bytes, node);
         return (void*)((PTR)node + sizeof (MallocHeader));
     }
@@ -125,21 +126,20 @@ bool kfree (void* addr)
     RETURN_ERROR(ERR_INVALID_ARGUMENT, false);
 }
 
-static void s_combineAdjFreeNodes (MallocHeader* node)
+static void s_combineAdjFreeNodes (MallocHeader* currentNode)
 {
-    MallocHeader* current = node;
-    k_assert (current->isAllocated == false, "Cannot combine allocated node. Invalid input.");
+    k_assert (currentNode->isAllocated == false, "Cannot combine allocated node. Invalid input.");
 
-    MallocHeader* next = LIST_ITEM (node->adjnode.next, MallocHeader, adjnode);
-    MallocHeader* prev = LIST_ITEM (node->adjnode.prev, MallocHeader, adjnode);
+    MallocHeader* next = LIST_ITEM (currentNode->adjnode.next, MallocHeader, adjnode);
+    MallocHeader* prev = LIST_ITEM (currentNode->adjnode.prev, MallocHeader, adjnode);
 
     INFO ("Prev: 0x%px Sz: %lu <-> Current: 0x%px Sz: %lu <-> Next: 0x%px Sz: %lu", prev,
-          prev->netNodeSize, current, current->netNodeSize, next, next->netNodeSize);
+          prev->netNodeSize, currentNode, currentNode->netNodeSize, next, next->netNodeSize);
 
     if (!next->isAllocated)
     {
         INFO ("Combining NEXT into CURRENT");
-        current->netNodeSize += next->netNodeSize;
+        currentNode->netNodeSize += next->netNodeSize;
         list_remove (&next->freenode);
         list_remove (&next->adjnode);
     }
@@ -147,20 +147,16 @@ static void s_combineAdjFreeNodes (MallocHeader* node)
     if (!prev->isAllocated)
     {
         INFO ("Combining CURRENT into PREV");
-        prev->netNodeSize += current->netNodeSize;
-        list_remove (&current->freenode);
-        list_remove (&current->adjnode);
+        prev->netNodeSize += currentNode->netNodeSize;
+        list_remove (&currentNode->freenode);
+        list_remove (&currentNode->adjnode);
     }
 }
 
 static MallocHeader* s_createNewNode (void* at, size_t netSize)
 {
     PTR end = (PTR)at + netSize - 1;
-    if (end >= ((PTR)s_buffer + KMALLOC_SIZE_BYTES))
-    {
-        INFO ("FAIL: No space.");
-        return NULL;
-    }
+    k_assert (end < ((PTR)s_buffer + KMALLOC_SIZE_BYTES), "Node netSize too large");
 
     MallocHeader* newH = at;
     newH->netNodeSize  = netSize;
