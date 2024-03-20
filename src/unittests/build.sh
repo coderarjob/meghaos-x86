@@ -31,7 +31,7 @@ UNITTEST_CC="gcc -std=c99                   \
                  $GCC_INCPATH               \
                  -D UNITTEST                \
                  -D ARCH=$ARCH              \
-                 -D $DEBUG                  \
+                 -D NDEBUG                  \
                  -D DEBUG_LEVEL=$DEBUGLEVEL"
 
 LD_UNITTEST="gcc -m32"

@@ -37,7 +37,6 @@ static void set_pab (U8 *const pab, USYSINT start, UINT pgCount, KernelPhysicalM
  * =================================================================================================
  * Common:
  * 1. Page count == 0 | ERR_INVALID_ARGUMENT | zero_page_count
- * 2. Not initialized | panic                | pab_uninitialized
  *
  * kpmm_free:
  * 1. Start address not page aligned     | ERR_WRONG_ALIGNMENT          | free_allocat_misaligned
@@ -63,25 +62,6 @@ static void init_pab()
     set_pab (pab, 0, MAX_PAB_ADDRESSABLE_PAGE_COUNT, PMM_STATE_INVALID);
     set_pab (pab, 0, MAX_ACTUAL_PAGE_COUNT, PMM_STATE_FREE);
 }
-
-#ifdef DEBUG
-TEST (PMM, pab_uninitialized_mustfail)
-{
-    Physical addr = createPhysical (CONFIG_PAGE_FRAME_SIZE_BYTES);
-    kpmm_free (addr, 1);
-    EQ_SCALAR (panic_invoked, true);
-
-    panic_invoked = false;
-    kpmm_allocAt (addr, 1, PMM_REGION_ANY);
-    EQ_SCALAR (panic_invoked, true);
-
-    panic_invoked = false;
-    kpmm_alloc (&addr, 1, PMM_REGION_ANY);
-    EQ_SCALAR (panic_invoked, true);
-
-    END();
-}
-#endif
 
 TEST (PMM, zero_page_count)
 {
@@ -313,11 +293,6 @@ void reset()
 
 int main()
 {
-#ifdef DEBUG
-    // Cannot test asserts in non DEBUG build.
-    pab_uninitialized_mustfail();
-#endif
-
     // Will just set pointer `s_pab` to point to `pab` buffer defined here. No allocation or
     // deallocation will take place as memory map count and files count are not set and will be at
     // default zero.

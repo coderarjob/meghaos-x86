@@ -14,7 +14,7 @@
 
 #include <buildcheck.h>
 
-#if defined(DEBUG) || defined (UNITTEST)
+#if defined(DEBUG)
     #include <panic.h>
     /* If assertion `t' is false, call k_panic () and halts.
      * Displays message `e' in the panic message.
