@@ -15,11 +15,6 @@ section and whether it is free or used. This header also holds node of various l
 Headers of multiple sections are linked to one another to form a list, and each header can be part 
 to multiple lists.
 
-We have two lists which track free and used regions in the buffer. The nodes of these lists reside
-in the kmalloc headers of respective sections. This header also stores the section "net size" and
-whether the section is free or used. There is another list called the Adjacent list, which is
-described later.
-
 1. Free list      - Links headers of sections which are unallocated.
 2. Allocated list - Links headers of sections which are allocated.
 3. Adjacent list  - As sections are created and joined, this list contains every section in sequence
@@ -32,9 +27,8 @@ sections. This is the reason for the adjacent list. In the adjacent list, the or
 sections appear in the order they exist in the kmalloc buffer.
 
 I am curious what will happen if we only have the adjacent list. It enlists every section so in 
-theory kmalloc can operate with this one list. The search operations (for suitable free section and
-allocated section) would become lengthy having to traverse the whole list every time. I would like
-to know the impact.
+theory kmalloc can operate with this one list. The search operations would become lengthy having to
+traverse the whole list every time. I would like to know the impact.
 
 The headers store the section "net size". Net size is the usable number of bytes in a section plus
 the size of the header. Which means "net size" is the total size (in bytes) of a section. I store
@@ -49,13 +43,14 @@ so it is very important that that the whole buffer is accounted for in the lists
 * Total size of sections in the free list + Total size of sections in the free list = buffer size.
 * Total size of every section in the adj list = buffer size.
 
-At the time of allocation, kmalloc first searches for a section what is larger than the requested
-size. If such a section was found, it splits that into two. One half of "requested
+At the time of allocation, kmalloc first searches for a section what is large enough for the 
+requested size. If such a section was found, it splits that into two. One half of "requested
 net size" bytes is added to the allocation list and the remaining bytes forms a new section that
 is added to the free list. To ensure that the later section never goes out of the buffer boundaries,
-kmalloc actually searches for a section whose "net size" >= "requested net size" + header size. This
-makes sure that there is at least "header size" amount of bytes in the section after the split.
+kmalloc actually searches for a section whose "net size" >= ("requested net size" + header size).
+This makes sure that there is at least "header size" amount of bytes in the section after the split.
 
-At the time of freeing, kfree checks if two consecutive sections are also free. If so it combines
-the sections to form a larger section. This prevents fragmentation of the buffer which speeds up
-the search process in kmalloc (for free section) and kfree  (for a particular section).
+At the time of freeing, kfree checks if two consecutive sections (to the left and right of the freed
+section) are also free. If so it combines the sections to form a larger section. This prevents
+fragmentation of the buffer which speeds up the search process in kmalloc (for free section) and 
+kfree  (for a particular section).
