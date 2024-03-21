@@ -10,6 +10,7 @@ AllowShortBlocksOnASingleLine: Never
 AllowShortEnumsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
 BreakBeforeBraces: Allman
 IndentWidth: 4
 ColumnLimit: 100
