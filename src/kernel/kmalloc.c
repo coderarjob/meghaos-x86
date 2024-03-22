@@ -27,7 +27,7 @@ typedef enum FindCriteria
 } FindCriteria;
 
 static MallocHeader* s_createNewNode (void* at, size_t netSize);
-static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint32_t value);
+static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, PTR value);
 static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* node);
 static ListNode* s_getListHead (KMallocLists list);
 static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr);
@@ -128,15 +128,30 @@ bool kfree (void* addr)
 
 static void s_combineAdjFreeNodes (MallocHeader* currentNode)
 {
+    MallocHeader* next = NULL;
+    MallocHeader* prev = NULL;
+
     k_assert (currentNode->isAllocated == false, "Cannot combine allocated node. Invalid input.");
 
-    MallocHeader* next = LIST_ITEM (currentNode->adjnode.next, MallocHeader, adjnode);
-    MallocHeader* prev = LIST_ITEM (currentNode->adjnode.prev, MallocHeader, adjnode);
+    // Prev node could be the list head (which is not a MallocHeader). That would mean beginning of
+    // list and is not taken into account.
+    if (currentNode->adjnode.prev != &s_adjHead)
+    {
+        prev = LIST_ITEM (currentNode->adjnode.prev, MallocHeader, adjnode);
+        INFO ("Prev: 0x%px Sz: %lu <-> Current: 0x%px Sz: %lu", prev, prev->netNodeSize,
+              currentNode, currentNode->netNodeSize);
+    }
 
-    INFO ("Prev: 0x%px Sz: %lu <-> Current: 0x%px Sz: %lu <-> Next: 0x%px Sz: %lu", prev,
-          prev->netNodeSize, currentNode, currentNode->netNodeSize, next, next->netNodeSize);
+    // Next node could be the list head (which is not a MallocHeader). That would mean end of list
+    // and is not taken into account.
+    if (currentNode->adjnode.next != &s_adjHead)
+    {
+        next = LIST_ITEM (currentNode->adjnode.next, MallocHeader, adjnode);
+        INFO ("Current: 0x%px Sz: %lu <-> Next: 0x%px Sz: %lu", currentNode,
+              currentNode->netNodeSize, next, next->netNodeSize);
+    }
 
-    if (!next->isAllocated)
+    if (next && !next->isAllocated)
     {
         INFO ("Combining NEXT into CURRENT");
         currentNode->netNodeSize += next->netNodeSize;
@@ -144,7 +159,7 @@ static void s_combineAdjFreeNodes (MallocHeader* currentNode)
         list_remove (&next->adjnode);
     }
 
-    if (!prev->isAllocated)
+    if (prev && !prev->isAllocated)
     {
         INFO ("Combining CURRENT into PREV");
         prev->netNodeSize += currentNode->netNodeSize;
@@ -197,7 +212,7 @@ static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* nod
     return NULL;
 }
 
-static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint32_t value)
+static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, PTR value)
 {
     bool found           = false;
     ListNode* head       = s_getListHead (list);
@@ -214,11 +229,11 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, uint
         switch (criteria)
         {
         case FIND_CRIT_NODE_ADDRESS:
-            found = ((PTR)header == value); //
-            break;                          //
+            found = ((PTR)header == value);
+            break;
         case FIND_CRIT_NODE_SIZE:
-            found = (header->netNodeSize >= value); //
-            break;                                  //
+            found = (header->netNodeSize >= value);
+            break;
         }
 
         if (found)
