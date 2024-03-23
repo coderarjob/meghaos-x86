@@ -343,6 +343,8 @@ void usermode_main ()
     kearly_println("%x", (PTR)salloc(2));
     kearly_println("%x", (PTR)salloc(1));
     INFO ("PD: %x, PT: %x", g_page_dir.val, g_page_table.val);
+    kearly_println ("Satic memory allocations: %u bytes", salloc_getUsedMemory());
+    kearly_println ("Kernel heap memory allocations: %u bytes", kmalloc_getUsedMemory());
 //    volatile CHAR* a = (CHAR*)0xC0400000;
 //    *a = 0;
 
