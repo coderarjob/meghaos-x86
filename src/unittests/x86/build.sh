@@ -18,6 +18,7 @@ add_arch_specific_tests()
     local UNITTESTS_ARRAY=$@
     export UNITTESTS=($UNITTESTS_ARRAY
                       pmm_x86
+                      paging_x86
     )
 }
 
@@ -45,7 +46,14 @@ get_arch_dependent_test_definition()
         pmm_x86) {
                    export SRC=('kernel/x86/pmm.c'
                                'unittests/common.c'
+                               'unittests/unittest.c'
                                'unittests/x86/pmm_test.c')
+                 };;
+        paging_x86) {
+                   export SRC=('kernel/x86/paging.c'
+                               'unittests/common.c'
+                               'unittests/unittest.c'
+                               'unittests/x86/paging_test.c')
                  };;
             *) return 1;;
     esac

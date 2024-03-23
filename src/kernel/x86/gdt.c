@@ -30,14 +30,15 @@ static          U16            s_gdt_count = MIN_GDT_INDEX;
 void
 kgdt_write ()
 {
+    FUNC_ENTRY();
+
     volatile GdtMeta gdt_size_and_loc =
     {
         .size     = (U16)(sizeof (GdtDescriptor) * s_gdt_count - 1),
         .location = (U32)s_gdt
     };
 
-    kdebug_printf("GDT {size = 0x%x, location = 0x%x}",
-                   gdt_size_and_loc.size, gdt_size_and_loc.location);
+    INFO ("GDT {size = 0x%x, location = 0x%x}", gdt_size_and_loc.size, gdt_size_and_loc.location);
 
     // NOTE: No need to load the SS, DS, ES or CS registers, as it already
     // contains the values needs (from boo1)
@@ -56,7 +57,10 @@ kgdt_edit (U16 gdt_index,
            U32 limit,
            U8  access,
            U8  flags)
-{ 
+{
+    FUNC_ENTRY ("index: 0x%x, base: 0x%x, limit: 0x%x, access: 0x%x, flags: 0x%x", gdt_index, base,
+                limit, access, flags);
+
     s_gdt = (GdtDescriptor *)INTEL_32_GDT_LOCATION;
 
     // Valid range is MIN_INDEX < index < s_gdt_count < GDT_MAX_COUNT

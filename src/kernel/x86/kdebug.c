@@ -16,8 +16,6 @@
 #include <x86/vgatext.h>
 #include <kdebug.h>
 
-#if  defined (DEBUG)
-
 #if (DEBUG_LEVEL & 1)
 static void s_qemu_debugPutString (const CHAR *string)
 {
@@ -27,6 +25,7 @@ static void s_qemu_debugPutString (const CHAR *string)
 }
 #endif
 
+#if  defined (DEBUG)
 void kdebug_printf_ndu (const CHAR *fmt, ...)
 {
     CHAR buffer[MAX_PRINTABLE_STRING_LENGTH];
@@ -68,3 +67,56 @@ void kdebug_dump_call_trace(PTR *raddrs, INT count)
     for (; count && frame->ebp; count--, frame = frame->ebp)
         *(raddrs++) = frame->eip;
 }
+
+#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
+/***************************************************************************************************
+ * Prints log to the host console in a new line. When DEBUG is defined also prints the function name
+ * and line number.
+ *
+ * @return      Nothing
+ **************************************************************************************************/
+void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...)
+{
+    int  len = 0;
+    char buffer[MAX_PRINTABLE_STRING_LENGTH];
+
+    switch (type)
+    {
+    case KDEBUG_LOG_TYPE_INFO:
+    {
+    #ifdef DEBUG
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ INFO ]%s %s:%u %s| ",
+                               ANSI_COL_GREEN, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
+    #else
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ INFO ]%s ", ANSI_COL_GREEN,
+                               ANSI_COL_RESET);
+    #endif // DEBUG
+    }
+    break;
+    case KDEBUG_LOG_TYPE_ERROR:
+    {
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ ERROR ]%s %s:%u %s| ",
+                               ANSI_COL_RED, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
+    }
+    break;
+    case KDEBUG_LOG_TYPE_FUNC:
+    {
+    #ifdef DEBUG
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[ %s:%u ]%s ", ANSI_COL_YELLOW,
+                               func, line, ANSI_COL_RESET);
+    #else
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[ %s ]%s ", ANSI_COL_YELLOW,
+                               func, ANSI_COL_RESET);
+    #endif // DEBUG
+    }
+    break;
+    }
+
+    va_list l;
+    va_start (l, fmt);
+    kearly_vsnprintf (buffer + len, ARRAY_LENGTH (buffer), fmt, l);
+    va_end (l);
+
+    s_qemu_debugPutString (buffer);
+}
+#endif

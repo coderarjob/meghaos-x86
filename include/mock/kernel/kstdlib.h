@@ -7,5 +7,5 @@
 DECLARE_FUNC(void *, k_memcpy, void *, const void *, size_t);
 DECLARE_FUNC(void *, k_memset, void *, INT, size_t);
 
-void resetMemFake();
+void resetStdLibFake();
 #endif //MEM_FAKE_H

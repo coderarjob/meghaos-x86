@@ -1,6 +1,45 @@
 # Megha Operating System V2 - x86
 ----------------------------------------------------------------------------------------------------
 
+## Why I am skipping Virtual Memory manager for now
+categories: note, x86
+_16 Dec 2022_
+
+From what I have read and understood, the VMM's does the following:
+1. Like the physical memory manager, virtual memory manager also has as AllocPages function. It
+   looks for free virtual pages. It might not allocate physical memory, but just mark those pages as
+   allocated.
+2. Related to the above point is the `map` function of VMM. It keeps note of the allocated VAs which
+   the OS will use later when allocating physical pages. I could be that this is a sub function of
+   the `AllocPages` function.
+3. This simplifies some aspects of mapping, where we can over-map VMM and not worry about physical
+   memory usage.
+4. VMM manages `regions/address spaces`, which are a portion of VA assigned for a purpose (Kernel
+   heap has one region, Static allocator has another region, Stack has another region etc). One can
+   then ask to expand these `region` and VMM will make sure that we are crashing into another
+   region.
+5. Provides data structure to quickly search the VA-PA mapping. Provided a VA we can search which PA
+   is assigned to it. We can parse page tables, but it will be arch dependent and slow.
+6. VMM may also automatically assign a VA range when region gets created. Currently we are planning
+   and hard-coding each region by hand.
+
+Though all of the above points are important, they are not crucial or blocking. With a `Static
+allocator` and `Heap allocator` ready, I can proceed with other parts of the OS and come back to
+implement VMM at a later time. I think I will be able to appreciate VMM better once I see the
+problem it is solving and also I am kind of bored with the VMM at this time.
+
+Note however that in the absence of a VMM we have to do the following:
+1. We have to use pre-planned and hard-coded start locations for large allocations. For example
+   `salloc`, `kmalloc` must start at a pre planned virtual address. This is because there is no VMM
+   which can search and provide free virtual pages.
+2. All physical memory need to be committed from the start. There can be no on-demand allocation of
+   physical pages with VMM. Which means that before we call `kpg_map` we must have all physical pages
+   allocated.
+3. As a consequence of the above condition, we will not only have contiguous virtual pages allocated
+   for a module, but physical pages will match.
+
+----------------------------------------------------------------------------------------------------
+
 ## Virtual Memory Manager and Recursive mapping
 categories: note, x86
 _16 Dec 2022_
@@ -42,7 +81,7 @@ a PDE (this is the PT we want to access), the next 12 bits is the offset into th
 access PTEs in the PT).
 
 With Higher mapped kernel, the kernel page tables can be accessed with virtual address in the range
-`0xFFF00000 – FFF00FFC`.
+`0xFFC00000 – FFC00FFC`.
 
 Special case of this is when the second 10 bits is also 0x3FF, then the 12 bits becomes of the
 offset into the PD and can be used to access PDEs - that is virtual address in the range

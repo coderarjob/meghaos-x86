@@ -18,7 +18,7 @@ void unittest_panic_handler(const CHAR *s,...)
     va_list l;
     va_start (l, s);
 
-    printf ("%s", COL_RED);
+    printf ("%s", COL_GRAY);
     vprintf (s, l);
     printf ("%s", COL_RESET);
 

@@ -21,6 +21,7 @@ C_FILES=(
     'kernel/x86/paging.c'
     'kernel/x86/pmm.c'
     'kernel/x86/boot.c'
+    'kernel/x86/memmanage.c'
 )
 
 C_INTERRUPT_HANDLER_FILES=(

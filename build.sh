@@ -1,15 +1,44 @@
 #!/bin/bash
 
+# ---------------------------------------------------------------------------
+# DEFAULT OPTIONS:
+# ---------------------------------------------------------------------------
 export ARCH=x86
 export DEBUG=DEBUG
+export LINK_USING_LD=1
+
 # DEBUG LEVEL BITS
 # x x x x x x [Screen] [E9]
-export DEBUGLEVEL=3
-LINK_USING_LD=1
+export DEBUGLEVEL=1
 
-if [ $# -ge 1 ]; then ARCH=$1; fi
-if [ $# -ge 2 ]; then DEBUG=$2; fi
+# ---------------------------------------------------------------------------
+# ARGUMENT PARSING
+# ---------------------------------------------------------------------------
+BUILDMODES=(KERNEL LINT ALL)
 
+BUILDMODES_COUNT=${#BUILDMODES[@]}
+for ((i=0; i < $BUILDMODES_COUNT; i++)); do
+    mode=${BUILDMODES[i]}
+    declare -ir $mode=$i
+done
+
+export BUILDMODE=KERNEL
+if [ ! -z $1 ]; then
+    case "$1" in
+        --arch   ) ARCH=$2        ;;
+        --release) DEBUG=NDEBUG   ;;
+        --lint   ) BUILDMODE=LINT ;;
+        --all    ) BUILDMODE=ALL  ;;
+        *        )
+            echo "Invalid command $@"
+            exit 1
+            ;;
+    esac
+fi
+
+# ---------------------------------------------------------------------------
+# DEFAULT PATHS:
+# ---------------------------------------------------------------------------
 export REPORTSDIR="build/reports"
 export TEMPDIR="build/temp"
 export OBJDIR="build/obj"
@@ -49,7 +78,6 @@ export GCC_INCPATH="-I include"
 # -nostartfiles includes -nostdlib, -nolibc, or -nodefaultlibs
 # ---------------------------------------------------------------------------
 WOPTS="-Wpedantic \
-       -Wpadded \
        -Wall \
        -Wextra \
        -Wconversion \
@@ -68,6 +96,7 @@ export GCC32_FLAGS="-std=c99\
                     -march=i386 \
                     -masm=intel \
                     -mno-red-zone \
+                    -mno-sse \
                     $WOPTS \
                     $GCC_INCPATH \
                     -O1 \
@@ -76,6 +105,9 @@ export GCC32_FLAGS="-std=c99\
                     -fno-inline-functions-called-once \
                     -D $DEBUG -D DEBUG_LEVEL=$DEBUGLEVEL"
 
+# Interrupt and exception handlers only preserve general purpose registers, this
+# attribute prevents GCC to use any other registers (MMX, SSE etc) when
+# compiling interrupt handlers.
 export GCC32_INTERRUPT_HANDLER_FLAGS="$GCC32_FLAGS -mgeneral-regs-only"
 
 export NASM32_ELF="nasm -f elf32 -g"
@@ -122,7 +154,12 @@ mkdir -p $DISKTEMPDIR  || exit
 mkdir $OBJDIR          || exit
 mkdir -p $IMAGEDIR     || exit
 mkdir $LISTDIR         || exit
+
 # ---------------------------------------------------------------------------
+# Build complete kernel and disk image
+# ---------------------------------------------------------------------------
+[[ $BUILDMODE -ge $KERNEL ]] || exit 0
+
 # Build the bootloaders
 bash src/bootloader/x86/build.sh  || exit
 
@@ -145,21 +182,29 @@ mkdosfs -C $IMAGEDIR/mos.flp -F 12 1440 || exit
 
 # mount the Disk image
 echo "    [ Mounting Disk image ]    "
-runas mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
+sudo mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
 # ---------------------------------------------------------------------------
 # Copy the files needed to the floppy
 echo "    [ Copy files to floppy ]    "
-runas cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
-runas cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
 
 # Unmount the image
 echo "    [ Copy of files done. Unmounting image ]    "
-runas umount $DISKTEMPDIR || exit
+sudo umount $DISKTEMPDIR || exit
 
 # Wrtie the bootloader
 echo "    [ Writing bootloader to floppy image ]    "
 dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
+
+echo "    [ Report: Storage Utilization ]"
+wc -c $OBJDIR/*.flt
+
 # ---------------------------------------------------------------------------
+# Lint and compiler warning reports
+# ---------------------------------------------------------------------------
+[[ $BUILDMODE -ge $LINT ]] || exit 0
+
 echo "    [ Running linting tool ]"
 ./lint.sh -D__i386__ \
           -D$DEBUG \
@@ -172,9 +217,6 @@ echo "    [ Cleaning up ]"
 rm -f -r $DISKTEMPDIR || exit
 
 # ---------------------------------------------------------------------------
-echo "    [ Report: Storage Utilization ]"
-wc -c $OBJDIR/*.flt
-
 echo "    [ Report: Warning count ]"
 WARNCOUNT_GCC=`grep -c -r "warning:" build/reports/build_warnings.txt`
 WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`
@@ -182,6 +224,10 @@ echo "Total compiler warnings: $WARNCOUNT_GCC"
 echo "Total lint warnings: $WARNCOUNT_LINT"
 
 # ---------------------------------------------------------------------------
+# Build unittest and coverage reports
+# ---------------------------------------------------------------------------
+[[ $BUILDMODE -ge $ALL ]] || exit 0
+
 echo "    [ Buliding Unittests ]"
 bash src/unittests/build.sh || exit
 

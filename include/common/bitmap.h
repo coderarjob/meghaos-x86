@@ -10,7 +10,6 @@
 #define COMMON_BITMAP_H
 
 #include <types.h>
-#include <assert.h>
 #include <utils.h>
 
 typedef U8 BitmapState;

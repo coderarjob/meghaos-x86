@@ -3,7 +3,7 @@
 * Megha Operating System V2 - x86 Kernel - Methods to access structures passed by the bootloader.
 * --------------------------------------------------------------------------------------------------
 */
-#include <assert.h>
+#include <kassert.h>
 #include <x86/boot.h>
 #include <x86/memloc.h>
 #include <x86/boot_struct.h>

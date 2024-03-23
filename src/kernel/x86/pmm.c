@@ -14,18 +14,23 @@
 #include <x86/boot.h>
 #include <kerror.h>
 #include <panic.h>
-#include <mem.h>
+#include <paging.h>
+#include <kdebug.h>
+#include <kstdlib.h>
 
 static void s_markFreeMemory (Bitmap *bitmap);
 
 /***************************************************************************************************
  * Initializes PAB array for x86 architecture.
+ * All physical memory that is not Free (0) or Used (1) will be marked Reserved (2).
  *
  * @input   pab      Pointer to arch independent PAB.
  * @return  nothing
  **************************************************************************************************/
 void kpmm_arch_init (Bitmap *bitmap)
 {
+    FUNC_ENTRY();
+
     k_memset (bitmap->bitmap, 0xAA, PAB_SIZE_BYTES);
     s_markFreeMemory (bitmap);
 }
@@ -48,7 +53,6 @@ static void s_markFreeMemory (Bitmap *bitmap)
         BootMemoryMapItem* memmap = kBootLoaderInfo_getMemoryMapItem (bootloaderinfo, i);
         BootMemoryMapTypes type = kBootMemoryMapItem_getType (memmap);
 
-        //if (type != MMTYPE_RESERVED && type != MMTYPE_ACPI_RECLAIM) continue;
         if (type != MMTYPE_FREE) continue;
 
         U64 startAddress = kBootMemoryMapItem_getBaseAddress (memmap);
@@ -69,13 +73,10 @@ static void s_markFreeMemory (Bitmap *bitmap)
         UINT pageFrameCount = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)lengthBytes);
         UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR ((USYSINT)startAddress);
 
-        kdebug_printf ("\r\nI: Freeing startAddress: %llx, byteCount: %llx, pageFrames: %u."
-                        , startAddress, lengthBytes, pageFrameCount);
-
         bool success = bitmap_setContinous(bitmap, startPageFrame, pageFrameCount,
                                            PMM_STATE_FREE);
         if (!success)
-            k_panic("%s", "PAB cannot be initialized.");
+            k_panic("PAB cannot be initialized.");
     }
 }
 
@@ -88,8 +89,11 @@ static void s_markFreeMemory (Bitmap *bitmap)
  **************************************************************************************************/
 U64 kpmm_arch_getInstalledMemoryByteCount ()
 {
+    FUNC_ENTRY();
+
     BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
     U64 RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
+    INFO ("RAMSizeBytes = 0x%llx", RAMSizeBytes);
 
     return RAMSizeBytes;
 }

@@ -12,10 +12,11 @@
 */
 
 #include <types.h>
-#include <mem.h>
+#include <kstdlib.h>
 #include <utils.h>
 #include <x86/gdt.h>
 #include <x86/memloc.h>
+#include <kdebug.h>
 
 #define IOMAP_SIZE 0x100        // Covers VGA ports and normal IO ports.
 
@@ -57,6 +58,8 @@ static struct tss tss_entry = {0};
  * installs a tss segment in GDT and writes to the Task Register*/
 void ktss_init ()
 {
+    FUNC_ENTRY();
+
     // Deny permissions to all IO ports by setting all the bits
     k_memset (tss_entry.iomap, 0xFF, IOMAP_SIZE - 1);
     tss_entry.iomap[29] &=0xFD;     // E9 Debug port

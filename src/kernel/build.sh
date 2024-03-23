@@ -11,12 +11,14 @@ echo "    [ Compiling Kernel: Platform independent parts ]    "
 
 C_FILES=(
     'kernel/printk.c'
-    'kernel/mem.c'
+    'kernel/kstdlib.c'
     'kernel/disp.c'
     'kernel/kerror.c'
     'kernel/pmm.c'
     'common/bitmap.c'
     'common/utils.c'
+    'kernel/salloc.c'
+    'kernel/kmalloc.c'
 )
 
 compile_cc "$GCC32 $GCC32_FLAGS" $OBJDIR ${C_FILES[@]}

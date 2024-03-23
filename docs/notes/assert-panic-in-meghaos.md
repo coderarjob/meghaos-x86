@@ -1,16 +1,31 @@
 # Megha Operating System V2
 ----------------------------------------------------------------------------------------------------
 
-## Fixed - Assert/Panic handling in unittests
+## Assert/Panic handling in unittests
 categories: note, independent
 _02 July 2023_
 
+In normal condition, when an assert fails, control is transfered to `k_panic`, which prints a panic
+message and halts the system. In unittests however the dummy/fake panic routine, prints a message
+but returns, which means control gets back to the unittest routine.
+
+This is a problem.
+
+There are two important questions:
+
+### Do we need to test assert conditions?
+
+The asserts exists to validate assumptions and their proper working is important. Thus they should
+be tested, just like any other part of the unit.
+
+### How do we solve the above mentioned problem?
+
 Related to commit: _8f9990948f70_
 
-The below note sets the context for this fix.
-
-Previously, when built for unittests asserts/panics (in the unit under test) would continue
-executing and required explicit checks in the interface to return from if `panic_invoked` is true.
+Previously, asserts/panics (in the unit under test) would continue executing and required explicit
+checking of `panic_invoked` global variable and return if it is true (indicating that panic
+condition was hit). Another headache was to clear this variable in the unit tests before/after the
+function-under-test was called.
     
 This was a very bad design because interfaces needed to be aware about unittest setup and must
 implement code for unittests to work properly.
@@ -30,7 +45,7 @@ This however is not without its drawbacks:
 ------------------------------------------
 
 ## Asserts and Panics in Unittests in MeghaOS
-categories: note, independent
+categories: note, independent, obsolete
 _20 June 2023_
 
 In normal condition, when an assert fails, control is transfered to `k_panic`, which prints a panic
@@ -50,7 +65,7 @@ This is required so that we can detect and fail on any input which does not matc
 So as these asserts validates input, we must test them with invalid inputs. Such tests increases
 confidence on the interface as it is getting tested extensively.
 
-## How asserts work in unittests? (Obsolete)
+## How asserts work in unittests?
 Well one easy solution when building unittests have a global flag which is set within the fake panic
 routine and unittest routine tests this flag to check if assert was hit in the interface under test.
 

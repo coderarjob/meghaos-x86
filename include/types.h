@@ -14,7 +14,7 @@
 #define PORTABLE_TYPES
 
 #include <buildcheck.h>
-#include <stdbool.h>
+#include <stdbool.h> /*TODO: Remvoe this*/
 
 #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
     #include <x86/types.h>

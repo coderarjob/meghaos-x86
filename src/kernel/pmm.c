@@ -4,7 +4,6 @@
 *
 * Methods to allocate and free physical pages.
 * --------------------------------------------------------------------------------------------------
-*  TODO: Need to check if use of 'last byte/page' and 'byte/page' count concepts are used correctly.
 *  TODO: Make allocation and deallocation atomic.
 */
 
@@ -13,16 +12,10 @@
 #include <moslimits.h>
 #include <types.h>
 #include <x86/paging.h>
+#include <paging.h>
 #include <kdebug.h>
 #include <kerror.h>
 #include <common/bitmap.h>
-
-typedef enum PhysicalMemoryBitmapState
-{
-    PMM_INIT_STATE_UNINITIALIZED,
-    PMM_INIT_STATE_PARTIAL,
-    PMM_INIT_STATE_COMPLETE
-} PhysicalMemoryBitmapState;
 
 typedef struct PhysicalMemoryRegion
 {
@@ -33,7 +26,7 @@ typedef struct PhysicalMemoryRegion
 
 static PhysicalMemoryRegion s_pmm_completeRegion = {0};
 static U8 *s_pab = NULL;
-static PhysicalMemoryBitmapState s_isInitialized = PMM_INIT_STATE_UNINITIALIZED;
+static bool s_isInitialized = false;
 static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg);
 
 static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions reg)
@@ -65,7 +58,7 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
     if (old == PMM_STATE_FREE && new == PMM_STATE_FREE)
         k_panic ("Double free: Page %u", pageFrame);
 
-    if (s_isInitialized == PMM_INIT_STATE_COMPLETE && old == PMM_STATE_RESERVED)
+    if (s_isInitialized && old == PMM_STATE_RESERVED)
         k_panic ("Use of Reserved page: Page %u", pageFrame);
 
     if (old == PMM_STATE_INVALID)
@@ -82,8 +75,10 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
  **************************************************************************************************/
 void kpmm_init ()
 {
+    FUNC_ENTRY();
+
     if (kpmm_isInitialized())
-        k_panic ("%s", "Called after PMM initialization.");
+        k_panic ("Called after PMM initialization.");
 
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
 
@@ -97,7 +92,7 @@ void kpmm_init ()
     kpmm_arch_init(&s_pmm_completeRegion.bitmap);
 
     // PMM is now initialized
-    s_isInitialized = PMM_INIT_STATE_COMPLETE;
+    s_isInitialized = true;
 }
 
 /***************************************************************************************************
@@ -113,9 +108,9 @@ void kpmm_init ()
  **************************************************************************************************/
 bool kpmm_free (Physical startAddress, UINT pageCount)
 {
-    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
+    FUNC_ENTRY("startAddress = 0x%x, pageCount = %u", startAddress, pageCount);
 
-    PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
+    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
@@ -132,6 +127,7 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
     // Note: As startAddress is already aligned, both floor or ceiling are same here.
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (startAddress.val);
 
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
     bool success = bitmap_setContinous(&region->bitmap,
                                        startPageFrame,
                                        pageCount,
@@ -153,12 +149,12 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
  **************************************************************************************************/
 bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
+    FUNC_ENTRY("start = 0x%x, pageCount = %u, region = %u", start.val, pageCount, reg);
+
     k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
-
-    PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
 
     // Check if address is within the max addressable range.
     USYSINT allocation_end_byte = start.val + (pageCount * CONFIG_PAGE_FRAME_SIZE_BYTES) - 1;
@@ -173,6 +169,8 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
     UINT startPageFrame = BYTES_TO_PAGEFRAMES_FLOOR (start.val);
 
     // Check if all the pages can be allocated at the provided location.
+    PhysicalMemoryRegion *region = s_getBitmapFromRegion(reg);
+
     bool found = bitmap_findContinousAt(&region->bitmap,
                                         PMM_STATE_FREE,
                                         pageCount,
@@ -191,18 +189,21 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
 }
 
 /***************************************************************************************************
- * Tries to allocates pages starting at the physical address that is provided.
+ * Searches for free physical pages and allocates contiguous pages as requested. The returned
+ * address is the start of the first allocated page.
  *
  * Note: This function can only be called once PMM is initialized. This is because it reads PAB to
  * make find pages which can be allocated.
  *
- * @Input address       Allocated physical address
- * @Input pageCount     Number of byte frames to allocate.
- * @Input reg           Physical memory region.
+ * @Output address      Allocated physical address. Is always page aligned.
+ * @Input  pageCount    Number of byte frames to allocate.
+ * @Input  reg          Physical memory region.
  * @return              If successful returns true, otherwise returns false and error code is set.
  **************************************************************************************************/
 bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
+    FUNC_ENTRY("pageCount = %u, region = %u", pageCount, reg);
+
     k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     if (pageCount == 0)
@@ -223,7 +224,9 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
                                 pageCount,
                                 PMM_STATE_USED))
     {
-        *address = createPhysical(PAGEFRAMES_TO_BYTES((UINT) pageFrame));
+        *address = createPhysical(PAGEFRAME_TO_PHYSICAL((UINT) pageFrame));
+        INFO("Allocated address = 0x%x", address->val);
+        k_assert (IS_ALIGNED (address->val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
         return true;
     }
 
@@ -240,7 +243,8 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
  **************************************************************************************************/
 bool kpmm_isInitialized ()
 {
-    return s_isInitialized == PMM_INIT_STATE_COMPLETE;
+    FUNC_ENTRY();
+    return s_isInitialized == true;
 }
 
 /***************************************************************************************************
@@ -251,6 +255,8 @@ bool kpmm_isInitialized ()
  **************************************************************************************************/
 size_t kpmm_getFreeMemorySize ()
 {
+    FUNC_ENTRY();
+
     k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
     UINT usablePageCount = kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY);
@@ -262,7 +268,7 @@ size_t kpmm_getFreeMemorySize ()
         freePages++;
 
     k_assert(freePages <= kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY), "Invalid frames");
-    return PAGEFRAMES_TO_BYTES(freePages);
+    return PAGEFRAME_TO_PHYSICAL(freePages);
 }
 
 /***************************************************************************************************
@@ -288,6 +294,8 @@ static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg)
  **************************************************************************************************/
 USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg)
 {
+//    FUNC_ENTRY("region = %u", reg);
+
     static S64 regionLength = -1; // static to cache the result. Amount of memory will not change.
 
 #if !defined(UNITTEST)
@@ -305,5 +313,6 @@ USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg)
         if (regionLength < 0) regionLength = 0;
     }
 
+ //   INFO ("Region length = 0x%px bytes", regionLength);
     return (USYSINT) regionLength;
 }

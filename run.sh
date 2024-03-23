@@ -17,6 +17,7 @@ run_test_by_name()
 }
 # -----------------------------------------------------------------------------
 
+QEMU_REPORT_FILE="./build/reports/qemu-run.txt"
 TEST_DIR="./build/bin/unittests"
 RUNMODE='QEMU'
 
@@ -29,13 +30,18 @@ case $RUNMODE in
             OPTS="-m 2561k"
             [[ $# -gt 0 ]] && OPTS="$@"
 
+            # Run emulator and add the output to a reports file
             qemu-system-i386 $OPTS -fda ./build/diskimage/x86/mos.flp \
                                    -boot a                            \
                                    -cpu 486                           \
                                    -debugcon stdio                    \
                                    -no-reboot                         \
                                    -no-shutdown                       \
-                                   -d cpu_reset
+                                   -d cpu_reset                       \
+                                   | tee ${QEMU_REPORT_FILE}
+
+            # Remove the ANSI color codes from the reports file
+            sed -i $'s/\033\[[0-9;]*m//g' ${QEMU_REPORT_FILE}
         };;
     TESTS)
         for fn in $TEST_DIR/*; do

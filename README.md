@@ -38,11 +38,13 @@ The end product will be ready for a programmer but not for general use.
 - [X] Handlers for CPU Exceptions and basic interrupts.
 - [X] Basic Kernel mode C functions for printing on screen etc.
 - [X] Unittesting framework to test parts of the OS on host computer.
-- [ ] Memory management: Physical page allocation.                     **(developing)**
-- [ ] Memory management: Virtual page allocation.
-- [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
+- [X] Memory management: Physical page allocation.
+- [-] Memory management: Virtual page allocation. [*Skipping*]
+- [X] Memory management: Baisc paging operations (map/unmap etc)
+- [X] Memory management: Kernel allocators (Static and Heap allocators)
 - [ ] User mode processes capable of doing system calls.
 - [ ] Keyboard driver.
+- [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] VESA VGA driver.
 - [ ] Rudimentary shell.
 

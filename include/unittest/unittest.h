@@ -14,9 +14,11 @@
 int ut_equal_mem (const void *a, const void *b, unsigned long size, int *i);
 int ut_equal_string (const char *a, const char *b, int *i);
 
-#define COL_RED   "\x1b[31m"
-#define COL_GREEN "\x1b[32m"
-#define COL_RESET "\x1b[0m"
+#define COL_GRAY      "\x1b[90m"
+#define COL_RED       "\x1b[31m"
+#define COL_GREEN     "\x1b[32m"
+#define COL_RESET     "\x1b[0m"
+#define COL_HIGHLIGHT "\x1b[97;100m"
 
 #define UT_PASSED(t) printf ("\n  %sPass%s: %-20s", COL_GREEN, COL_RESET, #t)
 
@@ -26,22 +28,33 @@ int ut_equal_string (const char *a, const char *b, int *i);
          printf(fnt, __VA_ARGS__);                                            \
         } while(0)
 
-#define TEST_SCALAR(a,o, b)                                                   \
-    if (a o b) UT_PASSED(a o b);                                              \
-    else       UT_FAILED(a o b,"[%d !" #o " %d]", a, b)                       \
+#define TEST_SCALAR(a,o, b) do {                                              \
+    __auto_type ut_a = (a);                                                   \
+    __auto_type ut_b = (b);                                                   \
+    if (ut_a o ut_b)                                                          \
+               UT_PASSED(a o b);                                              \
+    else       UT_FAILED(a o b,"[%d !" #o " %d]", ut_a, ut_b);                \
+} while(0)
+
 
 #define TEST_MEM(a,o, b,sz) do {                                              \
+    __auto_type ut_a = (a);                                                   \
+    __auto_type ut_b = (b);                                                   \
     int i;                                                                    \
-    if (ut_equal_mem (a, b, sz, &i) o 1)                                      \
+    if (ut_equal_mem (ut_a, ut_b, sz, &i) o 1)                                \
            UT_PASSED(a o b);                                                  \
-    else   UT_FAILED(a o b,"[Idx: %d, Got: %XH, Exp: %s %XH]",i,a[i],#o,b[i]);\
+    else   UT_FAILED(a o b,"[Idx: %d, 0x%X !" #o " 0x%X]",i,ut_a[i],          \
+                     ut_b[i]);                                                \
 } while(0)
 
 #define TEST_STRING(a,o, b) do {                                              \
+    __auto_type ut_a = (a);                                                   \
+    __auto_type ut_b = (b);                                                   \
     int i;                                                                    \
-    if (ut_equal_string (a, b, &i) o 1)                                       \
+    if (ut_equal_string (ut_a, ut_b, &i) o 1)                                 \
            UT_PASSED(a o b);                                                  \
-    else   UT_FAILED(a o b,"[Idx: %d, Got: %c, Exp: %s %c]",i,a[i],#o,b[i]);  \
+    else   UT_FAILED(a o b,"[Idx: %d, '%c' !" #o " '%c']",i,ut_a[i],          \
+                    ut_b[i]);                                                 \
 } while(0)
 
 #define EQ_SCALAR(a,b)  TEST_SCALAR(a, ==, b)
@@ -59,6 +72,6 @@ int ut_equal_string (const char *a, const char *b, int *i);
 
 #define TEST(tf, fn) static void fn () {                                      \
                         reset();                                              \
-                        printf ("TEST (%s) %s", #tf, #fn); do
+                        printf ("%s[%20s - %-20s]%s", COL_HIGHLIGHT, #tf, #fn, COL_RESET); do
 #define END()       } while(0); printf("\n")
 #endif // UNITTEST_H

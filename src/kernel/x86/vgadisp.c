@@ -202,6 +202,7 @@ void kdisp_putc (CHAR c)
             column = 0;
             break;
         case '\n':
+            column = 0;
             row++;
             break;
         case '\t':

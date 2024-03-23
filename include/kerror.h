@@ -11,7 +11,7 @@
 #define ERRORNO_H
 
 #include <types.h>
-#include <assert.h>
+#include <kassert.h>
 #include <kdebug.h>
 
 /* Error codes that can be set inside the kernel.*/
@@ -37,7 +37,7 @@ extern CHAR *k_errorText[];
 /* Can be used to set the k_errorNumber global and return from a function */
 #define RETURN_ERROR(errno, rval)                                                            \
             do {                                                                             \
-                   kdebug_printf ("\r\nE: Error 0x%x at %s:%u.", errno, __FILE__, __LINE__); \
+                   ERROR ("Error 0x%x.", errno);                                             \
                    k_errorNumber = errno;                                                    \
                    return rval;                                                              \
                 }while(0)

@@ -24,6 +24,7 @@
 * --------------------------------------------------------------------------------------------------
 */
 
+#include <kdebug.h>
 #include <utils.h>
 #include <types.h>
 #include <kerror.h>
@@ -42,6 +43,8 @@
  **************************************************************************************************/
 bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt)
 {
+//    FUNC_ENTRY("Bitmap: 0x%px, state: 0x%x, len: 0x%x, indexAt: 0x%x", b, state, len, indexAt);
+
     k_assert(b != NULL, "Cannot be null");
     k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
@@ -70,6 +73,8 @@ bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexA
  **************************************************************************************************/
 INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
 {
+//    FUNC_ENTRY("Bitmap: 0x%px, state: 0x%x, len: 0x%x", b, state, len);
+
     k_assert(b != NULL, "Cannot be null");
     k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert(state < BITMAP_MAX_STATE(b), "Invalid state");
@@ -95,6 +100,8 @@ INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len)
  **************************************************************************************************/
 BitmapState bitmap_get (Bitmap *b, UINT index)
 {
+//    FUNC_ENTRY("Bitmap: 0x%px, index: 0x%x", b, index);
+
     k_assert(b != NULL, "Cannot be null");
     k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");
     k_assert (index < BITMAP_CAPACITY(b), "Index out of bounds.");
@@ -117,6 +124,8 @@ BitmapState bitmap_get (Bitmap *b, UINT index)
  **************************************************************************************************/
 bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state)
 {
+    FUNC_ENTRY("Bitmap: 0x%px, index: 0x%x, len: 0x%x, state: 0x%x", b, index, len, state);
+
     k_assert(b != NULL, "Cannot be null");
     k_assert(b->allow != NULL, "Cannot be null");
     k_assert(8 % b->bitsPerState == 0, "Must be a factor of 8.");

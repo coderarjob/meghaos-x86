@@ -9,7 +9,7 @@
 */
 
 #include <x86/idt.h>
-#include <mem.h>
+#include <kstdlib.h>
 #include <x86/memloc.h>
 #include <moslimits.h>
 #include <kdebug.h>
@@ -31,6 +31,8 @@ static void s_idt_write ();
 void
 kidt_init ()
 {
+    FUNC_ENTRY();
+
     s_idt = (IdtDescriptor *)INTEL_32_IDT_LOCATION;
     k_memset ((void *)s_idt, 0, IDT_BYTES);
     s_idt_write ();
@@ -44,6 +46,9 @@ kidt_edit (INT                index,
            IDTDescriptorTypes type,
            U8                 dpl)
 {
+    FUNC_ENTRY ("index: 0x%x, func: 0x%px, seg_sel: 0x%x, type: 0x%x, dpl: 0x%x", index, func,
+                seg_selector, type, dpl);
+
     U32 offset = (U32)func;
 
     s_idt[index].offset_low           = offset & 0xFFFF;
@@ -65,8 +70,7 @@ s_idt_write ()
         .location = (U32)s_idt
     };
 
-    kdebug_printf("IDT {limit = 0x%x, location = 0x%x}",
-                   idt_size_and_loc.limit, idt_size_and_loc.location);
+    INFO ("IDT {limit = 0x%x, location = 0x%x}", idt_size_and_loc.limit, idt_size_and_loc.location);
 
     __asm__ ( "lidt [%0]"
              :

@@ -1,16 +1,7 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Cross Platform Kernel - Memory functions
-*
-* Note:
-* Remember that these header files are for building OS and its utilitites, it
-* is not a SDK.
+* Megha Operating System V2 - Cross Platform Kernel - Common stdlib functions
 * ---------------------------------------------------------------------------
-* Dated: 1st November 2020
-*
-; Bulid 20201101
-; - Initial version 
-; ---------------------------------------------------------------------------
 */
 
 #ifndef MEM_H

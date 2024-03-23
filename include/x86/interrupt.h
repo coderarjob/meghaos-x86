@@ -1,6 +1,11 @@
 /*
 * --------------------------------------------------------------------------------------------------
 * Megha Operating System V2 - x86 Interrupt handlers - Interrupt and exception handlers
+*
+* Note:
+* Must be compiled with -mgeneral-regs-only GCC attribute. This makes GCC only general purpose
+* registers and not use SSE, MMX etc registers which are not preserved by the interrupt and
+* exception handlers.
 * --------------------------------------------------------------------------------------------------
 */
 
@@ -88,6 +93,7 @@ typedef struct InterruptFrame  {
 void sys_dummy_asm_handler ();
 void page_fault_asm_handler ();
 void page_fault_asm_handler ();
+void double_fault_asm_handler();
 void general_protection_fault_asm_handler ();
 void div_zero_asm_handler ();
 

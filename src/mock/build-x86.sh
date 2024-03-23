@@ -34,7 +34,7 @@ function add_mock_source()
                 };;
        pmm_x86) {
                     export SRC=( $SRC_ARRAY
-                                 'mock/kernel/mem.c'
+                                 'mock/kernel/kstdlib.c'
                                  'mock/common/bitmap.c'
                                  'mock/kernel/pmm.c'
                                  'mock/kernel/x86/boot.c'
@@ -43,6 +43,24 @@ function add_mock_source()
         bitmap) {
                     export SRC=( $SRC_ARRAY
                                  'mock/common/utils.c'
+                               )
+                };;
+       paging_x86) {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/kernel/kstdlib.c'
+                                 'mock/kernel/pmm.c'
+                                 'mock/kernel/x86/paging.c'
+                               )
+                };;
+       kmalloc) {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/kernel/x86/memmanage.c'
+                               )
+                };;
+       salloc)  {
+                    export SRC=( $SRC_ARRAY
+                                 'mock/kernel/x86/memmanage.c'
+                                 'mock/kernel/kstdlib.c'
                                )
                 };;
     esac

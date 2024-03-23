@@ -15,7 +15,7 @@
 
 #include <buildcheck.h>
 
-#define outb(p,v) __asm__ volatile ("out %%dx, %%al;" : :"a" (v), "d" (p))
-#define inb(p,v)  __asm__ volatile ("in %%al, %%dx" :"=a" (v) :"d" (p))
+#define outb(p,v) __asm__ volatile ("out dx, al;" : :"a" (v), "d" (p))
+#define inb(p,v)  __asm__ volatile ("in al, dx" :"=a" (v) :"d" (p))
 
 #endif // IO_H_X86
