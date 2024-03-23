@@ -182,8 +182,8 @@ static void s_combineAdjFreeNodes (MallocHeader* currentNode)
 
 static MallocHeader* s_createNewNode (void* at, size_t netSize)
 {
-    PTR end = (PTR)at + netSize - 1;
-    k_assert (end < ((PTR)s_buffer + KMALLOC_SIZE_BYTES), "Node netSize too large");
+    k_assert (((PTR)at + netSize - 1) < ((PTR)s_buffer + KMALLOC_SIZE_BYTES),
+              "Node netSize too large");
 
     MallocHeader* newH = at;
     newH->netNodeSize  = netSize;
