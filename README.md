@@ -39,7 +39,7 @@ The end product will be ready for a programmer but not for general use.
 - [X] Basic Kernel mode C functions for printing on screen etc.
 - [X] Unittesting framework to test parts of the OS on host computer.
 - [X] Memory management: Physical page allocation.
-- [-] Memory management: Virtual page allocation. [*Skipping*]
+- [ ] Memory management: Virtual page allocation. [*Skipping*]
 - [X] Memory management: Baisc paging operations (map/unmap etc)
 - [X] Memory management: Kernel allocators (Static and Heap allocators)
 - [ ] User mode processes capable of doing system calls.
@@ -116,38 +116,29 @@ development >-------|------------|-----------|--->
 
 ### Git Branches
 
-The `master` branch have all the latest changes. Merges from feature or hotfix branches all go into
-the `master` branch. After a significant milestone, I will tag a commit, so you can check these
-if you do not want the very latest.
+The `master` branch have all the latest changes. Merges from `develop` branches go into the `master`
+branch. There could also be `feature` branches which originate and are merged into the `develop`
+branch.
+After a significant milestone, I will tag a commit, so you can check these if you do not want the
+very latest.
 
-* Master  - Current development branch where all the feature and hotfix branches merge into.
-* Feature - Lives temporarily for a feature or non specific development.
-* Hotfix  - Lives temporarily and named like `hotfix-ls-segfault`.
+* Master  - Branch where all the feature and fixes merge into. Must always build.
+* Develop - Majority of the development happens here. Features, bug fixing etc. May be unstable.
+* Feature - Branch where side developments (which are not related work in Develop branch) occur.
 
 ```
-HotFix   Master       Feature
-  |        |           |
-  |        |           |
-  |        |           |
-  |<------>|<--------->|
+Master       Develop     Feature
+  |           |            |
+  |           |            |
+  |           |            |
+  |<--------->|<---------->|
 ```
 
-### Semantic Versioning Scheme:
+### Versioning Scheme:
 
-1. Version will be structured:   
-    `major.minor.patch-build.-releasetype`
-
-   Example: `1.2.19-200909.1-dev`
-
-2. `build` is in the format: `<year><month><day>.<build_minor>`.
-
-3. `releasetype` are : `dev`, `alpha`.
-
-4. |Version| Reason for change                                     |
-   |-------|-------------------------------------------------------|
-   |Major  | Increments when backward compatibility is broken.     |
-   |Minor  | Increments when backward compatibility is maintained. |
-   |Patch  | Bug fixes, that does not break backward compatibility.|
-
-5. Whenever the left or middle digit changes, the digits to the right is reset to zero.
-   * 1.2.14  -->  1.3.0  --> 2.0.0
+1. Version will be structured: `build.releasetype.build_minor`
+2. `build` is in the format: `<year><month><day>`.
+3. `build_minor` starts with 0 and increments if same `build.releasetype` already exists.
+4. `releasetype` are : `dev`, `alpha`.
+5. Build string can be used to find the chronology of the releases.
+   * 20091103.dev.0 -> 20091103.dev.1 -> 20091103.alpha.0
