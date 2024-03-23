@@ -16,6 +16,8 @@
  * | kfree: Address input found. Combining next. Freed          | kfree_combining_next_adj_nodes |
  * | kfree: Address input found. Combining prev. Freed          | kfree_combining_prev_adj_nodes |
  * | kfree: Address input not found. Invalid argument error     | kfree_wrong_input              |
+ * | kmalloc_getUsedMemory: When no memory is allocated         | used_memory_test               |
+ * | kmalloc_getUsedMemory: When some memory is allocated       | used_memory_test               |
  * |------------------------------------------------------------|--------------------------------|
  */
 
@@ -179,10 +181,25 @@ TEST (kfree, kfree_success)
 
 TEST (kfree, kfree_wrong_input)
 {
-    EQ_SCALAR (kfree((void*)kmalloc_buffer - 1), false);
-    EQ_SCALAR(k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (kfree (NULL), false);
+    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
     END();
 }
+
+TEST (kmalloc_getUsedMemory, used_memory_test)
+{
+    // When there are no allocation
+    EQ_SCALAR (kmalloc_getUsedMemory(), 0U);
+
+    // When some amount of memory is allocated.
+    NEQ_SCALAR (kmalloc (1000), NULL);
+    NEQ_SCALAR (kmalloc (500), NULL);
+
+    EQ_SCALAR (kmalloc_getUsedMemory(), getNodeSize (1000) + getNodeSize (500));
+    END();
+}
+
+// ------------------------------------------------------------------------------------------
 
 static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, size_t count)
 {
@@ -270,6 +287,7 @@ int main()
     kfree_combining_prev_adj_nodes();
     kfree_combining_next_adj_nodes();
     kfree_wrong_input();
+    used_memory_test();
 
     return 0;
 }

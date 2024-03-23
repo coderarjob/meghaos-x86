@@ -13,13 +13,6 @@
 #include <types.h>
 #include <utils.h>
 
-typedef enum KMallocLists
-{
-    FREE_LIST,
-    ALLOC_LIST,
-    ADJ_LIST
-} KMallocLists;
-
 typedef enum FindCriteria
 {
     FIND_CRIT_NODE_SIZE,
@@ -27,9 +20,8 @@ typedef enum FindCriteria
 } FindCriteria;
 
 static MallocHeader* s_createNewNode (void* at, size_t netSize);
-static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, PTR value);
-static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* node);
-static ListNode* s_getListHead (KMallocLists list);
+static MallocHeader* s_findFirst (ListNode* head, FindCriteria criteria, PTR value);
+static MallocHeader* s_getMallocHeaderFromList (ListNode* head, ListNode* node);
 static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr);
 static void s_combineAdjFreeNodes (MallocHeader* currentNode);
 
@@ -80,15 +72,15 @@ void* kmalloc (size_t bytes)
 {
     FUNC_ENTRY ("Bytes: 0x%x", bytes);
 
-    INFO ("Requested net size of %lu bytes", NET_ALLOCATION_SIZE(bytes));
+    INFO ("Requested net size of %lu bytes", NET_ALLOCATION_SIZE (bytes));
 
     // Search for suitable node
-    size_t searchAllocSize = NET_ALLOCATION_SIZE(bytes) +  sizeof (MallocHeader);
-    MallocHeader* node     = s_findFirst (FREE_LIST, FIND_CRIT_NODE_SIZE, searchAllocSize);
+    size_t searchAllocSize = NET_ALLOCATION_SIZE (bytes) + sizeof (MallocHeader);
+    MallocHeader* node     = s_findFirst (&s_freeHead, FIND_CRIT_NODE_SIZE, searchAllocSize);
 
     if (node != NULL)
     {
-        k_assert (node->netNodeSize >= NET_ALLOCATION_SIZE(bytes), "Found node too small");
+        k_assert (node->netNodeSize >= NET_ALLOCATION_SIZE (bytes), "Found node too small");
 
         // Split the free node into two.
         s_splitFreeNode (bytes, node);
@@ -110,7 +102,7 @@ bool kfree (void* addr)
     FUNC_ENTRY ("Address: 0x%px", addr);
 
     void* headerAddress    = (void*)((PTR)addr - sizeof (MallocHeader));
-    MallocHeader* allocHdr = s_findFirst (ALLOC_LIST, FIND_CRIT_NODE_ADDRESS, (PTR)headerAddress);
+    MallocHeader* allocHdr = s_findFirst (&s_allocHead, FIND_CRIT_NODE_ADDRESS, (PTR)headerAddress);
     if (allocHdr != NULL)
     {
         INFO ("Free at %px, Size = %lu", allocHdr, allocHdr->netNodeSize);
@@ -123,7 +115,30 @@ bool kfree (void* addr)
     }
 
     INFO ("Adderss not found.");
-    RETURN_ERROR(ERR_INVALID_ARGUMENT, false);
+    RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+}
+
+/***************************************************************************************************
+ * Gets the amount of memory allocated by kmalloc
+ *
+ * @return          Amount of allocated memory in bytes.
+ **************************************************************************************************/
+SIZE kmalloc_getUsedMemory()
+{
+    FUNC_ENTRY();
+
+    SIZE usedSz = 0U;
+    ListNode* node;
+
+    list_for_each (&s_allocHead, node)
+    {
+        MallocHeader* header = LIST_ITEM (node, MallocHeader, allocnode);
+        k_assert (header && (header->netNodeSize > KMALLOC_SIZE_BYTES),
+                  "Invalid state of kmalloc data");
+        usedSz += header->netNodeSize;
+    }
+
+    return usedSz;
 }
 
 static void s_combineAdjFreeNodes (MallocHeader* currentNode)
@@ -138,17 +153,14 @@ static void s_combineAdjFreeNodes (MallocHeader* currentNode)
     if (currentNode->adjnode.prev != &s_adjHead)
     {
         prev = LIST_ITEM (currentNode->adjnode.prev, MallocHeader, adjnode);
-        INFO ("Prev: 0x%px Sz: %lu <-> Current: 0x%px Sz: %lu", prev, prev->netNodeSize,
-              currentNode, currentNode->netNodeSize);
     }
 
     // Next node could be the list head (which is not a MallocHeader). That would mean end of list
-    // and is not taken into account.
+    // and is not taken into account (Practically this is not possible as there will always be
+    // one Free section at the end of kmalloc buffer).
     if (currentNode->adjnode.next != &s_adjHead)
     {
         next = LIST_ITEM (currentNode->adjnode.next, MallocHeader, adjnode);
-        INFO ("Current: 0x%px Sz: %lu <-> Next: 0x%px Sz: %lu", currentNode,
-              currentNode->netNodeSize, next, next->netNodeSize);
     }
 
     if (next && !next->isAllocated)
@@ -182,40 +194,24 @@ static MallocHeader* s_createNewNode (void* at, size_t netSize)
     return newH;
 }
 
-static ListNode* s_getListHead (KMallocLists list)
+static MallocHeader* s_getMallocHeaderFromList (ListNode* head, ListNode* node)
 {
-    switch (list)
+    MallocHeader* ret = NULL;
+    if (head == &s_allocHead)
     {
-    case FREE_LIST:
-        return &s_freeHead;
-    case ALLOC_LIST:
-        return &s_allocHead;
-    case ADJ_LIST:
-        return &s_adjHead;
-    };
-    UNREACHABLE();
-    return NULL;
+        ret = LIST_ITEM (node, MallocHeader, allocnode);
+    }
+    else if (head == &s_freeHead)
+    {
+        ret = LIST_ITEM (node, MallocHeader, freenode);
+    }
+
+    return ret;
 }
 
-static MallocHeader* s_getMallocHeaderFromList (KMallocLists list, ListNode* node)
-{
-    switch (list)
-    {
-    case FREE_LIST:
-        return LIST_ITEM (node, MallocHeader, freenode);
-    case ALLOC_LIST:
-        return LIST_ITEM (node, MallocHeader, allocnode);
-    case ADJ_LIST:
-        return LIST_ITEM (node, MallocHeader, adjnode);
-    };
-    UNREACHABLE();
-    return NULL;
-}
-
-static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, PTR value)
+static MallocHeader* s_findFirst (ListNode* head, FindCriteria criteria, PTR value)
 {
     bool found           = false;
-    ListNode* head       = s_getListHead (list);
     ListNode* node       = NULL;
     MallocHeader* header = NULL;
 
@@ -223,7 +219,7 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, PTR 
 
     list_for_each (head, node)
     {
-        header = s_getMallocHeaderFromList (list, node);
+        header = s_getMallocHeaderFromList (head, node);
         INFO ("  (%px) Size = %lu...", header, header->netNodeSize);
 
         switch (criteria)
@@ -247,7 +243,7 @@ static MallocHeader* s_findFirst (KMallocLists list, FindCriteria criteria, PTR 
 
 static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr)
 {
-    size_t netAllocSize  = NET_ALLOCATION_SIZE(bytes);
+    size_t netAllocSize  = NET_ALLOCATION_SIZE (bytes);
     PTR splitAt          = (PTR)freeNodeHdr + netAllocSize;
     size_t remainingSize = freeNodeHdr->netNodeSize - netAllocSize;
     k_assert (remainingSize >= sizeof (MallocHeader), "Not enough space for kmalloc header");
@@ -255,6 +251,7 @@ static void s_splitFreeNode (size_t bytes, MallocHeader* freeNodeHdr)
     MallocHeader* newFreeNodeHdr = s_createNewNode ((void*)splitAt, remainingSize);
     freeNodeHdr->netNodeSize     = netAllocSize;
     freeNodeHdr->isAllocated     = true;
+
     list_add_after (&freeNodeHdr->freenode, &newFreeNodeHdr->freenode);
     list_add_after (&freeNodeHdr->adjnode, &newFreeNodeHdr->adjnode);
     list_remove (&freeNodeHdr->freenode);

@@ -32,10 +32,12 @@ void salloc_init();
 void* salloc (UINT bytes);
 void* scalloc (UINT bytes);
 void* salloc_arch_preAllocateMemory();
+SIZE salloc_getUsedMemory();
 
 void* kmalloc (size_t bytes);
 bool kfree (void* addr);
 void kmalloc_init();
 void* kmalloc_arch_preAllocateMemory();
+SIZE kmalloc_getUsedMemory();
 
 #endif // MEMMANAGE_H
