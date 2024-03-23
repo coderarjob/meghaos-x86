@@ -15,6 +15,7 @@
 #include <disp.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <types.h>
 #include <moslimits.h>
 #include <kdebug.h>
@@ -31,18 +32,17 @@
 #include <panic.h>
 #include <paging.h>
 #include <utils.h>
+#include <x86/memloc.h>
+#include <memmanage.h>
 
 static void usermode_main ();
 static void display_system_info ();
 static void s_markUsedMemory ();
 static void s_dumpPab ();
-
-/*
- Virtual memory        ->  Physical memory
- 0xc0000000 - 0xc03fffff -> 0x000000000000 - 0x0000003fffff
-*/
-//volatile CHAR *a = (CHAR *)0x00300000;
-volatile CHAR *a = (CHAR *)0xC0300000;
+//static void paging_test_map_unmap();
+//static void paging_test_temp_map_unmap();
+//static void kmalloc_test();
+static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 
 __attribute__ ((noreturn)) 
 void kernel_main ()
@@ -53,8 +53,11 @@ void kernel_main ()
     // Initilaize Physical Memory Manger
     kpmm_init ();
 
-    // Mark memory already occupied by the modules.
+    // Mark memory already occupied by the modules and unmap unused Virutal pages.
     s_markUsedMemory();
+
+    salloc_init();
+    kmalloc_init();
 
     // TSS setup
     kearly_println ("[  ]\tTSS setup.");
@@ -88,6 +91,9 @@ void kernel_main ()
     // Paging information
     //extern void paging_print ();
     //paging_print ();
+    //paging_test_map_unmap();
+    //paging_test_temp_map_unmap();
+    //kmalloc_test();
 
     // Jump to user mode
     INFO ("Jumping to User mode..");
@@ -95,8 +101,73 @@ void kernel_main ()
 
     jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
-    
 }
+
+//static void kmalloc_test()
+//{
+//    int* addr1 = (int*)kmalloc(10 * sizeof(UINT));
+//    int* addr2 = (int*)kmalloc(100 * sizeof(UINT));
+//
+//    *addr1 = 0xB001;
+//    *addr2 = 0xC002;
+//
+//    INFO ("addr1: 0x%px, addr2: 0x%px", addr1, addr2);
+//
+//    kfree(addr1);
+//    kfree(addr2);
+//}
+//
+//static void paging_test_map_unmap()
+//{
+//    FUNC_ENTRY();
+//
+//    volatile CHAR* a = (CHAR*)0xC0400000;
+//
+//    Physical pa;
+//    kpmm_alloc (&pa, 1, PMM_REGION_ANY);
+//    PageDirectory pd = kpg_getcurrentpd();
+//    kpg_map (pd, (PTR)a, pa, PG_MAP_FLAG_WRITABLE);
+//    k_assertOnError();
+//
+//    *a = 0;
+//
+//    kpg_unmap (pd, (PTR)a);
+//    k_assertOnError();
+//
+//    kpmm_free(pa, 1);
+//    k_assertOnError();
+//}
+//
+//static void paging_test_temp_map_unmap()
+//{
+//    FUNC_ENTRY();
+//
+//    Physical pa1, pa2;
+//    kpmm_alloc (&pa1, 1, PMM_REGION_ANY);
+//    kpmm_alloc (&pa2, 1, PMM_REGION_ANY);
+//
+//    void* addr = kpg_temporaryMap (pa1);
+//    //x86_TLB_INVAL_SINGLE (0xC03FF000U);
+//    //tlb_inval_complete();
+//    *(INT*)addr = 0xF001;
+//    kpg_temporaryUnmap();
+//
+//    addr = kpg_temporaryMap (pa2);
+//    //x86_TLB_INVAL_SINGLE (0xC03FF000U);
+//    //tlb_inval_complete();
+//    *(INT*)addr = 0xF002;
+//    kpg_temporaryUnmap();
+//
+//    kdebug_println ("Read Value at %x", pa1.val);
+//    kdebug_println ("Read Value at %x", pa2.val);
+//    kbochs_breakpoint();
+//
+//    kpmm_free(pa1, 1);
+//    k_assertOnError();
+//
+//    kpmm_free(pa2, 1);
+//    k_assertOnError();
+//}
 
 void setup_paging()
 {
@@ -139,7 +210,7 @@ void display_system_info()
 {
     FUNC_ENTRY();
 
-#if DEBUG
+#if DEBUG_LEVEL & 0x1
     BootLoaderInfo* mi               = kboot_getCurrentBootLoaderInfo();
     INT             loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
 
@@ -150,7 +221,7 @@ void display_system_info()
         UINT          startLocation = (UINT)kBootFileItem_getStartLocation (file);
         UINT          length_bytes  = (UINT)kBootFileItem_getLength (file);
 
-        INFO ("* file: Start = %x, Length = %x", startLocation, length_bytes);
+        INFO ("* file: Start = %x, Length = %u bytes", startLocation, length_bytes);
     }
 
     INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
@@ -173,7 +244,33 @@ void display_system_info()
     UINT installed_memory_pageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (installed_memory);
     INFO ("Installed RAM Pages: %u", installed_memory_pageCount);
     INFO ("Free RAM bytes: x:%llx bytes", kpmm_getFreeMemorySize());
-#endif // DEBUG
+#endif
+}
+
+/***************************************************************************************************
+ * Unmaps higher-half virtual pages corresponding to the input physcial memory range.
+ *
+ * @Input      Start physical address. Must by page aligned.
+ * @Input      End physical address. Must by page aligned.
+ * @return nothing
+ * @error   On failure, processor is halted.
+ **************************************************************************************************/
+static void s_unmapInitialUnusedAddressSpace (Physical start, Physical end)
+{
+    FUNC_ENTRY("start: 0x%px, end: 0x%px", start.val, end.val);
+
+    PageDirectory pd      = kpg_getcurrentpd();
+    PTR           startva = (PTR)CAST_PA_TO_VA (start);
+    PTR           endva   = (PTR)CAST_PA_TO_VA (end);
+
+    k_assert (IS_ALIGNED (startva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
+    k_assert (IS_ALIGNED (endva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
+
+    for (PTR va = startva; va < endva; va += CONFIG_PAGE_FRAME_SIZE_BYTES)
+    {
+        kpg_unmap (pd, va);
+        k_assertOnError();
+    }
 }
 
 /***************************************************************************************************
@@ -186,28 +283,41 @@ void display_system_info()
  * @return nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_markUsedMemory ()
+static void s_markUsedMemory()
 {
     FUNC_ENTRY();
 
     /* Kernel reserved */
-    UINT pageCount = 0x46000 / CONFIG_PAGE_FRAME_SIZE_BYTES;
-    if (kpmm_allocAt (createPhysical(0), pageCount, PMM_REGION_ANY) == false)
-        k_assertOnError ();
+    // TODO: Should be a paging function to get physcical memory from virtual memory.
+    Physical kernel_low_region_end_phy = PHYSICAL(KERNEL_LOW_REGION_END - 0xC0000000);
+    UINT pageCount = BYTES_TO_PAGEFRAMES_CEILING (kernel_low_region_end_phy.val);
+    if (kpmm_allocAt (createPhysical (0), pageCount, PMM_REGION_ANY) == false)
+        k_panic ("Kernel low region of physical memory must be free.");
+
+    /* Remove unnecessory vritual page mappings (400KiB to 640 KiB)*/
+    s_unmapInitialUnusedAddressSpace (kernel_low_region_end_phy,
+                                      createPhysical (640 * KB));
 
     /* Module files */
-    BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    INT filesCount = kBootLoaderInfo_getFilesCount (bootloaderinfo);
+    USYSINT totalModuleSizeBytes   = 0;
+    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
+    INT filesCount                 = kBootLoaderInfo_getFilesCount (bootloaderinfo);
     for (INT i = 0; i < filesCount; i++)
     {
         BootFileItem* fileinfo = kBootLoaderInfo_getFileItem (bootloaderinfo, i);
-        USYSINT startAddress = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
-        USYSINT lengthBytes = (USYSINT)kBootFileItem_getLength (fileinfo);
-        UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
+        USYSINT startAddress   = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
+        USYSINT lengthBytes    = (USYSINT)kBootFileItem_getLength (fileinfo);
+        UINT pageFrameCount    = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
+        totalModuleSizeBytes += lengthBytes;
 
-        if (kpmm_allocAt (createPhysical(startAddress), pageFrameCount, PMM_REGION_ANY) == false)
-            k_assertOnError ();
+        if (kpmm_allocAt (createPhysical (startAddress), pageFrameCount, PMM_REGION_ANY) == false)
+            k_assertOnError();
     }
+
+    /* Remove unnecessory vritual page mappings (ModuleFilesEnd to 2 MiB)*/
+    s_unmapInitialUnusedAddressSpace (
+        createPhysical ((1 * MB) + ALIGN_UP (totalModuleSizeBytes, CONFIG_PAGE_FRAME_SIZE_BYTES)),
+        createPhysical (2 * MB));
 }
 
 void usermode_main ()
@@ -224,26 +334,17 @@ void usermode_main ()
     INFO ("Size of PTR = %u", sizeof (PTR));
     INFO ("MASK(19,0) is %x", BIT_MASK (19, 0));
 
-    kbochs_breakpoint();
-    /*Physical pa = PHYSICAL(0x100000);
+    /*kbochs_breakpoint();
+    Physical pa = PHYSICAL(0x100000);
     PageDirectory pd = kpg_getcurrentpd();
     kpg_map(&pd, PAGE_MAP_BACKED, 0xC01FF000, 1, &pa);*/
-    //void salloc_init ();
-    //void *salloc(UINT byte);
-    //salloc_init();
-    //kbochs_breakpoint();
-    //kearly_println("%x", (PTR)salloc(10));
-    //kearly_println("%x", (PTR)salloc(4096));
-    //kearly_println("%x", (PTR)salloc(2));
-    //kearly_println("%x", (PTR)salloc(1));
-    /*extern void display_arch_PageInfo (PTR va);
-    display_arch_PageInfo((PTR)kernel_main);*/
-
-    //*a = 0;
+    kearly_println("%x", (PTR)salloc(10));
+    kearly_println("%x", (PTR)salloc(4096));
+    kearly_println("%x", (PTR)salloc(2));
+    kearly_println("%x", (PTR)salloc(1));
     INFO ("PD: %x, PT: %x", g_page_dir.val, g_page_table.val);
-
-    Physical addr;
-    kpmm_alloc(&addr, 1, PMM_REGION_ANY);
+//    volatile CHAR* a = (CHAR*)0xC0400000;
+//    *a = 0;
 
     k_halt();
 }
