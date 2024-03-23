@@ -77,6 +77,21 @@ TEST (salloc, invalid_inputs)
     END();
 }
 
+TEST (salloc, get_used_memory)
+{
+    // When there are no allocation
+    EQ_SCALAR (salloc_getUsedMemory(), 0U);
+
+    // When some memory is used.
+    SIZE sizes[] = {ALIGNED_SIZE(SALLOC_SIZE_BYTES/2),
+                    ALIGNED_SIZE(SALLOC_SIZE_BYTES/3)};
+    NEQ_SCALAR (salloc (sizes[0]), NULL);
+    NEQ_SCALAR (salloc (sizes[1]), NULL);
+
+    EQ_SCALAR (salloc_getUsedMemory(), (sizes[0] + sizes[1]));
+    END();
+}
+
 void reset()
 {
     resetX86MemManageFake();
@@ -94,4 +109,5 @@ int main()
     invalid_inputs();
     salloc_alignments();
     salloc_out_of_memory();
+    get_used_memory();
 }

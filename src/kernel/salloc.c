@@ -86,3 +86,17 @@ void* scalloc (UINT bytes)
 
     return mem;
 }
+
+/***************************************************************************************************
+ * Gets the amount of memory allocated by salloc
+ *
+ * @return          Amount of allocated memory in bytes.
+ **************************************************************************************************/
+SIZE salloc_getUsedMemory()
+{
+    FUNC_ENTRY();
+
+    SIZE usedSz = (PTR)s_next - (PTR)s_start;
+
+    return usedSz;
+}
