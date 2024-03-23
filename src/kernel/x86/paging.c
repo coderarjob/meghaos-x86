@@ -124,13 +124,17 @@ void kpg_temporaryUnmap()
     // temporary mapping, a temporary map is global (not specific to a particular process). This
     // means in between temporary map and unmap we must not switch processes.
     ArchPageTableEntry *pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
-    k_assert (pte->present == 1, "Temporary mapping not present");
+    if (!pte->present)
+    {
+        k_panic("Temporary mapping not present");
+    }
+
     pte->present = 0;
 
     x86_TLB_INVAL_SINGLE (s_getLinearAddress (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0));
 }
 
-void *kpg_temporaryMap (Physical pa)
+void* kpg_temporaryMap (Physical pa)
 {
     FUNC_ENTRY();
 
@@ -144,7 +148,10 @@ void *kpg_temporaryMap (Physical pa)
 
     void* temporaryAddress  = s_getLinearAddress (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0);
     ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
-    k_assert (pte->present == 0, "Temporary mapping already present");
+    if (pte->present)
+    {
+        k_panic("Temporary mapping already present");
+    }
 
     s_setupPTE ((PTR)temporaryAddress, pte, pa,
                 PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
@@ -171,13 +178,17 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
     IndexInfo info               = s_getTableIndices (va);
     ArchPageDirectoryEntry *pde  = &pd[info.pdeIndex];
-    k_assert(pde->present, "Page table is already unmapped.");
+    if (!pde->present)
+    {
+        RETURN_ERROR (ERR_DOUBLE_FREE, false); // Page table is already unmapped.
+    }
 
     Physical pt_phyaddr = PHYSICAL(PAGEFRAME_TO_PHYSICAL(pde->pageTableFrame));
     PageTable pt = (PageTable)kpg_temporaryMap(pt_phyaddr);
     ArchPageTableEntry *pte = &pt[info.pteIndex];
 
-    if (!pte->present) {
+    if (!pte->present)
+    {
         kpg_temporaryUnmap();
         // Panic or assert may not be the right decision here. At this time I want the caller to
         // take action. The caller will be at a better position to take decision.
@@ -194,16 +205,16 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
 bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
 {
-    FUNC_ENTRY("PD: 0x%px, VA: 0x%px, PA: 0x%px, flags: 0x%x", pd, va, pa.val, flags);
+    FUNC_ENTRY ("PD: 0x%px, VA: 0x%px, PA: 0x%px, flags: 0x%x", pd, va, pa.val, flags);
 
-    k_assert(pd != NULL, "Page Directory is null.");
+    k_assert (pd != NULL, "Page Directory is null.");
 
     if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES) ||
         !IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
 
-    IndexInfo info             = s_getTableIndices (va);
-    ArchPageDirectoryEntry *pde  = &pd[info.pdeIndex];
+    IndexInfo info              = s_getTableIndices (va);
+    ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
     if (!pde->present)
     {
         // Allocate phy mem for new page table.
@@ -212,7 +223,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
             k_panic ("Memory allocation failed");
 
         // Initialize the page table.
-        void *tempva = kpg_temporaryMap (pa_new);
+        void* tempva = kpg_temporaryMap (pa_new);
         k_memset (tempva, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
         kpg_temporaryUnmap();
 
@@ -221,11 +232,12 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
     }
 
     // In order to access the page table a temporary mapping is required.
-    Physical ptaddr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-    PageTable tempva = (PageTable)kpg_temporaryMap (ptaddr);
-    ArchPageTableEntry *pte = &tempva[info.pteIndex];
+    Physical ptaddr         = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
+    PageTable tempva        = (PageTable)kpg_temporaryMap (ptaddr);
+    ArchPageTableEntry* pte = &tempva[info.pteIndex];
 
-    if (pte->present) {
+    if (pte->present)
+    {
         kpg_temporaryUnmap();
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }

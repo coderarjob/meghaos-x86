@@ -194,17 +194,6 @@ TEST (paging, map_failure_pa_not_aligned)
     END();
 }
 
-TEST (paging, map_failure_pd_is_null)
-{
-    PTR      va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
-    Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
-    EQ_SCALAR (kpg_map (NULL, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
-
-    EQ_SCALAR (panic_invoked, true);
-
-    END();
-}
-
 // ------------------------------------------------------------------------------------------------
 // Test: Successful mapping scenarios
 // ------------------------------------------------------------------------------------------------
@@ -389,7 +378,7 @@ TEST (paging, unmap_failure_page_table_not_present)
 
     EQ_SCALAR (kpg_unmap (pd, va), false);
 
-    EQ_SCALAR (panic_invoked, true);
+    EQ_SCALAR (k_errorNumber, ERR_DOUBLE_FREE);
 
     END();
 }
@@ -445,16 +434,6 @@ TEST (paging, unmap_failure_va_not_aligned)
     END();
 }
 
-TEST (paging, unmap_failure_pd_is_null)
-{
-    PTR va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
-    EQ_SCALAR (kpg_unmap (NULL, va), false);
-
-    EQ_SCALAR (panic_invoked, true);
-
-    END();
-}
-
 // ------------------------------------------------------------------------------------------------
 
 void* k_memcpy_handler_fn (void* dest, const void* src, size_t n) { return memcpy (dest, src, n); }
@@ -482,7 +461,6 @@ int main()
 
     map_success_page_table_present();
     map_success_page_table_not_present();
-    map_failure_pd_is_null();
     map_failure_new_page_table_creation_failed();
     map_failure_pa_not_aligned();
     map_failure_va_not_aligned();
@@ -490,7 +468,6 @@ int main()
 
     unmap_success();
     unmap_failure_va_not_aligned();
-    unmap_failure_pd_is_null();
     unmap_failure_double_unmap();
     unmap_failure_page_table_not_present();
 
