@@ -19,8 +19,7 @@
 #include <panic.h>
 #include <kdebug.h>
 
-typedef struct IndexInfo
-{
+typedef struct IndexInfo {
     UINT pdeIndex;
     UINT pteIndex;
     UINT offset;
@@ -131,8 +130,7 @@ void kpg_temporaryUnmap()
     // is not really required. That is to say the address of the PTE used for temporary mapping is
     // constant.
     ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
-    if (!pte->present)
-    {
+    if (!pte->present) {
         k_panic ("Temporary mapping not present");
     }
 
@@ -154,6 +152,7 @@ void kpg_temporaryUnmap()
  * @Input   pa      Physical page which will be mapped. Must be page aligned.
  * @return          True if mapping was successful, false otherwise. Error number is set.
  * @error           Kernel panic  - When temporary map already exists (to some physical page)
+ *                  ERR_WRONG_ALIGNMENT - Input is not page aligned.
  **************************************************************************************************/
 void* kpg_temporaryMap (Physical pa)
 {
@@ -161,13 +160,13 @@ void* kpg_temporaryMap (Physical pa)
 
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.
-    if (!IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
+    if (!IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, NULL);
+    }
 
     void* temporaryAddress  = s_getLinearAddress (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0);
     ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
-    if (pte->present)
-    {
+    if (pte->present) {
         k_panic ("Temporary mapping already present");
     }
 
@@ -177,6 +176,11 @@ void* kpg_temporaryMap (Physical pa)
     return temporaryAddress;
 }
 
+/***************************************************************************************************
+ * Gets the pointer (virtual address) to the current page directory.
+ *
+ * @return          Pointer to the Page Directory of the current process.
+ **************************************************************************************************/
 PageDirectory kpg_getcurrentpd()
 {
     FUNC_ENTRY();
@@ -193,6 +197,7 @@ PageDirectory kpg_getcurrentpd()
  * @Input   va      Virtual address which will be unmapped. Must be page aligned.
  * @return          True if unmapping was successful, false otherwise. Error number is set.
  * @error           ERR_DOUBLE_FREE  - Virtual address is already not present.
+ *                  ERR_WRONG_ALIGNMENT - Input is not page aligned.
  **************************************************************************************************/
 bool kpg_unmap (PageDirectory pd, PTR va)
 {
@@ -200,13 +205,13 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
     k_assert (pd != NULL, "Page Directory is null.");
 
-    if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES))
+    if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
+    }
 
     IndexInfo info              = s_getTableIndices (va);
     ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
-    if (!pde->present)
-    {
+    if (!pde->present) {
         RETURN_ERROR (ERR_DOUBLE_FREE, false); // Page table is already unmapped.
     }
 
@@ -214,8 +219,7 @@ bool kpg_unmap (PageDirectory pd, PTR va)
     PageTable pt            = (PageTable)kpg_temporaryMap (pt_phyaddr);
     ArchPageTableEntry* pte = &pt[info.pteIndex];
 
-    if (!pte->present)
-    {
+    if (!pte->present) {
         kpg_temporaryUnmap();
         // Panic or assert may not be the right decision here. At this time I want the caller to
         // take action. The caller will be at a better position to take decision.
@@ -239,7 +243,8 @@ bool kpg_unmap (PageDirectory pd, PTR va)
  * @Input   pa      Physical address. Must be page aligned.
  * @Input   flags   PDE/PTE flags to be used for the mapping. PG_MAP_FLAG_* items.
  * @return          True if mapping was successful, false otherwise. Error number is set.
- * @error           ERR_DOUBLE_ALLOC  - Virtual address is already present.
+ * @error           ERR_DOUBLE_ALLOC    - Virtual address is already present.
+ *                  ERR_WRONG_ALIGNMENT - Inputs are not page aligned.
  **************************************************************************************************/
 bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
 {
@@ -248,17 +253,18 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
     k_assert (pd != NULL, "Page Directory is null.");
 
     if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES) ||
-        !IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES))
+        !IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
+    }
 
     IndexInfo info              = s_getTableIndices (va);
     ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
-    if (!pde->present)
-    {
+    if (!pde->present) {
         // Allocate phy mem for new page table.
         Physical pa_new;
-        if (kpmm_alloc (&pa_new, 1, PMM_REGION_ANY) == false)
+        if (kpmm_alloc (&pa_new, 1, PMM_REGION_ANY) == false) {
             k_panic ("Memory allocation failed");
+        }
 
         // Initialize the page table.
         void* tempva = kpg_temporaryMap (pa_new);
@@ -274,13 +280,54 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
     PageTable tempva        = (PageTable)kpg_temporaryMap (ptaddr);
     ArchPageTableEntry* pte = &tempva[info.pteIndex];
 
-    if (pte->present)
-    {
+    if (pte->present) {
         kpg_temporaryUnmap();
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 
     s_setupPTE (va, pte, pa, flags);
     kpg_temporaryUnmap();
+    return true;
+}
+
+/***************************************************************************************************
+ * Gets the physical address for the associated virtual address as per mapping in its Page
+ * directory.
+ *
+ * @Input    pd      Page directory which will contain this virtual address.
+ * @Input    va      Virtual address which will map to the physical address. Must be page aligned.
+ * @Output   pa      Pointer where the Physical address will be stored.
+ * @return           True if mapping exists, false otherwise. Error number is set.
+ * @error            ERR_INVALID_ARGUMENT - Pointer to page directory is null.
+ **************************************************************************************************/
+bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
+{
+    FUNC_ENTRY ("Page Directory: 0x%px, VA: 0x%px, Page Attributes: 0x%px", pd, va, pa);
+
+    if (pd == NULL) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    }
+
+    IndexInfo info              = s_getTableIndices (va);
+    ArchPageDirectoryEntry* pde = &((ArchPageDirectoryEntry*)pd)[info.pdeIndex];
+
+    if (!pde->present) {
+        RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
+    }
+
+    Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
+    void* pt_vaddr          = kpg_temporaryMap (pt_phyaddr);
+    ArchPageTableEntry* pte = &((ArchPageTableEntry*)pt_vaddr)[info.pteIndex];
+
+    if (!pte->present) {
+        kpg_temporaryUnmap();
+        RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
+    }
+
+    Physical phy_addr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pte->pageFrame) | info.offset);
+    *pa               = phy_addr;
+
+    kpg_temporaryUnmap();
+
     return true;
 }

@@ -46,11 +46,12 @@ typedef enum PagingMapFlags
 #define PHYSICAL_TO_PAGEFRAME(addr) (BYTES_TO_PAGEFRAMES_FLOOR(addr))
 
 PageDirectory kpg_getcurrentpd();
-void kpg_setupPD (PageDirectory pd, PageAttributes *attr);
-void kpg_setPT (PageDirectory pd, PageTable *pt, PTR start);
+//void kpg_setupPD (PageDirectory pd, PageAttributes *attr);
+//void kpg_setPT (PageDirectory pd, PageTable *pt, PTR start);
 bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags);
 bool kpg_unmap (PageDirectory pd, PTR va);
 void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();
+bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa);
 
 #endif // PAGING_H

@@ -261,19 +261,19 @@ void display_system_info()
  **************************************************************************************************/
 static void s_unmapInitialUnusedAddressSpace (Physical start, Physical end)
 {
-    FUNC_ENTRY("start: 0x%px, end: 0x%px", start.val, end.val);
+    FUNC_ENTRY ("start: 0x%px, end: 0x%px", start.val, end.val);
 
-    PageDirectory pd      = kpg_getcurrentpd();
-    PTR           startva = (PTR)CAST_PA_TO_VA (start);
-    PTR           endva   = (PTR)CAST_PA_TO_VA (end);
+    PageDirectory pd = kpg_getcurrentpd();
+    PTR startva      = (PTR)CAST_PA_TO_VA (start);
+    PTR endva        = (PTR)CAST_PA_TO_VA (end);
 
     k_assert (IS_ALIGNED (startva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
     k_assert (IS_ALIGNED (endva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
 
-    for (PTR va = startva; va < endva; va += CONFIG_PAGE_FRAME_SIZE_BYTES)
-    {
-        kpg_unmap (pd, va);
-        k_assertOnError();
+    for (PTR va = startva; va < endva; va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        if (!kpg_unmap (pd, va)) {
+            k_panicOnError(); // Unmap must not fail.
+        }
     }
 }
 
@@ -291,31 +291,35 @@ static void s_markUsedMemory()
 {
     FUNC_ENTRY();
 
-    /* Kernel reserved */
-    // TODO: Should be a paging function to get physcical memory from virtual memory.
-    Physical kernel_low_region_end_phy = PHYSICAL(KERNEL_LOW_REGION_END - 0xC0000000);
+    /* Kernel reserved (0 to 400KiB) */
+    Physical kernel_low_region_end_phy = { 0 };
+    if (!kpg_getPhysicalMapping (kpg_getcurrentpd(), KERNEL_LOW_REGION_END,
+                                 &kernel_low_region_end_phy)) {
+        k_panicOnError(); // KERNEL_LOW_REGION_END must have physical mapping.
+    }
+
     UINT pageCount = BYTES_TO_PAGEFRAMES_CEILING (kernel_low_region_end_phy.val);
-    if (kpmm_allocAt (createPhysical (0), pageCount, PMM_REGION_ANY) == false)
-        k_panic ("Kernel low region of physical memory must be free.");
+    if (kpmm_allocAt (createPhysical (0), pageCount, PMM_REGION_ANY) == false) {
+        k_panicOnError(); // Kernel low region of physical memory must be free.
+    }
 
-    /* Remove unnecessory vritual page mappings (400KiB to 640 KiB)*/
-    s_unmapInitialUnusedAddressSpace (kernel_low_region_end_phy,
-                                      createPhysical (640 * KB));
+    /* Remove unnecessary virtual page mappings (400KiB to 640 KiB)*/
+    s_unmapInitialUnusedAddressSpace (kernel_low_region_end_phy, createPhysical (640 * KB));
 
-    /* Module files */
+    /* Accounting of physical memory used by module files */
     USYSINT totalModuleSizeBytes   = 0;
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
     INT filesCount                 = kBootLoaderInfo_getFilesCount (bootloaderinfo);
-    for (INT i = 0; i < filesCount; i++)
-    {
+    for (INT i = 0; i < filesCount; i++) {
         BootFileItem* fileinfo = kBootLoaderInfo_getFileItem (bootloaderinfo, i);
         USYSINT startAddress   = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
         USYSINT lengthBytes    = (USYSINT)kBootFileItem_getLength (fileinfo);
         UINT pageFrameCount    = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
         totalModuleSizeBytes += lengthBytes;
 
-        if (kpmm_allocAt (createPhysical (startAddress), pageFrameCount, PMM_REGION_ANY) == false)
-            k_assertOnError();
+        if (kpmm_allocAt (createPhysical (startAddress), pageFrameCount, PMM_REGION_ANY) == false) {
+            k_panicOnError(); // Physical memory allocation must pass.
+        }
     }
 
     /* Remove unnecessory vritual page mappings (ModuleFilesEnd to 2 MiB)*/
