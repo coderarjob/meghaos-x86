@@ -33,7 +33,19 @@
     (((pde_idx) << PDE_SHIFT) | ((pte_idx) << PTE_SHIFT) | (offset))
 
 #ifndef UNITTEST
+    /***********************************************************************************************
+     * Invalidates TLB entries specific to a virtual address.
+     *
+     * @Input   addr    Virtual address
+     * @return          Nothing
+     **********************************************************************************************/
     #define x86_TLB_INVAL_SINGLE(addr) __asm__ volatile("invlpg %0;" ::"m"(*(char*)addr))
+
+    /***********************************************************************************************
+     * Invalidates complete TLB.
+     *
+     * @return          Nothing
+     **********************************************************************************************/
     #define X86_TLB_INVAL_COMPLETE()                  \
         do                                            \
         {                                             \
