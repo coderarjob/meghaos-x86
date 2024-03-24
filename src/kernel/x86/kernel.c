@@ -44,6 +44,9 @@ static void s_dumpPab ();
 //static void kmalloc_test();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 
+/* This variable is globally used to set error codes*/
+KernelErrorCodes k_errorNumber;
+
 __attribute__ ((noreturn)) 
 void kernel_main ()
 {
