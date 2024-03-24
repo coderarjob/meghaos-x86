@@ -48,7 +48,6 @@ __attribute__ ((noreturn))
 void kernel_main ()
 {
     kdisp_init ();
-    kearly_println ("[OK]\tPaging enabled.");
 
     // Initilaize Physical Memory Manger
     kpmm_init ();
@@ -58,6 +57,8 @@ void kernel_main ()
 
     salloc_init();
     kmalloc_init();
+
+    kearly_println ("[OK]\tPaging enabled.");
 
     // TSS setup
     kearly_println ("[  ]\tTSS setup.");

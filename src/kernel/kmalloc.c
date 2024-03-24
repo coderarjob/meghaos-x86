@@ -114,7 +114,7 @@ bool kfree (void* addr)
         return true;
     }
 
-    INFO ("Adderss not found.");
+    ERROR ("Adderss '0x%px' not found.", addr);
     RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 }
 
