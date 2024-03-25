@@ -260,6 +260,8 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
     IndexInfo info              = s_getTableIndices (va);
     ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
     if (!pde->present) {
+        INFO ("Creating new page table for address 0x%px", va);
+
         // Allocate phy mem for new page table.
         Physical pa_new;
         if (kpmm_alloc (&pa_new, 1, PMM_REGION_ANY) == false) {
