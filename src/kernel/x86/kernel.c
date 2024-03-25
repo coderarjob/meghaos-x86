@@ -43,6 +43,7 @@ static void s_dumpPab ();
 //static void paging_test_temp_map_unmap();
 //static void kmalloc_test();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
+static void find_virtual_address();
 
 /* This variable is globally used to set error codes*/
 KernelErrorCodes k_errorNumber;
@@ -90,7 +91,6 @@ void kernel_main ()
 
     // Display available memory
     display_system_info ();
-    
     s_dumpPab();
     // Paging information
     //extern void paging_print ();
@@ -98,6 +98,10 @@ void kernel_main ()
     //paging_test_map_unmap();
     //paging_test_temp_map_unmap();
     //kmalloc_test();
+    find_virtual_address();
+
+    display_system_info ();
+    s_dumpPab();
 
     // Jump to user mode
     INFO ("Jumping to User mode..");
@@ -105,6 +109,31 @@ void kernel_main ()
 
     jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
+}
+
+static void find_virtual_address()
+{
+    FUNC_ENTRY();
+
+    SIZE numPages = 3000;
+    // void* addr = kpg_findVirtualAddressSpace(kpg_getcurrentpd(), 2000, 0xC03FF000, 0xC0900000);
+    PTR addr = kpg_findVirtualAddressSpace (kpg_getcurrentpd(), numPages, 0xC00A0000, 0xC0F00000);
+    kearly_println ("Found address is 0x%px", addr);
+
+    for (UINT i = 0; i < numPages; addr += CONFIG_PAGE_FRAME_SIZE_BYTES, i++)
+    {
+        Physical pa;
+        if (!kpmm_alloc(&pa, 1, PMM_REGION_ANY)) {
+            k_panicOnError();
+        }
+
+        if (!kpg_map(kpg_getcurrentpd(), addr, pa, PG_MAP_FLAG_KERNEL|PG_MAP_FLAG_WRITABLE)) {
+            k_panicOnError();
+        }
+    }
+
+    addr = (PTR)kpg_findVirtualAddressSpace (kpg_getcurrentpd(), 200, 0xC00A0000, 0xC0900000);
+    kearly_println ("Found address is 0x%px", addr);
 }
 
 //static void kmalloc_test()
