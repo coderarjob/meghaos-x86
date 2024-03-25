@@ -93,7 +93,7 @@
 | prints warning. They will replace k_assert and remain in release        |           |            |
 | as well, thus these macros must have little impact on binary size       |           |            |
 | and loose the text description of k_assert.                             |           |            |
-| [ ] Remove k_errorText. Has no use in the kernel. It just wasts space.  |           |            |
+| [X] Remove k_errorText. Has no use in the kernel. It just wasts space.  |           | 24 Mar 24  |
 | [ ] Space saving measures                                               |           |            |
 | ::: [X] \n instead of \r\n. No use of LF.                               |           | 16 Mar 24  |
 | Did nothing for space saving for some reason.                           |           |            |
