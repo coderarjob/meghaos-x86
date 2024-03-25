@@ -53,5 +53,6 @@ bool kpg_unmap (PageDirectory pd, PTR va);
 void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();
 bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa);
+PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_start, PTR region_end);
 
 #endif // PAGING_H

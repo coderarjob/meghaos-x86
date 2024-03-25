@@ -103,8 +103,8 @@
 | global pointers state, etc required by the kernel.                      |           |            |
 | [ ] Virutal memory allocator                                            |           |            |
 | ::: [ ] How to do lazy allocation?                                      |           |            |
-| ::: [ ] Allocate a new virtual address                                  |           |            |
-| ::: [ ] Map a virtual to physical address                               |           |            |
+| ::: [X] Allocate a new virtual address                                  |           | 25 Mar 24  |
+| ::: [X] Map a virtual to physical address                               |           |            |
 | ::: [[ ]] Higher half mapping maps first 2MiB physical memory           |           |            |
 | entirely to 0xC0000000. Initially only the physical memory where the    |           |            |
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |

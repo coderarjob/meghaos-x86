@@ -309,7 +309,7 @@ bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
     }
 
     IndexInfo info              = s_getTableIndices (va);
-    ArchPageDirectoryEntry* pde = &((ArchPageDirectoryEntry*)pd)[info.pdeIndex];
+    ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
 
     if (!pde->present) {
         RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
@@ -330,4 +330,97 @@ bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
     kpg_temporaryUnmap();
 
     return true;
+}
+
+/***************************************************************************************************
+ * Searches virtual address space corresponding to the provided page directory, for numPages number
+ * of continuous free virtual pages. No allocation/mapping are done.
+ *
+ * @Input   pd              Page directory wherein the search takes place.
+ * @Input   numPages        This many continuous pages are searched for.
+ * @Input   region_start    Start the search at this virtual address. Must be page aligned.
+ * @Input   region_end      Find within this virtual address. Must be page aligned.
+ * @return                  Virtual address found, NULL otherwise.
+ **************************************************************************************************/
+PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_start, PTR region_end)
+{
+    FUNC_ENTRY ("Page Directory: 0x%px, num Pages: 0x%px, Region start: 0x%px Region end: 0x%px",
+                pd, numPages, region_start, region_end);
+
+    if (pd == NULL) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, (PTR)NULL);
+    }
+
+    IndexInfo startIndexInfo = s_getTableIndices (region_start);
+    IndexInfo endIndexInfo   = s_getTableIndices (region_end);
+
+    SIZE foundPageCount       = 0;
+    bool startAnew            = true;
+    bool found                = false;
+    UINT found_start_pdeIndex = 0, found_start_pteIndex = 0;
+
+    ArchPageDirectoryEntry* pde = &pd[startIndexInfo.pdeIndex];
+
+    for (UINT pdeIndex = startIndexInfo.pdeIndex; pdeIndex <= endIndexInfo.pdeIndex;
+         pde++, pdeIndex++) {
+        SIZE pteStartIndex = (pdeIndex == startIndexInfo.pdeIndex) ? startIndexInfo.pteIndex : 0;
+        SIZE pteEndIndex   = (pdeIndex == endIndexInfo.pdeIndex) ? endIndexInfo.pteIndex : 1023;
+
+        if (startAnew) {
+            startAnew            = false;
+            foundPageCount       = 0;
+            found_start_pdeIndex = pdeIndex;
+            found_start_pteIndex = pteStartIndex;
+        }
+
+        if (pde->present == false) {
+            foundPageCount += 1024; // Whole page table is empty.
+            if (foundPageCount >= numPages) {
+                INFO ("Found at least %u pages empty from [0x%x:0x%x] to [0x%x:0x%x]", numPages,
+                      found_start_pdeIndex, found_start_pteIndex, pdeIndex, 1023);
+                found = true;
+                break; // We have found enough pages. Now stop.
+            }
+            continue; // Require more pages, so continue with the next PDE.
+        }
+
+        Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
+        ArchPageTableEntry* pte = (ArchPageTableEntry*)kpg_temporaryMap (pt_phyaddr);
+        pte                     = &pte[pteStartIndex];
+
+        for (UINT pteIndex = pteStartIndex; pteIndex <= pteEndIndex; pte++, pteIndex++) {
+            if (startAnew) {
+                startAnew            = false;
+                foundPageCount       = 0;
+                found_start_pdeIndex = pdeIndex;
+                found_start_pteIndex = pteIndex;
+            }
+
+            if (pte->present == false) {
+                foundPageCount += 1;
+                if (foundPageCount >= numPages) {
+                    INFO ("Found at least %u pages empty from [0x%x:0x%x] to [0x%x:0x%x]", numPages,
+                          found_start_pdeIndex, found_start_pteIndex, pdeIndex, pteIndex);
+                    found = true;
+                    break; // We have found enough pages. Now stop.
+                }
+            } else {
+                // Abandon the currently searched entires as not enough free pages were found in
+                // them.
+                startAnew = true;
+            }
+        }
+
+        kpg_temporaryUnmap();
+
+        if (found) {
+            break; // We have found enough pages. Now stop.
+        }
+    }
+
+    if (found) {
+        return (PTR)s_getLinearAddress (found_start_pdeIndex, found_start_pteIndex, 0);
+    }
+
+    return (PTR)NULL;
 }
