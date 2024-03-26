@@ -342,25 +342,31 @@ static void s_markUsedMemory()
     s_unmapInitialUnusedAddressSpace (kernel_low_region_end_phy, createPhysical (640 * KB));
 
     /* Accounting of physical memory used by module files */
-    USYSINT totalModuleSizeBytes   = 0;
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
     INT filesCount                 = kBootLoaderInfo_getFilesCount (bootloaderinfo);
-    for (INT i = 0; i < filesCount; i++) {
-        BootFileItem* fileinfo = kBootLoaderInfo_getFileItem (bootloaderinfo, i);
-        USYSINT startAddress   = (USYSINT)kBootFileItem_getStartLocation (fileinfo);
-        USYSINT lengthBytes    = (USYSINT)kBootFileItem_getLength (fileinfo);
-        UINT pageFrameCount    = BYTES_TO_PAGEFRAMES_CEILING (lengthBytes);
-        totalModuleSizeBytes += lengthBytes;
 
-        if (kpmm_allocAt (createPhysical (startAddress), pageFrameCount, PMM_REGION_ANY) == false) {
-            k_panicOnError(); // Physical memory allocation must pass.
-        }
+    BootFileItem* fileinfo      = kBootLoaderInfo_getFileItem (bootloaderinfo, 0);
+    Physical first_startAddress = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+
+    fileinfo                     = kBootLoaderInfo_getFileItem (bootloaderinfo, filesCount - 1);
+    Physical last_startAddress   = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+    SIZE last_lengthBytes        = (USYSINT)kBootFileItem_getLength (fileinfo);
+    SIZE totalModulesLengthBytes = (last_startAddress.val - first_startAddress.val) +
+                                   last_lengthBytes;
+
+    UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
+
+    INFO ("Total size of module files: 0x%x bytes", totalModulesLengthBytes);
+
+    if (kpmm_allocAt (first_startAddress, pageFrameCount, PMM_REGION_ANY) == false) {
+        k_panicOnError(); // Physical memory allocation must pass.
     }
 
     /* Remove unnecessory vritual page mappings (ModuleFilesEnd to 2 MiB)*/
-    s_unmapInitialUnusedAddressSpace (
-        createPhysical ((1 * MB) + ALIGN_UP (totalModuleSizeBytes, CONFIG_PAGE_FRAME_SIZE_BYTES)),
-        createPhysical (2 * MB));
+    s_unmapInitialUnusedAddressSpace (createPhysical (ALIGN_UP (last_startAddress.val +
+                                                                    last_lengthBytes,
+                                                                CONFIG_PAGE_FRAME_SIZE_BYTES)),
+                                      createPhysical (2 * MB));
 }
 
 void usermode_main ()
