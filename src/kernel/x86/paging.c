@@ -156,7 +156,7 @@ void kpg_temporaryUnmap()
  **************************************************************************************************/
 void* kpg_temporaryMap (Physical pa)
 {
-    FUNC_ENTRY();
+    FUNC_ENTRY("Physical address: 0x%px", pa.val);
 
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.

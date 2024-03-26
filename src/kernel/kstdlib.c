@@ -8,6 +8,7 @@
 
 #include <kstdlib.h>
 #include <types.h>
+#include <kdebug.h>
 
 /***************************************************************************************************
  * Copies n bytes from src to dest. Can handle overlaps.
@@ -19,6 +20,8 @@
 ***************************************************************************************************/
 void *k_memcpy (void *dest, const void *src, size_t n)
 {
+    FUNC_ENTRY ("Dest: 0x%px, Src: 0x%px, Len: 0x%x bytes", (PTR)dest, (PTR)src, n);
+
     U8 *cdest = (U8 *)dest;
     U8 *csrc = (U8 *)src;
 
@@ -46,6 +49,8 @@ void *k_memcpy (void *dest, const void *src, size_t n)
 ***************************************************************************************************/
 void *k_memset (void *s, INT c, size_t n)
 {
+    FUNC_ENTRY ("Dest: 0x%px, Byte: 0x%px, Len: 0x%x bytes", (PTR)s, c, n);
+
     return __builtin_memset(s, c, n);
 }
 
