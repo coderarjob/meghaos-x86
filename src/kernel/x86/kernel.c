@@ -34,6 +34,7 @@
 #include <utils.h>
 #include <x86/memloc.h>
 #include <memmanage.h>
+#include <kstdlib.h>
 
 static void usermode_main ();
 static void display_system_info ();
@@ -120,21 +121,48 @@ static void process_poc()
 
     // Allocate physical memory for new PD
     Physical newPD;
-    if (kpmm_alloc(&newPD, 1, PMM_REGION_ANY) == false) {
+    if (kpmm_alloc (&newPD, 1, PMM_REGION_ANY) == false) {
         k_panicOnError();
     }
-    INFO("Physical address for new PD: 0x%px", newPD.val);
+    INFO ("Physical address for new PD: 0x%px", newPD.val);
 
     // Temporary map this PD and copy kernel page table entries
-    PageDirectory pd = kpg_temporaryMap(newPD);
+    PageDirectory pd        = kpg_temporaryMap (newPD);
     PageDirectory currentPD = kpg_getcurrentpd();
     for (UINT pdi = KERNEL_PDE_INDEX; pdi < 1024; pdi++) {
         pd[pdi] = currentPD[pdi];
     }
+    pd[RECURSIVE_PDE_INDEX].pageTableFrame = PHYSICAL_TO_PAGEFRAME (newPD.val);
 
     kpg_temporaryUnmap();
 
-    x86_LOAD_CR3(newPD.val);
+    x86_LOAD_CR3 (newPD.val);
+
+    // Copy the program to a page aligned physical address
+    Physical binPhy;
+    if (kpmm_alloc (&binPhy, 1, PMM_REGION_ANY) == false) {
+        k_panicOnError();
+    }
+
+#define PROCESS_VA_START 0x00010000
+
+    if (!kpg_map (kpg_getcurrentpd(), PROCESS_VA_START, binPhy,
+                  PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
+        k_panicOnError();
+    }
+
+    kbochs_breakpoint();
+    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
+    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
+    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+
+    INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
+
+    void* startAddress_va = CAST_PA_TO_VA (startAddress);
+    k_memcpy ((void*)PROCESS_VA_START, startAddress_va, lengthBytes);
+
+    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, (void (*)())PROCESS_VA_START);
 }
 
 //static void find_virtual_address()
