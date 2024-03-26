@@ -128,12 +128,16 @@ if [ $LINK_USING_LD -eq 1 ]; then
     export LD_FLAGS="--nmagic \
                      --script build/kernel.ld \
                      -L $LIBPATH/$GCCVER/"
+    export LD_FLAGS_USERLAND="--nmagic \
+                              --script build/process.ld \
+                              -L $LIBPATH/$GCCVER/"
     export LD_KERNEL="i686-elf-ld"
 else
      export LD_OPTIONS="-ffreestanding \
                        -nostdlib \
                        -lgcc"
      export LD_FLAGS="-T build/kernel.ld"
+     export LD_FLAGS_USERLAND="-T build/process.ld"
      export LD_KERNEL="$GCC32"
 fi
 
@@ -166,6 +170,9 @@ bash src/bootloader/x86/build.sh  || exit
 # Build kernel
 bash src/kernel/build.sh  2>"$REPORTSDIR/build_warnings.txt"
 
+# Build user processses
+bash src/userland/build.sh  2>"$REPORTSDIR/build_warnings.txt"
+
 # If build fails, build_warnings.txt will contain errors, as well as warnings,
 # otherwise will contain warnings only.
 # In case of build failure, the whole file is printed.
@@ -188,6 +195,8 @@ sudo mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
 echo "    [ Copy files to floppy ]    "
 sudo cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
 sudo cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/userland/*.flt $DISKTEMPDIR ||exit
 
 # Unmount the image
 echo "    [ Copy of files done. Unmounting image ]    "

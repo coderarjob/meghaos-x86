@@ -43,7 +43,8 @@ static void s_dumpPab ();
 //static void paging_test_temp_map_unmap();
 //static void kmalloc_test();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
-static void find_virtual_address();
+//static void find_virtual_address();
+static void process_poc();
 
 /* This variable is globally used to set error codes*/
 KernelErrorCodes k_errorNumber;
@@ -98,10 +99,12 @@ void kernel_main ()
     //paging_test_map_unmap();
     //paging_test_temp_map_unmap();
     //kmalloc_test();
-    find_virtual_address();
 
-    display_system_info ();
-    s_dumpPab();
+    //find_virtual_address();
+    //display_system_info ();
+    //s_dumpPab();
+    
+    process_poc();
 
     // Jump to user mode
     INFO ("Jumping to User mode..");
@@ -111,30 +114,53 @@ void kernel_main ()
     while (1);
 }
 
-static void find_virtual_address()
+static void process_poc()
 {
     FUNC_ENTRY();
 
-    SIZE numPages = 3000;
-    // void* addr = kpg_findVirtualAddressSpace(kpg_getcurrentpd(), 2000, 0xC03FF000, 0xC0900000);
-    PTR addr = kpg_findVirtualAddressSpace (kpg_getcurrentpd(), numPages, 0xC00A0000, 0xC0F00000);
-    kearly_println ("Found address is 0x%px", addr);
+    // Allocate physical memory for new PD
+    Physical newPD;
+    if (kpmm_alloc(&newPD, 1, PMM_REGION_ANY) == false) {
+        k_panicOnError();
+    }
+    INFO("Physical address for new PD: 0x%px", newPD.val);
 
-    for (UINT i = 0; i < numPages; addr += CONFIG_PAGE_FRAME_SIZE_BYTES, i++)
-    {
-        Physical pa;
-        if (!kpmm_alloc(&pa, 1, PMM_REGION_ANY)) {
-            k_panicOnError();
-        }
-
-        if (!kpg_map(kpg_getcurrentpd(), addr, pa, PG_MAP_FLAG_KERNEL|PG_MAP_FLAG_WRITABLE)) {
-            k_panicOnError();
-        }
+    // Temporary map this PD and copy kernel page table entries
+    PageDirectory pd = kpg_temporaryMap(newPD);
+    PageDirectory currentPD = kpg_getcurrentpd();
+    for (UINT pdi = KERNEL_PDE_INDEX; pdi < 1024; pdi++) {
+        pd[pdi] = currentPD[pdi];
     }
 
-    addr = (PTR)kpg_findVirtualAddressSpace (kpg_getcurrentpd(), 200, 0xC00A0000, 0xC0900000);
-    kearly_println ("Found address is 0x%px", addr);
+    kpg_temporaryUnmap();
+
+    x86_LOAD_CR3(newPD.val);
 }
+
+//static void find_virtual_address()
+//{
+//    FUNC_ENTRY();
+//
+//    SIZE numPages = 3000;
+//    // void* addr = kpg_findVirtualAddressSpace(kpg_getcurrentpd(), 2000, 0xC03FF000, 0xC0900000);
+//    PTR addr = kpg_findVirtualAddressSpace (kpg_getcurrentpd(), numPages, 0xC00A0000, 0xC0F00000);
+//    kearly_println ("Found address is 0x%px", addr);
+//
+//    for (UINT i = 0; i < numPages; addr += CONFIG_PAGE_FRAME_SIZE_BYTES, i++)
+//    {
+//        Physical pa;
+//        if (!kpmm_alloc(&pa, 1, PMM_REGION_ANY)) {
+//            k_panicOnError();
+//        }
+//
+//        if (!kpg_map(kpg_getcurrentpd(), addr, pa, PG_MAP_FLAG_KERNEL|PG_MAP_FLAG_WRITABLE)) {
+//            k_panicOnError();
+//        }
+//    }
+//
+//    addr = (PTR)kpg_findVirtualAddressSpace (kpg_getcurrentpd(), 200, 0xC00A0000, 0xC0900000);
+//    kearly_println ("Found address is 0x%px", addr);
+//}
 
 //static void kmalloc_test()
 //{
@@ -201,26 +227,6 @@ static void find_virtual_address()
 //    kpmm_free(pa2, 1);
 //    k_assertOnError();
 //}
-
-void setup_paging()
-{
-    /* Create new PD, PT at where? */
-    //paging_recurseSetup (PD)
-
-    /* NOTE: PD must have physically backed PT for the addresses passed in to paging_map. Later on
-     * with demand creation, unbacked PTs will work.*/
-    //paging_setPT (PD, 3GB, PT);
-
-    /* Higher half map
-     * - NULL            >> (0          ) to (4KB        )
-     * - 0 to 268KB      >> (3GB        ) to (3GB + 268KB)    Physically backed
-     * - 640KB to 1MB    >> (3GB + 640KB) to (3GB + 1MB)      Physically backed (reserved section)
-     * - 1MB to KBIN_END >> (3GB + 1MB  ) to (3GB + KBIN_END) Physically backed*/
-    //paging_map (PD, NULL, 0, 1, UNUSED);
-    //paging_map (PD, BACKED, 3GB, 268KB, &PHYSICAL(0));
-    //paging_map (PD, BACKED, 3GB+640KB, (1MB-640KB), &PHYSICAL(640KB));
-    //paging_map (PD, BACKED, 3GB+1MB, KBIN_END, &PHYSICAL(1MB));
-}
 
 void s_dumpPab()
 {
