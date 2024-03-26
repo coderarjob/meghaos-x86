@@ -23,4 +23,6 @@ UseTab: Never
 IndentPPDirectives: BeforeHash
 SpaceBeforeParens: NonEmptyParentheses
 PenaltyBreakAssignment: 400
+PenaltyBreakOpenParenthesis: 900
+PenaltyBreakBeforeFirstCallParameter: 900
 Cpp11BracedListStyle: false
