@@ -168,19 +168,10 @@ mkdir $LISTDIR         || exit
 bash src/bootloader/x86/build.sh  || exit
 
 # Build kernel
-bash src/kernel/build.sh  2>"$REPORTSDIR/build_warnings.txt"
+bash src/kernel/build.sh || exit
 
 # Build user processses
-bash src/userland/build.sh  2>"$REPORTSDIR/build_warnings.txt"
-
-# If build fails, build_warnings.txt will contain errors, as well as warnings,
-# otherwise will contain warnings only.
-# In case of build failure, the whole file is printed.
-if [ $? -ne 0 ]; then
-    cat "$REPORTSDIR/build_warnings.txt"
-    rm "$REPORTSDIR/build_warnings.txt"
-    exit
-fi
+bash src/userland/build.sh || exit
 
 # ---------------------------------------------------------------------------
 # Build the floppy image
@@ -227,9 +218,7 @@ rm -f -r $DISKTEMPDIR || exit
 
 # ---------------------------------------------------------------------------
 echo "    [ Report: Warning count ]"
-WARNCOUNT_GCC=`grep -c -r "warning:" build/reports/build_warnings.txt`
 WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`
-echo "Total compiler warnings: $WARNCOUNT_GCC"
 echo "Total lint warnings: $WARNCOUNT_LINT"
 
 # ---------------------------------------------------------------------------
