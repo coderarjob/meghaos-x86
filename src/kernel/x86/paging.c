@@ -18,6 +18,7 @@
 #include <utils.h>
 #include <panic.h>
 #include <kdebug.h>
+#include <x86/cpu.h>
 
 typedef struct IndexInfo {
     UINT pdeIndex;
@@ -65,13 +66,23 @@ static void* s_getLinearAddress (UINT pdeIndex, UINT pteIndex, UINT offset)
  * Sets MMU to now use the provided page directory.
  *
  * @Input   newPD       Physical address of the Page directory to use.
- * @return              Nothing
+ * @return              True on success, false otherwise
  **************************************************************************************************/
-void kpg_switchPageDirectory (Physical newPD)
+bool kpg_switchPageDirectory (Physical newPD)
 {
-    FUNC_ENTRY("NewPD: 0x%px", newPD.val);
+    FUNC_ENTRY ("PD physical location: 0x%px", newPD.val);
 
-    x86_LOAD_CR3 (newPD.val);
+    if (!IS_ALIGNED (newPD.val, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
+    }
+
+    register x86_CR3 cr3 = { 0 };
+    cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
+    cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
+    cr3.physical         = PHYSICAL_TO_PAGEFRAME (newPD.val);
+
+    x86_LOAD_REG (CR3, cr3);
+    return true;
 }
 #endif
 

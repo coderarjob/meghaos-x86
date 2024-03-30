@@ -16,7 +16,6 @@
 #include <types.h>
 #include <buildcheck.h>
 
-
 #define PDE_SHIFT    22U
 #define PTE_SHIFT    12U
 #define OFFSET_SHIFT 00U
@@ -29,6 +28,9 @@
 #define KERNEL_PDE_INDEX    768U
 #define TEMPORARY_PTE_INDEX 1023U
 
+#define x86_PG_DEFAULT_IS_CACHING_DISABLED 0 // 0 - Enabled cache, 1 - Disables cache
+#define x86_PG_DEFAULT_IS_WRITE_THROUGH    0 // 0 - Write back, 1 - Write through
+
 #define LINEAR_ADDR(pde_idx, pte_idx, offset) \
     (((pde_idx) << PDE_SHIFT) | ((pte_idx) << PTE_SHIFT) | (offset))
 
@@ -40,8 +42,6 @@
      * @return          Nothing
      **********************************************************************************************/
     #define x86_TLB_INVAL_SINGLE(addr) __asm__ volatile("invlpg %0;" ::"m"(*(char*)addr))
-
-    #define x86_LOAD_CR3(pd) __asm__ volatile("mov CR3, %0;" ::"r"(pd))
 
     /***********************************************************************************************
      * Invalidates complete TLB.
