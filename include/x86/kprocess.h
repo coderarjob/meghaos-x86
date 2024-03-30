@@ -8,4 +8,4 @@
 #include <types.h>
 #include <buildcheck.h>
 
-void jump_to_usermode (U32 dataselector, U32 codeselector, void (*user_func)());
+void jump_to_usermode (U32 dataselector, U32 codeselector, void* stackTop, void (*user_func)());

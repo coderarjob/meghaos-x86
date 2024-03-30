@@ -17,6 +17,7 @@
 
 #define PROCESS_TEXT_VA_START  0x00010000
 #define PROCESS_STACK_VA_START 0x00030000
+#define PROCESS_STACK_VA_TOP   0x00030FFF
 #define MAX_PROCESS_COUNT      20
 
 static ProcessInfo processTable[MAX_PROCESS_COUNT];
@@ -33,7 +34,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes)
     }
 
     ProcessInfo* pinfo = &processTable[processCount++];
-    pinfo->state = PROCESS_NOT_CREATED;
+    pinfo->state       = PROCESS_NOT_CREATED;
 
     // Allocate physical memory for new PD
     if (!kpg_createNewPageDirectory (&pinfo->pagedir, PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
@@ -46,7 +47,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes)
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Physical memory allocation failed.
     }
 
-    void* bin_va = kpg_temporaryMap(pinfo->bin_addr);
+    void* bin_va = kpg_temporaryMap (pinfo->bin_addr);
     k_memcpy (bin_va, processStartAddress, binLengthBytes);
     kpg_temporaryUnmap();
 
@@ -68,14 +69,28 @@ bool kprocess_switch (INT processID)
     }
 
     if (pinfo->state == PROCESS_NOT_STARTED) {
-        if (!kpg_map (kpg_getcurrentpd(), PROCESS_TEXT_VA_START, pinfo->bin_addr,
-                    PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
+        // Allocate physical storage for process stack
+        if (!kpmm_alloc (&pinfo->stack_addr, 1, PMM_REGION_ANY)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // allocation failed
+        }
+
+        // Map binary and stack into the process address space
+        PageDirectory pd = kpg_getcurrentpd();
+
+        if (!kpg_map (pd, PROCESS_TEXT_VA_START, pinfo->bin_addr,
+                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
+        }
+
+        if (!kpg_map (pd, PROCESS_STACK_VA_START, pinfo->stack_addr,
+                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
         }
     }
 
     pinfo->state = PROCESS_STARTED;
-    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, (void (*)())PROCESS_TEXT_VA_START);
+    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, (void*)PROCESS_STACK_VA_TOP,
+                      (void (*)())PROCESS_TEXT_VA_START);
 
     NORETURN();
 }
