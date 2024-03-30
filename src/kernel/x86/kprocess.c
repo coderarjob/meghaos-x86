@@ -20,8 +20,25 @@
 #define PROCESS_STACK_VA_TOP   0x00030FFF
 #define MAX_PROCESS_COUNT      20
 
-static ProcessInfo processTable[MAX_PROCESS_COUNT];
+static ProcessInfo* processTable[MAX_PROCESS_COUNT];
 static UINT processCount;
+
+static ProcessInfo* s_processInfo_malloc()
+{
+    if (processCount == MAX_PROCESS_COUNT) {
+        RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
+    }
+
+    ProcessInfo* pInfo = kmalloc (sizeof (ProcessInfo));
+    if (pInfo == NULL) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
+    }
+
+    pInfo->state = PROCESS_NOT_CREATED;
+
+    processTable[processCount++] = pInfo;
+    return pInfo;
+}
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes)
 {
@@ -29,12 +46,10 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes)
                 binLengthBytes);
 
     // Process table entry
-    if (processCount == MAX_PROCESS_COUNT) {
-        RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
+    ProcessInfo* pinfo = s_processInfo_malloc();
+    if (pinfo == NULL) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
     }
-
-    ProcessInfo* pinfo = &processTable[processCount++];
-    pinfo->state       = PROCESS_NOT_CREATED;
 
     // Allocate physical memory for new PD
     if (!kpg_createNewPageDirectory (&pinfo->pagedir, PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
@@ -63,7 +78,7 @@ bool kprocess_switch (INT processID)
         RETURN_ERROR (ERR_INVALID_RANGE, false);
     }
 
-    ProcessInfo* pinfo = &processTable[processID];
+    ProcessInfo* pinfo = processTable[processID];
     if (!kpg_switchPageDirectory (pinfo->pagedir)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Switch to new PD failed.
     }
