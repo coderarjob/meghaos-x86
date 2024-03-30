@@ -32,6 +32,10 @@ typedef enum KernelErrorCodes {
 /* This variable is globally used to set error codes*/
 extern KernelErrorCodes k_errorNumber;
 
+// Use this with RETURN_ERROR when you do not want to set a new error number but pass through what
+// is already set.
+#define ERROR_PASSTHROUGH k_errorNumber
+
 /* Can be used to set the k_errorNumber global and return from a function */
 #define RETURN_ERROR(errno, rval)                                                            \
             do {                                                                             \

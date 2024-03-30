@@ -452,7 +452,7 @@ bool kpg_createNewPageDirectory (Physical* newPD, PagingNewPageDirectoryFlags fl
     FUNC_ENTRY("newPD return addr: 0x%px, Flags: %x", newPD, flags);
 
     if (kpmm_alloc (newPD, 1, PMM_REGION_ANY) == false) {
-        return false; // PMM alloc failure
+        RETURN_ERROR(ERROR_PASSTHROUGH, false);     // PMM alloc failure
     }
 
     INFO ("New PD physical location: 0x%px", newPD->val);
