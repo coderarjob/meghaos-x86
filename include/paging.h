@@ -38,8 +38,8 @@ typedef enum PagingMapFlags {
 } PagingMapFlags;
 
 typedef enum PagingNewPageDirectoryFlags {
-    PG_NEWPD_FLAG_COPY_KERNEL_PAGES,
-    PG_NEWPD_FLAG_RECURSIVE_MAP
+    PG_NEWPD_FLAG_COPY_KERNEL_PAGES = (1 << 0),
+    PG_NEWPD_FLAG_RECURSIVE_MAP     = (1 << 1)
 } PagingNewPageDirectoryFlags;
 
 // Physical start of the page frame 'pf'.

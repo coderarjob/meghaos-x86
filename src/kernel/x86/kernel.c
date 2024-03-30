@@ -28,15 +28,14 @@
 #include <x86/gdt.h>
 #include <x86/boot.h>
 #include <x86/paging.h>
-#include <x86/kernel.h>
 #include <panic.h>
 #include <paging.h>
 #include <utils.h>
 #include <x86/memloc.h>
 #include <memmanage.h>
 #include <kstdlib.h>
+#include <kprocess.h>
 
-static void usermode_main ();
 static void display_system_info ();
 static void s_markUsedMemory ();
 static void s_dumpPab ();
@@ -111,45 +110,13 @@ void kernel_main ()
     INFO ("Jumping to User mode..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,CYAN,0));
 
-    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
+    //jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
     while (1);
 }
 
 static void process_poc()
 {
     FUNC_ENTRY();
-
-    // Allocate physical memory for new PD
-    Physical newPD;
-    if (kpmm_alloc (&newPD, 1, PMM_REGION_ANY) == false) {
-        k_panicOnError();
-    }
-    INFO ("Physical address for new PD: 0x%px", newPD.val);
-
-    // Temporary map this PD and copy kernel page table entries
-    PageDirectory pd        = kpg_temporaryMap (newPD);
-    PageDirectory currentPD = kpg_getcurrentpd();
-    for (UINT pdi = KERNEL_PDE_INDEX; pdi < 1024; pdi++) {
-        pd[pdi] = currentPD[pdi];
-    }
-    pd[RECURSIVE_PDE_INDEX].pageTableFrame = PHYSICAL_TO_PAGEFRAME (newPD.val);
-
-    kpg_temporaryUnmap();
-
-    x86_LOAD_CR3 (newPD.val);
-
-    // Copy the program to a page aligned physical address
-    Physical binPhy;
-    if (kpmm_alloc (&binPhy, 1, PMM_REGION_ANY) == false) {
-        k_panicOnError();
-    }
-
-#define PROCESS_VA_START 0x00010000
-
-    if (!kpg_map (kpg_getcurrentpd(), PROCESS_VA_START, binPhy,
-                  PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
-        k_panicOnError();
-    }
 
     kbochs_breakpoint();
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
@@ -160,9 +127,10 @@ static void process_poc()
     INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    k_memcpy ((void*)PROCESS_VA_START, startAddress_va, lengthBytes);
-
-    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, (void (*)())PROCESS_VA_START);
+    if (!kprocess_create(startAddress_va, lengthBytes)) {
+        k_panicOnError();
+    }
+    kprocess_switch();
 }
 
 //static void find_virtual_address()
@@ -396,35 +364,3 @@ static void s_markUsedMemory()
                                                                 CONFIG_PAGE_FRAME_SIZE_BYTES)),
                                       createPhysical (2 * MB));
 }
-
-void usermode_main ()
-{
-    FUNC_ENTRY();
-
-    INFO ("Inside usermode..");
-
-    //__asm__ volatile ("CALL 0x1B:%0"::"p"(sys_dummy_asm_handler));
-    __asm__ volatile ("INT 0x40");
-
-    INFO ("Location of kernel_main = %x", kernel_main);
-    INFO ("Location of pab = %x", CAST_PA_TO_VA (g_pab));
-    INFO ("Size of PTR = %u", sizeof (PTR));
-    INFO ("MASK(19,0) is %x", BIT_MASK (19, 0));
-
-    /*kbochs_breakpoint();
-    Physical pa = PHYSICAL(0x100000);
-    PageDirectory pd = kpg_getcurrentpd();
-    kpg_map(&pd, PAGE_MAP_BACKED, 0xC01FF000, 1, &pa);*/
-    kearly_println("%x", (PTR)salloc(10));
-    kearly_println("%x", (PTR)salloc(4096));
-    kearly_println("%x", (PTR)salloc(2));
-    kearly_println("%x", (PTR)salloc(1));
-    INFO ("PD: %x, PT: %x", g_page_dir.val, g_page_table.val);
-    kearly_println ("Satic memory allocations: %u bytes", salloc_getUsedMemory());
-    kearly_println ("Kernel heap memory allocations: %u bytes", kmalloc_getUsedMemory());
-//    volatile CHAR* a = (CHAR*)0xC0400000;
-//    *a = 0;
-
-    k_halt();
-}
-
