@@ -8,5 +8,21 @@
 
 #include <types.h>
 
-bool kprocess_create (void (*processStartAddress), SIZE binLengthBytes);
-void kprocess_switch();
+typedef enum ProcessStates
+{
+    PROCESS_NOT_CREATED,
+    PROCESS_NOT_STARTED,
+    PROCESS_STARTED,
+    PROCESS_ENDED
+} ProcessStates;
+
+typedef struct ProcessInfo
+{
+    Physical pagedir;
+    ProcessStates state;
+    Physical bin_addr;
+    Physical stack_addr;
+} ProcessInfo;
+
+INT kprocess_create (void (*processStartAddress), SIZE binLengthBytes);
+bool kprocess_switch(INT processID);

@@ -127,10 +127,14 @@ static void process_poc()
     INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    if (!kprocess_create(startAddress_va, lengthBytes)) {
+    INT processID = kprocess_create(startAddress_va, lengthBytes);
+    if (processID < 0) {
         k_panicOnError();
     }
-    kprocess_switch();
+
+    INFO ("Process ID: %u", processID);
+
+    kprocess_switch(processID);
 }
 
 //static void find_virtual_address()
