@@ -60,6 +60,19 @@ static void* s_getLinearAddress (UINT pdeIndex, UINT pteIndex, UINT offset)
 {
     return (void*)LINEAR_ADDR (pdeIndex, pteIndex, offset);
 }
+
+/***************************************************************************************************
+ * Sets MMU to now use the provided page directory.
+ *
+ * @Input   newPD       Physical address of the Page directory to use.
+ * @return              Nothing
+ **************************************************************************************************/
+void kpg_switchPageDirectory (Physical newPD)
+{
+    FUNC_ENTRY("NewPD: 0x%px", newPD.val);
+
+    x86_LOAD_CR3 (newPD.val);
+}
 #endif
 
 static IndexInfo s_getTableIndices (PTR va)
@@ -156,7 +169,7 @@ void kpg_temporaryUnmap()
  **************************************************************************************************/
 void* kpg_temporaryMap (Physical pa)
 {
-    FUNC_ENTRY("Physical address: 0x%px", pa.val);
+    FUNC_ENTRY ("Physical address: 0x%px", pa.val);
 
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.
@@ -425,4 +438,39 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
     }
 
     return (PTR)NULL;
+}
+
+/***************************************************************************************************
+ * Create a new Page Directory and sets it up according to flags.
+ *
+ * @Input   newPD       Physical address of the new Page directory.
+ * @Input   flags       Flags that determine the setup of the Page directory.
+ * @return              True if success, false otherwise.
+ **************************************************************************************************/
+bool kpg_createNewPageDirectory (Physical* newPD, PagingNewPageDirectoryFlags flags)
+{
+    FUNC_ENTRY("newPD return addr: 0x%px, Flags: %x", newPD, flags);
+
+    if (kpmm_alloc (newPD, 1, PMM_REGION_ANY) == false) {
+        return false; // PMM alloc failure
+    }
+
+    INFO ("New PD physical location: 0x%px", newPD->val);
+
+    // Temporary map this PD and copy kernel page table entries
+    if (BIT_ISSET (flags, PG_NEWPD_FLAG_COPY_KERNEL_PAGES)) {
+        PageDirectory pd        = kpg_temporaryMap (*newPD);
+        PageDirectory currentPD = kpg_getcurrentpd();
+        for (UINT pdi = KERNEL_PDE_INDEX; pdi < 1024; pdi++) {
+            pd[pdi] = currentPD[pdi];
+        }
+
+        if (BIT_ISSET (flags, PG_NEWPD_FLAG_RECURSIVE_MAP)) {
+            pd[RECURSIVE_PDE_INDEX].pageTableFrame = PHYSICAL_TO_PAGEFRAME (newPD->val);
+        }
+
+        kpg_temporaryUnmap();
+    }
+
+    return true; // Success
 }
