@@ -118,7 +118,6 @@ static void process_poc()
 {
     FUNC_ENTRY();
 
-    kbochs_breakpoint();
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
     BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
     Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
@@ -127,14 +126,14 @@ static void process_poc()
     INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    INT processID = kprocess_create(startAddress_va, lengthBytes);
+    INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_KERNEL_PROCESS);
     if (processID < 0) {
         k_panicOnError();
     }
 
     INFO ("Process ID: %u", processID);
 
-    kprocess_switch(processID);
+    kprocess_switch (processID);
 }
 
 //static void find_virtual_address()

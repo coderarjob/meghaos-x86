@@ -14,6 +14,7 @@
 #include <x86/kprocess.h>
 #include <x86/gdt.h>
 #include <memmanage.h>
+#include <x86/memloc.h>
 
 #define PROCESS_TEXT_VA_START  0x00010000
 #define PROCESS_STACK_VA_START 0x00030000
@@ -40,7 +41,7 @@ static ProcessInfo* s_processInfo_malloc()
     return pInfo;
 }
 
-INT kprocess_create (void* processStartAddress, SIZE binLengthBytes)
+INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
 {
     FUNC_ENTRY ("Process start address: 0x%px, size: 0x%x bytes", processStartAddress,
                 binLengthBytes);
@@ -67,6 +68,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes)
     kpg_temporaryUnmap();
 
     pinfo->state = PROCESS_NOT_STARTED;
+    pinfo->flags = flags;
     return KERNEL_EXIT_SUCCESS; // Success
 }
 
@@ -84,27 +86,43 @@ bool kprocess_switch (INT processID)
     }
 
     if (pinfo->state == PROCESS_NOT_STARTED) {
-        // Allocate physical storage for process stack
-        if (!kpmm_alloc (&pinfo->stack_addr, 1, PMM_REGION_ANY)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // allocation failed
-        }
-
-        // Map binary and stack into the process address space
         PageDirectory pd = kpg_getcurrentpd();
 
+        // Map process binary location into the process's address space
         if (!kpg_map (pd, PROCESS_TEXT_VA_START, pinfo->bin_addr,
                       PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
         }
 
-        if (!kpg_map (pd, PROCESS_STACK_VA_START, pinfo->stack_addr,
-                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
+        // Separate stack is not required for Kernel processes. These processes run in Ring 0 and
+        // thus will use the existing kernel stack.
+        if (!BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+            // Allocate physical storage for process stack
+            if (!kpmm_alloc (&pinfo->stack_addr, 1, PMM_REGION_ANY)) {
+                RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // allocation failed
+            }
+
+            // Map process stack location into the process's address space
+            if (!kpg_map (pd, PROCESS_STACK_VA_START, pinfo->stack_addr,
+                          PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
+                RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
+            }
         }
     }
 
     pinfo->state = PROCESS_STARTED;
-    jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, (void*)PROCESS_STACK_VA_TOP,
+
+    U32 dataSelector = GDT_SELECTOR_UDATA;
+    U32 codeSelector = GDT_SELECTOR_UCODE;
+    PTR stackTop     = PROCESS_STACK_VA_TOP;
+
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+        dataSelector = GDT_SELECTOR_KDATA;
+        codeSelector = GDT_SELECTOR_KCODE;
+        stackTop     = INTEL_32_KSTACK_TOP;
+    }
+
+    jump_to_usermode (dataSelector, codeSelector, (void*)stackTop,
                       (void (*)())PROCESS_TEXT_VA_START);
 
     NORETURN();
