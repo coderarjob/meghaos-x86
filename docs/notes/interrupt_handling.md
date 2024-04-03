@@ -6,12 +6,25 @@ categories: feature, x86
 
 ## Processor Interrupt frame
 
+### Current Privilege level (before interrupt) > 0:
+
 ```
 Offset  Register
 ------  --------------
 0       SS                      <-- High memory
 4       ESP
 8       EFLAGS
+12      CS
+16      EIP
+20      Error code (not always) <-- Low memory
+```
+
+### Current Privilege level (before interrupt) = 0:
+
+```
+Offset  Register
+------  --------------
+8       EFLAGS                  <-- High memory
 12      CS
 16      EIP
 20      Error code (not always) <-- Low memory
