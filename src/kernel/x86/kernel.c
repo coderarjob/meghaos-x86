@@ -87,6 +87,7 @@ void kernel_main ()
     kidt_edit (14, page_fault_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
     kidt_edit (13, general_protection_fault_asm_handler,GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
     kidt_edit (0x40, sys_dummy_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
+    kidt_edit (0x50, main_asm_syscall, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
 
     kearly_printf ("\r[OK]");
 
@@ -126,7 +127,7 @@ static void process_poc()
     INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_KERNEL_PROCESS);
+    INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
     if (processID < 0) {
         k_panicOnError();
     }

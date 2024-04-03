@@ -85,6 +85,8 @@ bool kprocess_switch (INT processID)
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Switch to new PD failed.
     }
 
+    INFO("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+
     if (pinfo->state == PROCESS_NOT_STARTED) {
         PageDirectory pd = kpg_getcurrentpd();
 
@@ -121,6 +123,9 @@ bool kprocess_switch (INT processID)
         codeSelector = GDT_SELECTOR_KCODE;
         stackTop     = INTEL_32_KSTACK_TOP;
     }
+
+    INFO ("Process (PID: %u) starting with dataSel: 0x%x, codeSel: 0x%x, stackTop: 0x%px",
+          processID, dataSelector, codeSelector, stackTop);
 
     jump_to_usermode (dataSelector, codeSelector, (void*)stackTop,
                       (void (*)())PROCESS_TEXT_VA_START);

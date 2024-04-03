@@ -32,6 +32,41 @@ typedef struct PageFaultError
 
 static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size);
 static void s_callPanic(InterruptFrame *frame, char *fmt, ...);
+U32 sys_debug_info(char* fmt, U32* value);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#pragma GCC diagnostic ignored "-Wpedantic"
+void *syscall_table[] = {
+    &sys_debug_info,
+};
+#pragma GCC diagnostic pop
+
+__asm__(".text;"
+        ".globl main_asm_syscall;"
+        "main_asm_syscall:;"
+        "    push ebp;"
+        "    mov ebp, esp;"
+        "    push edi;"
+        "    push esi;"
+        "    push edx;"
+        "    push ecx;"
+        "    push ebx;"
+        "    lea eax, [4 * eax + syscall_table];"
+        "    call [eax];"
+        "    pop ebx;"
+        "    pop ecx;"
+        "    pop edx;"
+        "    pop esi;"
+        "    pop edi;"
+        "    pop ebp;"
+        "    iret;");
+
+U32 sys_debug_info(char* fmt, U32* value)
+{
+    INFO(fmt, *value);
+    return 0xB01D;
+}
 
 INTERRUPT_HANDLER(sys_dummy)
 void sys_dummy_handler (InterruptFrame *frame)

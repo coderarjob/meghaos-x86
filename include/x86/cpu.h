@@ -4,7 +4,6 @@
  * ---------------------------------------------------------------------------
  */
 #pragma once
-#include "kassert.h"
 #include <stddef.h>
 #include <utils.h>
 
@@ -14,7 +13,7 @@ typedef struct x86_CR3 {
     UINT pcd       : 1;  // 4
     UINT reserved1 : 7;  // 5 - 11
     UINT physical  : 20; // 12 - 31
-} x86_CR3;
+} __attribute__((packed)) x86_CR3;
 
 #define x86_LOAD_REG(reg, dest) __asm__ volatile("mov " #reg ", %0;" ::"r"(dest))
 #define x86_READ_REG(reg, dest) __asm__ volatile("mov %0, " #reg :"=r"(dest))

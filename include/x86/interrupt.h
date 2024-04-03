@@ -96,5 +96,6 @@ void page_fault_asm_handler ();
 void double_fault_asm_handler();
 void general_protection_fault_asm_handler ();
 void div_zero_asm_handler ();
+void main_asm_syscall ();
 
 #endif // INTERRUPT_H_x86

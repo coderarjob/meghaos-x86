@@ -20,6 +20,7 @@ typedef enum ProcessFlags {
     PROCESS_FLAGS_KERNEL_PROCESS = (1 << 0),
 } ProcessFlags;
 
+// TODO: Fields to store registers and return address is missing at this point.
 typedef struct ProcessInfo {
     Physical pagedir;
     ProcessStates state;
