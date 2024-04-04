@@ -1,3 +1,8 @@
+/*
+ * ---------------------------------------------------------------------------
+ * Megha Operating System V2 - x86 kernel - HW and SW interrupt handlers
+ * ---------------------------------------------------------------------------
+ */
 #include <stdarg.h>
 #include <types.h>
 #include <x86/interrupt.h>
@@ -32,19 +37,13 @@ typedef struct PageFaultError
 
 static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size);
 static void s_callPanic(InterruptFrame *frame, char *fmt, ...);
-U32 sys_debug_info(char* fmt, U32* value);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wpedantic"
-void *syscall_table[] = {
-    &sys_debug_info,
-};
-#pragma GCC diagnostic pop
-
+/***************************************************************************************************
+ * Global system call despatcher
+ **************************************************************************************************/
 __asm__(".text;"
-        ".globl main_asm_syscall;"
-        "main_asm_syscall:;"
+        ".globl syscall_asm_despatcher;"
+        "syscall_asm_despatcher:;"
         "    push ebp;"
         "    mov ebp, esp;"
         "    push edi;"
@@ -52,7 +51,7 @@ __asm__(".text;"
         "    push edx;"
         "    push ecx;"
         "    push ebx;"
-        "    lea eax, [4 * eax + syscall_table];"
+        "    lea eax, [4 * eax + g_syscall_table];"
         "    call [eax];"
         "    pop ebx;"
         "    pop ecx;"
@@ -61,12 +60,6 @@ __asm__(".text;"
         "    pop edi;"
         "    pop ebp;"
         "    iret;");
-
-U32 sys_debug_info(char* fmt, U32* value)
-{
-    INFO(fmt, *value);
-    return 0xB01D;
-}
 
 INTERRUPT_HANDLER(sys_dummy)
 void sys_dummy_handler (InterruptFrame *frame)
