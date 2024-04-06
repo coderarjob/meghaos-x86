@@ -10,7 +10,7 @@
 #include <kerror.h>
 #include <paging.h>
 #include <kstdlib.h>
-#include <kprocess.h>
+#include <process.h>
 #include <x86/kprocess.h>
 #include <x86/gdt.h>
 #include <memmanage.h>

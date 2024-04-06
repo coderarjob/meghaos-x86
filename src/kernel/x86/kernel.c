@@ -34,7 +34,7 @@
 #include <x86/memloc.h>
 #include <memmanage.h>
 #include <kstdlib.h>
-#include <kprocess.h>
+#include <process.h>
 
 static void display_system_info ();
 static void s_markUsedMemory ();
