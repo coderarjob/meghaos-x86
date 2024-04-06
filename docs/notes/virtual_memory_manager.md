@@ -1,6 +1,29 @@
 # Megha Operating System V2 - x86
 ----------------------------------------------------------------------------------------------------
 
+## Virtual memory management - Concept of Regions
+categories: note, x86
+_6 April 2022_
+
+Regions cover small (say 20 pages in size) continuous virtual addresses and keep track of virtual &
+physical page allocations/deallocations within its address space. Region combine the PMM and paging
+to provide a wholesome virtual & physical memory management.
+
+As regions contains a small number of pages, the tracking can be done using a 2 bit bitmap (0 -
+unallocated, 1 - committed, 2 - uncommitted).
+
+Without Region, the following becomes a problem:
+1. To unmap virtual pages together with their physical counterparts. It is better to do these atomic
+   operations in one place rather than spread across in multiple places.
+2. With on-demand physical page allocation, subsequent 'find free virtual page' operation may
+   return same virtual page (as the virtual page is not yet committed). Regions provide a solution;
+   at the time of region creation, it can mark uncommitted pages and not allocate them again for
+   another region.
+
+Which means that through Regions, we will get our VMM.
+
+----------------------------------------------------------------------------------------------------
+
 ## Why I am skipping Virtual Memory manager for now
 categories: note, x86
 _16 Dec 2022_

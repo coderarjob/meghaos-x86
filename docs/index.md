@@ -24,6 +24,7 @@
 ------------------------------------------------
 ### Features Docs
 - [Kmalloc working](notes/kmalloc.md#Kmalloc-working)
+- [Process management](notes/processman.md#Process-management)
 
 ### Obsolete Features Docs
 
@@ -32,6 +33,7 @@
 - [Physical memory map](notes/gdt.md#Physical-memory-map)
 - [Interrupt handling](notes/interrupt_handling.md#Interrupt-handling)
 - [Physical Memory allocation](notes/physical_memory_manager.md#Physical-Memory-allocation)
+- [System call ABI](notes/syscall.md#System-call-ABI)
 - [Virtual memory map](notes/vmm.md#Virtual-memory-map)
 
 ### Obsolete x86 Features Docs
@@ -62,6 +64,7 @@
 - [Recursive mapping and temporary mapping in Kernel](notes/recursive_map_clarity_with_example.md#Recursive-mapping-and-temporary-mapping-in-Kernel)
 - [Strange behaviour because of Stale TLB](notes/Scratch.md#Strange-behaviour-because-of-Stale-TLB)
 - [What happens if kernel stack is used in user mode](notes/usermode_stack.md#What-happens-if-kernel-stack-is-used-in-user-mode)
+- [Virtual memory management - Concept of Regions](notes/virtual_memory_manager.md#Virtual-memory-management---Concept-of-Regions)
 - [Why I am skipping Virtual Memory manager for now](notes/virtual_memory_manager.md#Why-I-am-skipping-Virtual-Memory-manager-for-now)
 - [Virtual Memory Manager and Recursive mapping](notes/virtual_memory_manager.md#Virtual-Memory-Manager-and-Recursive-mapping)
 - [Map virtual memory to physical memory](notes/virtual_memory_manager.md#Map-virtual-memory-to-physical-memory)
