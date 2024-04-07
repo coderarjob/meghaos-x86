@@ -20,7 +20,7 @@ struct ProcessRegisterState {
     U32 edi;
     U32 esp;
     U32 ebp;
-    U32 ss;
-    U32 ip;
+    U32 eip;
     U32 cs;
+    U32 ds; // Not just DS. SS, ES, FS, GS are also set to this.
 };

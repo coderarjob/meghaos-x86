@@ -18,6 +18,7 @@ typedef enum ProcessStates {
 typedef enum ProcessFlags {
     PROCESS_FLAGS_NONE           = 0,
     PROCESS_FLAGS_KERNEL_PROCESS = (1 << 0),
+    PROCESS_FLAGS_THREAD         = (2 << 0),
 } ProcessFlags;
 
 typedef struct ProcessRegisterState ProcessRegisterState;

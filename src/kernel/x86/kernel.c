@@ -35,6 +35,7 @@
 #include <memmanage.h>
 #include <kstdlib.h>
 #include <process.h>
+#include <x86/cpu.h>
 
 static void display_system_info ();
 static void s_markUsedMemory ();
@@ -45,6 +46,7 @@ static void s_dumpPab ();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 //static void find_virtual_address();
 static void process_poc();
+static void new_process();
 
 /* This variable is globally used to set error codes*/
 KernelErrorCodes k_errorNumber;
@@ -106,6 +108,7 @@ void kernel_main ()
     //s_dumpPab();
     
     process_poc();
+    //new_process();
 
     // Jump to user mode
     INFO ("Jumping to User mode..");
@@ -115,26 +118,53 @@ void kernel_main ()
     while (1);
 }
 
+static void new_process()
+{
+    FUNC_ENTRY();
+    
+    U32 cr3 = 0xF00;
+    x86_READ_REG (CR3, cr3);
+
+    INFO ("Value of cr3 is 0x%px", cr3);
+
+    k_halt();
+
+    //BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
+    //BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
+    //Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+    //SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+
+    //INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
+
+    //void* startAddress_va = CAST_PA_TO_VA (startAddress);
+    //INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_KERNEL_PROCESS);
+    //if (processID < 0) {
+    //    k_panicOnError();
+    //}
+
+    //INFO ("Process ID: %u", processID);
+
+    //kprocess_switch ((UINT)processID);
+}
+
 static void process_poc()
 {
     FUNC_ENTRY();
 
-    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
-    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+    void* startAddress_va = new_process;
+#pragma GCC diagnostic pop
 
-    INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
-
-    void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
+    INT processID = kprocess_create (startAddress_va, 0,
+                                     PROCESS_FLAGS_KERNEL_PROCESS | PROCESS_FLAGS_THREAD);
     if (processID < 0) {
         k_panicOnError();
     }
 
     INFO ("Process ID: %u", processID);
 
-    kprocess_switch (processID);
+    kprocess_switch ((UINT)processID);
 }
 
 //static void find_virtual_address()

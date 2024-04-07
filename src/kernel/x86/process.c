@@ -16,6 +16,7 @@
 #include <x86/gdt.h>
 #include <memmanage.h>
 #include <x86/memloc.h>
+#include <utils.h>
 
 #define PROCESS_TEXT_VA_START  0x00010000
 #define PROCESS_STACK_VA_START 0x00030000
@@ -71,23 +72,39 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
     }
 
-    // Allocate physical memory for new PD
-    if (!kpg_createNewPageDirectory (&pinfo->pagedir, PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
-                                                          PG_NEWPD_FLAG_RECURSIVE_MAP)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+    if (BIT_ISUNSET (flags, PROCESS_FLAGS_THREAD)) {
+        // Allocate physical memory for new PD
+        if (!kpg_createNewPageDirectory (&pinfo->pagedir, PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
+                                                              PG_NEWPD_FLAG_RECURSIVE_MAP)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+        }
+
+        // Copy the program to a page aligned physical address
+        if (kpmm_alloc (&pinfo->binaryAddress, 1, PMM_REGION_ANY) == false) {
+            RETURN_ERROR (ERROR_PASSTHROUGH,
+                          KERNEL_EXIT_FAILURE); // Physical memory allocation failed.
+        }
+
+        void* bin_va = kpg_temporaryMap (pinfo->binaryAddress);
+        k_memcpy (bin_va, processStartAddress, binLengthBytes);
+        kpg_temporaryUnmap();
     }
 
-    // Copy the program to a page aligned physical address
-    if (kpmm_alloc (&pinfo->binaryAddress, 1, PMM_REGION_ANY) == false) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Physical memory allocation failed.
+    pinfo->state               = PROCESS_NOT_STARTED;
+    pinfo->flags               = flags;
+    pinfo->registerStates->ds  = GDT_SELECTOR_UDATA;
+    pinfo->registerStates->cs  = GDT_SELECTOR_UCODE;
+    pinfo->registerStates->eip = PROCESS_TEXT_VA_START;
+    pinfo->registerStates->esp = PROCESS_STACK_VA_TOP;
+
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        pinfo->registerStates->eip = (PTR)processStartAddress;
     }
 
-    void* bin_va = kpg_temporaryMap (pinfo->binaryAddress);
-    k_memcpy (bin_va, processStartAddress, binLengthBytes);
-    kpg_temporaryUnmap();
-
-    pinfo->state = PROCESS_NOT_STARTED;
-    pinfo->flags = flags;
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+        pinfo->registerStates->ds = GDT_SELECTOR_KDATA;
+        pinfo->registerStates->cs = GDT_SELECTOR_KCODE;
+    }
     return pinfo->processID;
 }
 
@@ -106,19 +123,23 @@ bool kprocess_switch (UINT processID)
     }
 
     ProcessInfo* pinfo = processTable[processID];
-    if (!kpg_switchPageDirectory (pinfo->pagedir)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Switch to new PD failed.
-    }
 
-    INFO ("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+    // Threads use the PD of its parent.
+    if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        if (!kpg_switchPageDirectory (pinfo->pagedir)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Switch to new PD failed.
+        }
+    }
 
     if (pinfo->state == PROCESS_NOT_STARTED) {
         PageDirectory pd = kpg_getcurrentpd();
 
-        // Map process binary location into the process's address space
-        if (!kpg_map (pd, PROCESS_TEXT_VA_START, pinfo->binaryAddress,
-                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
+        if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+            // Map process binary location into the process's address space
+            if (!kpg_map (pd, PROCESS_TEXT_VA_START, pinfo->binaryAddress,
+                          PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
+                RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
+            }
         }
 
         // Allocate physical storage for process stack
@@ -137,26 +158,20 @@ bool kprocess_switch (UINT processID)
         }
     }
 
-    pinfo->state = PROCESS_STARTED;
-
-    U32 dataSelector = GDT_SELECTOR_UDATA;
-    U32 codeSelector = GDT_SELECTOR_UCODE;
-
-    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-        dataSelector = GDT_SELECTOR_KDATA;
-        codeSelector = GDT_SELECTOR_KCODE;
-    }
-
+    pinfo->state   = PROCESS_STARTED;
     currentProcess = pinfo;
 
-    INFO ("Process (PID: %u) starting with dataSel: 0x%x, codeSel: 0x%x", processID, dataSelector,
-          codeSelector);
+    INFO ("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+
+    ProcessRegisterState* reg = pinfo->registerStates;
+
+    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x", processID, reg->ds,
+          reg->esp, reg->cs, reg->eip);
 
     if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-        jump_to_kernelprocess ((void*)PROCESS_STACK_VA_TOP, (void (*)())PROCESS_TEXT_VA_START);
+        jump_to_kernelprocess ((void*)reg->esp, (void (*)())reg->eip);
     } else {
-        jump_to_userprocess (dataSelector, codeSelector, (void*)PROCESS_STACK_VA_TOP,
-                             (void (*)())PROCESS_TEXT_VA_START);
+        jump_to_userprocess (reg->ds, reg->cs, (void*)reg->esp, (void (*)())reg->eip);
     }
 
     NORETURN();
