@@ -8,7 +8,8 @@
 #include <types.h>
 #include <buildcheck.h>
 
-void jump_to_usermode (U32 dataselector, U32 codeselector, void* stackTop, void (*user_func)());
+void jump_to_userprocess (U32 dataselector, U32 codeselector, void* stackTop, void (*user_func)());
+void jump_to_kernelprocess (void* stackTop, void (*user_func)());
 
 struct ProcessRegisterState {
     U32 eax;

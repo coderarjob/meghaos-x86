@@ -121,19 +121,19 @@ bool kprocess_switch (UINT processID)
             RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
         }
 
-        // Separate stack is not required for Kernel processes. These processes run in Ring 0 and
-        // thus will use the existing kernel stack.
-        if (!BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-            // Allocate physical storage for process stack
-            if (!kpmm_alloc (&pinfo->stackAddress, 1, PMM_REGION_ANY)) {
-                RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // allocation failed
-            }
+        // Allocate physical storage for process stack
+        if (!kpmm_alloc (&pinfo->stackAddress, 1, PMM_REGION_ANY)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // allocation failed
+        }
 
-            // Map process stack location into the process's address space
-            if (!kpg_map (pd, PROCESS_STACK_VA_START, pinfo->stackAddress,
-                          PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
-                RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
-            }
+        // Map process stack location into the process's address space
+        U32 map_flags = PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED;
+        if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+            map_flags |= PG_MAP_FLAG_KERNEL;
+        }
+
+        if (!kpg_map (pd, PROCESS_STACK_VA_START, pinfo->stackAddress, map_flags)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
         }
     }
 
@@ -141,21 +141,23 @@ bool kprocess_switch (UINT processID)
 
     U32 dataSelector = GDT_SELECTOR_UDATA;
     U32 codeSelector = GDT_SELECTOR_UCODE;
-    PTR stackTop     = PROCESS_STACK_VA_TOP;
 
     if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
         dataSelector = GDT_SELECTOR_KDATA;
         codeSelector = GDT_SELECTOR_KCODE;
-        stackTop     = INTEL_32_KSTACK_TOP;
     }
 
     currentProcess = pinfo;
 
-    INFO ("Process (PID: %u) starting with dataSel: 0x%x, codeSel: 0x%x, stackTop: 0x%px",
-          processID, dataSelector, codeSelector, stackTop);
+    INFO ("Process (PID: %u) starting with dataSel: 0x%x, codeSel: 0x%x", processID, dataSelector,
+          codeSelector);
 
-    jump_to_usermode (dataSelector, codeSelector, (void*)stackTop,
-                      (void (*)())PROCESS_TEXT_VA_START);
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+        jump_to_kernelprocess ((void*)PROCESS_STACK_VA_TOP, (void (*)())PROCESS_TEXT_VA_START);
+    } else {
+        jump_to_userprocess (dataSelector, codeSelector, (void*)PROCESS_STACK_VA_TOP,
+                             (void (*)())PROCESS_TEXT_VA_START);
+    }
 
     NORETURN();
 }

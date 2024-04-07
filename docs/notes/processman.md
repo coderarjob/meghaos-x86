@@ -4,6 +4,11 @@
 ## Process management
 categories: feature, independent
 
+### New process
+
+* When Kernel passes control to the new Process, the GP registers can have any value, except ESP and
+  EBP. ESP will point to the process stack top and EBP will be zero.
+  
 ### Problem with creating kernel modules
 
 At this point, processes can be run in ring 0 and therefore will be able to whatever the kernel can
