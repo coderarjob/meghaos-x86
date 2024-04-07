@@ -321,7 +321,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
  * directory.
  *
  * @Input    pd      Page directory which will contain this virtual address.
- * @Input    va      Virtual address which will map to the physical address. Must be page aligned.
+ * @Input    va      Virtual address which will map to the physical address.
  * @Output   pa      Pointer where the Physical address will be stored.
  * @return           True if mapping exists, false otherwise. Error number is set.
  * @error            ERR_INVALID_ARGUMENT - Pointer to page directory is null.
@@ -454,7 +454,7 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
 /***************************************************************************************************
  * Create a new Page Directory and sets it up according to flags.
  *
- * @Input   newPD       Physical address of the new Page directory.
+ * @Output  newPD       Location where physical address of the new Page directory will be stored.
  * @Input   flags       Flags that determine the setup of the Page directory.
  * @return              True if success, false otherwise.
  **************************************************************************************************/
