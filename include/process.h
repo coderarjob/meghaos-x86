@@ -22,12 +22,13 @@ typedef enum ProcessFlags {
 
 // TODO: Fields to store registers and return address is missing at this point.
 typedef struct ProcessInfo {
+    INT processID;
     Physical pagedir;
     ProcessStates state;
-    Physical bin_addr;
-    Physical stack_addr;
+    Physical binaryAddress;
+    Physical stackAddress;
     ProcessFlags flags;
 } ProcessInfo;
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
-bool kprocess_switch (INT processID);
+bool kprocess_switch (UINT processID);

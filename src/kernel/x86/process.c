@@ -11,7 +11,7 @@
 #include <paging.h>
 #include <kstdlib.h>
 #include <process.h>
-#include <x86/kprocess.h>
+#include <x86/process.h>
 #include <x86/gdt.h>
 #include <memmanage.h>
 #include <x86/memloc.h>
@@ -31,13 +31,24 @@ static ProcessInfo* s_processInfo_malloc()
     }
 
     ProcessInfo* pInfo = kmalloc (sizeof (ProcessInfo));
+
     if (pInfo == NULL) {
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
     }
 
     pInfo->state = PROCESS_NOT_CREATED;
 
-    processTable[processCount++] = pInfo;
+    // Find a hole for the new process in the process table.
+    int pid = 0;
+    for (pid = 0; pid < MAX_PROCESS_COUNT; pid++) {
+        if (processTable[pid] == NULL) {
+            break;
+        }
+    }
+    pInfo->processID  = pid;
+    processTable[pid] = pInfo;
+    processCount++;
+
     return pInfo;
 }
 
@@ -59,24 +70,23 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     }
 
     // Copy the program to a page aligned physical address
-    if (kpmm_alloc (&pinfo->bin_addr, 1, PMM_REGION_ANY) == false) {
+    if (kpmm_alloc (&pinfo->binaryAddress, 1, PMM_REGION_ANY) == false) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Physical memory allocation failed.
     }
 
-    void* bin_va = kpg_temporaryMap (pinfo->bin_addr);
+    void* bin_va = kpg_temporaryMap (pinfo->binaryAddress);
     k_memcpy (bin_va, processStartAddress, binLengthBytes);
     kpg_temporaryUnmap();
 
     pinfo->state = PROCESS_NOT_STARTED;
     pinfo->flags = flags;
-    return KERNEL_EXIT_SUCCESS; // Success
 }
 
-bool kprocess_switch (INT processID)
+bool kprocess_switch (UINT processID)
 {
     FUNC_ENTRY ("Process ID: %u", processID);
 
-    if (processCount >= MAX_PROCESS_COUNT) {
+    if (processID >= processCount) {
         RETURN_ERROR (ERR_INVALID_RANGE, false);
     }
 
@@ -85,13 +95,13 @@ bool kprocess_switch (INT processID)
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Switch to new PD failed.
     }
 
-    INFO("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+    INFO ("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
 
     if (pinfo->state == PROCESS_NOT_STARTED) {
         PageDirectory pd = kpg_getcurrentpd();
 
         // Map process binary location into the process's address space
-        if (!kpg_map (pd, PROCESS_TEXT_VA_START, pinfo->bin_addr,
+        if (!kpg_map (pd, PROCESS_TEXT_VA_START, pinfo->binaryAddress,
                       PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
         }
@@ -100,12 +110,12 @@ bool kprocess_switch (INT processID)
         // thus will use the existing kernel stack.
         if (!BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
             // Allocate physical storage for process stack
-            if (!kpmm_alloc (&pinfo->stack_addr, 1, PMM_REGION_ANY)) {
+            if (!kpmm_alloc (&pinfo->stackAddress, 1, PMM_REGION_ANY)) {
                 RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // allocation failed
             }
 
             // Map process stack location into the process's address space
-            if (!kpg_map (pd, PROCESS_STACK_VA_START, pinfo->stack_addr,
+            if (!kpg_map (pd, PROCESS_STACK_VA_START, pinfo->stackAddress,
                           PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
                 RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
             }
