@@ -30,10 +30,10 @@
 
 
 ### x86 Features Docs
+- [Operating System ABI](notes/abi.md#Operating-System-ABI)
 - [Physical memory map](notes/gdt.md#Physical-memory-map)
 - [Interrupt handling](notes/interrupt_handling.md#Interrupt-handling)
 - [Physical Memory allocation](notes/physical_memory_manager.md#Physical-Memory-allocation)
-- [System call ABI](notes/syscall.md#System-call-ABI)
 - [Virtual memory map](notes/vmm.md#Virtual-memory-map)
 
 ### Obsolete x86 Features Docs
@@ -62,6 +62,8 @@
 - [How to use page tables to map Virtual Addresses to Physical Addresses?](notes/paging.md#How-to-use-page-tables-to-map-Virtual-Addresses-to-Physical-Addresses)
 - [Notes: Why not preallocate the whole 256 MB? ](notes/paging.md#Notes:-Why-not-preallocate-the-whole-256-MB-)
 - [Recursive mapping and temporary mapping in Kernel](notes/recursive_map_clarity_with_example.md#Recursive-mapping-and-temporary-mapping-in-Kernel)
+- [System call stack in User and Kernel processes](notes/Scratch.md#System-call-stack-in-User-and-Kernel-processes)
+- [Different way to switch privilege levels in x86 processors](notes/Scratch.md#Different-way-to-switch-privilege-levels-in-x86-processors)
 - [Strange behaviour because of Stale TLB](notes/Scratch.md#Strange-behaviour-because-of-Stale-TLB)
 - [What happens if kernel stack is used in user mode](notes/usermode_stack.md#What-happens-if-kernel-stack-is-used-in-user-mode)
 - [Virtual memory management - Concept of Regions](notes/virtual_memory_manager.md#Virtual-memory-management---Concept-of-Regions)

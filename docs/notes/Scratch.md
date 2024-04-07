@@ -14,6 +14,73 @@
 
 ------------------------------------
 
+## System call stack in User and Kernel processes
+categories: note, obsolete, x86
+_097 April 2024_
+
+NEED TO BE REVISED
+
+### System call - User process
+
+| Register state                         | Where                     |
+|----------------------------------------|---------------------------|
+| esp: 30fef                             | INT 0x50                  |
+| ebp: 30ffb                             |                           |
+| Ring 0 stack switched. (Base: 0x22FFF) | At syscall_asm_despatcher |
+| 20 bytes of interrupt frame pushed     |                           |
+| esp: c0022feb                          |                           |
+|----------------------------------------|---------------------------|
+
+* esp: 30fef
+* ebp: 30ffb
+* INT 0x40
+* Ring 0 stack switched. (Base: 0x22FFF)
+* 20 bytes of interrupt frame pushed
+* esp: c0022feb
+* One push eab
+* 48 bytes of OS interrupt frame pushed
+* esp: c0022fb7
+* Push interrupt frame address (argument)
+* call sys_dummy_handler
+* One push eab
+* esp: c0022fab
+
+At the end of the interrupt routine control will reach the instruction after INT 0x40 and at that
+time ESP, EBP should be what it was at the start 0x30fef, 0x30ffb.
+
+System call - Kernel process
+
+* esp: c0022f87
+* ebp: c0022f93
+* INT 0x40
+* 12 bytes of interrupt frame pushed
+* esp: c0022f7b
+* One push eab
+* 48 bytes of OS interrupt frame pushed
+* esp: c0022fb7
+* Push interrupt frame address (argument)
+* call sys_dummy_handler
+* One push eab
+* esp: c0022f3b
+
+At the end of the interrupt routine control will reach the instruction after INT 0x40 and at that
+time ESP, EBP should be what it was at the start 0xc0022f87, 0xc0022f93.
+
+------------------------------------
+
+## Different way to switch privilege levels in x86 processors
+categories: note, x86
+_8 April 2024_
+
+* Call gate - Call gates are used to switch between 16 and 32 bit modes but are not used elsewhere.
+* Task gate - The Task gates rely on TSS segments, which are used in bare minimum in MOS.
+* Interrupt - We use this kind of gates for both HW and SW interrupts. Other interrupts are not
+    processed until the current one exits.
+* Trap gates - These are not used. But in general they are same as Interrupt gates, just that they
+    allow interrupts to occur while inside an interrupt handler.
+
+------------------------------------
+
 ## Strange behaviour because of Stale TLB
 categories: note, x86
 _3 March 2024_

@@ -4,10 +4,49 @@
 ## Process management
 categories: feature, independent
 
-### New process
+### Process modes
 
-* When Kernel passes control to the new Process, the GP registers can have any value, except ESP and
-  EBP. ESP will point to the process stack top and EBP will be zero.
+A process is instance of runnable code in the context of an Operating System. It is not necessarily
+need to correlate one to one with executable files. A process run portions in "light-weight"
+processes called threads.
+
+Both these types of processes can be run in either Ring 3 or Ring 0, the later is called Kernel
+mode. The ability to run whole program or portions in either Ring 0 or 3 is important as no
+commercial Operating System will allow this easily.
+
+### Threads
+
+#### How threads and non-thread processes differ
+
+1. It runs within the address space of its non-thread parent (one thread can create other threads
+   and they all share the same address space of the parent of the first thread). This means no now
+   Page Directory is created for threads.
+2. Threads do not run whole binaries/programs, they run arbitrary code from its (already loaded)
+   parent. In the other case a binary is loaded, mapped and starts execution from a fixed
+   location (Programs must be linked properly so that the entry point is at the right/expected
+   location in the binary).
+
+#### What remains the same
+
+1. Specific stack for each process. Threads and non-thread ones, whether in Kernel or not has
+   separate stacks.
+2. Kernel/non-kernel mode determines which ring the process will be run in.
+
+### Kernel mode processes
+
+This depends on the architecture of the CPU and but here are the broad points.
+1. Runs in the same privileged mode as the Kernel.
+2. Address space (of code, data and stack) separation remains same as general processes. All
+   processes, Kernel mode or otherwise runs in its own address space.
+3. Non-Kernel mode process can create Kernel mode processes (thread processes or otherwise).
+
+#### How Kernel mode differs from non-Kernel mode processes
+
+1. Kernel process runs in Ring 0. In x86 architecture this means the Segment registers are so setup
+   to select Ring 0 rather than Ring 3.
+2. On the x86 architecture, non-kernel mode processes has two stacks, one for user mode another
+   for Kernel mode. Kernel mode processes on the other hand has one process stack that is used when
+   by Kernel as well (With everything in Ring 0, there is no need for a separate stack).
   
 ### Problem with creating kernel modules
 
