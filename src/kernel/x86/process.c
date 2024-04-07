@@ -4,6 +4,7 @@
  * ---------------------------------------------------------------------------
  */
 
+#include <kassert.h>
 #include <kdebug.h>
 #include <types.h>
 #include <pmm.h>
@@ -23,6 +24,9 @@
 
 static ProcessInfo* processTable[MAX_PROCESS_COUNT];
 static UINT processCount;
+static ProcessInfo* currentProcess = NULL;
+
+static ProcessInfo* s_processInfo_malloc();
 
 static ProcessInfo* s_processInfo_malloc()
 {
@@ -33,6 +37,10 @@ static ProcessInfo* s_processInfo_malloc()
     ProcessInfo* pInfo = kmalloc (sizeof (ProcessInfo));
 
     if (pInfo == NULL) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
+    }
+
+    if ((pInfo->registerStates = kmalloc (sizeof (ProcessRegisterState))) == NULL) {
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
     }
 
@@ -80,6 +88,13 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
 
     pinfo->state = PROCESS_NOT_STARTED;
     pinfo->flags = flags;
+    return pinfo->processID;
+}
+
+void kprocess_setCurrentProcessRegisterStates (ProcessRegisterState state)
+{
+    k_assert (currentProcess != NULL, "There are no process running.");
+    k_memcpy (currentProcess->registerStates, &state, sizeof (ProcessRegisterState));
 }
 
 bool kprocess_switch (UINT processID)
@@ -133,6 +148,8 @@ bool kprocess_switch (UINT processID)
         codeSelector = GDT_SELECTOR_KCODE;
         stackTop     = INTEL_32_KSTACK_TOP;
     }
+
+    currentProcess = pinfo;
 
     INFO ("Process (PID: %u) starting with dataSel: 0x%x, codeSel: 0x%x, stackTop: 0x%px",
           processID, dataSelector, codeSelector, stackTop);
