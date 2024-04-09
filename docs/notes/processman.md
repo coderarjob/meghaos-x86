@@ -19,7 +19,7 @@ commercial Operating System will allow this easily.
 #### How threads and non-thread processes differ
 
 1. It runs within the address space of its non-thread parent (one thread can create other threads
-   and they all share the same address space of the parent of the first thread). This means no now
+   and they all share the same address space of the parent of the first thread). This means no new
    Page Directory is created for threads.
 2. Threads do not run whole binaries/programs, they run arbitrary code from its (already loaded)
    parent. In the other case a binary is loaded, mapped and starts execution from a fixed
@@ -30,6 +30,10 @@ commercial Operating System will allow this easily.
 
 1. Specific stack for each process. Threads and non-thread ones, whether in Kernel or not has
    separate stacks.
+   Process stacks are mapped to a fixed virtual location in non-thread processes
+   (PROCESS_TEXT_VA_START), but in thread processes this is not possible as the fixed stack
+   location will already be mapped and used by its parent, so thread process stack are mapped
+   dynamically.
 2. Kernel/non-kernel mode determines which ring the process will be run in.
 
 ### Kernel mode processes
@@ -47,7 +51,29 @@ This depends on the architecture of the CPU and but here are the broad points.
 2. On the x86 architecture, non-kernel mode processes has two stacks, one for user mode another
    for Kernel mode. Kernel mode processes on the other hand has one process stack that is used when
    by Kernel as well (With everything in Ring 0, there is no need for a separate stack).
-  
+
+### Problem with creation of new process from a kernel process
+
+When a Kernel process makes a syscall, no stack switch occurs. This causes stack corruption when
+trying to switch to the new process.
+
+When we switch to the address space of the new process (when switching to a non-thread process) or
+modify the current address space to add a new stack (when switching to a thread process) in the
+middle of the `kprocess_switch` function, the state of the current stack is destroyed and inevitably
+causes a fault soon.
+
+The solutions I see are these:
+1. The `syscall_asm_despatcher` function always switches to the Kernel stack before continuing. This
+   solves both the above two problems as the Kernel address space is always available (even in a new
+   process) and Kernel stack space is also separate, thus will not be overridden.
+   Problem with this approach is that we will not be able to issue a syscall from within the Kernel.
+   It would cause stack corruption. However not sure why would we issue a syscall when we are
+   already in the Kernel space.
+2. Only change the current address space just before jumping to the process. All operations like
+   address space setup etc should be done using temporary mapping in the current address space.
+   Do not see any problem with this approach, just that I have to think of a way to make these
+   temporary mappings, as the existing temporary map function cannot be used for these.
+
 ### Problem with creating kernel modules
 
 At this point, processes can be run in ring 0 and therefore will be able to whatever the kernel can

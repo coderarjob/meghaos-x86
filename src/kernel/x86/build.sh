@@ -7,7 +7,6 @@ source functions.sh
 echo "    [ Compilling x86 Kernel ]    "
 
 ASM_FILES=(
-    'kernel/x86/usermode.s'
     'kernel/x86/entry.s'
 )
 

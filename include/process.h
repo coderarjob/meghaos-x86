@@ -21,6 +21,10 @@ typedef enum ProcessFlags {
     PROCESS_FLAGS_THREAD         = (2 << 0),
 } ProcessFlags;
 
+__asm__(".equ PROCESS_FLAGS_NONE, 0;"
+        ".equ PROCESS_FLAGS_KERNEL_PROCESS, (1 << 0);"
+        ".equ PROCESS_FLAGS_THREAD, (2 << 0);");
+
 typedef struct ProcessRegisterState ProcessRegisterState;
 
 typedef struct ProcessInfo {
