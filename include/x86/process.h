@@ -8,9 +8,6 @@
 #include <types.h>
 #include <buildcheck.h>
 
-void jump_to_process (U32 type, void* stackTop, void (*entry)(), U32 dataselector, U32 codeselector,
-                      U32 cr3);
-
 struct ProcessRegisterState {
     U32 eax;
     U32 ebx;

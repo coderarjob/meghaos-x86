@@ -34,6 +34,9 @@ static ProcessInfo* s_processInfo_malloc();
 static void s_temporaryUnmap();
 static void* s_temporaryMap (Physical p);
 
+void jump_to_process (U32 type, void* stackTop, void (*entry)(), U32 dataselector, U32 codeselector,
+                      x86_CR3 cr3);
+
 /***************************************************************************************************
  * Jumps to the entry point of a process and switches stacks, address space depending on process
  * flags.
@@ -199,11 +202,7 @@ bool kprocess_switch (UINT processID)
     ProcessInfo* pinfo = processTable[processID];
 
     if (pinfo->state == PROCESS_NOT_STARTED) {
-        PageDirectory pd = kpg_getcurrentpd();
-
-        if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
-            pd = s_temporaryMap (pinfo->pagedir);
-        }
+        PageDirectory pd = s_temporaryMap (pinfo->pagedir);
 
         if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
             // Map process binary location into the process's address space
@@ -256,7 +255,10 @@ bool kprocess_switch (UINT processID)
     INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x", processID, reg->ds,
           reg->esp, reg->cs, reg->eip);
 
-    U32 cr3 = PHYSICAL_TO_PAGEFRAME (pinfo->pagedir.val);
+    register x86_CR3 cr3 = { 0 };
+    cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
+    cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
+    cr3.physical         = PHYSICAL_TO_PAGEFRAME (pinfo->pagedir.val);
 
     jump_to_process (pinfo->flags, (void*)reg->esp, (void (*)())reg->eip, reg->ds, reg->cs, cr3);
 
