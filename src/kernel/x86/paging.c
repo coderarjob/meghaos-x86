@@ -468,9 +468,11 @@ bool kpg_createNewPageDirectory (Physical* newPD, PagingNewPageDirectoryFlags fl
 
     INFO ("New PD physical location: 0x%px", newPD->val);
 
+    PageDirectory pd        = kpg_temporaryMap (*newPD);
+    k_memset(pd, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
+
     // Temporary map this PD and copy kernel page table entries
     if (BIT_ISSET (flags, PG_NEWPD_FLAG_COPY_KERNEL_PAGES)) {
-        PageDirectory pd        = kpg_temporaryMap (*newPD);
         PageDirectory currentPD = kpg_getcurrentpd();
         for (UINT pdi = KERNEL_PDE_INDEX; pdi < 1024; pdi++) {
             pd[pdi] = currentPD[pdi];
@@ -480,8 +482,8 @@ bool kpg_createNewPageDirectory (Physical* newPD, PagingNewPageDirectoryFlags fl
             pd[RECURSIVE_PDE_INDEX].pageTableFrame = PHYSICAL_TO_PAGEFRAME (newPD->val);
         }
 
-        kpg_temporaryUnmap();
     }
+    kpg_temporaryUnmap();
 
     return true; // Success
 }
