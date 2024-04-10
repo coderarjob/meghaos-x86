@@ -38,37 +38,6 @@ typedef struct PageFaultError
 static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size);
 static void s_callPanic(InterruptFrame *frame, char *fmt, ...);
 
-/***************************************************************************************************
- * Global system call despatcher
- **************************************************************************************************/
-__asm__(".text;"
-        ".globl syscall_asm_despatcher;"
-        "syscall_asm_despatcher:;"
-        "    push ebp;"
-        "    mov ebp, esp;"
-        "// At this point, the segment registers are not preserved.\n"
-        "// But this should be okay, as segmentation is supposed to be never used.\n"
-        "// Push the arguments to syscall function\n"
-        "    push edi;"
-        "    push esi;"
-        "    push edx;"
-        "    push ecx;"
-        "    push ebx;"
-        "// First argument is pointer to the InterruptFrame\n"
-        "    lea ebx, [ebp + 4];"
-        "    push ebx;"
-        "// Syscall function is retrived using syscall number in EAX\n"
-        "    lea eax, [4 * eax + g_syscall_table];"
-        "    call [eax];"
-        "    add esp, 4;"
-        "    pop ebx;"
-        "    pop ecx;"
-        "    pop edx;"
-        "    pop esi;"
-        "    pop edi;"
-        "    pop ebp;"
-        "    iret;");
-
 INTERRUPT_HANDLER(sys_dummy)
 void sys_dummy_handler (InterruptFrame *frame)
 {
