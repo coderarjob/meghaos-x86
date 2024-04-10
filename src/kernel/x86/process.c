@@ -77,9 +77,9 @@ __asm__(".text;"
         "mov es, ax;"
         "mov fs, ax;"
         "mov gs, ax;"
-        "push eax;"     // Stack segment selector = DS
-        "push ebp;"     //  User mode stack pointer
-        "pushfd;"       //  EFLAGS
+        "push edx;"     // Data and Stack segment selector
+        "push ebx;"     // User mode stack pointer
+        "pushfd;"       // EFLAGS
         "push esi;"     // Code Segment selector
         "push ecx;"     // Function pointer
         "xor ebp, ebp;" // Required for stack trace to work. Ends here.
@@ -135,8 +135,8 @@ static ProcessInfo* s_processInfo_malloc()
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
 {
-    FUNC_ENTRY ("Process start address: 0x%px, size: 0x%x bytes", processStartAddress,
-                binLengthBytes);
+    FUNC_ENTRY ("Process start address: 0x%px, size: 0x%x bytes, flags: 0x%x", processStartAddress,
+                binLengthBytes, flags);
 
     // Process table entry
     ProcessInfo* pinfo = s_processInfo_malloc();
@@ -182,6 +182,8 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
         pinfo->registerStates->ds = GDT_SELECTOR_KDATA;
         pinfo->registerStates->cs = GDT_SELECTOR_KCODE;
     }
+
+    INFO ("Process with ID %u created.", pinfo->processID);
     return pinfo->processID;
 }
 
@@ -260,6 +262,7 @@ bool kprocess_switch (UINT processID)
     cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
     cr3.physical         = PHYSICAL_TO_PAGEFRAME (pinfo->pagedir.val);
 
+    INFO("Switching to process");
     jump_to_process (pinfo->flags, (void*)reg->esp, (void (*)())reg->eip, reg->ds, reg->cs, cr3);
 
     NORETURN();
