@@ -8,9 +8,12 @@
 #include <types.h>
 #include <kdebug.h>
 #include <x86/interrupt.h>
+#include <process.h>
 
-void sys_debug_log (InterruptFrame* frame, U32 type, char* text);
 void sys_console_writeln (InterruptFrame* frame, char* text);
+INT sys_createProcess (InterruptFrame* frame, void* processStartAddress, SIZE binLengthBytes,
+                       ProcessFlags flags);
+INT sys_switchProcess (InterruptFrame* frame, UINT processID);
 
 static U32 s_getSysCallCount();
 
@@ -18,8 +21,9 @@ static U32 s_getSysCallCount();
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
-    &sys_debug_log,
     &sys_console_writeln,
+    &sys_createProcess,
+    &sys_switchProcess,
 };
 #pragma GCC diagnostic pop
 
@@ -72,29 +76,34 @@ __asm__(".text;"
 #pragma GCC diagnostic ignored "-Wunused-function"
 static U32 s_getSysCallCount()
 {
-    return ARRAY_LENGTH(g_syscall_table);
+    return ARRAY_LENGTH (g_syscall_table);
 }
 #pragma GCC diagnostic pop
 
 void sys_console_writeln (InterruptFrame* frame, char* text)
 {
     FUNC_ENTRY ("Frame return address: 0x%x:0x%x, text: 0x%x", frame->cs, frame->ip, text);
+    (void)frame;
     kearly_println ("%s", text);
 }
 
-void sys_debug_log (InterruptFrame* frame, U32 type, char* text)
+INT sys_createProcess (InterruptFrame* frame, void* processStartAddress, SIZE binLengthBytes,
+                       ProcessFlags flags)
 {
-    FUNC_ENTRY ("Frame return address: 0x%x:0x%x, type: 0x%x, text: 0x%x", frame->cs, frame->ip,
-                type, text);
+    FUNC_ENTRY (
+        "Frame return address: 0x%x:0x%x, flags: 0x%x, start address: 0x%px, binary len: 0x%x",
+        frame->cs, frame->ip, flags, processStartAddress, binLengthBytes);
 
-    switch (type) {
-    case 0:
-        INFO ("%s", text);
-        break;
-    case 1:
-        ERROR ("%s", text);
-        break;
-    default:
-        UNREACHABLE();
-    }
+    (void)frame;
+    return kprocess_create (processStartAddress, binLengthBytes, flags);
+}
+
+__attribute__ ((noreturn))
+INT sys_switchProcess (InterruptFrame* frame, UINT processID)
+{
+    FUNC_ENTRY ("Frame return address: 0x%x:0x%x, ID: 0x%x", frame->cs, frame->ip, processID);
+
+    (void)frame;
+    kprocess_switch (processID);
+    NORETURN();
 }

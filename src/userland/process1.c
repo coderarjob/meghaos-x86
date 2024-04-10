@@ -1,20 +1,34 @@
 #include <kdebug.h>
 #include <x86/cpu.h>
 #include <types.h>
+#include <process.h>
 
 U32 syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
+void another_thread();
 
 void userland_main()
 {
     kbochs_breakpoint();
-    char* info_text = "Info from process 1";
-    syscall (0, 0, (PTR)info_text, 0, 0, 0);
+    char* console_text = "Console message from process";
+    syscall (0, (PTR)console_text, 0, 0, 0, 0);
 
-    char* error_text = "Error from process 1";
-    syscall (0, 1, (PTR)error_text, 0, 0, 0);
+    U32 pid = syscall (1, (U32)&another_thread, 0,
+                       PROCESS_FLAGS_THREAD | PROCESS_FLAGS_KERNEL_PROCESS, 0, 0);
+    if (pid != 0) {
+        syscall (2, pid, 0, 0, 0, 0);
+    }
 
-    char* console_text = "Console message from process 1";
-    syscall (1, (PTR)console_text, 0, 0, 0, 0);
+    while (1)
+        ;
+}
+
+void another_thread()
+{
+    char* console_text = "Console message from thread";
+    syscall (0, (PTR)console_text, 0, 0, 0, 0);
+
+    U32 cr3 = 0xF00;
+    x86_READ_REG (CR3, cr3);
 
     while (1)
         ;

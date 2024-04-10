@@ -110,6 +110,7 @@ void kernel_main ()
     
     process_poc();
     //new_process();
+    //new_process_2();
 
     // Jump to user mode
     INFO ("Jumping to User mode..");
@@ -146,7 +147,7 @@ static void new_process_2()
     INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_KERNEL_PROCESS);
+    INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
     if (processID < 0) {
         k_panicOnError();
     }
