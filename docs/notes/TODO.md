@@ -84,6 +84,14 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Process management                                                  | 11 Apr 24 |            |
+| ::: [ ] Queue for the scheduler                                         |           |            |
+| ::: [ ] Coorporative multitasking setup                                 |           |            |
+| ::: [ ] System call for exiting process (thread or otherwise)           |           |            |
+| ::: [ ] yield syscall                                                   |           |            |
+| ::: [ ] BUG: Page fault when user thread creates new process            |           |            |
+| Does not happend when a kernel thread in creating the process           |           |            |
+| ::: [X] BUG: 86Box and Bochs resets when making syscall from process1   | 11 Apr 24 | 12 Apr 24  |
 | [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
 | [X] Rename include/assert.h to kassert.h.                               | 16 Mar 24 | 17 Mar 24  |
 | [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |

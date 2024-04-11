@@ -73,10 +73,10 @@ __asm__(".text;"
         "jmp ecx;"
         /////// Load User Process ////////
         ".load_user_process:;"
-        "mov ds, ax;"
-        "mov es, ax;"
-        "mov fs, ax;"
-        "mov gs, ax;"
+        "mov ds, edx;"
+        "mov es, edx;"
+        "mov fs, edx;"
+        "mov gs, edx;"
         "push edx;"     // Data and Stack segment selector
         "push ebx;"     // User mode stack pointer
         "pushfd;"       // EFLAGS
