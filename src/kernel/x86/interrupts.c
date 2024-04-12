@@ -107,7 +107,7 @@ static void s_callPanic(InterruptFrame *frame, char *fmt, ...)
     INT len = kearly_vsnprintf (buffer, (size_t) size, fmt, l);
     va_end(l);
 
-    k_assert(size > len, "Buffer size too small.");
+    WARN_ON(size > len,  "Buffer size too small.");
 
     s_appendStackFrame(frame, buffer + len, size - len);
 
@@ -117,12 +117,11 @@ static void s_callPanic(InterruptFrame *frame, char *fmt, ...)
 
 static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size)
 {
-    k_assert(size > 0, "Buffer size too small.");
-
     size -= kearly_snprintf(buffer, (size_t) size,
             "\n\nInterrupt Frame:"
              "\n- EIP: 0x%x\n- CS: 0x%x\n- EFLAGS: 0x%x\n- ESP: 0x%x\n- SS: 0x%x",
              frame->ip, frame->cs, frame->flags, frame->sp, frame->ss);
+    (void)size;
 
-    k_assert(size > 0, "Buffer size too small.");
+    WARN_ON(size > 0,  "Buffer size too small.");
 }

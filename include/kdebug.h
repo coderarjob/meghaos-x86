@@ -15,6 +15,7 @@
 
 #include <types.h>
 #include <buildcheck.h>
+#include <disp.h>
 
 #define ANSI_COL_GRAY   "\x1b[90m"
 #define ANSI_COL_YELLOW "\x1b[93m"
@@ -66,5 +67,8 @@ void kdebug_dump_call_trace (PTR* raddrs, INT count);
     #define ERROR(...)      (void)0
     #define FUNC_ENTRY(...) (void)0
 #endif // DEBUG_LEVEL & 1
+
+#define WARN_ON(t, ...) \
+    ((!(t)) ? kdisp_importantPrint ("\n\nWARN ON: (" #t ") failed\n" __VA_ARGS__) : (void)0)
 
 #endif // KDEBUG_H
