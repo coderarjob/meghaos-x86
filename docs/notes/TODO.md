@@ -106,6 +106,8 @@
 | ::: [X] BUG: 86Box and Bochs resets when making syscall from process1   | 11 Apr 24 | 12 Apr 24  |
 | ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
 | ::: [ ] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 |            |
+| ::: [ ] InterruptFrame structure requires to take into account          | 14 Apr 24 |            |
+| that for Kernel processes, SS:ESP will not be passed.                   |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|

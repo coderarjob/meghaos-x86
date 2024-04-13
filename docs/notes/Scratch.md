@@ -14,9 +14,84 @@
 
 ------------------------------------
 
+## Round-robin operation using queue
+categories: note, obsolete, x86
+_11 April 2024_
+
+```
+Two pointers: back and front
+
+dequeue -> return F, F++, F < B
+enqueue -> B < QUEUE_LEN, add item at B, B++
+
+ F       B
+ 0 1 2 3
+[A|B|C|D| | ]
+
+   F       B
+ 0 1 2 3 4 5
+[ |B|C|D|A| ]
+
+     F     B
+ 0 1 2 3 4 5
+[ | |C|D|A|B]
+
+       F     B
+ 0 1 2 3 4 5 6
+[ | | |D|A|B|C]
+
+```
+
+------------------------------------
+
+## Code snippets
+categories: note, obsolete, x86
+_10 April 2024_
+
+### Temporary map modes
+
+There could  be another mode possible called General, where we scan the page directory/tables for a
+free virtual address and assign the physical page to this one. This requires address reservation and
+for that reason this can be very slow. Could be used in rare occations but not in places which will
+be frequently invoked or in a loop.
+
+```c
+// These Temporary map modes determine where physical page is going to be mapped in the address
+// space. KERNEL mode causes temporary map to be in Kernel address space, while in PROCESS mode it
+// is mapped in the address space of the current process.
+typedef enum PagingTemporaryMapModes {
+    PG_TEMPO_MAP_MODE_PROCESS,
+    PG_TEMPO_MAP_MODE_KERNEL
+} PagingTemporaryMapModes;
+
+```
+
+### Free process info implementation
+
+```c
+static bool s_processInfo_free(UINT processID);
+static bool s_processInfo_free(UINT processID)
+{
+     if (processID >= processCount) {
+         RETURN_ERROR (ERR_INVALID_RANGE, false);
+     }
+
+     ProcessInfo* pinfo = processTable[processID];
+     kfree(pinfo->registerStates);
+     kfree(pinfo);
+
+     processTable[processID] = NULL;
+     processCount--;
+
+     return true;
+}
+```
+
+------------------------------------
+
 ## System call stack in User and Kernel processes
 categories: note, obsolete, x86
-_097 April 2024_
+_9 April 2024_
 
 NEED TO BE REVISED
 
