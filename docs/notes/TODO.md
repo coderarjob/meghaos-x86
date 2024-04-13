@@ -89,7 +89,9 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] BUG: It is possible to write to a readonly page                     | 12 Apr 24 |            |
+| [X] BUG: It is possible to write to a readonly page                     | 12 Apr 24 | 13 Apr 24  |
+| Reason:                                                                 |           |            |
+| This happened because the CR0.WP (Write Protect) flag was unset.        |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
 | ::: [ ] Queue for the scheduler                                         |           |            |
