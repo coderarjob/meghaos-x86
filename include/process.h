@@ -17,13 +17,13 @@ typedef enum ProcessStates {
 
 typedef enum ProcessFlags {
     PROCESS_FLAGS_NONE           = 0,
-    PROCESS_FLAGS_KERNEL_PROCESS = (1 << 0),
-    PROCESS_FLAGS_THREAD         = (2 << 0),
+    PROCESS_FLAGS_KERNEL_PROCESS = (1 << 1),
+    PROCESS_FLAGS_THREAD         = (1 << 2),
 } ProcessFlags;
 
 __asm__(".equ PROCESS_FLAGS_NONE, 0;"
-        ".equ PROCESS_FLAGS_KERNEL_PROCESS, (1 << 0);"
-        ".equ PROCESS_FLAGS_THREAD, (2 << 0);");
+        ".equ PROCESS_FLAGS_KERNEL_PROCESS, (1 << 1);"
+        ".equ PROCESS_FLAGS_THREAD, (1 << 2);");
 
 typedef struct ProcessRegisterState ProcessRegisterState;
 
