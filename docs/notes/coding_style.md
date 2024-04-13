@@ -25,7 +25,8 @@ _19 December 2021_
    kmm_allocPage (int count);
    ```
 5. Functions that must not be called directly should end with `_ndu` (no direct use).
-6. Static functions with file scope, should begin with `s_`.
+6. Static functions are not marked with `k` or any other prefix. Such prefixes only cause to make
+   the code dirty.
 
 **Rational**
 The `k` and the `module` name is a quick way to know the that the function influences the kernel
@@ -58,7 +59,8 @@ Ref: [https://www.gnu.org/software/libc/manual/html_node/Reserved-Names.html](GC
 2. Global kernel variables, must have `k` prefix.
 3. After the `k` prefix, module/file name can be placed, in lower case.
 4. After the `k` prefix and the module name, a `_` separates the actual variable name.
-5. Static global variables with file scope, should begin with `s_`.
+5. Static variables are not marked with `k` or any other prefix. Such prefixes only cause to make
+   the code dirty.
 
    Example: 
    ```
