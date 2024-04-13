@@ -59,6 +59,7 @@ __asm__(".text;"
         "mov edx, [ebp + 16];" // data selector. Ignored if kernel process
         "mov esi, [ebp + 20];" // code selector. Ignored if kernel process.
         "mov edi, [ebp + 24];" // CR3 value. Ignored if thread process.
+        "mov esp, ebx;"        // Use the stack of the process from here on.
         "test eax, PROCESS_FLAGS_THREAD;"
         "jnz .cont1;" // CR3 should not change for thread processes.
         /////// Change CR3 ////////
@@ -68,7 +69,6 @@ __asm__(".text;"
         "test eax, PROCESS_FLAGS_KERNEL_PROCESS;"
         "jz .load_user_process;"
         /////// Load Kernel Process ////////
-        "mov esp, ebx;"
         "xor ebp, ebp;" // Required for stack trace to work. Ends here.
         "jmp ecx;"
         /////// Load User Process ////////
