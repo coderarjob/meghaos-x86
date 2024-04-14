@@ -18,7 +18,6 @@ C_FILES=(
     'common/utils.c'
     'kernel/salloc.c'
     'kernel/kmalloc.c'
-    'kernel/syscalls.c'
 )
 
 compile_cc "$GCC32 $GCC32_FLAGS" $OBJDIR ${C_FILES[@]}

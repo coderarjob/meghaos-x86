@@ -22,6 +22,7 @@ C_FILES=(
     'kernel/x86/boot.c'
     'kernel/x86/memmanage.c'
     'kernel/x86/process.c'
+    'kernel/x86/syscalls.c'
 )
 
 C_INTERRUPT_HANDLER_FILES=(
