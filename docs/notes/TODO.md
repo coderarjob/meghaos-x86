@@ -96,6 +96,9 @@
 | [ ] Process management                                                  | 11 Apr 24 |            |
 | ::: [ ] Queue for the scheduler                                         |           |            |
 | ::: [ ] Coorporative multitasking setup                                 |           |            |
+| ::: ::: [X] Examine the behaviour of system call                        | 14 Apr 24 | 15 Apr 24  |
+| ::: ::: [ ] First come first serve for process scheduling needs some    | 14 Apr 24 |            |
+| ::: ::: thought.                                                        |           |            |
 | ::: [ ] System call for exiting process (thread or otherwise)           |           |            |
 | ::: [ ] yield syscall                                                   |           |            |
 | ::: [-] BUG: Page fault when user thread creates new process            | 11 Apr 24 | 12 Apr 24  |
@@ -108,6 +111,8 @@
 | ::: [ ] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 |            |
 | ::: [ ] InterruptFrame structure requires to take into account          | 14 Apr 24 |            |
 | that for Kernel processes, SS:ESP will not be passed.                   |           |            |
+| ::: [ ] Free kmalloced memory either creation or switching to a process | 15 Apr 24 |            |
+| ::: fails.                                                              |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|

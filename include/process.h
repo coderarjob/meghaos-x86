@@ -28,7 +28,7 @@ __asm__(".equ PROCESS_FLAGS_NONE, 0;"
 typedef struct ProcessRegisterState ProcessRegisterState;
 
 typedef struct ProcessInfo {
-    INT processID;
+    UINT processID;
     Physical pagedir;
     ProcessStates state;
     Physical binaryAddress;
@@ -38,5 +38,4 @@ typedef struct ProcessInfo {
 } ProcessInfo;
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
-bool kprocess_switch (UINT processID);
-void kprocess_setCurrentProcessRegisterStates (ProcessRegisterState state);
+bool kprocess_yield (ProcessRegisterState* currentState);

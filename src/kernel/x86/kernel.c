@@ -46,8 +46,9 @@ static void s_dumpPab ();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 //static void find_virtual_address();
 static void process_poc();
-//static void new_process_1();
+static void new_process_1();
 static void new_process_2();
+static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 
 /* This variable is globally used to set error codes*/
 KernelErrorCodes k_errorNumber;
@@ -124,51 +125,68 @@ static void new_process_2()
 {
     FUNC_ENTRY();
 
-    //#pragma GCC diagnostic push
-    //#pragma GCC diagnostic ignored "-Wpedantic"
-    //    void* startAddress_va = new_process_1;
-    //#pragma GCC diagnostic pop
-    //
-    //    INT processID = kprocess_create (startAddress_va, 0,
-    //                                     PROCESS_FLAGS_KERNEL_PROCESS | PROCESS_FLAGS_THREAD);
-    //    if (processID < 0) {
-    //        k_panicOnError();
-    //    }
-    //
-    //    INFO ("Process ID: %u", processID);
-    //
-    //    kprocess_switch ((UINT)processID);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+    void* startAddress_va = new_process_1;
+#pragma GCC diagnostic pop
 
-    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
-    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
-
-    INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
-
-    void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
+    // INT processID = kprocess_create (startAddress_va, 0, PROCESS_FLAGS_THREAD);
+    INT processID = syscall (1, (PTR)startAddress_va, 0, PROCESS_FLAGS_THREAD, 0, 0);
     if (processID < 0) {
         k_panicOnError();
     }
 
     INFO ("Process ID: %u", processID);
 
-    kprocess_switch ((UINT)processID);
+    // kearly_println("From new_process_2 - 1");
+    // syscall(2, 0, 0, 0, 0, 0);
+    // kearly_println("From new_process_2 - 2");
+    // syscall(2, 0, 0, 0, 0, 0);
+    // kearly_println("From new_process_2 - 3");
+
+    for (int i = 0; i < 5; i++) {
+        kearly_println ("From Process 0");
+        syscall (2, 0, 0, 0, 0, 0);
+    }
+
+    INFO ("Here it ends");
+
+    // kprocess_switch ((UINT)processID);
+
+    // BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
+    // BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
+    // Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+    // SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+
+    // INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
+
+    // void* startAddress_va = CAST_PA_TO_VA (startAddress);
+    // INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
+    // if (processID < 0) {
+    //     k_panicOnError();
+    // }
+
+    // INFO ("Process ID: %u", processID);
+
+    // kprocess_switch ((UINT)processID);
     k_halt();
 }
 
-//static void new_process_1()
-//{
-//    FUNC_ENTRY();
-//
-//    U32 cr3 = 0xF00;
-//    x86_READ_REG (CR3, cr3);
-//
-//    INFO ("Value of cr3 is 0x%px", cr3);
-//
-//    k_halt();
-//}
+static void new_process_1()
+{
+    FUNC_ENTRY();
+
+    for (;;) {
+        kearly_println ("From Process 1");
+        syscall (2, 0, 0, 0, 0, 0);
+    }
+    // U32 cr3 = 0xF00;
+    // x86_READ_REG (CR3, cr3);
+
+    // INFO ("Value of cr3 is 0x%px", cr3);
+
+    k_halt();
+}
 
 static void process_poc()
 {
@@ -179,15 +197,25 @@ static void process_poc()
     void* startAddress_va = new_process_2;
 #pragma GCC diagnostic pop
 
-    INT processID = kprocess_create (startAddress_va, 0,
-                                     PROCESS_FLAGS_KERNEL_PROCESS | PROCESS_FLAGS_THREAD);
+    INT processID = kprocess_create (startAddress_va, 0, PROCESS_FLAGS_THREAD);
     if (processID < 0) {
         k_panicOnError();
     }
 
     INFO ("Process ID: %u", processID);
 
-    kprocess_switch ((UINT)processID);
+    kprocess_yield (NULL);
+}
+
+static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
+{
+    INT retval = 0;
+    __asm__ volatile("int 0x50"
+                     : "=a"(retval) // This is required. Otherwise compiler will not know that eax
+                                    // will be changed after this instruction.
+                     : "a"(fn), "b"(arg1), "c"(arg2), "d"(arg3), "S"(arg4), "D"(arg5)
+                     :);
+    return retval;
 }
 
 //static void find_virtual_address()

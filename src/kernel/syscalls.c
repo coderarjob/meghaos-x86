@@ -9,11 +9,12 @@
 #include <kdebug.h>
 #include <x86/interrupt.h>
 #include <process.h>
+#include <x86/process.h>
 
 void sys_console_writeln (InterruptFrame* frame, char* text);
 INT sys_createProcess (InterruptFrame* frame, void* processStartAddress, SIZE binLengthBytes,
                        ProcessFlags flags);
-INT sys_switchProcess (InterruptFrame* frame, UINT processID);
+void sys_yieldProcess (InterruptFrame* frame);
 
 static U32 s_getSysCallCount();
 
@@ -23,7 +24,7 @@ static U32 s_getSysCallCount();
 void* g_syscall_table[] = {
     &sys_console_writeln,
     &sys_createProcess,
-    &sys_switchProcess,
+    &sys_yieldProcess,
 };
 #pragma GCC diagnostic pop
 
@@ -98,12 +99,16 @@ INT sys_createProcess (InterruptFrame* frame, void* processStartAddress, SIZE bi
     return kprocess_create (processStartAddress, binLengthBytes, flags);
 }
 
-__attribute__ ((noreturn))
-INT sys_switchProcess (InterruptFrame* frame, UINT processID)
+void sys_yieldProcess (InterruptFrame* frame)
 {
-    FUNC_ENTRY ("Frame return address: 0x%x:0x%x, ID: 0x%x", frame->cs, frame->ip, processID);
+    FUNC_ENTRY ("Frame return address: 0x%x:0x%x", frame->cs, frame->ip);
 
-    (void)frame;
-    kprocess_switch (processID);
-    NORETURN();
+    ProcessRegisterState state = {
+        .ds = frame->ss,
+        .cs =  frame->cs,
+        .eip = frame->ip,
+        .esp = frame->sp
+    };
+
+    kprocess_yield (&state);
 }

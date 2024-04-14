@@ -22,17 +22,18 @@
 
 #define PROCESS_TEXT_VA_START  0x00010000
 #define PROCESS_STACK_VA_START 0x00030000
-#define PROCESS_STACK_VA_TOP   0x00030FFF
-#define PROCESS_TEMPORARY_MAP  LINEAR_ADDR (KERNEL_PDE_INDEX - 1, TEMPORARY_PTE_INDEX, 0)
-#define MAX_PROCESS_COUNT      20
+#define PROCESS_STACK_VA_TOP(stackstart, pages) \
+    ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
+#define PROCESS_TEMPORARY_MAP LINEAR_ADDR (KERNEL_PDE_INDEX - 1, TEMPORARY_PTE_INDEX, 0)
+#define MAX_PROCESS_COUNT     20
 
 static ProcessInfo* processTable[MAX_PROCESS_COUNT];
 static UINT processCount;
 static ProcessInfo* currentProcess = NULL;
 
-static ProcessInfo* s_processInfo_malloc();
 static void s_temporaryUnmap();
 static void* s_temporaryMap (Physical p);
+static bool kprocess_switch (ProcessInfo* pinfo);
 
 void jump_to_process (U32 type, void* stackTop, void (*entry)(), U32 dataselector, U32 codeselector,
                       x86_CR3 cr3);
@@ -116,20 +117,77 @@ static ProcessInfo* s_processInfo_malloc()
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
     }
 
-    pInfo->state = PROCESS_NOT_CREATED;
-
-    // Find a hole for the new process in the process table.
-    int pid = 0;
-    for (pid = 0; pid < MAX_PROCESS_COUNT; pid++) {
-        if (processTable[pid] == NULL) {
-            break;
-        }
-    }
-    pInfo->processID  = pid;
-    processTable[pid] = pInfo;
-    processCount++;
+    pInfo->state     = PROCESS_NOT_CREATED;
+    pInfo->processID = processCount++;
 
     return pInfo;
+}
+
+static INT s_queue_front = 0; // Points to where to dequeue next.
+static INT s_queue_back  = 0; // Points to where to enqueue next.
+
+static ProcessInfo* s_dequeue()
+{
+    if (s_queue_back == s_queue_front) {
+        RETURN_ERROR (ERR_INVALID_RANGE, NULL);
+    }
+
+    ProcessInfo* pinfo          = processTable[s_queue_front];
+    processTable[s_queue_front] = NULL;
+
+    INT next      = (s_queue_front + 1) % MAX_PROCESS_COUNT;
+    s_queue_front = next;
+    return pinfo;
+}
+
+static bool s_enqueue (ProcessInfo* p)
+{
+    INT next = (s_queue_back + 1) % MAX_PROCESS_COUNT;
+    if (next == s_queue_front) {
+        RETURN_ERROR (ERR_OUT_OF_MEM, false);
+    }
+
+    processTable[s_queue_back] = p;
+    s_queue_back               = next;
+    return true;
+}
+
+bool kprocess_yield (ProcessRegisterState* currentState)
+{
+    FUNC_ENTRY ("currentState: 0x%px", currentState);
+
+    if (currentProcess != NULL) {
+        k_memcpy (currentProcess->registerStates, currentState, sizeof (ProcessRegisterState));
+    }
+
+    // If there were only a single process, then the forward pointer will point to it. When this
+    // process yields the next process to run will come out to be itself, because the forward
+    // pointer is pointing to it. In this situation two yields are requried to get past the current
+    // process.
+    // So if there are more than one process in the process table, and dequeue returns the current
+    // process, then we dequeue once again.
+    ProcessInfo* pinfo = NULL;
+    bool loop_again    = false;
+    do {
+        pinfo = s_dequeue();
+        if (pinfo == NULL) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false);
+        }
+
+        if (!s_enqueue (pinfo)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false);
+        }
+        loop_again = (processCount > 1 && currentProcess &&
+                      pinfo->processID == currentProcess->processID);
+    } while (loop_again);
+
+    INFO ("ProcessCount: %u, currentProcess: 0x%px, pinfo.processID: %u", processCount,
+          currentProcess, pinfo->processID);
+
+    k_assert (processCount == 1 ||
+                  (processCount > 1 && pinfo->processID != currentProcess->processID),
+              "Queue returned the same process where there are others available.");
+    return kprocess_switch (pinfo);
 }
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
@@ -137,11 +195,11 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     FUNC_ENTRY ("Process start address: 0x%px, size: 0x%x bytes, flags: 0x%x", processStartAddress,
                 binLengthBytes, flags);
 
-    // Process table entry
-    ProcessInfo* pinfo = s_processInfo_malloc();
-    if (pinfo == NULL) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
+    if (processCount == MAX_PROCESS_COUNT) {
+        RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
     }
+
+    ProcessInfo* pinfo = s_processInfo_malloc();
 
     if (BIT_ISUNSET (flags, PROCESS_FLAGS_THREAD)) {
         // Allocate physical memory for new PD
@@ -171,7 +229,6 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     pinfo->registerStates->ds  = GDT_SELECTOR_UDATA;
     pinfo->registerStates->cs  = GDT_SELECTOR_UCODE;
     pinfo->registerStates->eip = PROCESS_TEXT_VA_START;
-    pinfo->registerStates->esp = PROCESS_STACK_VA_TOP;
 
     if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
         pinfo->registerStates->eip = (PTR)processStartAddress;
@@ -182,25 +239,17 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
         pinfo->registerStates->cs = GDT_SELECTOR_KCODE;
     }
 
-    INFO ("Process with ID %u created.", pinfo->processID);
-    return pinfo->processID;
-}
-
-void kprocess_setCurrentProcessRegisterStates (ProcessRegisterState state)
-{
-    k_assert (currentProcess != NULL, "There are no process running.");
-    k_memcpy (currentProcess->registerStates, &state, sizeof (ProcessRegisterState));
-}
-
-bool kprocess_switch (UINT processID)
-{
-    FUNC_ENTRY ("Process ID: %u", processID);
-
-    if (processID >= processCount) {
-        RETURN_ERROR (ERR_INVALID_RANGE, false);
+    if (!s_enqueue (pinfo)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
     }
 
-    ProcessInfo* pinfo = processTable[processID];
+    INFO ("Process with ID %u created.", pinfo->processID);
+    return (INT)pinfo->processID;
+}
+
+static bool kprocess_switch (ProcessInfo* pinfo)
+{
+    FUNC_ENTRY ("ProcessInfo: 0x%px", pinfo);
 
     if (pinfo->state == PROCESS_NOT_STARTED) {
         PageDirectory pd = s_temporaryMap (pinfo->pagedir);
@@ -240,6 +289,8 @@ bool kprocess_switch (UINT processID)
             }
         }
 
+        pinfo->registerStates->esp = PROCESS_STACK_VA_TOP(stack_va_start, 1);
+
         if (!kpg_map (pd, stack_va_start, pinfo->stackAddress, map_flags)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
         }
@@ -253,15 +304,15 @@ bool kprocess_switch (UINT processID)
 
     ProcessRegisterState* reg = pinfo->registerStates;
 
-    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x", processID, reg->ds,
-          reg->esp, reg->cs, reg->eip);
+    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x", pinfo->processID,
+          reg->ds, reg->esp, reg->cs, reg->eip);
 
     register x86_CR3 cr3 = { 0 };
     cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
     cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
     cr3.physical         = PHYSICAL_TO_PAGEFRAME (pinfo->pagedir.val);
 
-    INFO("Switching to process");
+    INFO ("Switching to process");
     jump_to_process (pinfo->flags, (void*)reg->esp, (void (*)())reg->eip, reg->ds, reg->cs, cr3);
 
     NORETURN();
