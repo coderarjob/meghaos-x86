@@ -60,12 +60,11 @@ __asm__(".text;"
         "mov esi, [ebp + 20];" // code selector. Ignored if kernel process.
         "mov edi, [ebp + 24];" // CR3 value. Ignored if thread process.
         "mov esp, ebx;"        // Use the stack of the process from here on.
-        "test eax, PROCESS_FLAGS_THREAD;"
-        "jnz .cont1;" // CR3 should not change for thread processes.
         /////// Change CR3 ////////
+        // CR3 must change even for Threads because a thread can be scheduled to run after a process
+        // which is not its parent.
         "mov cr3, edi;"
         ///////////////////////////
-        ".cont1:;"
         "test eax, PROCESS_FLAGS_KERNEL_PROCESS;"
         "jz .load_user_process;"
         /////// Load Kernel Process ////////
