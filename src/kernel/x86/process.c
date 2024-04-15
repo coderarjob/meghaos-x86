@@ -20,8 +20,9 @@
 #include <utils.h>
 #include <x86/cpu.h>
 
-#define PROCESS_TEXT_VA_START  0x00010000
-#define PROCESS_STACK_VA_START 0x00030000
+#define PROCESS_TEXT_VA_START    0x00010000
+#define PROCESS_STACK_VA_START   0x00030000
+#define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
     ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
 #define PROCESS_TEMPORARY_MAP LINEAR_ADDR (KERNEL_PDE_INDEX - 1, TEMPORARY_PTE_INDEX, 0)
@@ -152,6 +153,169 @@ static bool s_enqueue (ProcessInfo* p)
     return true;
 }
 
+static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
+{
+    k_assert (pinfo != NULL && pinfo->state == PROCESS_NOT_CREATED, "Invalid state of process");
+    k_assert (pinfo != NULL && pinfo->virt.Entry != 0, "Invalid address space requested");
+    k_assert (pinfo != NULL && pinfo->virt.StackStart != 0, "Invalid address space requested");
+    //  TODO: At this time stack of more than 1 page is not implemented.
+    k_assert (pinfo != NULL && pinfo->physical.StackSizePages == 1, "Invalid stack size");
+
+    PageDirectory pd = s_temporaryMap (pinfo->physical.PageDirectory);
+
+    // Map process binary location into the process's address space
+    if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        if (!kpg_map (pd, (PTR)pinfo->virt.Entry, pinfo->physical.Binary,
+                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
+        }
+    }
+
+    // Find virtual address for process stack
+    // A thread runs in the same address space of its parent, this means that the
+    // PROCESS_TEXT_VA_START will already be mapped and used by the root process. So it is
+    // required that we find the next available address for the stack this this new thread
+    // process.
+
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        // TODO: Think if the Region abstraction can solve cases like this.
+        // TODO: The 'region_end' value is arbitrary and requires a proper solution.
+        PTR stack_va_start = kpg_findVirtualAddressSpace (pd, pinfo->physical.StackSizePages,
+                                                          PROCESS_STACK_VA_START,
+                                                          PROCESS_STACK_VA_START + 0x5000);
+        if (!stack_va_start) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Could not find a address.
+        }
+
+        pinfo->virt.StackStart = stack_va_start;
+    }
+
+    // Map process stack location into the process's address space
+    U32 map_flags = PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED;
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+        map_flags |= PG_MAP_FLAG_KERNEL;
+    }
+
+    if (!kpg_map (pd, (PTR)pinfo->virt.StackStart, pinfo->physical.Stack, map_flags)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed;
+    }
+
+    s_temporaryUnmap();
+    return true;
+}
+
+static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
+                                             ProcessFlags flags, ProcessInfo* pinfo)
+{
+    k_assert (pinfo != NULL && pinfo->state == PROCESS_NOT_CREATED, "Invalid state of process");
+    k_assert (pinfo != NULL && pinfo->physical.StackSizePages > 0, "Invalid stack size");
+
+    // Allocate physical storage for process stack
+    if (!kpmm_alloc (&pinfo->physical.Stack, pinfo->physical.StackSizePages, PMM_REGION_ANY)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
+    }
+
+    // Create Physical memory for process/threads and copy the process binary into the space.
+    if (BIT_ISUNSET (flags, PROCESS_FLAGS_THREAD)) {
+        // Allocate physical memory for new Page Directory
+        if (!kpg_createNewPageDirectory (&pinfo->physical.PageDirectory,
+                                         PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
+                                             PG_NEWPD_FLAG_RECURSIVE_MAP)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Cannot create new process.
+        }
+
+        // Allocate physical memory for the program binary.
+        if (kpmm_alloc (&pinfo->physical.Binary, PROCESS_STACK_SIZE_PAGES, PMM_REGION_ANY) ==
+            false) {
+            // Physical memory allocation failed.
+            RETURN_ERROR (ERROR_PASSTHROUGH, false);
+        }
+
+        // Copy the program to a page aligned physical address
+        void* bin_va = kpg_temporaryMap (pinfo->physical.Binary);
+        k_memcpy (bin_va, processStartAddress, binLengthBytes);
+        kpg_temporaryUnmap();
+    } else {
+        x86_CR3 cr3 = { 0 };
+        x86_READ_REG (CR3, cr3);
+        pinfo->physical.PageDirectory.val = PAGEFRAME_TO_PHYSICAL (cr3.physical);
+    }
+
+    return true;
+}
+
+static bool kprocess_switch (ProcessInfo* pinfo)
+{
+    FUNC_ENTRY ("ProcessInfo: 0x%px", pinfo);
+
+    pinfo->state   = PROCESS_STARTED;
+    currentProcess = pinfo;
+
+    INFO ("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+
+    ProcessRegisterState* reg = pinfo->registerStates;
+
+    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x", pinfo->processID,
+          reg->ds, reg->esp, reg->cs, reg->eip);
+
+    register x86_CR3 cr3 = { 0 };
+    cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
+    cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
+    cr3.physical         = PHYSICAL_TO_PAGEFRAME (pinfo->physical.PageDirectory.val);
+
+    INFO ("Switching to process");
+    jump_to_process (pinfo->flags, (void*)reg->esp, (void (*)())reg->eip, reg->ds, reg->cs, cr3);
+
+    NORETURN();
+}
+
+INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
+{
+    FUNC_ENTRY ("Process start address: 0x%px, size: 0x%x bytes, flags: 0x%x", processStartAddress,
+                binLengthBytes, flags);
+
+    if (processCount == MAX_PROCESS_COUNT) {
+        RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
+    }
+
+    ProcessInfo* pinfo = s_processInfo_malloc();
+
+    pinfo->flags           = flags;
+    pinfo->virt.Entry      = PROCESS_TEXT_VA_START;
+    pinfo->virt.StackStart = PROCESS_STACK_VA_START;
+    if (BIT_ISSET (flags, PROCESS_FLAGS_THREAD)) {
+        pinfo->virt.Entry = (PTR)processStartAddress;
+    }
+    pinfo->physical.StackSizePages = PROCESS_STACK_SIZE_PAGES;
+
+    if (!s_setupPhysicalMemoryForProcess (processStartAddress, binLengthBytes, flags, pinfo)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+    }
+
+    if (!s_setupProcessAddressSpace (pinfo)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+    }
+
+    pinfo->state               = PROCESS_NOT_STARTED;
+    pinfo->registerStates->ds  = GDT_SELECTOR_UDATA;
+    pinfo->registerStates->cs  = GDT_SELECTOR_UCODE;
+    pinfo->registerStates->eip = (U32)pinfo->virt.Entry;
+    pinfo->registerStates->esp = PROCESS_STACK_VA_TOP ((U32)pinfo->virt.StackStart,
+                                                       pinfo->physical.StackSizePages);
+
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+        pinfo->registerStates->ds = GDT_SELECTOR_KDATA;
+        pinfo->registerStates->cs = GDT_SELECTOR_KCODE;
+    }
+
+    if (!s_enqueue (pinfo)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
+    }
+
+    INFO ("Process with ID %u created.", pinfo->processID);
+    return (INT)pinfo->processID;
+}
+
 bool kprocess_yield (ProcessRegisterState* currentState)
 {
     FUNC_ENTRY ("currentState: 0x%px", currentState);
@@ -188,132 +352,4 @@ bool kprocess_yield (ProcessRegisterState* currentState)
                   (processCount > 1 && pinfo->processID != currentProcess->processID),
               "Queue returned the same process where there are others available.");
     return kprocess_switch (pinfo);
-}
-
-INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
-{
-    FUNC_ENTRY ("Process start address: 0x%px, size: 0x%x bytes, flags: 0x%x", processStartAddress,
-                binLengthBytes, flags);
-
-    if (processCount == MAX_PROCESS_COUNT) {
-        RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
-    }
-
-    ProcessInfo* pinfo = s_processInfo_malloc();
-
-    if (BIT_ISUNSET (flags, PROCESS_FLAGS_THREAD)) {
-        // Allocate physical memory for new PD
-        if (!kpg_createNewPageDirectory (&pinfo->pagedir, PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
-                                                              PG_NEWPD_FLAG_RECURSIVE_MAP)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
-        }
-
-        // Copy the program to a page aligned physical address
-        if (kpmm_alloc (&pinfo->binaryAddress, 1, PMM_REGION_ANY) == false) {
-            RETURN_ERROR (ERROR_PASSTHROUGH,
-                          KERNEL_EXIT_FAILURE); // Physical memory allocation failed.
-        }
-
-        void* bin_va = kpg_temporaryMap (pinfo->binaryAddress);
-        k_memcpy (bin_va, processStartAddress, binLengthBytes);
-        kpg_temporaryUnmap();
-    } else {
-        // Threads should use the same Page Directory as its parent
-        x86_CR3 cr3 = { 0 };
-        x86_READ_REG (CR3, cr3);
-        pinfo->pagedir.val = PAGEFRAME_TO_PHYSICAL (cr3.physical);
-    }
-
-    pinfo->state               = PROCESS_NOT_STARTED;
-    pinfo->flags               = flags;
-    pinfo->registerStates->ds  = GDT_SELECTOR_UDATA;
-    pinfo->registerStates->cs  = GDT_SELECTOR_UCODE;
-    pinfo->registerStates->eip = PROCESS_TEXT_VA_START;
-
-    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
-        pinfo->registerStates->eip = (PTR)processStartAddress;
-    }
-
-    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-        pinfo->registerStates->ds = GDT_SELECTOR_KDATA;
-        pinfo->registerStates->cs = GDT_SELECTOR_KCODE;
-    }
-
-    if (!s_enqueue (pinfo)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
-    }
-
-    INFO ("Process with ID %u created.", pinfo->processID);
-    return (INT)pinfo->processID;
-}
-
-static bool kprocess_switch (ProcessInfo* pinfo)
-{
-    FUNC_ENTRY ("ProcessInfo: 0x%px", pinfo);
-
-    if (pinfo->state == PROCESS_NOT_STARTED) {
-        PageDirectory pd = s_temporaryMap (pinfo->pagedir);
-
-        if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
-            // Map process binary location into the process's address space
-            if (!kpg_map (pd, PROCESS_TEXT_VA_START, pinfo->binaryAddress,
-                          PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
-                RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
-            }
-        }
-
-        // Allocate physical storage for process stack
-        if (!kpmm_alloc (&pinfo->stackAddress, 1, PMM_REGION_ANY)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // allocation failed
-        }
-
-        // Map process stack location into the process's address space
-        U32 map_flags = PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED;
-        if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-            map_flags |= PG_MAP_FLAG_KERNEL;
-        }
-
-        PTR stack_va_start = PROCESS_STACK_VA_START;
-
-        if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
-            // A thread runs in the same address space of its parent, this means that the
-            // PROCESS_TEXT_VA_START will already be mapped and used by the root process. So it is
-            // required that we find the next available address for the stack this this new thread
-            // process.
-            // TODO: Think if the Region abstraction can solve cases like this.
-            // TODO: The 'region_end' value is arbitrary and requires a proper solution.
-            stack_va_start = kpg_findVirtualAddressSpace (pd, 1, PROCESS_STACK_VA_START,
-                                                          PROCESS_STACK_VA_START + 0x5000);
-            if (stack_va_start == 0) {
-                k_panicOnError();
-            }
-        }
-
-        pinfo->registerStates->esp = PROCESS_STACK_VA_TOP(stack_va_start, 1);
-
-        if (!kpg_map (pd, stack_va_start, pinfo->stackAddress, map_flags)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
-        }
-        s_temporaryUnmap();
-    }
-
-    pinfo->state   = PROCESS_STARTED;
-    currentProcess = pinfo;
-
-    INFO ("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
-
-    ProcessRegisterState* reg = pinfo->registerStates;
-
-    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x", pinfo->processID,
-          reg->ds, reg->esp, reg->cs, reg->eip);
-
-    register x86_CR3 cr3 = { 0 };
-    cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
-    cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-    cr3.physical         = PHYSICAL_TO_PAGEFRAME (pinfo->pagedir.val);
-
-    INFO ("Switching to process");
-    jump_to_process (pinfo->flags, (void*)reg->esp, (void (*)())reg->eip, reg->ds, reg->cs, cr3);
-
-    NORETURN();
 }

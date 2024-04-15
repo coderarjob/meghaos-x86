@@ -28,12 +28,22 @@ __asm__(".equ PROCESS_FLAGS_NONE, 0;"
 typedef struct ProcessRegisterState ProcessRegisterState;
 
 typedef struct ProcessInfo {
+    // Physical memorys for the process.
+    struct {
+        Physical PageDirectory;
+        Physical Binary;
+        Physical Stack;
+        SIZE StackSizePages;
+    } physical;
+    struct {
+        PTR Entry;
+        PTR StackStart;
+    } virt;
+    // Initial states. These do not change throuout the lifetime of the process.
     UINT processID;
-    Physical pagedir;
-    ProcessStates state;
-    Physical binaryAddress;
-    Physical stackAddress;
     ProcessFlags flags;
+    // States which change
+    ProcessStates state;
     ProcessRegisterState* registerStates;
 } ProcessInfo;
 
