@@ -61,6 +61,9 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | CODE STYLE                                                              |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Need to rethink where PTR and void* should be used. Being in the    | 16 Apr 24 |            |
+| Kernel it makes this distinction less obvious, but some thought is      |           |            |
+| requried.                                                               |           |            |
 | [X] Functions should return EXIT_SUCCESS, EXIT_FAILURE on               |           | 23 NOV 22  |
 | Success and Failure. Not ERR_NONE, on Success, and -1 on failure.       |           |            |
 | Issue first seen in kdisp module.                                       |           |            |
@@ -88,6 +91,13 @@
 | `NonEmptyParentheses`                                                   |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] Are assertOnError and panicOnError requried. They check if errno    | 16 Apr 24 |            |
+| is set then one asserts and other panics. However as errno is never     |           |            |
+| reset, these macros can only be used when a function fails, so the      |           |            |
+| check they do internally is not really required. Moreover assertOnError |           |            |
+| macro makes little sense, why you want to handle an error with an       |           |            |
+| assert and when to panic just call panic why panicOnError is required.  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [X] BUG: It is possible to write to a readonly page                     | 12 Apr 24 | 13 Apr 24  |
 | Reason:                                                                 |           |            |

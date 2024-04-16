@@ -46,8 +46,8 @@ static void s_dumpPab ();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 //static void find_virtual_address();
 static void process_poc();
-static void new_process_1();
-static void new_process_2();
+//static void new_thread_2();
+static void new_thread_1();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 
 /* This variable is globally used to set error codes*/
@@ -121,72 +121,70 @@ void kernel_main ()
     while (1);
 }
 
-static void new_process_2()
+static void new_thread_1()
 {
     FUNC_ENTRY();
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-    void* startAddress_va = new_process_1;
-#pragma GCC diagnostic pop
+    //#pragma GCC diagnostic push
+    //#pragma GCC diagnostic ignored "-Wpedantic"
+    //    void* startAddress_va = new_thread_2;
+    //#pragma GCC diagnostic pop
+    //
+    //    INT processID = syscall (1, (PTR)startAddress_va, 0, PROCESS_FLAGS_THREAD, 0, 0);
+    //    if (processID < 0) {
+    //        k_panicOnError();
+    //    }
+    //
+    //    INFO ("Process ID: %u", processID);
+    //
+    //    for (int i = 0; i < 5; i++) {
+    //        kearly_println ("From Process 0");
+    //        syscall (2, 0, 0, 0, 0, 0);
+    //    }
+    //
+    //    INFO ("Here it ends");
 
-    // INT processID = kprocess_create (startAddress_va, 0, PROCESS_FLAGS_THREAD);
-    INT processID = syscall (1, (PTR)startAddress_va, 0, PROCESS_FLAGS_THREAD, 0, 0);
+    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
+    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
+    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+
+    INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
+
+    void* startAddress_va = CAST_PA_TO_VA (startAddress);
+    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
     if (processID < 0) {
         k_panicOnError();
     }
 
     INFO ("Process ID: %u", processID);
 
-    // kearly_println("From new_process_2 - 1");
-    // syscall(2, 0, 0, 0, 0, 0);
-    // kearly_println("From new_process_2 - 2");
-    // syscall(2, 0, 0, 0, 0, 0);
-    // kearly_println("From new_process_2 - 3");
-
     for (int i = 0; i < 5; i++) {
-        kearly_println ("From Process 0");
+        kearly_println ("From thread 0 - i = %u", i);
         syscall (2, 0, 0, 0, 0, 0);
     }
 
     INFO ("Here it ends");
 
-    // kprocess_switch ((UINT)processID);
-
-    // BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    // BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
-    // Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-    // SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
-
-    // INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
-
-    // void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    // INT processID = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
-    // if (processID < 0) {
-    //     k_panicOnError();
-    // }
-
-    // INFO ("Process ID: %u", processID);
-
-    // kprocess_switch ((UINT)processID);
+    //kprocess_switch ((UINT)processID);
     k_halt();
 }
 
-static void new_process_1()
-{
-    FUNC_ENTRY();
-
-    for (;;) {
-        kearly_println ("From Process 1");
-        syscall (2, 0, 0, 0, 0, 0);
-    }
-    // U32 cr3 = 0xF00;
-    // x86_READ_REG (CR3, cr3);
-
-    // INFO ("Value of cr3 is 0x%px", cr3);
-
-    k_halt();
-}
+//static void new_thread_2()
+//{
+//    FUNC_ENTRY();
+//
+//    for (;;) {
+//        kearly_println ("From Process 1");
+//        syscall (2, 0, 0, 0, 0, 0);
+//    }
+//    // U32 cr3 = 0xF00;
+//    // x86_READ_REG (CR3, cr3);
+//
+//    // INFO ("Value of cr3 is 0x%px", cr3);
+//
+//    k_halt();
+//}
 
 static void process_poc()
 {
@@ -194,7 +192,7 @@ static void process_poc()
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
-    void* startAddress_va = new_process_2;
+    void* startAddress_va = new_thread_1;
 #pragma GCC diagnostic pop
 
     INT processID = kprocess_create (startAddress_va, 0, PROCESS_FLAGS_THREAD);
