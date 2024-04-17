@@ -195,7 +195,8 @@ static void process_poc()
     void* startAddress_va = new_thread_1;
 #pragma GCC diagnostic pop
 
-    INT processID = kprocess_create (startAddress_va, 0, PROCESS_FLAGS_THREAD);
+    INT processID = kprocess_create (startAddress_va, 0,
+                                     PROCESS_FLAGS_THREAD | PROCESS_FLAGS_KERNEL_PROCESS);
     if (processID < 0) {
         k_panicOnError();
     }
