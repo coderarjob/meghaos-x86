@@ -151,18 +151,19 @@ INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE bi
 void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi)
 {
     FUNC_ENTRY ("Frame return address: 0x%x:0x%x", frame.cs, frame.eip);
+    (void)ecx;
+    (void)edx;
 
     ProcessRegisterState state = {
-        .ds  = frame.ss,
-        .cs  = frame.cs,
-        .eip = frame.eip,
-        .esp = frame.esp,
         .ebx = ebx,
-        .ecx = ecx,
-        .edx = edx,
         .esi = esi,
         .edi = edi,
-        .eax = 0, // EAX cannot be preserved.
+        .esp = frame.esp,
+        .ebp = frame.ebp,
+        .eip = frame.eip,
+        .eflags = frame.eflags,
+        .cs  = frame.cs,
+        .ds  = frame.ss,
     };
 
     kprocess_yield (&state);

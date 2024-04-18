@@ -36,8 +36,7 @@ static void s_temporaryUnmap();
 static void* s_temporaryMap (Physical p);
 static bool kprocess_switch (ProcessInfo* pinfo);
 
-void jump_to_process (U32 type, void* stackTop, void (*entry)(), U32 dataselector, U32 codeselector,
-                      x86_CR3 cr3);
+__attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
 
 /***************************************************************************************************
  * Jumps to the entry point of a process and switches stacks, address space depending on process
@@ -51,39 +50,54 @@ void jump_to_process (U32 type, void* stackTop, void (*entry)(), U32 dataselecto
  * @Input cr3           Value to be loaded into the CR3 register. (unused for thread process)
  * @return              Does not return.
  **************************************************************************************************/
-__asm__(".text;"
+__asm__(".struct 0;"
+        "   proc_ebx:    .struct . + 4;"
+        "   proc_esi:    .struct . + 4;"
+        "   proc_edi:    .struct . + 4;"
+        "   proc_esp:    .struct . + 4;"
+        "   proc_ebp:    .struct . + 4;"
+        "   proc_eip:    .struct . + 4;"
+        "   proc_eflags: .struct . + 4;"
+        "   proc_cs:     .struct . + 4;"
+        "   proc_ds:     .struct . + 4;"
+        " proc_register_state_struct_size: .struct .;"
+        //////////////////////////////////////////////////
+        ".text;"
         ".global jump_to_process;"
         "jump_to_process:;"
         "mov ebp, esp;"
         "mov eax, [ebp + 4];"  // Process flags
-        "mov ebx, [ebp + 8];"  // Stack pointer
-        "mov ecx, [ebp + 12];" // Pointer to function to jump to.
-        "mov edx, [ebp + 16];" // data selector. Ignored if kernel process
-        "mov esi, [ebp + 20];" // code selector. Ignored if kernel process.
-        "mov edi, [ebp + 24];" // CR3 value. Ignored if thread process.
-        "mov esp, ebx;"        // Use the stack of the process from here on.
+        "mov ecx, [ebp + 8];"  // CR3 value.
+        "mov edx, [ebp + 12];" // Base of ProcessRegisterState struct
+        /////// Restore GP registers ////////
+        "mov ebx, [edx + proc_ebx];" // General purpose registers
+        "mov esi, [edx + proc_esi];" // General purpose registers
+        "mov edi, [edx + proc_edi];" // General purpose registers
+        "mov ebp, [edx + proc_ebp];" // Switch to process stack Base pointer
+        /////// Segment registers ////////
+        /// Segment registers are not preserved expect DS, SS and CS
+        "mov ds, [edx + proc_ds];"
+        "mov es, [edx + proc_ds];"
+        "mov fs, [edx + proc_ds];"
+        "mov gs, [edx + proc_ds];"
         /////// Change CR3 ////////
         // CR3 must change even for Threads because a thread can be scheduled to run after a process
         // which is not its parent.
-        "mov cr3, edi;"
+        "mov cr3, ecx;"
         ///////////////////////////
         "test eax, PROCESS_FLAGS_KERNEL_PROCESS;"
         "jz .load_user_process;"
         /////// Load Kernel Process ////////
-        "xor ebp, ebp;" // Required for stack trace to work. Ends here.
-        "jmp ecx;"
+        "mov esp, [edx + proc_esp];" // Switch to process stack pointer
+        "jmp [edx + proc_eip];"      // Kernel process entry/return address
         /////// Load User Process ////////
         ".load_user_process:;"
-        "mov ds, edx;"
-        "mov es, edx;"
-        "mov fs, edx;"
-        "mov gs, edx;"
-        "push edx;"     // Data and Stack segment selector
-        "push ebx;"     // User mode stack pointer
-        "pushfd;"       // EFLAGS
-        "push esi;"     // Code Segment selector
-        "push ecx;"     // Function pointer
-        "xor ebp, ebp;" // Required for stack trace to work. Ends here.
+        /// Part of the functionality of IRET.
+        "push ds;"                  // Stack segment selector
+        "push [edx + proc_esp];"    // Process stack pointer
+        "push [edx + proc_eflags];" // Process eflags
+        "push [edx + proc_cs];"     // Code segment selector
+        "push [edx + proc_eip];"    // User process entry/return address
         "iret;");
 
 static void s_temporaryUnmap()
@@ -264,7 +278,7 @@ static bool kprocess_switch (ProcessInfo* pinfo)
     cr3.physical         = PHYSICAL_TO_PAGEFRAME (pinfo->physical.PageDirectory.val);
 
     INFO ("Switching to process");
-    jump_to_process (pinfo->flags, (void*)reg->esp, (void (*)())reg->eip, reg->ds, reg->cs, cr3);
+    jump_to_process (pinfo->flags, cr3, reg);
 
     NORETURN();
 }
@@ -296,17 +310,24 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
     }
 
-    pinfo->state               = PROCESS_NOT_STARTED;
-    pinfo->registerStates->ds  = GDT_SELECTOR_UDATA;
-    pinfo->registerStates->cs  = GDT_SELECTOR_UCODE;
-    pinfo->registerStates->eip = (U32)pinfo->virt.Entry;
-    pinfo->registerStates->esp = PROCESS_STACK_VA_TOP ((U32)pinfo->virt.StackStart,
-                                                       pinfo->physical.StackSizePages);
+    //  Setup register states
+    ProcessRegisterState* regs = pinfo->registerStates;
+    regs->ebx                  = 0;
+    regs->esi                  = 0;
+    regs->edi                  = 0;
+    regs->esp = PROCESS_STACK_VA_TOP ((U32)pinfo->virt.StackStart, pinfo->physical.StackSizePages);
+    regs->ebp = 0; // This is required for stack trace to end.
+    regs->eip = (U32)pinfo->virt.Entry;
+    regs->eflags = 0;
+    regs->cs     = GDT_SELECTOR_UCODE;
+    regs->ds     = GDT_SELECTOR_UDATA;
 
     if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-        pinfo->registerStates->ds = GDT_SELECTOR_KDATA;
-        pinfo->registerStates->cs = GDT_SELECTOR_KCODE;
+        regs->ds = GDT_SELECTOR_KDATA;
+        regs->cs = GDT_SELECTOR_KCODE;
     }
+
+    pinfo->state = PROCESS_NOT_STARTED;
 
     if (!s_enqueue (pinfo)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
