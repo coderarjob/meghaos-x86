@@ -1,4 +1,4 @@
-ENTRY (g_kernel_entry)
+
 SECTIONS
 {
     . = 0x100000;                 /* Kernel is loaded at 100000 */

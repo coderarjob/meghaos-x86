@@ -6,7 +6,10 @@
 U32 syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 void another_thread();
 
-void userland_main()
+// This is the entry point for process.
+__asm__ ("jmp proc_main;");
+
+void proc_main()
 {
     kbochs_breakpoint();
     char* console_text = "From process";

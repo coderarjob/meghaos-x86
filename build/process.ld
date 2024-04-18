@@ -1,4 +1,4 @@
-ENTRY (userland_main)
+
 SECTIONS
 {
     . = 0x00010000; 
