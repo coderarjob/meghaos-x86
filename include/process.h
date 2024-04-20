@@ -9,10 +9,10 @@
 #include <types.h>
 
 typedef enum ProcessStates {
-    PROCESS_NOT_CREATED,
-    PROCESS_NOT_STARTED,
-    PROCESS_STARTED,
-    PROCESS_ENDED
+    PROCESS_NOT_CREATED = 0,
+    PROCESS_NOT_STARTED = 1,
+    PROCESS_RUNNING     = 2,
+    PROCESS_IDLE        = 3
 } ProcessStates;
 
 typedef enum ProcessFlags {

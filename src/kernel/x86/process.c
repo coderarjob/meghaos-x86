@@ -34,7 +34,7 @@ static ProcessInfo* currentProcess = NULL;
 
 static void s_temporaryUnmap();
 static void* s_temporaryMap (Physical p);
-static bool kprocess_switch (ProcessInfo* pinfo);
+static bool kprocess_switch (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
 
 __attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
 
@@ -254,27 +254,43 @@ static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE bin
     return true;
 }
 
-static bool kprocess_switch (ProcessInfo* pinfo)
+static bool kprocess_switch (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState)
 {
-    FUNC_ENTRY ("ProcessInfo: 0x%px", pinfo);
+    FUNC_ENTRY ("ProcessInfo: 0x%px, Current ProcessRegisterState: 0x%px", nextProcess,
+                currentProcessState);
 
-    pinfo->state   = PROCESS_STARTED;
-    currentProcess = pinfo;
+    if (currentProcess != NULL) {
+        INFO ("Current PID: %u, Next PID: %u", currentProcess->processID, nextProcess->processID);
 
-    INFO ("Kernel process: 0x%x", BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+        if (currentProcess->processID == nextProcess->processID) {
+            // If we are switching to the same process then no need to do any context switch, we
+            // simply return from here and ultimately the system call will return to the process.
+            // This can happen when there is only one process or when the current process is the
+            // oldest process in the process table.
+            INFO ("Is context switch required: No");
+            return true;
+        }
 
-    ProcessRegisterState* reg = pinfo->registerStates;
-
-    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x", pinfo->processID,
-          reg->ds, reg->esp, reg->cs, reg->eip);
+        currentProcess->state = PROCESS_IDLE;
+        k_memcpy (currentProcess->registerStates, currentProcessState,
+                  sizeof (ProcessRegisterState));
+    }
 
     register x86_CR3 cr3 = { 0 };
     cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
     cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-    cr3.physical         = PHYSICAL_TO_PAGEFRAME (pinfo->physical.PageDirectory.val);
+    cr3.physical         = PHYSICAL_TO_PAGEFRAME (nextProcess->physical.PageDirectory.val);
 
-    INFO ("Switching to process");
-    jump_to_process (pinfo->flags, cr3, reg);
+    ProcessRegisterState* reg = nextProcess->registerStates;
+
+    INFO ("Is context switch required: Yes");
+    INFO ("Kernel process: 0x%x", BIT_ISSET (nextProcess->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x",
+          nextProcess->processID, reg->ds, reg->esp, reg->cs, reg->eip);
+
+    nextProcess->state = PROCESS_RUNNING;
+    currentProcess     = nextProcess;
+    jump_to_process (nextProcess->flags, cr3, reg);
 
     NORETURN();
 }
@@ -365,8 +381,5 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     INFO ("ProcessCount: %u, currentProcess: 0x%px, pinfo.processID: %u", processCount,
           currentProcess, pinfo->processID);
 
-    k_assert (processCount == 1 ||
-                  (processCount > 1 && pinfo->processID != currentProcess->processID),
-              "Queue returned the same process where there are others available.");
-    return kprocess_switch (pinfo);
+    return kprocess_switch (pinfo, currentState);
 }
