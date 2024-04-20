@@ -118,10 +118,6 @@ static void* s_temporaryMap (Physical p)
 
 static ProcessInfo* s_processInfo_malloc()
 {
-    if (processCount == MAX_PROCESS_COUNT) {
-        RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
-    }
-
     ProcessInfo* pInfo = kmalloc (sizeof (ProcessInfo));
 
     if (pInfo == NULL) {
@@ -144,7 +140,7 @@ static INT s_queue_back  = 0; // Points to where to enqueue next.
 static ProcessInfo* s_dequeue()
 {
     if (s_queue_back == s_queue_front) {
-        RETURN_ERROR (ERR_INVALID_RANGE, NULL);
+        RETURN_ERROR (ERR_SCHEDULER_QUEUE_EMPTY, NULL);
     }
 
     ProcessInfo* pinfo          = processTable[s_queue_front];
@@ -159,7 +155,7 @@ static bool s_enqueue (ProcessInfo* p)
 {
     INT next = (s_queue_back + 1) % MAX_PROCESS_COUNT;
     if (next == s_queue_front) {
-        RETURN_ERROR (ERR_OUT_OF_MEM, false);
+        RETURN_ERROR (ERR_SCHEDULER_QUEUE_FULL, false);
     }
 
     processTable[s_queue_back] = p;
