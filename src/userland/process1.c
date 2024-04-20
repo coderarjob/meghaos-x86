@@ -12,26 +12,19 @@ __asm__ ("jmp proc_main;");
 void proc_main()
 {
     kbochs_breakpoint();
-    char* console_text = "From process";
 
     syscall (1, (U32)&another_thread, 0, PROCESS_FLAGS_THREAD , 0, 0);
 
     while (1) {
-        syscall (0, (PTR)console_text, 0, 0, 0, 0);
+        syscall (0, (U32)"From process", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
 }
 
 void another_thread()
 {
-    char* console_text = "From process thread";
-    syscall (0, (PTR)console_text, 0, 0, 0, 0);
-
-    //U32 cr3 = 0xF00;
-    //x86_READ_REG (CR3, cr3);
-
     while (1) {
-        syscall (0, (PTR)console_text, 0, 0, 0, 0);
+        syscall (0, (PTR)"From process thread", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
 }

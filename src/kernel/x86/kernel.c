@@ -160,7 +160,7 @@ static void new_thread_1()
     INFO ("Process ID: %u", processID);
 
     for (int i = 0; i < 5; i++) {
-        kearly_println ("From thread 0 - i = %u", i);
+        kearly_println ("From Kernel thread");
         syscall (2, 0, 0, 0, 0, 0);
     }
 
