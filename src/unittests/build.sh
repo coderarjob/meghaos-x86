@@ -50,6 +50,7 @@ UNITTESTS=(
     "intrusive_list"
     "kmalloc"
     "salloc"
+    "intrusive_queue"
 )
 
 # Adds tests specific to the current architecture.
@@ -137,6 +138,10 @@ get_arch_independent_test_definition()
                                 SRC=('unittests/salloc_test.c'
                                      'kernel/salloc.c'
                                      'unittests/common.c'
+                                     'unittests/unittest.c')
+                            };;
+          intrusive_queue)  {
+                                SRC=('unittests/intrusive_queue_test.c'
                                      'unittests/unittest.c')
                             };;
         *) return 1;;

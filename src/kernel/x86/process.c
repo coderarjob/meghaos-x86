@@ -19,22 +19,36 @@
 #include <x86/memloc.h>
 #include <utils.h>
 #include <x86/cpu.h>
+#include <intrusive_list.h>
+#include <intrusive_queue.h>
 
-#define PROCESS_TEXT_VA_START    0x00010000
-#define PROCESS_STACK_VA_START   0x00030000
+#define PROCESS_TEXT_VA_START  0x00010000
+#define PROCESS_STACK_VA_START 0x00030000
+
 #define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
     ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
 #define PROCESS_TEMPORARY_MAP LINEAR_ADDR (KERNEL_PDE_INDEX - 1, TEMPORARY_PTE_INDEX, 0)
 #define MAX_PROCESS_COUNT     20
 
-static ProcessInfo* processTable[MAX_PROCESS_COUNT];
+typedef struct SchedulerQueue {
+    ListNode forward;
+    ListNode backward;
+} SchedulerQueue;
+
 static UINT processCount;
-static ProcessInfo* currentProcess = NULL;
+static ProcessInfo* currentProcess   = NULL;
+static SchedulerQueue schedulerQueue = { 0 };
 
 static void s_temporaryUnmap();
 static void* s_temporaryMap (Physical p);
-static bool kprocess_switch (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
+static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
+static ProcessInfo* s_processInfo_malloc();
+static ProcessInfo* s_dequeue();
+static bool s_enqueue (ProcessInfo* p);
+static bool s_setupProcessAddressSpace (ProcessInfo* pinfo);
+static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
+                                             ProcessFlags flags, ProcessInfo* pinfo);
 
 __attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
 
@@ -130,36 +144,29 @@ static ProcessInfo* s_processInfo_malloc()
 
     pInfo->state     = PROCESS_NOT_CREATED;
     pInfo->processID = processCount++;
+    list_init (&pInfo->schedulerQueueNode);
 
     return pInfo;
 }
 
-static INT s_queue_front = 0; // Points to where to dequeue next.
-static INT s_queue_back  = 0; // Points to where to enqueue next.
-
 static ProcessInfo* s_dequeue()
 {
-    if (s_queue_back == s_queue_front) {
+    ListNode* node = dequeue_forward (&schedulerQueue.forward, &schedulerQueue.backward);
+    if (node == NULL) {
         RETURN_ERROR (ERR_SCHEDULER_QUEUE_EMPTY, NULL);
     }
 
-    ProcessInfo* pinfo          = processTable[s_queue_front];
-    processTable[s_queue_front] = NULL;
-
-    INT next      = (s_queue_front + 1) % MAX_PROCESS_COUNT;
-    s_queue_front = next;
+    ProcessInfo* pinfo = (ProcessInfo*)LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
     return pinfo;
 }
 
 static bool s_enqueue (ProcessInfo* p)
 {
-    INT next = (s_queue_back + 1) % MAX_PROCESS_COUNT;
-    if (next == s_queue_front) {
+    if (processCount >= MAX_PROCESS_COUNT) {
         RETURN_ERROR (ERR_SCHEDULER_QUEUE_FULL, false);
     }
 
-    processTable[s_queue_back] = p;
-    s_queue_back               = next;
+    enqueue_back (&schedulerQueue.backward, &p->schedulerQueueNode);
     return true;
 }
 
@@ -254,7 +261,7 @@ static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE bin
     return true;
 }
 
-static bool kprocess_switch (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState)
+static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState)
 {
     FUNC_ENTRY ("ProcessInfo: 0x%px, Current ProcessRegisterState: 0x%px", nextProcess,
                 currentProcessState);
@@ -293,6 +300,11 @@ static bool kprocess_switch (ProcessInfo* nextProcess, ProcessRegisterState* cur
     jump_to_process (nextProcess->flags, cr3, reg);
 
     NORETURN();
+}
+
+void kprocess_init()
+{
+    queue_init (&schedulerQueue.forward, &schedulerQueue.backward);
 }
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
@@ -353,10 +365,9 @@ bool kprocess_yield (ProcessRegisterState* currentState)
 {
     FUNC_ENTRY ("currentState: 0x%px", currentState);
 
-    if (currentProcess != NULL) {
-        k_memcpy (currentProcess->registerStates, currentState, sizeof (ProcessRegisterState));
-    }
-
+    // The scheduler should select processes in the "earliest idle process first" order. This is
+    // ensured by the queue as well as the yield function.
+    // NOTE:
     // If there were only a single process, then the forward pointer will point to it. When this
     // process yields the next process to run will come out to be itself, because the forward
     // pointer is pointing to it. In this situation two yields are requried to get past the current
@@ -378,8 +389,7 @@ bool kprocess_yield (ProcessRegisterState* currentState)
                       pinfo->processID == currentProcess->processID);
     } while (loop_again);
 
-    INFO ("ProcessCount: %u, currentProcess: 0x%px, pinfo.processID: %u", processCount,
-          currentProcess, pinfo->processID);
+    k_assert (pinfo->state != PROCESS_NOT_CREATED, "Invalid process state");
 
-    return kprocess_switch (pinfo, currentState);
+    return s_switchProcess (pinfo, currentState);
 }

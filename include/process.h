@@ -7,6 +7,7 @@
 #pragma once
 
 #include <types.h>
+#include <intrusive_queue.h>
 
 typedef enum ProcessStates {
     PROCESS_NOT_CREATED = 0,
@@ -39,6 +40,8 @@ typedef struct ProcessInfo {
         PTR Entry;
         PTR StackStart;
     } virt;
+    // ProcessInfos' are part of the scheduler process table through this node.
+    ListNode schedulerQueueNode;
     // Initial states. These do not change throuout the lifetime of the process.
     UINT processID;
     ProcessFlags flags;
@@ -47,5 +50,6 @@ typedef struct ProcessInfo {
     ProcessRegisterState* registerStates;
 } ProcessInfo;
 
+void kprocess_init();
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);

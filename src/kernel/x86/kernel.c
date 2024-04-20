@@ -95,6 +95,8 @@ void kernel_main ()
 
     kearly_printf ("\r[OK]");
 
+    kprocess_init();
+
     // Display available memory
     display_system_info ();
     s_dumpPab();
