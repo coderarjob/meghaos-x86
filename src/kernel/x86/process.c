@@ -51,7 +51,7 @@ static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE bin
                                              ProcessFlags flags, ProcessInfo* pinfo);
 #ifdef DEBUG
 static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward);
-#endif //DEBUG
+#endif // DEBUG
 
 __attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
 
@@ -145,7 +145,7 @@ static ProcessInfo* s_processInfo_malloc()
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
     }
 
-    pInfo->state     = PROCESS_NOT_CREATED;
+    pInfo->state     = PROCESS_STATE_INVALID;
     pInfo->processID = processCount++;
     list_init (&pInfo->schedulerQueueNode);
 
@@ -173,7 +173,7 @@ static void s_showQueueItems (ListNode* forward, ListNode* backward, bool direct
         }
     }
 }
-#endif //DEBUG
+#endif // DEBUG
 
 static ProcessInfo* s_dequeue()
 {
@@ -202,7 +202,7 @@ static bool s_enqueue (ProcessInfo* p)
 
 static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
 {
-    k_assert (pinfo != NULL && pinfo->state == PROCESS_NOT_CREATED, "Invalid state of process");
+    k_assert (pinfo != NULL && pinfo->state == PROCESS_STATE_INVALID, "Invalid state of process");
     k_assert (pinfo != NULL && pinfo->virt.Entry != 0, "Invalid address space requested");
     k_assert (pinfo != NULL && pinfo->virt.StackStart != 0, "Invalid address space requested");
     //  TODO: At this time stack of more than 1 page is not implemented.
@@ -212,6 +212,9 @@ static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
 
     // Map process binary location into the process's address space
     if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        //  TODO: At this time program of more than 1 page is not implemented.
+        k_assert (pinfo != NULL && pinfo->physical.BinarySizePages == 1, "Invalid program size");
+
         if (!kpg_map (pd, (PTR)pinfo->virt.Entry, pinfo->physical.Binary,
                       PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
@@ -254,7 +257,7 @@ static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
 static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
                                              ProcessFlags flags, ProcessInfo* pinfo)
 {
-    k_assert (pinfo != NULL && pinfo->state == PROCESS_NOT_CREATED, "Invalid state of process");
+    k_assert (pinfo != NULL && pinfo->state == PROCESS_STATE_INVALID, "Invalid state of process");
     k_assert (pinfo != NULL && pinfo->physical.StackSizePages > 0, "Invalid stack size");
 
     // Allocate physical storage for process stack
@@ -272,7 +275,9 @@ static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE bin
         }
 
         // Allocate physical memory for the program binary.
-        if (kpmm_alloc (&pinfo->physical.Binary, PROCESS_STACK_SIZE_PAGES, PMM_REGION_ANY) ==
+        k_assert (pinfo != NULL && pinfo->physical.BinarySizePages > 0, "Invalid program size");
+
+        if (kpmm_alloc (&pinfo->physical.Binary, pinfo->physical.BinarySizePages, PMM_REGION_ANY) ==
             false) {
             // Physical memory allocation failed.
             RETURN_ERROR (ERROR_PASSTHROUGH, false);
@@ -297,6 +302,8 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
                 currentProcessState);
 
     if (currentProcess != NULL) {
+        k_assert (currentProcessState != NULL,
+                  "Current process state is invalid for current process");
         INFO ("Current PID: %u, Next PID: %u", currentProcess->processID, nextProcess->processID);
 
         if (currentProcess->processID == nextProcess->processID) {
@@ -308,7 +315,7 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
             return true;
         }
 
-        currentProcess->state = PROCESS_IDLE;
+        currentProcess->state = PROCESS_STATE_IDLE;
         k_memcpy (currentProcess->registerStates, currentProcessState,
                   sizeof (ProcessRegisterState));
     }
@@ -325,7 +332,7 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
     INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x",
           nextProcess->processID, reg->ds, reg->esp, reg->cs, reg->eip);
 
-    nextProcess->state = PROCESS_RUNNING;
+    nextProcess->state = PROCESS_STATE_RUNNING;
     currentProcess     = nextProcess;
     jump_to_process (nextProcess->flags, cr3, reg);
 
@@ -354,7 +361,8 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     if (BIT_ISSET (flags, PROCESS_FLAGS_THREAD)) {
         pinfo->virt.Entry = (PTR)processStartAddress;
     }
-    pinfo->physical.StackSizePages = PROCESS_STACK_SIZE_PAGES;
+    pinfo->physical.StackSizePages  = PROCESS_STACK_SIZE_PAGES;
+    pinfo->physical.BinarySizePages = BYTES_TO_PAGEFRAMES_CEILING (binLengthBytes);
 
     if (!s_setupPhysicalMemoryForProcess (processStartAddress, binLengthBytes, flags, pinfo)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
@@ -381,7 +389,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
         regs->cs = GDT_SELECTOR_KCODE;
     }
 
-    pinfo->state = PROCESS_NOT_STARTED;
+    pinfo->state = PROCESS_STATE_IDLE;
 
     if (!s_enqueue (pinfo)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
@@ -400,7 +408,7 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     // NOTE:
     // If there were only a single process, then the forward pointer will point to it. When this
     // process yields the next process to run will come out to be itself, because the forward
-    // pointer is pointing to it. In this situation two yields are requried to get past the current
+    // pointer is pointing to it. In this situation two yields are required to get past the current
     // process.
     // So if there are more than one process in the process table, and dequeue returns the current
     // process, then we dequeue once again.
@@ -419,7 +427,66 @@ bool kprocess_yield (ProcessRegisterState* currentState)
                       pinfo->processID == currentProcess->processID);
     } while (loop_again);
 
-    k_assert (pinfo->state != PROCESS_NOT_CREATED, "Invalid process state");
+    k_assert (pinfo->state != PROCESS_STATE_INVALID, "Invalid process state");
 
     return s_switchProcess (pinfo, currentState);
+}
+
+// TODO: There is no way to pass error codes/return codes to the parent process. Possible solution
+// would to implement signals. When a process ending it would add SIGCHILD signal for its parent
+// and the scheduler will make sure that the parent gets the message. However I do not want a ZOMBIE
+// process as well.
+// TODO: Ending a process should also end threads of the process.
+bool kprocess_exit()
+{
+    FUNC_ENTRY();
+
+    if (processCount < 2) {
+        return false; // Cannot exit when there is zero/single process running.
+    }
+
+    k_assert (currentProcess != NULL, "There are no process to exit");
+
+    INFO ("Killing process: %u", currentProcess->processID);
+
+    // In order to destroy the context of the current process, it is required to switch to the
+    // Kernel context, otherwise we would be killing the context while using it.
+    register x86_CR3 cr3 = { 0 };
+    cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
+    cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
+    cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_page_dir.val);
+
+    x86_LOAD_REG (CR3, cr3);
+
+    if (!kfree (currentProcess->registerStates)) {
+        k_panicOnError();
+    }
+
+    // NOTE: Freeing of virtual pages is not required because we are going to kill the whole context
+    // next.
+    if (BIT_ISUNSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
+        if (!kpmm_free (currentProcess->physical.Binary,
+                        currentProcess->physical.BinarySizePages)) {
+            k_panicOnError();
+        }
+    }
+
+    if (!kpmm_free (currentProcess->physical.Stack, currentProcess->physical.StackSizePages)) {
+        k_panicOnError();
+    }
+
+    // TODO: Iterate through each of the PDEs and free physical memory for page tables as well.
+    if (!kpmm_free (currentProcess->physical.PageDirectory, 1)) {
+        k_panicOnError();
+    }
+
+    // Now switch to the next process
+    queue_remove (&currentProcess->schedulerQueueNode);
+    currentProcess->state = PROCESS_STATE_INVALID;
+    currentProcess = NULL;
+    processCount--;
+
+    kprocess_yield (NULL);
+
+    return true;
 }

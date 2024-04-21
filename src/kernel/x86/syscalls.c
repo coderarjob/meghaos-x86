@@ -23,6 +23,7 @@ void sys_console_writeln (SystemcallFrame frame, char* text);
 INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        ProcessFlags flags);
 void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
+void sys_killProcess (SystemcallFrame frame);
 
 static U32 s_getSysCallCount();
 
@@ -30,9 +31,10 @@ static U32 s_getSysCallCount();
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
-    &sys_console_writeln,
-    &sys_createProcess,
-    &sys_yieldProcess,
+    &sys_console_writeln, // 0
+    &sys_createProcess,   // 1
+    &sys_yieldProcess,    // 2
+    &sys_killProcess,     // 3
 };
 #pragma GCC diagnostic pop
 
@@ -42,20 +44,20 @@ void* g_syscall_table[] = {
 __asm__(
     // Structure describing the interrupt frame in the stack.
     ".struct 0;"
-    "    field_ebp:    .struct . + 4;"      // EBP is not part of interrupt frame but can be thought
-                                            // of it because of the CDECL convention followed.
-    "    field_eip:    .struct . + 4;"      // --+
-    "    field_cs:     .struct . + 4;"      // --| Fixed interrupt frame.
-    "    field_eflags: .struct . + 4;"      // --+ 
+    "    field_ebp:    .struct . + 4;" // EBP is not part of interrupt frame but can be thought
+                                       // of it because of the CDECL convention followed.
+    "    field_eip:    .struct . + 4;" // --+
+    "    field_cs:     .struct . + 4;" // --| Fixed interrupt frame.
+    "    field_eflags: .struct . + 4;" // --+
 
-    "    field_esp:    .struct . + 4;"      // --+ For kernel processes, these are not added by the
-    "    field_ss:     .struct . + 4;"      // --+ CPU but are added by the despatcher routine.
+    "    field_esp:    .struct . + 4;" // --+ For kernel processes, these are not added by the
+    "    field_ss:     .struct . + 4;" // --+ CPU but are added by the despatcher routine.
     "interrupt_frame_struct_size: .struct .;"
-    "    field_ebx:    .struct . + 4;"      // --+
-    "    field_ecx:    .struct . + 4;"      // --|
-    "    field_edx:    .struct . + 4;"      // --| These are arguments to the system call function.
-    "    field_esi:    .struct . + 4;"      // --| EBX is the 1st arg, EDI is the 5th.
-    "    field_edi:    .struct . + 4;"      // --+
+    "    field_ebx:    .struct . + 4;" // --+
+    "    field_ecx:    .struct . + 4;" // --|
+    "    field_edx:    .struct . + 4;" // --| These are arguments to the system call function.
+    "    field_esi:    .struct . + 4;" // --| EBX is the 1st arg, EDI is the 5th.
+    "    field_edi:    .struct . + 4;" // --+
     "syscall_frame_struct_size: .struct .;"
     ///////////////////////////////////////
     ".text;"
@@ -99,9 +101,9 @@ __asm__(
     "       jnz .cont1;"
     // Caller is Kernel process //
     "   push eax;"
-    "       mov eax, ss;"               // Process SS must be = Kernel SS
+    "       mov eax, ss;" // Process SS must be = Kernel SS
     "       mov [ebp - syscall_frame_struct_size + field_ss], eax;"
-    "       lea eax, [ebp + 4 + 12];"   // Due to CDECL, Caller ESP = EBP + 4 + (3 * 4)
+    "       lea eax, [ebp + 4 + 12];" // Due to CDECL, Caller ESP = EBP + 4 + (3 * 4)
     "       mov [ebp - syscall_frame_struct_size + field_esp], eax;"
     "   pop eax;"
     ////////////////////////////
@@ -155,16 +157,23 @@ void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi
     (void)edx;
 
     ProcessRegisterState state = {
-        .ebx = ebx,
-        .esi = esi,
-        .edi = edi,
-        .esp = frame.esp,
-        .ebp = frame.ebp,
-        .eip = frame.eip,
+        .ebx    = ebx,
+        .esi    = esi,
+        .edi    = edi,
+        .esp    = frame.esp,
+        .ebp    = frame.ebp,
+        .eip    = frame.eip,
         .eflags = frame.eflags,
-        .cs  = frame.cs,
-        .ds  = frame.ss,
+        .cs     = frame.cs,
+        .ds     = frame.ss,
     };
 
     kprocess_yield (&state);
+}
+
+void sys_killProcess (SystemcallFrame frame)
+{
+    FUNC_ENTRY ("Frame return address: 0x%x:0x%x", frame.cs, frame.eip);
+    (void)frame;
+    kprocess_exit();
 }

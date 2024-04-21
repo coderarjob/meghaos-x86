@@ -92,7 +92,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] Are assertOnError and panicOnError requried. They check if errno    | 16 Apr 24 |            |
+| [ ] Are assertOnError and panicOnError requried? They check if errno    | 16 Apr 24 |            |
 | is set then one asserts and other panics. However as errno is never     |           |            |
 | reset, these macros can only be used when a function fails, so the      |           |            |
 | check they do internally is not really required. Moreover assertOnError |           |            |
@@ -104,25 +104,34 @@
 | This happened because the CR0.WP (Write Protect) flag was unset.        |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
-| ::: [ ] Queue for the scheduler                                         |           |            |
-| ::: [ ] Coorporative multitasking setup                                 |           |            |
+| ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
+| ::: [ ] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 |            |
+| ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
+| ::: [ ] Process Killing: Free Page tables along with page directory     | 21 Apr 24 |            |
+| ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
+| Possible solution.                                                      |           |            |
+| When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
+| and the scheduler will make sure that the parent gets the message.      |           |            |
+| Need a way to avoid creation of ZOMBIE processes.                       |           |            |
+| ::: [ ] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 |            |
+| supported.                                                              |           |            |
+| ::: [X] InterruptFrame structure requires to take into account          | 14 Apr 24 | 18 Apr 24  |
+| that for Kernel processes, SS:ESP will not be passed.                   |           |            |
+| ::: [X] Queue for the scheduler                                         |           | 21 Apr 24  |
+| ::: [X] Coorporative multitasking setup                                 |           |            |
 | ::: ::: [X] Examine the behaviour of system call                        | 14 Apr 24 | 15 Apr 24  |
-| ::: ::: [ ] First come first serve for process scheduling needs some    | 14 Apr 24 |            |
-| ::: ::: thought.                                                        |           |            |
-| ::: [ ] System call for exiting process (thread or otherwise)           |           |            |
-| ::: [ ] yield syscall                                                   |           |            |
+| ::: ::: [-] First Come First Serve (FCFS) for process scheduling needs  | 14 Apr 24 | 21 Apr 24  |
+| thought.                                                                |           |            |
+| The scheduling policy is not FCFS, but "Earliest Process Idle First".   |           |            |
+| Purely FCFS can only be used in batch/single process systems.           |           |            |
+| ::: [X] System call for exiting process (thread or otherwise)           |           | 21 Apr 24  |
+| ::: [X] yield syscall                                                   |           | 15 Apr 24  |
 | ::: [-] BUG: Page fault when user thread creates new process            | 11 Apr 24 | 12 Apr 24  |
 | Does not happend when a kernel thread in creating the process.          |           |            |
 | Solution: This was not a bug, but expected. Creation of process         |           |            |
 | requires access to Kernel pages (kmalloc) which user mode cannot do.    |           |            |
 | Moreover, kpg_map invalidates caches, which are privilaged instructions |           |            |
 | ::: [X] BUG: 86Box and Bochs resets when making syscall from process1   | 11 Apr 24 | 12 Apr 24  |
-| ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
-| ::: [ ] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 |            |
-| ::: [ ] InterruptFrame structure requires to take into account          | 14 Apr 24 |            |
-| that for Kernel processes, SS:ESP will not be passed.                   |           |            |
-| ::: [ ] Free kmalloced memory either creation or switching to a process | 15 Apr 24 |            |
-| ::: fails.                                                              |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|

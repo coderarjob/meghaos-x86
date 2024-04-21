@@ -7,26 +7,32 @@ U32 syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 void another_thread();
 
 // This is the entry point for process.
-__asm__ ("jmp proc_main;");
+__asm__("jmp proc_main;");
 
 void proc_main()
 {
     kbochs_breakpoint();
 
-    syscall (1, (U32)&another_thread, 0, PROCESS_FLAGS_THREAD , 0, 0);
+    syscall (1, (U32)&another_thread, 0, PROCESS_FLAGS_THREAD, 0, 0);
 
-    while (1) {
-        syscall (0, (U32)"From process", 0, 0, 0, 0);
+    for (int i = 0; i < 8; i++) {
+        syscall (0, (U32) "From process", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
+    syscall (0, (U32) "Killing process", 0, 0, 0, 0);
+    syscall (3, 0, 0, 0, 0, 0);
+    syscall (0, (U32) "Not killed: Its the only one now.", 0, 0, 0, 0);
+    syscall (0, (U32) "Here it ends", 0, 0, 0, 0);
+    while(1);
 }
 
 void another_thread()
 {
-    while (1) {
-        syscall (0, (PTR)"From process thread", 0, 0, 0, 0);
-        syscall (2, 0, 0, 0, 0, 0);
-    }
+    syscall (0, (PTR) "From process thread", 0, 0, 0, 0);
+    syscall (2, 0, 0, 0, 0, 0);
+
+    syscall (0, (PTR) "Killing process thread", 0, 0, 0, 0);
+    syscall (3, 0, 0, 0, 0, 0);
 }
 
 U32 syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)

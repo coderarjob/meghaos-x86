@@ -15,5 +15,5 @@ typedef struct x86_CR3 {
     UINT physical  : 20; // 12 - 31
 } __attribute__((packed)) x86_CR3;
 
-#define x86_LOAD_REG(reg, dest) __asm__ volatile("mov " #reg ", %0;" ::"r"(dest))
+#define x86_LOAD_REG(reg, source) __asm__ volatile("mov " #reg ", %0;" ::"r"(source))
 #define x86_READ_REG(reg, dest) __asm__ volatile("mov %0, " #reg :"=r"(dest))

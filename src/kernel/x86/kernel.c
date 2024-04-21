@@ -127,25 +127,6 @@ static void new_thread_1()
 {
     FUNC_ENTRY();
 
-    //#pragma GCC diagnostic push
-    //#pragma GCC diagnostic ignored "-Wpedantic"
-    //    void* startAddress_va = new_thread_2;
-    //#pragma GCC diagnostic pop
-    //
-    //    INT processID = syscall (1, (PTR)startAddress_va, 0, PROCESS_FLAGS_THREAD, 0, 0);
-    //    if (processID < 0) {
-    //        k_panicOnError();
-    //    }
-    //
-    //    INFO ("Process ID: %u", processID);
-    //
-    //    for (int i = 0; i < 5; i++) {
-    //        kearly_println ("From Process 0");
-    //        syscall (2, 0, 0, 0, 0, 0);
-    //    }
-    //
-    //    INFO ("Here it ends");
-
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
     BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
     Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
@@ -166,9 +147,9 @@ static void new_thread_1()
         syscall (2, 0, 0, 0, 0, 0);
     }
 
-    INFO ("Here it ends");
+    syscall (0, (PTR) "Killing kernel thread", 0, 0, 0, 0);
+    syscall (3, 0, 0, 0, 0, 0);
 
-    //kprocess_switch ((UINT)processID);
     k_halt();
 }
 

@@ -10,10 +10,9 @@
 #include <intrusive_queue.h>
 
 typedef enum ProcessStates {
-    PROCESS_NOT_CREATED = 0,
-    PROCESS_NOT_STARTED = 1,
-    PROCESS_RUNNING     = 2,
-    PROCESS_IDLE        = 3
+    PROCESS_STATE_INVALID = 0,
+    PROCESS_STATE_RUNNING = 1,
+    PROCESS_STATE_IDLE    = 2,
 } ProcessStates;
 
 typedef enum ProcessFlags {
@@ -35,6 +34,7 @@ typedef struct ProcessInfo {
         Physical Binary;
         Physical Stack;
         SIZE StackSizePages;
+        SIZE BinarySizePages; // Only valid for non-thread processes.
     } physical;
     struct {
         PTR Entry;
@@ -53,3 +53,4 @@ typedef struct ProcessInfo {
 void kprocess_init();
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
+bool kprocess_exit();
