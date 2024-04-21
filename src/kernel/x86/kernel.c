@@ -97,6 +97,10 @@ void kernel_main ()
 
     kprocess_init();
 
+    kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,GREEN,0));
+    kearly_println ("Kernel initialization finished..");
+    kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,DARK_GRAY,0));
+
     // Display available memory
     display_system_info ();
     s_dumpPab();
@@ -115,12 +119,7 @@ void kernel_main ()
     //new_process();
     //new_process_2();
 
-    // Jump to user mode
-    INFO ("Jumping to User mode..");
-    kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,CYAN,0));
-
-    //jump_to_usermode (GDT_SELECTOR_UDATA, GDT_SELECTOR_UCODE, &usermode_main);
-    while (1);
+    k_halt();
 }
 
 static void new_thread_1()

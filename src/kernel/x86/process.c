@@ -325,6 +325,10 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
     cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
     cr3.physical         = PHYSICAL_TO_PAGEFRAME (nextProcess->physical.PageDirectory.val);
 
+    // Physical memory for the Page Directory must be allocated.
+    k_assert (kpmm_getPageStatus (nextProcess->physical.PageDirectory) == PMM_STATE_USED,
+              "Process context invalid");
+
     ProcessRegisterState* reg = nextProcess->registerStates;
 
     INFO ("Is context switch required: Yes");

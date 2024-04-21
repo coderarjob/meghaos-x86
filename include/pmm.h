@@ -39,4 +39,5 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
 size_t kpmm_getFreeMemorySize ();
 U64 kpmm_arch_getInstalledMemoryByteCount ();
 USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg);
+KernelPhysicalMemoryStates kpmm_getPageStatus(Physical phy);
 #endif // PMM_H_X86
