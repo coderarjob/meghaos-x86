@@ -37,10 +37,11 @@ typedef enum PagingMapFlags {
     PG_MAP_FLAG_NOT_PRESENT   = (1 << 3),
 } PagingMapFlags;
 
-typedef enum PagingNewPageDirectoryFlags {
+typedef enum PagingOperationFlags {
     PG_NEWPD_FLAG_COPY_KERNEL_PAGES = (1 << 0),
-    PG_NEWPD_FLAG_RECURSIVE_MAP     = (1 << 1)
-} PagingNewPageDirectoryFlags;
+    PG_NEWPD_FLAG_RECURSIVE_MAP     = (1 << 1),
+    PG_DELPD_FLAG_KEEP_KERNEL_PAGES = (1 << 2)
+} PagingOperationFlags;
 
 // Physical start of the page frame 'pf'.
 #define PAGEFRAME_TO_PHYSICAL(pf) (PAGEFRAMES_TO_BYTES (pf))
@@ -55,6 +56,7 @@ void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();
 bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa);
 PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_start, PTR region_end);
-bool kpg_createNewPageDirectory (Physical* newPD, PagingNewPageDirectoryFlags flags);
+bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags);
+bool kpg_deletePageDirectory(Physical pd, PagingOperationFlags flags);
 
 #endif // PAGING_H

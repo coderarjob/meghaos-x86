@@ -107,7 +107,10 @@
 | ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
 | ::: [ ] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 |            |
 | ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
-| ::: [ ] Process Killing: Free Page tables along with page directory     | 21 Apr 24 |            |
+| ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
+| ::: ::: [ ] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 |            |
+| ::: ::: stack is used in the Kernel mode. kpg_unmap will cause page     |           |            |
+| ::: ::: fault when it tries to access the stack or return.              |           |            |
 | ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
 | Possible solution.                                                      |           |            |
 | When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |

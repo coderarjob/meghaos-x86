@@ -448,44 +448,51 @@ bool kprocess_exit()
     k_assert (currentProcess != NULL, "There are no process to exit");
 
     INFO ("Killing process: %u", currentProcess->processID);
-
-    // In order to destroy the context of the current process, it is required to switch to the
-    // Kernel context, otherwise we would be killing the context while using it.
-    register x86_CR3 cr3 = { 0 };
-    cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
-    cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-    cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_page_dir.val);
-
-    x86_LOAD_REG (CR3, cr3);
+    INFO ("Is thread: %s", BIT_ISSET (currentProcess->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
 
     if (!kfree (currentProcess->registerStates)) {
         k_panicOnError();
-    }
-
-    // NOTE: Freeing of virtual pages is not required because we are going to kill the whole context
-    // next.
-    if (BIT_ISUNSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
-        if (!kpmm_free (currentProcess->physical.Binary,
-                        currentProcess->physical.BinarySizePages)) {
-            k_panicOnError();
-        }
     }
 
     if (!kpmm_free (currentProcess->physical.Stack, currentProcess->physical.StackSizePages)) {
         k_panicOnError();
     }
 
-    // TODO: Iterate through each of the PDEs and free physical memory for page tables as well.
-    if (!kpmm_free (currentProcess->physical.PageDirectory, 1)) {
+    // TODO: As same the stack is used by a Kernel process and Kernel routines, stack cannot be
+    // unmapped here. Will cause page fault when kpg_unmap accesses the stack.
+    if (!kpg_unmap (kpg_getcurrentpd(), currentProcess->virt.StackStart)) {
         k_panicOnError();
     }
 
-    // Now switch to the next process
+    // Delete complete context only for non-thread processes
+    if (BIT_ISUNSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
+        if (!kpmm_free (currentProcess->physical.Binary,
+                        currentProcess->physical.BinarySizePages)) {
+            k_panicOnError();
+        }
+
+        // In order to destroy the context of the current process, it is required to switch to the
+        // Kernel context, otherwise we would be killing the context while using it.
+        register x86_CR3 cr3 = { 0 };
+        cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
+        cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
+        cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_page_dir.val);
+
+        x86_LOAD_REG (CR3, cr3);
+
+        // Iterate through each of the PDEs and free physical memory for page tables as well.
+        if (!kpg_deletePageDirectory (currentProcess->physical.PageDirectory,
+                                      PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
+            k_panicOnError();
+        }
+    }
+
     queue_remove (&currentProcess->schedulerQueueNode);
     currentProcess->state = PROCESS_STATE_INVALID;
-    currentProcess = NULL;
+    currentProcess        = NULL;
     processCount--;
 
+    // Now switch to the next process
     kprocess_yield (NULL);
 
     return true;

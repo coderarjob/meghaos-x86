@@ -133,6 +133,7 @@ static void new_thread_1()
     SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
 
     INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
+    kdebug_println ("Free RAM bytes: x:%x bytes", kpmm_getFreeMemorySize());
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
     INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
@@ -142,13 +143,14 @@ static void new_thread_1()
 
     INFO ("Process ID: %u", processID);
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 8; i++) {
         kearly_println ("From Kernel thread");
         syscall (2, 0, 0, 0, 0, 0);
     }
 
-    syscall (0, (PTR) "Killing kernel thread", 0, 0, 0, 0);
-    syscall (3, 0, 0, 0, 0, 0);
+    syscall (0, (U32) "Not killed: Its the only one now.", 0, 0, 0, 0);
+    syscall (0, (U32) "Here it ends", 0, 0, 0, 0);
+    kdebug_println ("Free RAM bytes: x:%x bytes", kpmm_getFreeMemorySize());
 
     k_halt();
 }

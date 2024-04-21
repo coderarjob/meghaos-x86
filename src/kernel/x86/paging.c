@@ -6,6 +6,7 @@
  * use as well as when allocating memory for user space processes.
  * ---------------------------------------------------------------------------
  */
+#include "x86/types.h"
 #include <kstdlib.h>
 #include <pmm.h>
 #include <kerror.h>
@@ -435,7 +436,7 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
  * @Input   flags       Flags that determine the setup of the Page directory.
  * @return              True if success, false otherwise.
  **************************************************************************************************/
-bool kpg_createNewPageDirectory (Physical* newPD, PagingNewPageDirectoryFlags flags)
+bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags)
 {
     FUNC_ENTRY("newPD return addr: 0x%px, Flags: %x", newPD, flags);
 
@@ -463,4 +464,40 @@ bool kpg_createNewPageDirectory (Physical* newPD, PagingNewPageDirectoryFlags fl
     kpg_temporaryUnmap();
 
     return true; // Success
+}
+
+bool kpg_deletePageDirectory (Physical pd, PagingOperationFlags flags)
+{
+    FUNC_ENTRY ("PD addr: 0x%px, Flags: %x", pd, flags);
+
+    // Cannot delete the current physical directory
+    x86_CR3 cr3 = { 0 };
+    x86_READ_REG (CR3, cr3);
+    k_assert (pd.val != PAGEFRAME_TO_PHYSICAL (cr3.physical), "Cannot delete the current PD");
+
+    // Deallocate physical memory used by the page tables referenced by this page directory.
+    PageDirectory pd_vaddr = kpg_temporaryMap (pd);
+    UINT endIndex = BIT_ISSET (flags, PG_DELPD_FLAG_KEEP_KERNEL_PAGES) ? KERNEL_PDE_INDEX : 1024;
+
+    INFO ("Freeing PDE from index 0 to index %u", endIndex);
+
+    for (UINT i = 0; i < endIndex; i++) {
+        ArchPageDirectoryEntry pde = pd_vaddr[i];
+        if (pde.present == 1) {
+            Physical pt = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde.pageTableFrame));
+            INFO ("Freeing PDE Index: %u, Page Table physical address: 0x%x", i, pt.val);
+            if (!kpmm_free (pt, 1)) {
+                RETURN_ERROR (ERROR_PASSTHROUGH, false);
+            }
+        }
+    }
+
+    kpg_temporaryUnmap();
+
+    // Now deallocate page used by the page directory itself.
+    if (!kpmm_free (pd, 1)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    return true;
 }
