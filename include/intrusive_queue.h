@@ -45,4 +45,10 @@ static inline void queue_remove (ListNode* node)
     list_remove (node);
 }
 
+#define queue_for_each_forward(forward, backward, node) \
+    for ((node) = (forward)->next; (node) != (backward); (node) = (node)->next)
+
+#define queue_for_each_backward(forward, backward, node) \
+    for ((node) = (backward)->prev; (node) != (forward); (node) = (node)->prev)
+
 #endif // INTRU_QUEUE_H

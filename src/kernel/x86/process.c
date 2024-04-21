@@ -49,6 +49,9 @@ static bool s_enqueue (ProcessInfo* p);
 static bool s_setupProcessAddressSpace (ProcessInfo* pinfo);
 static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
                                              ProcessFlags flags, ProcessInfo* pinfo);
+#ifdef DEBUG
+static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward);
+#endif //DEBUG
 
 __attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
 
@@ -149,8 +152,35 @@ static ProcessInfo* s_processInfo_malloc()
     return pInfo;
 }
 
+#ifdef DEBUG
+static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward)
+{
+    ListNode* node;
+    INFO ("Going %s:",
+          (directionForward) ? "from forward to backward" : "from backward to forward");
+
+    if (directionForward == true) {
+        queue_for_each_forward (forward, backward, node)
+        {
+            ProcessInfo* q = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
+            INFO ("%u", q->processID);
+        }
+    } else {
+        queue_for_each_backward (forward, backward, node)
+        {
+            ProcessInfo* q = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
+            INFO ("%u", q->processID);
+        }
+    }
+}
+#endif //DEBUG
+
 static ProcessInfo* s_dequeue()
 {
+#ifdef DEBUG
+    s_showQueueItems (&schedulerQueue.forward, &schedulerQueue.backward, false);
+#endif // DEBUG
+
     ListNode* node = dequeue_forward (&schedulerQueue.forward, &schedulerQueue.backward);
     if (node == NULL) {
         RETURN_ERROR (ERR_SCHEDULER_QUEUE_EMPTY, NULL);
