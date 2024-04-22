@@ -105,7 +105,6 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
 | ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
-| ::: [ ] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 |            |
 | ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
 | ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
 | ::: ::: [ ] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 |            |
@@ -118,6 +117,7 @@
 | Need a way to avoid creation of ZOMBIE processes.                       |           |            |
 | ::: [ ] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 |            |
 | supported.                                                              |           |            |
+| ::: [X] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 | 22 Apr 24  |
 | ::: [X] InterruptFrame structure requires to take into account          | 14 Apr 24 | 18 Apr 24  |
 | that for Kernel processes, SS:ESP will not be passed.                   |           |            |
 | ::: [X] Queue for the scheduler                                         |           | 21 Apr 24  |

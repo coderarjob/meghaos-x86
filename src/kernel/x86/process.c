@@ -28,7 +28,6 @@
 #define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
     ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
-#define PROCESS_TEMPORARY_MAP LINEAR_ADDR (KERNEL_PDE_INDEX - 1, TEMPORARY_PTE_INDEX, 0)
 #define MAX_PROCESS_COUNT     20
 
 typedef struct SchedulerQueue {
@@ -40,8 +39,6 @@ static UINT processCount;
 static ProcessInfo* currentProcess   = NULL;
 static SchedulerQueue schedulerQueue = { 0 };
 
-static void s_temporaryUnmap();
-static void* s_temporaryMap (Physical p);
 static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
 static ProcessInfo* s_processInfo_malloc();
 static ProcessInfo* s_dequeue();
@@ -116,22 +113,6 @@ __asm__(".struct 0;"
         "push [edx + proc_cs];"     // Code segment selector
         "push [edx + proc_eip];"    // User process entry/return address
         "iret;");
-
-static void s_temporaryUnmap()
-{
-    if (!kpg_unmap (kpg_getcurrentpd(), (PTR)PROCESS_TEMPORARY_MAP)) {
-        k_panicOnError();
-    }
-}
-
-static void* s_temporaryMap (Physical p)
-{
-    if (!kpg_map (kpg_getcurrentpd(), (PTR)PROCESS_TEMPORARY_MAP, p,
-                  PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_CACHE_ENABLED)) {
-        k_panicOnError();
-    }
-    return (void*)PROCESS_TEMPORARY_MAP;
-}
 
 static ProcessInfo* s_processInfo_malloc()
 {
@@ -208,7 +189,7 @@ static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
     //  TODO: At this time stack of more than 1 page is not implemented.
     k_assert (pinfo != NULL && pinfo->physical.StackSizePages == 1, "Invalid stack size");
 
-    PageDirectory pd = s_temporaryMap (pinfo->physical.PageDirectory);
+    PageDirectory pd = kpg_temporaryMap (pinfo->physical.PageDirectory);
 
     // Map process binary location into the process's address space
     if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
@@ -250,7 +231,7 @@ static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
         RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed;
     }
 
-    s_temporaryUnmap();
+    kpg_temporaryUnmap();
     return true;
 }
 
@@ -340,7 +321,7 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
     currentProcess     = nextProcess;
     jump_to_process (nextProcess->flags, cr3, reg);
 
-    NORETURN();
+    UNREACHABLE();
 }
 
 void kprocess_init()
@@ -499,5 +480,5 @@ bool kprocess_exit()
     // Now switch to the next process
     kprocess_yield (NULL);
 
-    return true;
+    UNREACHABLE();
 }

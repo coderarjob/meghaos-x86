@@ -35,6 +35,10 @@ static void s_setupPTE (PTR associatedVA, ArchPageTableEntry* pte, Physical pa,
                         PagingMapFlags flags);
 static void s_setupPDE (PTR associatedVA, ArchPageDirectoryEntry* pde, Physical pa,
                         PagingMapFlags flags);
+static void* s_temporaryMap (Physical pa, U32 pte_index);
+static void* s_internal_temporaryMap (Physical pa);
+static void s_temporaryUnmap (U32 pte_index);
+static void s_internal_temporaryUnmap();
 
 #ifndef UNITTEST
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
@@ -113,52 +117,29 @@ static void s_setupPDE (PTR associatedVA, ArchPageDirectoryEntry* pde, Physical 
     x86_TLB_INVAL_SINGLE (associatedVA);
 }
 
-/***************************************************************************************************
- * Disassociates mapping between a physical page and the fixed virtual page used for temporary
- * mapping.
- *
- * NOTE: The Kernel PT will be mapped in every process and as we are using one of its entry for
- *        temporary mapping, a temporary map is global (not specific to a particular process). This
- *        means in between temporary map and unmap we must not switch processes.
- *
- * @return          Nothing
- * @error           Kernel panic  - When temporary map does not exist.
- **************************************************************************************************/
-void kpg_temporaryUnmap()
+static inline void* s_internal_temporaryMap (Physical pa)
 {
-    FUNC_ENTRY();
+    return s_temporaryMap (pa, TEMPORARY_PTE_INDEX_INTERNAL);
+}
 
-    // TODO: As KERNEL_PDE will always be present and same across every process, recursive mapping
-    // is not really required. That is to say the address of the PTE used for temporary mapping is
-    // constant.
-    ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
-    if (!pte->present) {
-        k_panic ("Temporary mapping not present");
-    }
-
-    pte->present = 0;
-
-    x86_TLB_INVAL_SINGLE (s_getLinearAddress (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0));
+static inline void s_internal_temporaryUnmap()
+{
+    s_temporaryUnmap (TEMPORARY_PTE_INDEX_INTERNAL);
 }
 
 /***************************************************************************************************
  * Associates mapping between a physical page and fixed virtual page using the page directory of the
- * current process. If the fixed virtual page is in the kernel address space, it will be available
- * in every process (as the kernel address space is shared among processes), so care must be taken
- * when using temporary mapped addresses.
+ * current process. The fixed virtual page is determined by the PTE index passed in.
  *
- * NOTE: The Kernel PT will be mapped in every process and as we are using one of its entry for
- *        temporary mapping, a temporary map is global (not specific to a particular process). This
- *        means in between temporary map and unmap we must not switch processes.
- *
- * @Input   pa      Physical page which will be mapped. Must be page aligned.
- * @return          True if mapping was successful, false otherwise. Error number is set.
- * @error           Kernel panic  - When temporary map already exists (to some physical page)
- *                  ERR_WRONG_ALIGNMENT - Input is not page aligned.
+ * @Input  pa        Physical page which will be mapped. Must be page aligned.
+ * @Input  pte_index Physical page will be mapped within KERNEL_PDE_INDEX at this PTE index.
+ * @return           True if mapping was successful, false otherwise. Error number is set.
+ * @error            Kernel panic  - When temporary map already exists (to some physical page)
+ *                   ERR_WRONG_ALIGNMENT - Input is not page aligned.
  **************************************************************************************************/
-void* kpg_temporaryMap (Physical pa)
+static void* s_temporaryMap (Physical pa, U32 pte_index)
 {
-    FUNC_ENTRY ("Physical address: 0x%px", pa.val);
+    FUNC_ENTRY ("Physical address: 0x%px, PTE Index: %u", pa.val, pte_index);
 
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.
@@ -166,8 +147,8 @@ void* kpg_temporaryMap (Physical pa)
         RETURN_ERROR (ERR_WRONG_ALIGNMENT, NULL);
     }
 
-    void* temporaryAddress  = s_getLinearAddress (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX, 0);
-    ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, TEMPORARY_PTE_INDEX);
+    void* temporaryAddress  = s_getLinearAddress (KERNEL_PDE_INDEX, pte_index, 0);
+    ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, pte_index);
     if (pte->present) {
         k_panic ("Temporary mapping already present");
     }
@@ -176,6 +157,59 @@ void* kpg_temporaryMap (Physical pa)
                 PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED);
 
     return temporaryAddress;
+}
+
+/***************************************************************************************************
+ * Disassociates mapping between a physical page and the fixed virtual page used for temporary
+ * mapping. The fixed virtual page is determined by the PTE index passed in.
+ *
+ * @Input  pte_index Mapping which exists at KERNEL_PDE_INDEX and the provided PTE index is removed.
+ * @error            Kernel panic  - When temporary map does not exist.
+ **************************************************************************************************/
+static void s_temporaryUnmap (U32 pte_index)
+{
+    FUNC_ENTRY();
+
+    // TODO: As KERNEL_PDE will always be present and same across every process, recursive mapping
+    // is not really required. That is to say the address of the PTE used for temporary mapping is
+    // constant.
+    ArchPageTableEntry* pte = s_getPteFromCurrentPd (KERNEL_PDE_INDEX, pte_index);
+    if (!pte->present) {
+        k_panic ("Temporary mapping not present");
+    }
+
+    pte->present = 0;
+
+    x86_TLB_INVAL_SINGLE (s_getLinearAddress (KERNEL_PDE_INDEX, pte_index, 0));
+}
+
+/***************************************************************************************************
+ * Disassociates mapping between a physical page and the fixed virtual page used for temporary
+ * mapping.
+ *
+ * @return          Nothing
+ * @error           See internal implementation.
+ **************************************************************************************************/
+void kpg_temporaryUnmap()
+{
+    FUNC_ENTRY();
+    s_temporaryUnmap (TEMPORARY_PTE_INDEX_EXTERN);
+}
+
+/***************************************************************************************************
+ * Associates mapping between a physical page and fixed virtual page using the page directory of the
+ * current process. If the fixed virtual page is in the kernel address space, it will be available
+ * in every process so care must be taken when using temporary mapped addresses.
+ *
+ * @Input   pa      Physical page which will be mapped. Must be page aligned.
+ * @return          True if mapping was successful, false otherwise. Error number is set.
+ * @error           See internal implementation.
+ **************************************************************************************************/
+void* kpg_temporaryMap (Physical pa)
+{
+    FUNC_ENTRY ("Physical address: 0x%px", pa.val);
+
+    return s_temporaryMap (pa, TEMPORARY_PTE_INDEX_EXTERN);
 }
 
 /***************************************************************************************************
@@ -218,11 +252,11 @@ bool kpg_unmap (PageDirectory pd, PTR va)
     }
 
     Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-    PageTable pt            = (PageTable)kpg_temporaryMap (pt_phyaddr);
+    PageTable pt            = (PageTable)s_internal_temporaryMap (pt_phyaddr);
     ArchPageTableEntry* pte = &pt[info.pteIndex];
 
     if (!pte->present) {
-        kpg_temporaryUnmap();
+        s_internal_temporaryUnmap();
         // Panic or assert may not be the right decision here. At this time I want the caller to
         // take action. The caller will be at a better position to take decision.
         RETURN_ERROR (ERR_DOUBLE_FREE, false);
@@ -231,7 +265,7 @@ bool kpg_unmap (PageDirectory pd, PTR va)
     pte->present = false;
     x86_TLB_INVAL_SINGLE (va); // This PTE effects virtual address VA. Thus flushing va.
 
-    kpg_temporaryUnmap();
+    s_internal_temporaryUnmap();
 
     return true;
 }
@@ -271,9 +305,9 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
         }
 
         // Initialize the page table.
-        void* tempva = kpg_temporaryMap (pa_new);
+        void* tempva = s_internal_temporaryMap (pa_new);
         k_memset (tempva, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
-        kpg_temporaryUnmap();
+        s_internal_temporaryUnmap();
 
         // Reference the page table in the PDE.
         s_setupPDE (va, pde, pa_new, flags);
@@ -281,16 +315,16 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
 
     // In order to access the page table a temporary mapping is required.
     Physical ptaddr         = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-    PageTable tempva        = (PageTable)kpg_temporaryMap (ptaddr);
+    PageTable tempva        = (PageTable)s_internal_temporaryMap (ptaddr);
     ArchPageTableEntry* pte = &tempva[info.pteIndex];
 
     if (pte->present) {
-        kpg_temporaryUnmap();
+        s_internal_temporaryUnmap();
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 
     s_setupPTE (va, pte, pa, flags);
-    kpg_temporaryUnmap();
+    s_internal_temporaryUnmap();
     return true;
 }
 
@@ -320,18 +354,18 @@ bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
     }
 
     Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-    void* pt_vaddr          = kpg_temporaryMap (pt_phyaddr);
+    void* pt_vaddr          = s_internal_temporaryMap (pt_phyaddr);
     ArchPageTableEntry* pte = &((ArchPageTableEntry*)pt_vaddr)[info.pteIndex];
 
     if (!pte->present) {
-        kpg_temporaryUnmap();
+        s_internal_temporaryUnmap();
         RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
     }
 
     Physical phy_addr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pte->pageFrame) | info.offset);
     *pa               = phy_addr;
 
-    kpg_temporaryUnmap();
+    s_internal_temporaryUnmap();
 
     return true;
 }
@@ -389,7 +423,7 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
         }
 
         Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-        ArchPageTableEntry* pte = (ArchPageTableEntry*)kpg_temporaryMap (pt_phyaddr);
+        ArchPageTableEntry* pte = (ArchPageTableEntry*)s_internal_temporaryMap (pt_phyaddr);
         pte                     = &pte[pteStartIndex];
 
         for (UINT pteIndex = pteStartIndex; pteIndex <= pteEndIndex; pte++, pteIndex++) {
@@ -415,7 +449,7 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
             }
         }
 
-        kpg_temporaryUnmap();
+        s_internal_temporaryUnmap();
 
         if (found) {
             break; // We have found enough pages. Now stop.
@@ -438,16 +472,16 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
  **************************************************************************************************/
 bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags)
 {
-    FUNC_ENTRY("newPD return addr: 0x%px, Flags: %x", newPD, flags);
+    FUNC_ENTRY ("newPD return addr: 0x%px, Flags: %x", newPD, flags);
 
     if (kpmm_alloc (newPD, 1, PMM_REGION_ANY) == false) {
-        RETURN_ERROR(ERROR_PASSTHROUGH, false);     // PMM alloc failure
+        RETURN_ERROR (ERROR_PASSTHROUGH, false); // PMM alloc failure
     }
 
     INFO ("New PD physical location: 0x%px", newPD->val);
 
-    PageDirectory pd        = kpg_temporaryMap (*newPD);
-    k_memset(pd, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    PageDirectory pd = s_internal_temporaryMap (*newPD);
+    k_memset (pd, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
 
     // Temporary map this PD and copy kernel page table entries
     if (BIT_ISSET (flags, PG_NEWPD_FLAG_COPY_KERNEL_PAGES)) {
@@ -459,9 +493,8 @@ bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags)
         if (BIT_ISSET (flags, PG_NEWPD_FLAG_RECURSIVE_MAP)) {
             pd[RECURSIVE_PDE_INDEX].pageTableFrame = PHYSICAL_TO_PAGEFRAME (newPD->val);
         }
-
     }
-    kpg_temporaryUnmap();
+    s_internal_temporaryUnmap();
 
     return true; // Success
 }
@@ -476,7 +509,7 @@ bool kpg_deletePageDirectory (Physical pd, PagingOperationFlags flags)
     k_assert (pd.val != PAGEFRAME_TO_PHYSICAL (cr3.physical), "Cannot delete the current PD");
 
     // Deallocate physical memory used by the page tables referenced by this page directory.
-    PageDirectory pd_vaddr = kpg_temporaryMap (pd);
+    PageDirectory pd_vaddr = s_internal_temporaryMap (pd);
     UINT endIndex = BIT_ISSET (flags, PG_DELPD_FLAG_KEEP_KERNEL_PAGES) ? KERNEL_PDE_INDEX : 1024;
 
     INFO ("Freeing PDE from index 0 to index %u", endIndex);
@@ -492,7 +525,7 @@ bool kpg_deletePageDirectory (Physical pd, PagingOperationFlags flags)
         }
     }
 
-    kpg_temporaryUnmap();
+    s_internal_temporaryUnmap();
 
     // Now deallocate page used by the page directory itself.
     if (!kpmm_free (pd, 1)) {

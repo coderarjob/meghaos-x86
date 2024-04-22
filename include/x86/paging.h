@@ -24,9 +24,10 @@
 #define PTE_MASK    0x003FF000U
 #define OFFSET_MASK 0x00000FFFU
 
-#define RECURSIVE_PDE_INDEX 1023U
-#define KERNEL_PDE_INDEX    768U
-#define TEMPORARY_PTE_INDEX 1023U
+#define RECURSIVE_PDE_INDEX          1023U
+#define KERNEL_PDE_INDEX             768U
+#define TEMPORARY_PTE_INDEX_EXTERN   1022U
+#define TEMPORARY_PTE_INDEX_INTERNAL 1023U
 
 #define x86_PG_DEFAULT_IS_CACHING_DISABLED 0 // 0 - Enabled cache, 1 - Disables cache
 #define x86_PG_DEFAULT_IS_WRITE_THROUGH    0 // 0 - Write back, 1 - Write through
