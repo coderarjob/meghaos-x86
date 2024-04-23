@@ -28,7 +28,7 @@
 #define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
     ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
-#define MAX_PROCESS_COUNT     20
+#define MAX_PROCESS_COUNT 20
 
 typedef struct SchedulerQueue {
     ListNode forward;
@@ -46,6 +46,7 @@ static bool s_enqueue (ProcessInfo* p);
 static bool s_setupProcessAddressSpace (ProcessInfo* pinfo);
 static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
                                              ProcessFlags flags, ProcessInfo* pinfo);
+static bool kprocess_exit_internal();
 #ifdef DEBUG
 static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward);
 #endif // DEBUG
@@ -324,6 +325,75 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
     UNREACHABLE();
 }
 
+// TODO: There is no way to pass error codes/return codes to the parent process. Possible solution
+// would to implement signals. When a process ending it would add SIGCHILD signal for its parent
+// and the scheduler will make sure that the parent gets the message. However I do not want a ZOMBIE
+// process as well.
+// TODO: Ending a process should also end threads of the process.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+static bool kprocess_exit_internal()
+{
+    FUNC_ENTRY();
+
+    if (processCount < 2) {
+        return false; // Cannot exit when there is zero/single process running.
+    }
+
+    k_assert (currentProcess != NULL, "There are no process to exit");
+
+    INFO ("Killing process: %u", currentProcess->processID);
+    INFO ("Is thread: %s", BIT_ISSET (currentProcess->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
+
+    if (!kfree (currentProcess->registerStates)) {
+        k_panicOnError();
+    }
+
+    // Delete complete context only for non-thread processes
+    if (BIT_ISUNSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
+        INFO ("Removing complete process  context");
+
+        if (!kpmm_free (currentProcess->physical.Binary,
+                        currentProcess->physical.BinarySizePages)) {
+            k_panicOnError();
+        }
+
+        // In order to destroy the context of the current process, it is required to switch to the
+        // Kernel context, otherwise we would be killing the context while using it.
+        register x86_CR3 cr3 = { 0 };
+        cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
+        cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
+        cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_page_dir.val);
+
+        x86_LOAD_REG (CR3, cr3);
+
+        // Iterate through each of the PDEs and free physical memory for page tables as well.
+        if (!kpg_deletePageDirectory (currentProcess->physical.PageDirectory,
+                                      PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
+            k_panicOnError();
+        }
+    } else {
+        INFO ("Removing thread context");
+        if (!kpg_unmap (kpg_getcurrentpd(), currentProcess->virt.StackStart)) {
+            k_panicOnError();
+        }
+    }
+
+    // Physical memory need to be freed explicitly
+    if (!kpmm_free (currentProcess->physical.Stack, currentProcess->physical.StackSizePages)) {
+        k_panicOnError();
+    }
+
+    queue_remove (&currentProcess->schedulerQueueNode);
+    currentProcess->state = PROCESS_STATE_INVALID;
+    currentProcess        = NULL;
+    processCount--;
+
+    // Now switch to the next process
+    return kprocess_yield (NULL);
+}
+#pragma GCC diagnostic pop
+
 void kprocess_init()
 {
     queue_init (&schedulerQueue.forward, &schedulerQueue.backward);
@@ -339,6 +409,8 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     }
 
     ProcessInfo* pinfo = s_processInfo_malloc();
+
+    INFO ("Creating new process: ID = %u", pinfo->processID);
 
     pinfo->flags           = flags;
     pinfo->virt.Entry      = PROCESS_TEXT_VA_START;
@@ -417,68 +489,44 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     return s_switchProcess (pinfo, currentState);
 }
 
-// TODO: There is no way to pass error codes/return codes to the parent process. Possible solution
-// would to implement signals. When a process ending it would add SIGCHILD signal for its parent
-// and the scheduler will make sure that the parent gets the message. However I do not want a ZOMBIE
-// process as well.
-// TODO: Ending a process should also end threads of the process.
 bool kprocess_exit()
 {
-    FUNC_ENTRY();
+    UINT ret;
+    UINT flags = (currentProcess != NULL) ? currentProcess->flags : 0;
 
-    if (processCount < 2) {
-        return false; // Cannot exit when there is zero/single process running.
-    }
+    // In a Kernel process, no stack switch happens in a system call and the same process stack is
+    // used when within kernel as well. So before performing the following actions the stack needs
+    // to not use the process stack.
+    // 1. When killing kernel thread, the stack of the thread needs to be deallocated.
+    // 2. When killing kernel process, the whole address space is deallocated.
+    __asm__ volatile("push ebp;"
+                     "   mov ebp, esp;"
+                     "   test %1, PROCESS_FLAGS_KERNEL_PROCESS;"
+                     "   jz .cont;"
+                     // We temporarily change to use the Kernel stack before starting the actual
+                     // exit process. Two things can happen if the kprocess_exit succeeds then the
+                     // current process will be killed and this stack state will end after yielding
+                     // to the next process. If kprocess_exit fails, it will return to this routine
+                     // and the original stack pointer will be restored. NOTE:Using of Kernel stack
+                     // in another process works because whole of the Kernel address space is mapped
+                     // to each process. NOTE: As we have switched stack, local variables/function
+                     // arguments of this function which were on the stack cannot be accesssed from
+                     // here on.
+                     "   mov esp, " STR (INTEL_32_KSTACK_TOP) ";"
+                                                              ".cont:;"
+                                                              // Call to kprocess_exit will not
+                                                              // return if it succeeds.
+                                                              "   call kprocess_exit_internal;"
+                                                              "   mov %0, eax;"
+                                                              // kprocess_exit returned which means
+                                                              // it did not succeed. Restore the
+                                                              // stack.
+                                                              "   mov esp, ebp;"
+                                                              "   pop ebp;"
+                     : "=r"(ret)
+                     : "r"(flags)
+                     : // No clobber
+    );
 
-    k_assert (currentProcess != NULL, "There are no process to exit");
-
-    INFO ("Killing process: %u", currentProcess->processID);
-    INFO ("Is thread: %s", BIT_ISSET (currentProcess->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
-
-    if (!kfree (currentProcess->registerStates)) {
-        k_panicOnError();
-    }
-
-    if (!kpmm_free (currentProcess->physical.Stack, currentProcess->physical.StackSizePages)) {
-        k_panicOnError();
-    }
-
-    // TODO: As same the stack is used by a Kernel process and Kernel routines, stack cannot be
-    // unmapped here. Will cause page fault when kpg_unmap accesses the stack.
-    if (!kpg_unmap (kpg_getcurrentpd(), currentProcess->virt.StackStart)) {
-        k_panicOnError();
-    }
-
-    // Delete complete context only for non-thread processes
-    if (BIT_ISUNSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
-        if (!kpmm_free (currentProcess->physical.Binary,
-                        currentProcess->physical.BinarySizePages)) {
-            k_panicOnError();
-        }
-
-        // In order to destroy the context of the current process, it is required to switch to the
-        // Kernel context, otherwise we would be killing the context while using it.
-        register x86_CR3 cr3 = { 0 };
-        cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
-        cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-        cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_page_dir.val);
-
-        x86_LOAD_REG (CR3, cr3);
-
-        // Iterate through each of the PDEs and free physical memory for page tables as well.
-        if (!kpg_deletePageDirectory (currentProcess->physical.PageDirectory,
-                                      PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
-            k_panicOnError();
-        }
-    }
-
-    queue_remove (&currentProcess->schedulerQueueNode);
-    currentProcess->state = PROCESS_STATE_INVALID;
-    currentProcess        = NULL;
-    processCount--;
-
-    // Now switch to the next process
-    kprocess_yield (NULL);
-
-    UNREACHABLE();
+    return (ret == true);
 }

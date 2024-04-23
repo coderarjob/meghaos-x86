@@ -15,12 +15,13 @@ void proc_main()
 
     syscall (1, (U32)&another_thread, 0, PROCESS_FLAGS_THREAD, 0, 0);
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 3; i++) {
         syscall (0, (U32) "From process", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
     syscall (0, (U32) "Killing process", 0, 0, 0, 0);
     syscall (3, 0, 0, 0, 0, 0);
+    syscall (0, (U32) "Not killed: Its the only one now.", 0, 0, 0, 0);
     while (1)
         ;
 }

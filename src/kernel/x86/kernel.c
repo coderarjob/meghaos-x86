@@ -135,7 +135,8 @@ static void new_thread_1()
     kdebug_println ("Free RAM bytes: x:%x bytes", kpmm_getFreeMemorySize());
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
+    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_KERNEL_PROCESS, 0,
+                             0);
     if (processID < 0) {
         k_panicOnError();
     }
@@ -147,9 +148,11 @@ static void new_thread_1()
         syscall (2, 0, 0, 0, 0, 0);
     }
 
-    syscall (0, (U32) "Not killed: Its the only one now.", 0, 0, 0, 0);
-    syscall (0, (U32) "Here it ends", 0, 0, 0, 0);
     kdebug_println ("Free RAM bytes: x:%x bytes", kpmm_getFreeMemorySize());
+    syscall (0, (U32) "Killing Kernel thread", 0, 0, 0, 0);
+    syscall (3, 0, 0, 0, 0, 0);
+
+    syscall (0, (U32) "Not killed: Its the only one now.", 0, 0, 0, 0);
 
     k_halt();
 }

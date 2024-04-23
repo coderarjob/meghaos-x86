@@ -106,10 +106,6 @@
 | [ ] Process management                                                  | 11 Apr 24 |            |
 | ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
 | ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
-| ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
-| ::: ::: [ ] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 |            |
-| ::: ::: stack is used in the Kernel mode. kpg_unmap will cause page     |           |            |
-| ::: ::: fault when it tries to access the stack or return.              |           |            |
 | ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
 | Possible solution.                                                      |           |            |
 | When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
@@ -117,6 +113,10 @@
 | Need a way to avoid creation of ZOMBIE processes.                       |           |            |
 | ::: [ ] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 |            |
 | supported.                                                              |           |            |
+| ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
+| ::: ::: [X] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 | 23 Apr 24  |
+| ::: ::: stack is used in the Kernel mode. kpg_unmap will cause page     |           |            |
+| ::: ::: fault when it tries to access the stack or return.              |           |            |
 | ::: [X] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 | 22 Apr 24  |
 | ::: [X] InterruptFrame structure requires to take into account          | 14 Apr 24 | 18 Apr 24  |
 | that for Kernel processes, SS:ESP will not be passed.                   |           |            |
