@@ -21,9 +21,9 @@ static void s_preAllocateMemory (SIZE sz_pages, PTR va_start)
         k_panicOnError();
     }
 
-    INFO ("Physical page allocated at: 0x%px", pa.val);
+    INFO ("Physical page allocated at: %px", pa.val);
     INFO ("Allocation size pages : %lu", sz_pages);
-    INFO ("Virtual map starts from : 0x%px", va_start);
+    INFO ("Virtual map starts from : %px", va_start);
 
     PageDirectory pd = kpg_getcurrentpd();
 

@@ -42,5 +42,5 @@ void kdisp_show_call_trace()
 
     kdisp_importantPrint("\n%s", "Call stack:");
     for (int i = 0; i < CONFIG_MAX_CALL_TRACE_DEPTH && raddrs[i] > 0; i++)
-        kdisp_importantPrint("\n- 0x%x", raddrs[i]);
+        kdisp_importantPrint("\n- %x", raddrs[i]);
 }

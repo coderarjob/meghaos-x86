@@ -42,7 +42,7 @@ extern KernelErrorCodes k_errorNumber;
 /* Can be used to set the k_errorNumber global and return from a function */
 #define RETURN_ERROR(errno, rval)                                                            \
             do {                                                                             \
-                   ERROR ("Error 0x%x.", errno);                                             \
+                   ERROR ("Error %x.", errno);                                               \
                    k_errorNumber = errno;                                                    \
                    return rval;                                                              \
                 }while(0)
@@ -55,7 +55,7 @@ extern KernelErrorCodes k_errorNumber;
 #define k_panicOnError()                                            \
     do {                                                            \
         if (k_errorNumber != ERR_NONE) {                            \
-            k_panic ("Panic on error.Error 0x%x\n", k_errorNumber); \
+            k_panic ("Panic on error.Error %x\n", k_errorNumber);   \
         }                                                           \
     } while (0)
 

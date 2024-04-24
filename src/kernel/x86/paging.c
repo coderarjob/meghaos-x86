@@ -139,7 +139,7 @@ static inline void s_internal_temporaryUnmap()
  **************************************************************************************************/
 static void* s_temporaryMap (Physical pa, U32 pte_index)
 {
-    FUNC_ENTRY ("Physical address: 0x%px, PTE Index: %u", pa.val, pte_index);
+    FUNC_ENTRY ("Physical address: %px, PTE Index: %u", pa.val, pte_index);
 
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.
@@ -207,7 +207,7 @@ void kpg_temporaryUnmap()
  **************************************************************************************************/
 void* kpg_temporaryMap (Physical pa)
 {
-    FUNC_ENTRY ("Physical address: 0x%px", pa.val);
+    FUNC_ENTRY ("Physical address: %px", pa.val);
 
     return s_temporaryMap (pa, TEMPORARY_PTE_INDEX_EXTERN);
 }
@@ -237,7 +237,7 @@ PageDirectory kpg_getcurrentpd()
  **************************************************************************************************/
 bool kpg_unmap (PageDirectory pd, PTR va)
 {
-    FUNC_ENTRY ("PD: 0x%px, VA: 0x%px", pd, va);
+    FUNC_ENTRY ("PD: %px, VA: %px", pd, va);
 
     k_assert (pd != NULL, "Page Directory is null.");
 
@@ -284,7 +284,7 @@ bool kpg_unmap (PageDirectory pd, PTR va)
  **************************************************************************************************/
 bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
 {
-    FUNC_ENTRY ("PD: 0x%px, VA: 0x%px, PA: 0x%px, flags: 0x%x", pd, va, pa.val, flags);
+    FUNC_ENTRY ("PD: %px, VA: %px, PA: %px, flags: %x", pd, va, pa.val, flags);
 
     k_assert (pd != NULL, "Page Directory is null.");
 
@@ -296,7 +296,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
     IndexInfo info              = s_getTableIndices (va);
     ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
     if (!pde->present) {
-        INFO ("Creating new page table for address 0x%px", va);
+        INFO ("Creating new page table for address %px", va);
 
         // Allocate phy mem for new page table.
         Physical pa_new;
@@ -340,7 +340,7 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
  **************************************************************************************************/
 bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
 {
-    FUNC_ENTRY ("Page Directory: 0x%px, VA: 0x%px, Page Attributes: 0x%px", pd, va, pa);
+    FUNC_ENTRY ("Page Directory: %px, VA: %px, Page Attributes: %px", pd, va, pa);
 
     if (pd == NULL) {
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
@@ -382,7 +382,7 @@ bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
  **************************************************************************************************/
 PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_start, PTR region_end)
 {
-    FUNC_ENTRY ("Page Directory: 0x%px, num Pages: 0x%px, Region start: 0x%px Region end: 0x%px",
+    FUNC_ENTRY ("Page Directory: %px, num Pages: %px, Region start: %px Region end: %px",
                 pd, numPages, region_start, region_end);
 
     if (pd == NULL) {
@@ -414,7 +414,7 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
         if (pde->present == false) {
             foundPageCount += 1024; // Whole page table is empty.
             if (foundPageCount >= numPages) {
-                INFO ("Found at least %u pages empty from [0x%x:0x%x] to [0x%x:0x%x]", numPages,
+                INFO ("Found at least %u pages empty from [%x:%x] to [%x:%x]", numPages,
                       found_start_pdeIndex, found_start_pteIndex, pdeIndex, 1023);
                 found = true;
                 break; // We have found enough pages. Now stop.
@@ -437,7 +437,7 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
             if (pte->present == false) {
                 foundPageCount += 1;
                 if (foundPageCount >= numPages) {
-                    INFO ("Found at least %u pages empty from [0x%x:0x%x] to [0x%x:0x%x]", numPages,
+                    INFO ("Found at least %u pages empty from [%x:%x] to [%x:%x]", numPages,
                           found_start_pdeIndex, found_start_pteIndex, pdeIndex, pteIndex);
                     found = true;
                     break; // We have found enough pages. Now stop.
@@ -472,13 +472,13 @@ PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_sta
  **************************************************************************************************/
 bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags)
 {
-    FUNC_ENTRY ("newPD return addr: 0x%px, Flags: %x", newPD, flags);
+    FUNC_ENTRY ("newPD return addr: %px, Flags: %x", newPD, flags);
 
     if (kpmm_alloc (newPD, 1, PMM_REGION_ANY) == false) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false); // PMM alloc failure
     }
 
-    INFO ("New PD physical location: 0x%px", newPD->val);
+    INFO ("New PD physical location: %px", newPD->val);
 
     PageDirectory pd = s_internal_temporaryMap (*newPD);
     k_memset (pd, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
@@ -501,7 +501,7 @@ bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags)
 
 bool kpg_deletePageDirectory (Physical pd, PagingOperationFlags flags)
 {
-    FUNC_ENTRY ("PD addr: 0x%px, Flags: %x", pd, flags);
+    FUNC_ENTRY ("PD addr: %px, Flags: %x", pd, flags);
 
     // Cannot delete the current physical directory
     x86_CR3 cr3 = { 0 };
@@ -518,7 +518,7 @@ bool kpg_deletePageDirectory (Physical pd, PagingOperationFlags flags)
         ArchPageDirectoryEntry pde = pd_vaddr[i];
         if (pde.present == 1) {
             Physical pt = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde.pageTableFrame));
-            INFO ("Freeing PDE Index: %u, Page Table physical address: 0x%x", i, pt.val);
+            INFO ("Freeing PDE Index: %u, Page Table physical address: %x", i, pt.val);
             if (!kpmm_free (pt, 1)) {
                 RETURN_ERROR (ERROR_PASSTHROUGH, false);
             }

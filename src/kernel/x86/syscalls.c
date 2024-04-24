@@ -134,7 +134,7 @@ static U32 s_getSysCallCount()
 
 void sys_console_writeln (SystemcallFrame frame, char* text)
 {
-    FUNC_ENTRY ("Frame return address: 0x%x:0x%x, text: 0x%x", frame.cs, frame.eip, text);
+    FUNC_ENTRY ("Frame return address: %x:%x, text: %x", frame.cs, frame.eip, text);
     (void)frame;
     kearly_println ("%s", text);
 }
@@ -143,7 +143,7 @@ INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE bi
                        ProcessFlags flags)
 {
     FUNC_ENTRY (
-        "Frame return address: 0x%x:0x%x, flags: 0x%x, start address: 0x%px, binary len: 0x%x",
+        "Frame return address: %x:%x, flags: %x, start address: %px, binary len: %x",
         frame.cs, frame.eip, flags, processStartAddress, binLengthBytes);
 
     (void)frame;
@@ -152,7 +152,7 @@ INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE bi
 
 void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi)
 {
-    FUNC_ENTRY ("Frame return address: 0x%x:0x%x", frame.cs, frame.eip);
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)ecx;
     (void)edx;
 
@@ -173,7 +173,7 @@ void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi
 
 void sys_killProcess (SystemcallFrame frame)
 {
-    FUNC_ENTRY ("Frame return address: 0x%x:0x%x", frame.cs, frame.eip);
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
     kprocess_exit();
 }

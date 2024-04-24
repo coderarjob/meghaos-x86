@@ -131,8 +131,10 @@ static void new_thread_1()
     Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
     SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
 
-    INFO ("Process: Phy start: 0x%px, Len: 0x%x bytes", startAddress.val, lengthBytes);
-    kdebug_println ("Free RAM bytes: x:%x bytes", kpmm_getFreeMemorySize());
+    INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
+    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
     INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_KERNEL_PROCESS, 0,
@@ -148,7 +150,10 @@ static void new_thread_1()
         syscall (2, 0, 0, 0, 0, 0);
     }
 
-    kdebug_println ("Free RAM bytes: x:%x bytes", kpmm_getFreeMemorySize());
+    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+
     syscall (0, (U32) "Killing Kernel thread", 0, 0, 0, 0);
     syscall (3, 0, 0, 0, 0, 0);
 
@@ -168,7 +173,7 @@ static void new_thread_1()
 //    // U32 cr3 = 0xF00;
 //    // x86_READ_REG (CR3, cr3);
 //
-//    // INFO ("Value of cr3 is 0x%px", cr3);
+//    // INFO ("Value of cr3 is %px", cr3);
 //
 //    k_halt();
 //}
@@ -211,7 +216,7 @@ static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 //    SIZE numPages = 3000;
 //    // void* addr = kpg_findVirtualAddressSpace(kpg_getcurrentpd(), 2000, 0xC03FF000, 0xC0900000);
 //    PTR addr = kpg_findVirtualAddressSpace (kpg_getcurrentpd(), numPages, 0xC00A0000, 0xC0F00000);
-//    kearly_println ("Found address is 0x%px", addr);
+//    kearly_println ("Found address is %px", addr);
 //
 //    for (UINT i = 0; i < numPages; addr += CONFIG_PAGE_FRAME_SIZE_BYTES, i++)
 //    {
@@ -226,7 +231,7 @@ static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 //    }
 //
 //    addr = (PTR)kpg_findVirtualAddressSpace (kpg_getcurrentpd(), 200, 0xC00A0000, 0xC0900000);
-//    kearly_println ("Found address is 0x%px", addr);
+//    kearly_println ("Found address is %px", addr);
 //}
 
 //static void kmalloc_test()
@@ -237,7 +242,7 @@ static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 //    *addr1 = 0xB001;
 //    *addr2 = 0xC002;
 //
-//    INFO ("addr1: 0x%px, addr2: 0x%px", addr1, addr2);
+//    INFO ("addr1: %px, addr2: %px", addr1, addr2);
 //
 //    kfree(addr1);
 //    kfree(addr2);
@@ -305,9 +310,9 @@ void s_dumpPab()
 
     while (bytes)
     {
-        kdebug_println ("%x:", s_pab);
+        kdebug_println ("%h:", s_pab);
         for (int i = 0; i < 16 && bytes; bytes--, i += 2, s_pab += 2)
-            kdebug_printf ("\t%x:%x ", *s_pab, *(s_pab + 1));
+            kdebug_printf ("\t%h:%h ", *s_pab, *(s_pab + 1));
     }
 #endif // DEBUG
 }
@@ -346,10 +351,10 @@ void display_system_info()
 
     INFO ("Kernel files loaded: %u", loadedFilesCount);
     INFO ("Max RAM Pages: %u", MAX_PAB_ADDRESSABLE_PAGE_COUNT);
-    INFO ("Installed RAM bytes: x:%llx bytes", installed_memory);
+    INFO ("Installed RAM bytes: %llx bytes", installed_memory);
     UINT installed_memory_pageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (installed_memory);
     INFO ("Installed RAM Pages: %u", installed_memory_pageCount);
-    INFO ("Free RAM bytes: x:%llx bytes", kpmm_getFreeMemorySize());
+    INFO ("Free RAM bytes: :%llx bytes", kpmm_getFreeMemorySize());
 #endif
 }
 
@@ -363,7 +368,7 @@ void display_system_info()
  **************************************************************************************************/
 static void s_unmapInitialUnusedAddressSpace (Physical start, Physical end)
 {
-    FUNC_ENTRY ("start: 0x%px, end: 0x%px", start.val, end.val);
+    FUNC_ENTRY ("start: %px, end: %px", start.val, end.val);
 
     PageDirectory pd = kpg_getcurrentpd();
     PTR startva      = (PTR)CAST_PA_TO_VA (start);
@@ -423,7 +428,7 @@ static void s_markUsedMemory()
 
     UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
 
-    INFO ("Total size of module files: 0x%x bytes", totalModulesLengthBytes);
+    INFO ("Total size of module files: %x bytes", totalModulesLengthBytes);
 
     if (kpmm_allocAt (first_startAddress, pageFrameCount, PMM_REGION_ANY) == false) {
         k_panicOnError(); // Physical memory allocation must pass.

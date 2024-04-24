@@ -93,7 +93,7 @@ U64 kpmm_arch_getInstalledMemoryByteCount ()
 
     BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
     U64 RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
-    INFO ("RAMSizeBytes = 0x%llx", RAMSizeBytes);
+    INFO ("RAMSizeBytes = %llx", RAMSizeBytes);
 
     return RAMSizeBytes;
 }

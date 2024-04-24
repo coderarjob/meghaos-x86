@@ -65,7 +65,7 @@ void page_fault_handler (InterruptFrame *frame, UINT errorcode)
     __asm__ volatile ("mov %0, cr2":"=r"(fault_addr));
 
     PageFaultError *err = (PageFaultError*) &errorcode;
-    s_callPanic(frame, "Page fault when accessing address 0x%x (error: 0x%x)"
+    s_callPanic(frame, "Page fault when accessing address %x (error: %x)"
                        "\n\n- P: %x\n- Write: %x\n- UserM: %x\n- ResV: %x"
                        "\n- InsF: %x\n- PKV: %x\n- SSA: %x\n- SGX: %x",
                        fault_addr, errorcode,
@@ -119,7 +119,7 @@ static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size)
 {
     size -= kearly_snprintf(buffer, (size_t) size,
             "\n\nInterrupt Frame:"
-             "\n- EIP: 0x%x\n- CS: 0x%x\n- EFLAGS: 0x%x\n- ESP: 0x%x\n- SS: 0x%x",
+             "\n- EIP: %x\n- CS: %x\n- EFLAGS: %x\n- ESP: %x\n- SS: %x",
              frame->ip, frame->cs, frame->flags, frame->sp, frame->ss);
     (void)size;
 

@@ -70,7 +70,7 @@ void kmalloc_init()
  **************************************************************************************************/
 void* kmalloc (size_t bytes)
 {
-    FUNC_ENTRY ("Bytes: 0x%x", bytes);
+    FUNC_ENTRY ("Bytes: %x", bytes);
 
     INFO ("Requested net size of %lu bytes", NET_ALLOCATION_SIZE (bytes));
 
@@ -99,7 +99,7 @@ void* kmalloc (size_t bytes)
  **************************************************************************************************/
 bool kfree (void* addr)
 {
-    FUNC_ENTRY ("Address: 0x%px", addr);
+    FUNC_ENTRY ("Address: %px", addr);
 
     void* headerAddress    = (void*)((PTR)addr - sizeof (MallocHeader));
     MallocHeader* allocHdr = s_findFirst (&s_allocHead, FIND_CRIT_NODE_ADDRESS, (PTR)headerAddress);
@@ -114,7 +114,7 @@ bool kfree (void* addr)
         return true;
     }
 
-    ERROR ("Adderss '0x%px' not found.", addr);
+    ERROR ("Adderss '%px' not found.", addr);
     RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
 }
 
@@ -218,7 +218,7 @@ static MallocHeader* s_findFirst (ListNode* head, FindCriteria criteria, PTR val
     ListNode* node       = NULL;
     MallocHeader* header = NULL;
 
-    INFO ("Searching for value %lu (0x%lx)", value, value);
+    INFO ("Searching for value %lu (%lx)", value, value);
 
     list_for_each (head, node)
     {

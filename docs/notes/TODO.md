@@ -155,7 +155,7 @@
 | [ ] Space saving measures                                               |           |            |
 | ::: [X] \n instead of \r\n. No use of LF.                               |           | 16 Mar 24  |
 | Did nothing for space saving for some reason.                           |           |            |
-| ::: [ ] 0x printed automatically with %x.                               |           |            |
+| ::: [X] 0x printed automatically with %x.                               |           | 24 Apr 24  |
 | ::: [ ] Assert message only valid for unittests.                        |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Create a Kernel context Structure. It will contain various          |           |            |

@@ -33,7 +33,7 @@ static U64 s_readint (IntTypes inttype, va_list *l);
  *
  * @param fmt   Pointer to a string, with or without conversion attributes for the arguments.
  *              Conversion attributes are given in the following format:
- *                  %[ type modifiers : l|ll|p ] [ conversions: u|x|o|s|%  ]
+ *                  %[ type modifiers : l|ll|p ] [ conversions: u|h|x|o|s|b|%  ]
  *
  *              For format details, see description for `kearly_vsnprintf`.
  * @param ...   Arguments for each conversion specification.
@@ -61,7 +61,7 @@ INT kearly_printf (const CHAR *fmt, ...)
  *
  * @param fmt   Pointer to a string, with or without conversion attributes for the arguments.
  *              Conversion attributes are given in the following format:
- *                  %[ type modifiers : l|ll|p ] [ conversions: u|x|o|s|%  ]
+ *                  %[ type modifiers : l|ll|p ] [ conversions: u|h|x|o|s|b|%  ]
  *
  *              For format details, see description for `kearly_vsnprintf`.
  * @param ...   Arguments for each conversion specification.
@@ -85,7 +85,7 @@ INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
  * @param sz    Size of the string in bytes.
  * @param fmt   Pointer to a string, with or without conversion attributes for the arguments.
  *              Conversion attributes are given in the following format:
- *                  %[ type modifiers : l|ll|p ] [ conversions: u|x|o|s|%  ]
+ *                  %[ type modifiers : l|ll|p ] [ conversions: u|h|x|o|s|b|%  ]
  *
  *              Type Modifiers   Function
  *              ---------------  -----------------------------------------------------------
@@ -93,12 +93,16 @@ INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
  *              %llu            Treats argument as a LONG LONG integer.
  *              %p              Treats argument as a USYSINT (system address or large integer).
  *
+ *              Default type is U32.
+ *
  *              Conversions      Function
  *              ---------------  -----------------------------------------------------------
  *              %s               Treats argument a pointer to a char *.
- *              %u               Prints argument in base 10. Default type is UINT.
- *              %o               Prints argument in base 8. Default type is UINT.
- *              %x               Prints argument in base 16. Default type is UINT.
+ *              %u               Prints argument in base 10.
+ *              %b               Prints argument in base 2. With base identifer
+ *              %o               Prints argument in base 8. With Base Identifier
+ *              %x               Prints argument in base 16. With base identifer
+ *              %h               Prints argument in base 16. Without base identifer
  *              %%               Prints a %.
  *
  * @param l     Arguments for each conversion specification.
@@ -156,7 +160,7 @@ static IntTypes s_readtype (const CHAR **fmt, CHAR *c)
 }
 static U64 s_readint (IntTypes inttype, va_list *l)
 {
-    U64 value;
+    U64 value = 0;
     switch (inttype)
     {
         case INTEGER:
@@ -172,11 +176,23 @@ static U64 s_readint (IntTypes inttype, va_list *l)
             value = va_arg (*l, USYSINT);
             break;
         default:
-            value = 0xCAFEBABE189;
+            UNREACHABLE();
             break;
     }
     return value;
 }
+
+static void s_addBaseIdentifier (CHAR** dest, S64* size, CHAR* iden, SIZE iden_size)
+{
+    char c;
+    while (iden_size-- > 0 && (c = *iden++) != '\0') {
+        if (*size > 1) {
+            *(*dest)++ = c;
+        }
+        (*size)--;
+    }
+}
+
 static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c, va_list *l)
 {
     U64 intvalue;
@@ -189,17 +205,24 @@ static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c, va_list
             intvalue = s_readint (inttype, l);
             s_itoa (dest, size, intvalue, 10);
             break;
+        case 'h':
+            intvalue = s_readint (inttype, l);
+            s_itoa (dest, size, intvalue, 16);
+            break;
         case 'x':
             intvalue = s_readint (inttype, l);
             s_itoa (dest, size, intvalue, 16);
+            s_addBaseIdentifier(dest, size, "h", 1);
             break;
         case 'b':
             intvalue = s_readint (inttype, l);
             s_itoa (dest, size, intvalue, 2);
+            s_addBaseIdentifier(dest, size, "b", 1);
             break;
         case 'o':
             intvalue = s_readint (inttype, l);
             s_itoa (dest, size, intvalue, 8);
+            s_addBaseIdentifier(dest, size, "o", 1);
             break;
         case 's':
             stringvalue = va_arg (*l, CHAR *);

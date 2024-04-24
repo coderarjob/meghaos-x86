@@ -280,7 +280,7 @@ static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE bin
 
 static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState)
 {
-    FUNC_ENTRY ("ProcessInfo: 0x%px, Current ProcessRegisterState: 0x%px", nextProcess,
+    FUNC_ENTRY ("ProcessInfo: %px, Current ProcessRegisterState: %px", nextProcess,
                 currentProcessState);
 
     if (currentProcess != NULL) {
@@ -314,9 +314,9 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
     ProcessRegisterState* reg = nextProcess->registerStates;
 
     INFO ("Is context switch required: Yes");
-    INFO ("Kernel process: 0x%x", BIT_ISSET (nextProcess->flags, PROCESS_FLAGS_KERNEL_PROCESS));
-    INFO ("Process (PID: %u) starting. ss:esp =  0x%x:0x%x, cs:eip = 0x%x:0x%x",
-          nextProcess->processID, reg->ds, reg->esp, reg->cs, reg->eip);
+    INFO ("Kernel process: %x", BIT_ISSET (nextProcess->flags, PROCESS_FLAGS_KERNEL_PROCESS));
+    INFO ("Process (PID: %u) starting. ss:esp =  %x:%x, cs:eip = %x:%x", nextProcess->processID,
+          reg->ds, reg->esp, reg->cs, reg->eip);
 
     nextProcess->state = PROCESS_STATE_RUNNING;
     currentProcess     = nextProcess;
@@ -401,7 +401,7 @@ void kprocess_init()
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
 {
-    FUNC_ENTRY ("Process start address: 0x%px, size: 0x%x bytes, flags: 0x%x", processStartAddress,
+    FUNC_ENTRY ("Process start address: %px, size: %x bytes, flags: %x", processStartAddress,
                 binLengthBytes, flags);
 
     if (processCount == MAX_PROCESS_COUNT) {
@@ -458,7 +458,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
 
 bool kprocess_yield (ProcessRegisterState* currentState)
 {
-    FUNC_ENTRY ("currentState: 0x%px", currentState);
+    FUNC_ENTRY ("currentState: %px", currentState);
 
     // The scheduler should select processes in the "earliest idle process first" order. This is
     // ensured by the queue as well as the yield function.
