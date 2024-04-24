@@ -385,8 +385,8 @@ static bool kprocess_exit_internal()
     }
 
     queue_remove (&currentProcess->schedulerQueueNode);
-    currentProcess->state = PROCESS_STATE_INVALID;
-    currentProcess        = NULL;
+    kfree (currentProcess);
+    currentProcess = NULL;
     processCount--;
 
     // Now switch to the next process
