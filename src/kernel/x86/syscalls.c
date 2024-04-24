@@ -19,7 +19,7 @@ typedef struct SystemcallFrame {
     U32 ss;
 } __attribute__ ((packed)) SystemcallFrame;
 
-void sys_console_writeln (SystemcallFrame frame, char* text);
+void sys_console_writeln (SystemcallFrame frame, char* fmt, char* text);
 INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        ProcessFlags flags);
 void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
@@ -132,11 +132,11 @@ static U32 s_getSysCallCount()
 }
 #pragma GCC diagnostic pop
 
-void sys_console_writeln (SystemcallFrame frame, char* text)
+void sys_console_writeln (SystemcallFrame frame, char* fmt, char* text)
 {
-    FUNC_ENTRY ("Frame return address: %x:%x, text: %x", frame.cs, frame.eip, text);
+    FUNC_ENTRY ("Frame return address: %x:%px, fmt: %px text: %px", frame.cs, frame.eip, fmt, text);
     (void)frame;
-    kearly_println ("%s", text);
+    kearly_printf (fmt, text);
 }
 
 INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
