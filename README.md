@@ -40,9 +40,10 @@ The end product will be ready for a programmer but not for general use.
 - [X] Unittesting framework to test parts of the OS on host computer.
 - [X] Memory management: Physical page allocation.
 - [ ] Memory management: Virtual page allocation. [*Skipping*]
-- [X] Memory management: Baisc paging operations (map/unmap etc)
+- [X] Memory management: Basic paging operations (map/unmap etc)
 - [X] Memory management: Kernel allocators (Static and Heap allocators)
-- [ ] User mode processes capable of doing system calls.
+- [X] User mode processes capable of doing system calls.
+- [X] Cooperative multitasking
 - [ ] Keyboard driver.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] VESA VGA driver.

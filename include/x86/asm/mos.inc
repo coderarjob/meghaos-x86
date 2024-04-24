@@ -60,7 +60,7 @@
 
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"
-    %define RAMDISK0_FILE   "RAMDISK0FLT"
+    %define PROC1_FILE      "PROC1   FLT"
 
 	; Structures
     ; ------------------------------------------------------------------------

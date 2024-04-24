@@ -99,7 +99,7 @@ void kernel_main ()
 
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,GREEN,0));
     kearly_println ("Kernel initialization finished..");
-    kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,DARK_GRAY,0));
+    kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,LIGHT_GRAY,0));
 
     // Display available memory
     display_system_info ();
@@ -131,6 +131,8 @@ static void new_thread_1()
     Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
     SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
 
+    kearly_println ("------ [ Cooperative Multithreading Demo ] ------");
+
     INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
@@ -146,18 +148,24 @@ static void new_thread_1()
     INFO ("Process ID: %u", processID);
 
     for (int i = 0; i < 8; i++) {
-        kearly_println ("From Kernel thread");
+        kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GRAY, 0));
+        kearly_println ("\tThread 0 - Running");
+        kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GREEN, 0));
         syscall (2, 0, 0, 0, 0, 0);
     }
+
+    kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GRAY, 0));
+
+    kearly_println ("\tThread 0 - Killing.");
+    syscall (3, 0, 0, 0, 0, 0);
+
+    kearly_println ("\tThread 0 - Not Killing. It is the only process.");
 
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
     kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
 
-    syscall (0, (U32) "Killing Kernel thread", 0, 0, 0, 0);
-    syscall (3, 0, 0, 0, 0, 0);
-
-    syscall (0, (U32) "Not killed: Its the only one now.", 0, 0, 0, 0);
+    kearly_println ("------ [ END ] ------");
 
     k_halt();
 }
