@@ -13,26 +13,31 @@ void proc_main()
 {
     kbochs_breakpoint();
 
+    syscall (0, (U32) "\n  Process 0 - Running", 0, 0, 0, 0);
+    syscall (0, (U32) "\n  Process 0 - Creating Thread 1", 0, 0, 0, 0);
     syscall (1, (U32)&another_thread, 0, PROCESS_FLAGS_THREAD, 0, 0);
 
     for (int i = 0; i < 3; i++) {
-        syscall (0, (U32) "\n\t  Process 0 - Active", (U32)i, 0, 0, 0);
+        syscall (0, (U32) "\n  Process 0 - Yielding", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
+        syscall (0, (U32) "\n  Process 0 - Running", 0, 0, 0, 0);
     }
 
-    syscall (0, (U32) "\n\t  Process 0 - Killing", 0, 0, 0, 0);
+    syscall (0, (U32) "\n   Process 0 - Exiting", 0, 0, 0, 0);
     syscall (3, 0, 0, 0, 0, 0);
-    syscall (0, (U32) "\n\t  Process 0 - Not killed. Its is the only one.", 0, 0, 0, 0);
+    syscall (0, (U32) "\n   Process 0 - Not exited. Its is the only one.", 0, 0, 0, 0);
     while (1)
         ;
 }
 
 void another_thread()
 {
-    syscall (0, (U32) "\n\t    Thread 1 - Active", 0, 0, 0, 0);
+    syscall (0, (U32) "\n    Thread 1 - Running", 0, 0, 0, 0);
+    syscall (0, (U32) "\n    Thread 1 - Yielding", 0, 0, 0, 0);
     syscall (2, 0, 0, 0, 0, 0);
 
-    syscall (0, (PTR) "\n\t    Thread 1 - Killing", 0, 0, 0, 0);
+    syscall (0, (U32) "\n    Thread 1 - Running", 0, 0, 0, 0);
+    syscall (0, (PTR) "\n    Thread 1 - Exiting", 0, 0, 0, 0);
     syscall (3, 0, 0, 0, 0, 0);
 }
 

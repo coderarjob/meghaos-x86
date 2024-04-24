@@ -39,7 +39,7 @@
 
 static void display_system_info ();
 static void s_markUsedMemory ();
-static void s_dumpPab ();
+//static void s_dumpPab ();
 //static void paging_test_map_unmap();
 //static void paging_test_temp_map_unmap();
 //static void kmalloc_test();
@@ -103,7 +103,7 @@ void kernel_main ()
 
     // Display available memory
     display_system_info ();
-    s_dumpPab();
+    //s_dumpPab();
     // Paging information
     //extern void paging_print ();
     //paging_print ();
@@ -139,27 +139,27 @@ static void new_thread_1()
     kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
 
     void* startAddress_va = CAST_PA_TO_VA (startAddress);
-    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_KERNEL_PROCESS, 0,
-                             0);
+    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
     if (processID < 0) {
         k_panicOnError();
     }
 
     INFO ("Process ID: %u", processID);
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 6; i++) {
         kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GRAY, 0));
-        kearly_println ("\tThread 0 - Running");
+        kearly_println (" Thread 0 - Running");
+        kearly_println (" Thread 0 - Yielding");
         kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GREEN, 0));
         syscall (2, 0, 0, 0, 0, 0);
     }
 
     kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GRAY, 0));
 
-    kearly_println ("\tThread 0 - Killing.");
+    kearly_println (" Thread 0 - Exiting.");
     syscall (3, 0, 0, 0, 0, 0);
 
-    kearly_println ("\tThread 0 - Not Killing. It is the only process.");
+    kearly_println (" Thread 0 - Not exited. It is the only process.");
 
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
@@ -308,22 +308,22 @@ static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 //    k_assertOnError();
 //}
 
-void s_dumpPab()
-{
-    FUNC_ENTRY();
-
-#if DEBUG
-    U8*  s_pab = (U8*)CAST_PA_TO_VA (g_pab);
-    UINT bytes = 120;
-
-    while (bytes)
-    {
-        kdebug_println ("%h:", s_pab);
-        for (int i = 0; i < 16 && bytes; bytes--, i += 2, s_pab += 2)
-            kdebug_printf ("\t%h:%h ", *s_pab, *(s_pab + 1));
-    }
-#endif // DEBUG
-}
+//void s_dumpPab()
+//{
+//    FUNC_ENTRY();
+//
+//#if DEBUG
+//    U8*  s_pab = (U8*)CAST_PA_TO_VA (g_pab);
+//    UINT bytes = 120;
+//
+//    while (bytes)
+//    {
+//        kdebug_println ("%h:", s_pab);
+//        for (int i = 0; i < 16 && bytes; bytes--, i += 2, s_pab += 2)
+//            kdebug_printf ("\t%h:%h ", *s_pab, *(s_pab + 1));
+//    }
+//#endif // DEBUG
+//}
 
 void display_system_info()
 {
