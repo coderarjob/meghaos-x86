@@ -9,6 +9,7 @@
 #include <kdebug.h>
 #include <process.h>
 #include <x86/process.h>
+#include <x86/vgatext.h>
 
 typedef struct SystemcallFrame {
     U32 ebp;
@@ -24,6 +25,8 @@ INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE bi
                        ProcessFlags flags);
 void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
 void sys_killProcess (SystemcallFrame frame);
+void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
+void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
 
 static U32 s_getSysCallCount();
 
@@ -31,10 +34,12 @@ static U32 s_getSysCallCount();
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
-    &sys_console_writeln, // 0
-    &sys_createProcess,   // 1
-    &sys_yieldProcess,    // 2
-    &sys_killProcess,     // 3
+    &sys_console_writeln,    // 0
+    &sys_createProcess,      // 1
+    &sys_yieldProcess,       // 2
+    &sys_killProcess,        // 3
+    &sys_console_setcolor,   // 4
+    &sys_console_setposition // 5
 };
 #pragma GCC diagnostic pop
 
@@ -139,12 +144,25 @@ void sys_console_writeln (SystemcallFrame frame, char* fmt, char* text)
     kearly_printf (fmt, text);
 }
 
+void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg)
+{
+    FUNC_ENTRY ("Frame return address: %x:%px, fg: %x bg: %x", frame.cs, frame.eip, fg, bg);
+    (void)frame;
+    kdisp_ioctl (DISP_SETATTR, k_dispAttr (bg, fg, 0));
+}
+
+void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col)
+{
+    FUNC_ENTRY ("Frame return address: %x:%px, row: %x col: %x", frame.cs, frame.eip, row, col);
+    (void)frame;
+    kdisp_ioctl (DISP_SETCOORDS, row, col);
+}
+
 INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        ProcessFlags flags)
 {
-    FUNC_ENTRY (
-        "Frame return address: %x:%x, flags: %x, start address: %px, binary len: %x",
-        frame.cs, frame.eip, flags, processStartAddress, binLengthBytes);
+    FUNC_ENTRY ("Frame return address: %x:%x, flags: %x, start address: %px, binary len: %x",
+                frame.cs, frame.eip, flags, processStartAddress, binLengthBytes);
 
     (void)frame;
     return kprocess_create (processStartAddress, binLengthBytes, flags);
