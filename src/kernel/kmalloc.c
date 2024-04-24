@@ -130,10 +130,13 @@ SIZE kmalloc_getUsedMemory()
     SIZE usedSz = 0U;
     ListNode* node;
 
+    INFO ("Kmalloc buffer size: %u bytes", KMALLOC_SIZE_BYTES);
+
     list_for_each (&s_allocHead, node)
     {
         MallocHeader* header = LIST_ITEM (node, MallocHeader, allocnode);
-        k_assert (header && (header->netNodeSize > KMALLOC_SIZE_BYTES),
+        INFO ("Node size: %u bytes", header->netNodeSize);
+        k_assert (header && (header->netNodeSize < KMALLOC_SIZE_BYTES),
                   "Invalid state of kmalloc data");
         usedSz += header->netNodeSize;
     }
