@@ -47,7 +47,7 @@ static bool s_setupProcessAddressSpace (ProcessInfo* pinfo);
 static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
                                              ProcessFlags flags, ProcessInfo* pinfo);
 static bool kprocess_exit_internal();
-#ifdef DEBUG
+#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward);
 #endif // DEBUG
 
@@ -134,7 +134,7 @@ static ProcessInfo* s_processInfo_malloc()
     return pInfo;
 }
 
-#ifdef DEBUG
+#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward)
 {
     ListNode* node;
@@ -155,11 +155,11 @@ static void s_showQueueItems (ListNode* forward, ListNode* backward, bool direct
         }
     }
 }
-#endif // DEBUG
+#endif // (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 
 static ProcessInfo* s_dequeue()
 {
-#ifdef DEBUG
+#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
     s_showQueueItems (&schedulerQueue.forward, &schedulerQueue.backward, false);
 #endif // DEBUG
 
