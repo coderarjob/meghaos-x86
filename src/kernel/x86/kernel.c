@@ -46,8 +46,8 @@ static void s_markUsedMemory ();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 //static void find_virtual_address();
 static void process_poc();
-//static void new_thread_2();
-static void new_thread_1();
+//static void new_thread_1();
+static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 
 /* This variable is globally used to set error codes*/
@@ -122,16 +122,60 @@ void kernel_main ()
     k_halt();
 }
 
-static void new_thread_1()
+//static void new_thread_1()
+//{
+//    FUNC_ENTRY();
+//
+//    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
+//    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
+//    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+//    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+//
+//    kearly_println ("\n------ [ Cooperative Multithreading Demo ] ------\n");
+//
+//    INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
+//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//
+//    void* startAddress_va = CAST_PA_TO_VA (startAddress);
+//    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
+//    if (processID < 0) {
+//        k_panicOnError();
+//    }
+//
+//    INFO ("Process ID: %u", processID);
+//
+//    for (int i = 0; i < 8; i++)
+//    {
+//        kearly_println("Kernel thread - Running");
+//        syscall (2, 0, 0, 0, 0, 0);
+//    }
+//
+//    kearly_println ("Kernel thread - Exiting.");
+//    syscall (3, 0, 0, 0, 0, 0);
+//
+//    kearly_println ("Kernel thread - Not exited. It is the only process.");
+//
+//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//
+//    kearly_println ("------ [ END ] ------");
+//
+//    k_halt();
+//}
+
+static void multithread_demo_kernel_thread()
 {
     FUNC_ENTRY();
 
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
+    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 2);
     Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
     SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
 
-    kearly_println ("------ [ Cooperative Multithreading Demo ] ------");
+    kearly_println ("\n------ [ Cooperative Multithreading Demo ] ------\n");
 
     INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
@@ -146,20 +190,32 @@ static void new_thread_1()
 
     INFO ("Process ID: %u", processID);
 
-    for (int i = 0; i < 6; i++) {
-        kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GRAY, 0));
-        kearly_println (" Thread 0 - Running");
-        kearly_println (" Thread 0 - Yielding");
-        kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GREEN, 0));
+    // ----------------------
+    kdisp_ioctl (DISP_SETCOORDS, 27, 0);
+    kearly_printf ("Kernel thread:");
+
+    UINT column = 0;
+    UINT max    = 100000;
+    UINT step   = max / MAX_VGA_COLUMNS;
+
+    for (UINT i = 0; i < max; i++) {
+        kdisp_ioctl (DISP_SETCOORDS, 28, column);
+        kdisp_ioctl (DISP_SETATTR, k_dispAttr (MAGENTA, WHITE, 0));
+        if (i % step == 0) {
+            column = (column + 1) % MAX_VGA_COLUMNS;
+        }
+        syscall (0, (PTR) " ", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
+    // ----------------------
 
     kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GRAY, 0));
+    kdisp_ioctl (DISP_SETCOORDS, 40, 0);
 
-    kearly_println (" Thread 0 - Exiting.");
+    kearly_println ("Kernel thread - Exiting.");
     syscall (3, 0, 0, 0, 0, 0);
 
-    kearly_println (" Thread 0 - Not exited. It is the only process.");
+    kearly_println ("Kernel thread - Not exited. It is the only process.");
 
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
@@ -170,29 +226,14 @@ static void new_thread_1()
     k_halt();
 }
 
-//static void new_thread_2()
-//{
-//    FUNC_ENTRY();
-//
-//    for (;;) {
-//        kearly_println ("From Process 1");
-//        syscall (2, 0, 0, 0, 0, 0);
-//    }
-//    // U32 cr3 = 0xF00;
-//    // x86_READ_REG (CR3, cr3);
-//
-//    // INFO ("Value of cr3 is %px", cr3);
-//
-//    k_halt();
-//}
-
 static void process_poc()
 {
     FUNC_ENTRY();
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
-    void* startAddress_va = new_thread_1;
+    void* startAddress_va = multithread_demo_kernel_thread;
+    //void* startAddress_va = new_thread_1;
 #pragma GCC diagnostic pop
 
     INT processID = kprocess_create (startAddress_va, 0,

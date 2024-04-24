@@ -16,6 +16,10 @@ change parts of it easily.
 
 ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
 
+### Cooperative multitasking
+
+![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif)
+
 This is the second iteration. The first OS was targeted to run on the 8086 processor. It was
 written entirely in assembly language, due of a lack of proper higher level language compilers
 for the 8086 processor.
@@ -44,6 +48,7 @@ The end product will be ready for a programmer but not for general use.
 - [X] Memory management: Kernel allocators (Static and Heap allocators)
 - [X] User mode processes capable of doing system calls.
 - [X] Cooperative multitasking
+- [ ] Enhancements to the process management.
 - [ ] Keyboard driver.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] VESA VGA driver.

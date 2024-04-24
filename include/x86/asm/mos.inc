@@ -61,6 +61,7 @@
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"
     %define PROC1_FILE      "PROC1   FLT"
+    %define MPDEMO_FILE     "MPDEMO  FLT"
 
 	; Structures
     ; ------------------------------------------------------------------------
