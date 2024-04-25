@@ -3,7 +3,15 @@
 A general purpose 32 bit Operating System that runs of a 1.44 MiB floppy and requires 1.44 MiB of
 RAM.
 
-MeghaOS is written completely from scratch and is primarily a learning project. The goal for
+| ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
+|---|
+| `Cooperative multitasking demo` |
+
+| ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png) |
+|---|
+| `Stack trace when fault occurs` |
+
+It is written completely from scratch and is primarily a learning project. The goal for
 MeghaOS is to provide an environment to do experiments with the computer and to play around.
 
 Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
@@ -13,12 +21,6 @@ I want the system to be stable but not totally locked down to the programmer. Th
 x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory used by
 another. The kernel will provide ways for the programmer to safely interact with the computer and 
 change parts of it easily.
-
-![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
-
-### Cooperative multitasking
-
-![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif)
 
 This is the second iteration. The first OS was targeted to run on the 8086 processor. It was
 written entirely in assembly language, due of a lack of proper higher level language compilers
@@ -60,8 +62,8 @@ The end product will be ready for a programmer but not for general use.
    parts of the OS or to turn off / replace some its features. Such configurations can be set
    when the building the OS.
 2. Sophistication is fronded upon. A simpler solution is always preferred.
-3. Current target is the x86 architecture, but can be ported easily to other architectures. For
-   this MeghaOS should not use or depend heavily on architecture specific features.
+3. Current target is the x86 architecture, but should not depend on architecture specific features
+too much. It would hinder porting it to another architecture.
 
 ## Building MeghaOS
 
