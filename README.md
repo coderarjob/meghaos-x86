@@ -1,36 +1,26 @@
 # MEGHA OPERATING SYSTEM V2 - x86
 
-A general purpose 32 bit Operating System that runs of a 1.44 MiB floppy and requires 1.44 MiB of
-RAM.
+A general purpose 32 bit Operating System for Intel i686 and later processors. It is written 
+completely from scratch and is primarily a learning project. The goal for MeghaOS is to provide an 
+environment to do experiments with the computer and to play around.
+
+It runs of a 1.44 MiB floppy and can be configured to use minimal physical memory.
 
 | ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
 |---|
 | `Cooperative multitasking demo` |
 
+Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
+changed by the rider.
+
 | ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png) |
 |---|
 | `Stack trace when fault occurs` |
-
-It is written completely from scratch and is primarily a learning project. The goal for
-MeghaOS is to provide an environment to do experiments with the computer and to play around.
-
-Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
-changed by the rider.
 
 I want the system to be stable but not totally locked down to the programmer. The OS will run in
 x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory used by
 another. The kernel will provide ways for the programmer to safely interact with the computer and 
 change parts of it easily.
-
-This is the second iteration. The first OS was targeted to run on the 8086 processor. It was
-written entirely in assembly language, due of a lack of proper higher level language compilers
-for the 8086 processor.
-
-The current, second version, targets the P6 processor and the former unavailability of tools is
-no longer there, and is thus mostly written in C.
-
-PS: OpenWatcom is a great C compiler, if you want to target 8086. However, I wanted to stick with
-something more standard and more common.
 
 The end product will be ready for a programmer but not for general use.
 
@@ -45,25 +35,16 @@ The end product will be ready for a programmer but not for general use.
 - [X] Basic Kernel mode C functions for printing on screen etc.
 - [X] Unittesting framework to test parts of the OS on host computer.
 - [X] Memory management: Physical page allocation.
-- [ ] Memory management: Virtual page allocation. [*Skipping*]
+- [ ] Memory management: Virtual page allocation. [*Partial*]
 - [X] Memory management: Basic paging operations (map/unmap etc)
 - [X] Memory management: Kernel allocators (Static and Heap allocators)
-- [X] User mode processes capable of doing system calls.
-- [X] Cooperative multitasking
+- [X] Processes and threads capable of doing system calls.
+- [X] Cooperative multitasking scheduling and basic process management.
 - [ ] Enhancements to the process management.
+- [ ] VESA VGA driver.
 - [ ] Keyboard driver.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
-- [ ] VESA VGA driver.
 - [ ] Rudimentary shell.
-
-## Design goals
-
-1. MeghaOS will be used mostly for education and research, so it will be possible to replace
-   parts of the OS or to turn off / replace some its features. Such configurations can be set
-   when the building the OS.
-2. Sophistication is fronded upon. A simpler solution is always preferred.
-3. Current target is the x86 architecture, but should not depend on architecture specific features
-too much. It would hinder porting it to another architecture.
 
 ## Building MeghaOS
 
