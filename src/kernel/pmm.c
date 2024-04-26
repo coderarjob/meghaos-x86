@@ -68,6 +68,20 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
 }
 
 /***************************************************************************************************
+ * Total number of usable page frames in a memory region.
+ * Returns 0 if region is outside the installed physical memory range.
+ *
+ * @Input reg       Physical memory region.
+ * @return          The number of usable page frames in the memory region. 0 is there are no usable
+ *                  page frames for this region.
+ **************************************************************************************************/
+static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg)
+{
+    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getUsableMemorySize(reg));
+    return maxPageCount;
+}
+
+/***************************************************************************************************
  * Initializes PAB array.
  *
  * @return nothing
@@ -108,7 +122,7 @@ void kpmm_init ()
  **************************************************************************************************/
 bool kpmm_free (Physical startAddress, UINT pageCount)
 {
-    FUNC_ENTRY("startAddress = 0x%x, pageCount = %u", startAddress, pageCount);
+    FUNC_ENTRY("startAddress = %x, pageCount = %u", startAddress, pageCount);
 
     k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
@@ -149,7 +163,7 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
  **************************************************************************************************/
 bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg)
 {
-    FUNC_ENTRY("start = 0x%x, pageCount = %u, region = %u", start.val, pageCount, reg);
+    FUNC_ENTRY("start = %x, pageCount = %u, region = %u", start.val, pageCount, reg);
 
     k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
 
@@ -225,7 +239,7 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
                                 PMM_STATE_USED))
     {
         *address = createPhysical(PAGEFRAME_TO_PHYSICAL((UINT) pageFrame));
-        INFO("Allocated address = 0x%x", address->val);
+        INFO("Allocated address = %x", address->val);
         k_assert (IS_ALIGNED (address->val, CONFIG_PAGE_FRAME_SIZE_BYTES), "Wrong alignment");
         return true;
     }
@@ -272,20 +286,6 @@ size_t kpmm_getFreeMemorySize ()
 }
 
 /***************************************************************************************************
- * Total number of usable page frames in a memory region.
- * Returns 0 if region is outside the installed physical memory range.
- *
- * @Input reg       Physical memory region.
- * @return          The number of usable page frames in the memory region. 0 is there are no usable
- *                  page frames for this region.
- **************************************************************************************************/
-static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg)
-{
-    UINT maxPageCount = BYTES_TO_PAGEFRAMES_FLOOR(kpmm_getUsableMemorySize(reg));
-    return maxPageCount;
-}
-
-/***************************************************************************************************
  * Total amount of usable bytes in the memory region.
  * If region completely falls outsize the installed RAM, then the usable size of the region is zero.
  *
@@ -313,6 +313,30 @@ USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg)
         if (regionLength < 0) regionLength = 0;
     }
 
- //   INFO ("Region length = 0x%px bytes", regionLength);
+ //   INFO ("Region length = %px bytes", regionLength);
     return (USYSINT) regionLength;
+}
+
+/***************************************************************************************************
+ * Queries to find the status of a physical page.
+ *
+ * @Input   Physical                    Physical memory address. Must be page aligned.
+ * @return  KernelPhysicalMemoryStates  State of the physical memory.
+ **************************************************************************************************/
+KernelPhysicalMemoryStates kpmm_getPageStatus (Physical phy)
+{
+    FUNC_ENTRY ("Physical address = %x", phy);
+
+    k_assert (kpmm_isInitialized(), "Called before PMM initialization.");
+
+    // Check alignment of the address. Must be aligned to page boundary.
+    if (IS_ALIGNED (phy.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false) {
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, PMM_STATE_INVALID);
+    }
+
+    // Note: As startAddress is already aligned, both floor or ceiling are same here.
+    UINT pageFrame = BYTES_TO_PAGEFRAMES_FLOOR (phy.val);
+
+    PhysicalMemoryRegion* reg = s_getBitmapFromRegion (PMM_REGION_ANY);
+    return bitmap_get (&reg->bitmap, pageFrame);
 }

@@ -22,6 +22,9 @@ typedef struct InterruptFrame  {
     U32 ss;
 } __attribute__((packed)) InterruptFrame;
 
+// Global table which pointer to system call functions.
+extern void *g_syscall_table[];
+
 #define INTERRUPT_HANDLER(fn)                                           \
     void fn ## _handler (InterruptFrame *);                             \
     __asm__ (                                                           \
@@ -96,5 +99,6 @@ void page_fault_asm_handler ();
 void double_fault_asm_handler();
 void general_protection_fault_asm_handler ();
 void div_zero_asm_handler ();
+void syscall_asm_despatcher ();
 
 #endif // INTERRUPT_H_x86

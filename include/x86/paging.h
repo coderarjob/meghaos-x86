@@ -16,7 +16,6 @@
 #include <types.h>
 #include <buildcheck.h>
 
-
 #define PDE_SHIFT    22U
 #define PTE_SHIFT    12U
 #define OFFSET_SHIFT 00U
@@ -25,15 +24,31 @@
 #define PTE_MASK    0x003FF000U
 #define OFFSET_MASK 0x00000FFFU
 
-#define RECURSIVE_PDE_INDEX 1023U
-#define KERNEL_PDE_INDEX    768U
-#define TEMPORARY_PTE_INDEX 1023U
+#define RECURSIVE_PDE_INDEX          1023U
+#define KERNEL_PDE_INDEX             768U
+#define TEMPORARY_PTE_INDEX_EXTERN   1022U
+#define TEMPORARY_PTE_INDEX_INTERNAL 1023U
+
+#define x86_PG_DEFAULT_IS_CACHING_DISABLED 0 // 0 - Enabled cache, 1 - Disables cache
+#define x86_PG_DEFAULT_IS_WRITE_THROUGH    0 // 0 - Write back, 1 - Write through
 
 #define LINEAR_ADDR(pde_idx, pte_idx, offset) \
     (((pde_idx) << PDE_SHIFT) | ((pte_idx) << PTE_SHIFT) | (offset))
 
 #ifndef UNITTEST
+    /***********************************************************************************************
+     * Invalidates TLB entries specific to a virtual address.
+     *
+     * @Input   addr    Virtual address
+     * @return          Nothing
+     **********************************************************************************************/
     #define x86_TLB_INVAL_SINGLE(addr) __asm__ volatile("invlpg %0;" ::"m"(*(char*)addr))
+
+    /***********************************************************************************************
+     * Invalidates complete TLB.
+     *
+     * @return          Nothing
+     **********************************************************************************************/
     #define X86_TLB_INVAL_COMPLETE()                  \
         do                                            \
         {                                             \

@@ -14,6 +14,148 @@
 
 ------------------------------------
 
+## Round-robin operation using queue
+categories: note, obsolete, x86
+_11 April 2024_
+
+```
+Two pointers: back and front
+
+dequeue -> return F, F++, F < B
+enqueue -> B < QUEUE_LEN, add item at B, B++
+
+ F       B
+ 0 1 2 3
+[A|B|C|D| | ]
+
+   F       B
+ 0 1 2 3 4 5
+[ |B|C|D|A| ]
+
+     F     B
+ 0 1 2 3 4 5
+[ | |C|D|A|B]
+
+       F     B
+ 0 1 2 3 4 5 6
+[ | | |D|A|B|C]
+
+```
+
+------------------------------------
+
+## Code snippets
+categories: note, obsolete, x86
+_10 April 2024_
+
+### Temporary map modes
+
+There could  be another mode possible called General, where we scan the page directory/tables for a
+free virtual address and assign the physical page to this one. This requires address reservation and
+for that reason this can be very slow. Could be used in rare occations but not in places which will
+be frequently invoked or in a loop.
+
+```c
+// These Temporary map modes determine where physical page is going to be mapped in the address
+// space. KERNEL mode causes temporary map to be in Kernel address space, while in PROCESS mode it
+// is mapped in the address space of the current process.
+typedef enum PagingTemporaryMapModes {
+    PG_TEMPO_MAP_MODE_PROCESS,
+    PG_TEMPO_MAP_MODE_KERNEL
+} PagingTemporaryMapModes;
+
+```
+
+### Free process info implementation
+
+```c
+static bool s_processInfo_free(UINT processID);
+static bool s_processInfo_free(UINT processID)
+{
+     if (processID >= processCount) {
+         RETURN_ERROR (ERR_INVALID_RANGE, false);
+     }
+
+     ProcessInfo* pinfo = processTable[processID];
+     kfree(pinfo->registerStates);
+     kfree(pinfo);
+
+     processTable[processID] = NULL;
+     processCount--;
+
+     return true;
+}
+```
+
+------------------------------------
+
+## System call stack in User and Kernel processes
+categories: note, obsolete, x86
+_9 April 2024_
+
+NEED TO BE REVISED
+
+### System call - User process
+
+| Register state                         | Where                     |
+|----------------------------------------|---------------------------|
+| esp: 30fef                             | INT 0x50                  |
+| ebp: 30ffb                             |                           |
+| Ring 0 stack switched. (Base: 0x22FFF) | At syscall_asm_despatcher |
+| 20 bytes of interrupt frame pushed     |                           |
+| esp: c0022feb                          |                           |
+|----------------------------------------|---------------------------|
+
+* esp: 30fef
+* ebp: 30ffb
+* INT 0x40
+* Ring 0 stack switched. (Base: 0x22FFF)
+* 20 bytes of interrupt frame pushed
+* esp: c0022feb
+* One push eab
+* 48 bytes of OS interrupt frame pushed
+* esp: c0022fb7
+* Push interrupt frame address (argument)
+* call sys_dummy_handler
+* One push eab
+* esp: c0022fab
+
+At the end of the interrupt routine control will reach the instruction after INT 0x40 and at that
+time ESP, EBP should be what it was at the start 0x30fef, 0x30ffb.
+
+System call - Kernel process
+
+* esp: c0022f87
+* ebp: c0022f93
+* INT 0x40
+* 12 bytes of interrupt frame pushed
+* esp: c0022f7b
+* One push eab
+* 48 bytes of OS interrupt frame pushed
+* esp: c0022fb7
+* Push interrupt frame address (argument)
+* call sys_dummy_handler
+* One push eab
+* esp: c0022f3b
+
+At the end of the interrupt routine control will reach the instruction after INT 0x40 and at that
+time ESP, EBP should be what it was at the start 0xc0022f87, 0xc0022f93.
+
+------------------------------------
+
+## Different way to switch privilege levels in x86 processors
+categories: note, x86
+_8 April 2024_
+
+* Call gate - Call gates are used to switch between 16 and 32 bit modes but are not used elsewhere.
+* Task gate - The Task gates rely on TSS segments, which are used in bare minimum in MOS.
+* Interrupt - We use this kind of gates for both HW and SW interrupts. Other interrupts are not
+    processed until the current one exits.
+* Trap gates - These are not used. But in general they are same as Interrupt gates, just that they
+    allow interrupts to occur while inside an interrupt handler.
+
+------------------------------------
+
 ## Strange behaviour because of Stale TLB
 categories: note, x86
 _3 March 2024_

@@ -11,12 +11,14 @@
 * Dated: 20th September 2020
 */
 
+#include <panic.h>
 #include <types.h>
 #include <kstdlib.h>
 #include <utils.h>
 #include <x86/gdt.h>
 #include <x86/memloc.h>
 #include <kdebug.h>
+#include <memmanage.h>
 
 #define IOMAP_SIZE 0x100        // Covers VGA ports and normal IO ports.
 
@@ -52,7 +54,7 @@ struct tss {
     U8 iomap[IOMAP_SIZE];
 } __attribute__ ((packed));
 
-static struct tss tss_entry = {0};
+static struct tss *tss_entry = NULL;
 
 /* Initializes the tss_entry structure, 
  * installs a tss segment in GDT and writes to the Task Register*/
@@ -60,29 +62,34 @@ void ktss_init ()
 {
     FUNC_ENTRY();
 
+    if ((tss_entry = salloc(sizeof(struct tss))) == NULL)
+    {
+        k_panic("Memory allocation failed for TSS");
+    }
+
     // Deny permissions to all IO ports by setting all the bits
-    k_memset (tss_entry.iomap, 0xFF, IOMAP_SIZE - 1);
-    tss_entry.iomap[29] &=0xFD;     // E9 Debug port
-    tss_entry.iomap[122] &=0xcf;    // VGA 3D4 and 3D5 ports
+    k_memset (tss_entry->iomap, 0xFF, IOMAP_SIZE - 1);
+    tss_entry->iomap[29] &=0xFD;     // E9 Debug port
+    tss_entry->iomap[122] &=0xcf;    // VGA 3D4 and 3D5 ports
 
     // IOMAP area determines the io port permissions when CPL > IOPL.
     // If the corresponding bit is set, access to that port is denied.
     // iomap area starts at an offset from the start of tss. 
     // In ourcase it starts right at the end of tss_entry.
-    tss_entry.iomap_base = offsetOf (struct tss,iomap); 
+    tss_entry->iomap_base = offsetOf (struct tss,iomap); 
     // Setup defaults to TSS, so that we can return to kernel mode.
     // Setup a proper place for the kernel stack. This is the location the
     // ESP will have when returning to kernel mode from user mode. On a cross
     // privilate level INT instruction, the stack will have the 
     // user mode CS, EIP, EFLAGS, SS, ESP.
-    tss_entry.ss0 = GDT_SELECTOR_KDATA;
-    tss_entry.esp0 = INTEL_32_KSTACK_TOP;
+    tss_entry->ss0 = GDT_SELECTOR_KDATA;
+    tss_entry->esp0 = INTEL_32_KSTACK_TOP;
 
     // Install a TSS Segment
     kgdt_edit (GDT_INDEX_KTSS,
-            (U32)&tss_entry,            // Base in the Physical Linear space.
-            sizeof (struct tss) -1,      // Size of the Segemnt = sizeof (tss)-1
-            0xE9, 0x1);                 // DPL = 3, Scaling is not required.
+            (U32)tss_entry,            // Base in the Physical Linear space.
+            sizeof (struct tss) -1,    // Size of the Segemnt = sizeof (tss)-1
+            0xE9, 0x1);                // DPL = 3, Scaling is not required.
     kgdt_write ();
 
     // Write to TS register

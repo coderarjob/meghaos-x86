@@ -24,8 +24,8 @@ TEST(kearly_snprintf, unsigned_int_bit_format)
     INT num = 0xFF01;
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%b", num);
-    EQ_SCALAR(ret, 16);
-    EQ_STRING(d, "1111111100000001");
+    EQ_SCALAR(ret, 17);
+    EQ_STRING(d, "1111111100000001b");
     END();
 }
 
@@ -39,13 +39,23 @@ TEST(kearly_snprintf, unsigned_int_decimal_format)
     END();
 }
 
+TEST(kearly_snprintf, unsigned_int_hex_format_without_base_identifier)
+{
+    INT num = 0x123def;
+    CHAR d[MAX_PRINTABLE_STRING_LENGTH];
+    INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%h", num);
+    EQ_SCALAR(ret, 6);
+    EQ_STRING(d, "123DEF");
+    END();
+}
+
 TEST(kearly_snprintf, unsigned_int_hex_format)
 {
     INT num = 0x123def;
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%x", num);
-    EQ_SCALAR(ret, 6);
-    EQ_STRING(d, "123DEF");
+    EQ_SCALAR(ret, 7);
+    EQ_STRING(d, "123DEFh");
     END();
 }
 
@@ -54,8 +64,8 @@ TEST(kearly_snprintf, unsigned_int_octal_format)
     INT num = 07210;
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%o", num);
-    EQ_SCALAR(ret, 4);
-    EQ_STRING(d, "7210");
+    EQ_SCALAR(ret, 5);
+    EQ_STRING(d, "7210o");
     END();
 }
 
@@ -64,8 +74,8 @@ TEST(kearly_snprintf, unsigned_long_hex_format)
     U32 num = 0xCF010203;
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%lx", num);
-    EQ_SCALAR(ret, 8);
-    EQ_STRING(d, "CF010203");
+    EQ_SCALAR(ret, 9);
+    EQ_STRING(d, "CF010203h");
     END();
 }
 TEST(kearly_snprintf, unsigned_long_long_hex_format)
@@ -73,8 +83,8 @@ TEST(kearly_snprintf, unsigned_long_long_hex_format)
     U64 num = 0xCF010203040506FF;
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%llx", num);
-    EQ_SCALAR(ret, 16);
-    EQ_STRING(d, "CF010203040506FF");
+    EQ_SCALAR(ret, 17);
+    EQ_STRING(d, "CF010203040506FFh");
     END();
 }
 
@@ -124,7 +134,7 @@ TEST(kearly_snprintf, limit_check_overflow_unsigned_int)
     INT num = 0xFF012EA;
     CHAR d[4];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%x", num);
-    EQ_SCALAR(ret, 7);
+    EQ_SCALAR(ret, 8);
     EQ_STRING(d, "FF0");
     END();
 }
@@ -135,7 +145,7 @@ TEST(kearly_snprintf, limit_check_overflow_mixed)
     CHAR d[15];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "Hello %s %x",
                                                    "World", num);
-    EQ_SCALAR(ret, 19);
+    EQ_SCALAR(ret, 20);
     EQ_STRING(d, "Hello World FF");
     END();
 }
@@ -182,10 +192,10 @@ TEST(kearly_snprintf, memory_overlap)
 TEST(kearly_snprintf, pointer_literal)
 {
     USYSINT num = 0xFF012EA;
-    CHAR d[8];
+    CHAR d[10];
     INT ret = kearly_snprintf (d, ARRAY_LENGTH(d), "%px", num);
-    EQ_SCALAR(ret, 7);
-    EQ_STRING(d, "FF012EA");
+    EQ_SCALAR(ret, 8);
+    EQ_STRING(d, "FF012EAh");
     END();
 }
 
@@ -210,12 +220,13 @@ TEST(kearly_snprintf, printk_test_disp_initialized)
 
     // Bytes must be in little endian order. The exp_output has bytes as bytes will appear in vgab
     // in memory.
-    U8 exp_output[6] = {'A', 0xFF,      // 0xFF is the attribute.
-                        'B', 0xFF,      // 0xFF is the attribute.
-                        'C', 0xFF};     // 0xFF is the attribute.
+    U8 exp_output[10] = {'A', 0xFF,      // 0xFF is the attribute.
+                         'B', 0xFF,      // 0xFF is the attribute.
+                         'C', 0xFF,      // 0xFF is the attribute.
+                         'h', 0xFF};     // 0xFF is the attribute.
 
     INT ret = kearly_printf ("%px", num);
-    EQ_SCALAR(ret, 3);
+    EQ_SCALAR(ret, 4);
     EQ_MEM (exp_output, vgab, ARRAY_LENGTH(exp_output));
     END();
 }
@@ -244,6 +255,7 @@ int main()
 {
     no_vargs();
     unsigned_int_hex_format();
+    unsigned_int_hex_format_without_base_identifier();
     unsigned_int_decimal_format();
     unsigned_int_octal_format();
     unsigned_long_long_hex_format();

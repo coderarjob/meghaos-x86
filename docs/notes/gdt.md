@@ -21,17 +21,16 @@ categories: feature, x86
 ### Memory Layout after boot1
 
 ```
-| Physical address    | Size   | Usage                                              |             |
-|---------------------|--------|----------------------------------------------------|-------------|
-| 0x000000 - 0x000FFF | 4 KB   | Boot0 IVT. Kernel IDT (256 IDT entries)(see todo)  | OS Reserved |
-| 0x001000 - 0x001FFF | 4 KB   | 512 GDT entries                                    | OS Reserved |
-| 0x002000 - 0x002FFF | 4 KB   | Boot Info. 11 file items & 201 memory map items    | OS Reserved |
-| 0x003000 - 0x022FFF | 128 KB | User stack. boot0, boot1 space reused. (See Issue) | OS Reserved |
-| 0x023000 - 0x042FFF | 128 KB | Kernel Stack                                       | OS Reserved |
-| 0x043000 - 0x044FFF | 8 KB   | Kernel PD/PT                                       | OS Reserved |
-| 0x045000 - 0x045FFF | 4 KB   | PAB                                                | OS Reserved |
-| 0x100000 - 0x1AFFFF | 704 KB | 11 module files, each of 64KB max size             | OS Reserved |
-|---------------------|--------|----------------------------------------------------|-------------|
+| Physical address    | Size   | Usage                                             |             |
+|---------------------|--------|---------------------------------------------------|-------------|
+| 0x000000 - 0x000FFF | 4 KB   | Boot0 IVT. Kernel IDT (256 IDT entries)(see todo) | OS Reserved |
+| 0x001000 - 0x001FFF | 4 KB   | 512 GDT entries                                   | OS Reserved |
+| 0x002000 - 0x002FFF | 4 KB   | Boot Info. 11 file items & 201 memory map items   | OS Reserved |
+| 0x003000 - 0x022FFF | 128 KB | Kernel stack. boot0, boot1 space reused.          | OS Reserved |
+| 0x023000 - 0x024FFF | 8 KB   | Kernel PD/PT                                      | OS Reserved |
+| 0x025000 - 0x025FFF | 4 KB   | PAB                                               | OS Reserved |
+| 0x100000 - 0x1AFFFF | 704 KB | 11 module files, each of 64KB max size            | OS Reserved |
+|---------------------|--------|---------------------------------------------------|-------------|
 ```
 
 The presence of PMM diminishes (but not completely eliminates) the need for a fixed physical memory
@@ -40,24 +39,12 @@ every allocation goes through the PMM (which finds fixed physical pages to be us
 reason the above table does not have mappings for kernel static allocations.
 
 There are however a few assumptions:
-1. The first 0x46000 bytes are free, which the BIOS memory map must reflect this. In my experience
+1. The first 0x26000 bytes are free, which the BIOS memory map must reflect this. In my experience
    this has been always the case (first 0x9FC00 bytes are almost always free).
 2. The maximum boot1 and kernel size is due to limitation of the boot0 FAT routine. It can load
    files of at most 64 KB in size.
 3. The 1 KB for Boot Info structure is arbitrarily large. The 1 KB is size should be large for any
    x86_64 system.
-
-#### Known issue
-
-The same kernel stack was also used in user mode, which caused stack corruption. The CPU
-sets the stack pointer to `Kernel Stack Top` when going from user mode to kernel mode.
-Then any Push in the Kernel space will overwrite the user stack. The SS & ESP itself will be
-restored when returning from an Interrupt, however the because the memory remains the common, it
-gets modified by the stack operations of the Kernel mode.
-
-_Solution_: This is temporary solution. I reduced the Kernel stack to make space for the User stack.
-Such a separate fixed user stack may not be required as user stack allocation will be part of
-process creation - each process will have different physical memory allocated for their stack.
 
 (`*`) 1st free region in the BIOS memory map.
 

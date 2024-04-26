@@ -46,7 +46,7 @@ kidt_edit (INT                index,
            IDTDescriptorTypes type,
            U8                 dpl)
 {
-    FUNC_ENTRY ("index: 0x%x, func: 0x%px, seg_sel: 0x%x, type: 0x%x, dpl: 0x%x", index, func,
+    FUNC_ENTRY ("index: %x, func: %px, seg_sel: %x, type: %x, dpl: %x", index, func,
                 seg_selector, type, dpl);
 
     U32 offset = (U32)func;
@@ -70,7 +70,7 @@ s_idt_write ()
         .location = (U32)s_idt
     };
 
-    INFO ("IDT {limit = 0x%x, location = 0x%x}", idt_size_and_loc.limit, idt_size_and_loc.location);
+    INFO ("IDT {limit = %x, location = %x}", idt_size_and_loc.limit, idt_size_and_loc.location);
 
     __asm__ ( "lidt [%0]"
              :

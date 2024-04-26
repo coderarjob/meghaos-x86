@@ -43,13 +43,13 @@ void salloc_init()
  **************************************************************************************************/
 void* salloc (UINT bytes)
 {
-    FUNC_ENTRY ("Bytes: 0x%px", bytes);
+    FUNC_ENTRY ("Bytes: %px", bytes);
 
     if (bytes == 0 || bytes > SALLOC_SIZE_BYTES)
         RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);
-    INFO ("Size after aligning: 0x%px", allocSize);
+    INFO ("Size after aligning: %px", allocSize);
 
     if (!IS_SPACE_AVAILABLE (allocSize))
         RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
@@ -72,13 +72,13 @@ void* salloc (UINT bytes)
  **************************************************************************************************/
 void* scalloc (UINT bytes)
 {
-    FUNC_ENTRY ("Bytes: 0x%px", bytes);
+    FUNC_ENTRY ("Bytes: %px", bytes);
 
     if (bytes == 0 || bytes > SALLOC_SIZE_BYTES)
         RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);
-    INFO ("Size after aligning: 0x%px", allocSize);
+    INFO ("Size after aligning: %px", allocSize);
 
     void* mem = salloc (allocSize);
     if (mem != NULL)

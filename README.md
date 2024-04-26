@@ -1,30 +1,26 @@
 # MEGHA OPERATING SYSTEM V2 - x86
 
-A general purpose 32 bit Operating System that runs of a 1.44 MiB floppy and requires 1.44 MiB of
-RAM.
+A general purpose 32 bit Operating System for Intel i686 and later processors. It is written 
+completely from scratch and is primarily a learning project. The goal for MeghaOS is to provide an 
+environment to do experiments with the computer and to play around.
 
-MeghaOS is written completely from scratch and is primarily a learning project. The goal for
-MeghaOS is to provide an environment to do experiments with the computer and to play around.
+It runs of a 1.44 MiB floppy and can be configured to use minimal physical memory.
+
+| ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
+|---|
+| `Cooperative multitasking demo` |
 
 Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
 changed by the rider.
+
+| ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png) |
+|---|
+| `Stack trace when fault occurs` |
 
 I want the system to be stable but not totally locked down to the programmer. The OS will run in
 x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory used by
 another. The kernel will provide ways for the programmer to safely interact with the computer and 
 change parts of it easily.
-
-![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
-
-This is the second iteration. The first OS was targeted to run on the 8086 processor. It was
-written entirely in assembly language, due of a lack of proper higher level language compilers
-for the 8086 processor.
-
-The current, second version, targets the P6 processor and the former unavailability of tools is
-no longer there, and is thus mostly written in C.
-
-PS: OpenWatcom is a great C compiler, if you want to target 8086. However, I wanted to stick with
-something more standard and more common.
 
 The end product will be ready for a programmer but not for general use.
 
@@ -39,23 +35,16 @@ The end product will be ready for a programmer but not for general use.
 - [X] Basic Kernel mode C functions for printing on screen etc.
 - [X] Unittesting framework to test parts of the OS on host computer.
 - [X] Memory management: Physical page allocation.
-- [-] Memory management: Virtual page allocation. [*Skipping*]
-- [X] Memory management: Baisc paging operations (map/unmap etc)
+- [ ] Memory management: Virtual page allocation. [*Partial*]
+- [X] Memory management: Basic paging operations (map/unmap etc)
 - [X] Memory management: Kernel allocators (Static and Heap allocators)
-- [ ] User mode processes capable of doing system calls.
+- [X] Processes and threads capable of doing system calls.
+- [X] Cooperative multitasking scheduling and basic process management.
+- [ ] Enhancements to the process management.
+- [ ] VESA VGA driver.
 - [ ] Keyboard driver.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
-- [ ] VESA VGA driver.
 - [ ] Rudimentary shell.
-
-## Design goals
-
-1. MeghaOS will be used mostly for education and research, so it will be possible to replace
-   parts of the OS or to turn off / replace some its features. Such configurations can be set
-   when the building the OS.
-2. Sophistication is fronded upon. A simpler solution is always preferred.
-3. Current target is the x86 architecture, but can be ported easily to other architectures. For
-   this MeghaOS should not use or depend heavily on architecture specific features.
 
 ## Building MeghaOS
 
@@ -116,38 +105,29 @@ development >-------|------------|-----------|--->
 
 ### Git Branches
 
-The `master` branch have all the latest changes. Merges from feature or hotfix branches all go into
-the `master` branch. After a significant milestone, I will tag a commit, so you can check these
-if you do not want the very latest.
+The `master` branch have all the latest changes. Merges from `develop` branches go into the `master`
+branch. There could also be `feature` branches which originate and are merged into the `develop`
+branch.
+After a significant milestone, I will tag a commit, so you can check these if you do not want the
+very latest.
 
-* Master  - Current development branch where all the feature and hotfix branches merge into.
-* Feature - Lives temporarily for a feature or non specific development.
-* Hotfix  - Lives temporarily and named like `hotfix-ls-segfault`.
+* Master  - Branch where all the feature and fixes merge into. Must always build.
+* Develop - Majority of the development happens here. Features, bug fixing etc. May be unstable.
+* Feature - Branch where side developments (which are not related work in Develop branch) occur.
 
 ```
-HotFix   Master       Feature
-  |        |           |
-  |        |           |
-  |        |           |
-  |<------>|<--------->|
+Master       Develop     Feature
+  |           |            |
+  |           |            |
+  |           |            |
+  |<--------->|<---------->|
 ```
 
-### Semantic Versioning Scheme:
+### Versioning Scheme:
 
-1. Version will be structured:   
-    `major.minor.patch-build.-releasetype`
-
-   Example: `1.2.19-200909.1-dev`
-
-2. `build` is in the format: `<year><month><day>.<build_minor>`.
-
-3. `releasetype` are : `dev`, `alpha`.
-
-4. |Version| Reason for change                                     |
-   |-------|-------------------------------------------------------|
-   |Major  | Increments when backward compatibility is broken.     |
-   |Minor  | Increments when backward compatibility is maintained. |
-   |Patch  | Bug fixes, that does not break backward compatibility.|
-
-5. Whenever the left or middle digit changes, the digits to the right is reset to zero.
-   * 1.2.14  -->  1.3.0  --> 2.0.0
+1. Version will be structured: `build.releasetype.build_minor`
+2. `build` is in the format: `<year><month><day>`.
+3. `build_minor` starts with 0 and increments if same `build.releasetype` already exists.
+4. `releasetype` are : `dev`, `alpha`.
+5. Build string can be used to find the chronology of the releases.
+   * 20091103.dev.0 -> 20091103.dev.1 -> 20091103.alpha.0

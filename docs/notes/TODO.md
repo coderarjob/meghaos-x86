@@ -37,6 +37,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | BUILD SYSTEM                                                            |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Separate warning flags for Release, and user processes              | 12 Apr 24 |            |
 | [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 24 |            |
 | variants in C.                                                          |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
@@ -60,15 +61,20 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | CODE STYLE                                                              |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Need to rethink where PTR and void* should be used. Being in the    | 16 Apr 24 |            |
+| Kernel it makes this distinction less obvious, but some thought is      |           |            |
+| requried.                                                               |           |            |
 | [X] Functions should return EXIT_SUCCESS, EXIT_FAILURE on               |           | 23 NOV 22  |
 | Success and Failure. Not ERR_NONE, on Success, and -1 on failure.       |           |            |
 | Issue first seen in kdisp module.                                       |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [X] Create/Update the C style guide.                                    |           | 29 DEC 21  |
 | ::: [-] Instead of just [ER], boot1 should show some error code, that   |           |            |
 | identifies the failure.                                                 |           |            |
 | NOTE: Not done, because there is currently only one souce of error in   |           |            |
 | each of the routimes. Specific error codes will not be benifitial at    |           |            |
 | this time.                                                              |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Make symbols comply with the C99.                                   |           |            |
 | ::: [ ] Symbols beginning with underscore are reserved [7.13]. Rename.  |           |            |
 | ::: [X] Macros in header files.                                         |           |            |
@@ -76,50 +82,108 @@
 | ::: [X] Members in struct.                                              |           |            |
 | ::: [X] Function names.                                                 |           |            |
 | ::: [ ] Guard Macros in header files.                                   |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [X] Use true, false from stdbool.h instead of macros defined in         |           | 04 APR 23  |
 | our types.h                                                             |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Spaces before paramter need to be rethought.                        | 04 Feb 24 |            |
 | May be `ControlStatementsExceptControlMacros` is better than            |           |            |
 | `NonEmptyParentheses`                                                   |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Are assertOnError and panicOnError requried? They check if errno    | 16 Apr 24 |            |
+| is set then one asserts and other panics. However as errno is never     |           |            |
+| reset, these macros can only be used when a function fails, so the      |           |            |
+| check they do internally is not really required. Moreover assertOnError |           |            |
+| macro makes little sense, why you want to handle an error with an       |           |            |
+| assert and when to panic just call panic why panicOnError is required.  |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [X] BUG: It is possible to write to a readonly page                     | 12 Apr 24 | 13 Apr 24  |
+| Reason:                                                                 |           |            |
+| This happened because the CR0.WP (Write Protect) flag was unset.        |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] Process management                                                  | 11 Apr 24 |            |
+| ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
+| ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
+| ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
+| Possible solution.                                                      |           |            |
+| When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
+| and the scheduler will make sure that the parent gets the message.      |           |            |
+| Need a way to avoid creation of ZOMBIE processes.                       |           |            |
+| ::: [ ] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 |            |
+| supported.                                                              |           |            |
+| ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
+| ::: ::: [X] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 | 23 Apr 24  |
+| ::: ::: stack is used in the Kernel mode. kpg_unmap will cause page     |           |            |
+| ::: ::: fault when it tries to access the stack or return.              |           |            |
+| ::: [X] Process temporary map seems ad-hoc solution. Requries polish    | 12 Apr 24 | 22 Apr 24  |
+| ::: [X] InterruptFrame structure requires to take into account          | 14 Apr 24 | 18 Apr 24  |
+| that for Kernel processes, SS:ESP will not be passed.                   |           |            |
+| ::: [X] Queue for the scheduler                                         |           | 21 Apr 24  |
+| ::: [X] Coorporative multitasking setup                                 |           |            |
+| ::: ::: [X] Examine the behaviour of system call                        | 14 Apr 24 | 15 Apr 24  |
+| ::: ::: [-] First Come First Serve (FCFS) for process scheduling needs  | 14 Apr 24 | 21 Apr 24  |
+| thought.                                                                |           |            |
+| The scheduling policy is not FCFS, but "Earliest Process Idle First".   |           |            |
+| Purely FCFS can only be used in batch/single process systems.           |           |            |
+| ::: [X] System call for exiting process (thread or otherwise)           |           | 21 Apr 24  |
+| ::: [X] yield syscall                                                   |           | 15 Apr 24  |
+| ::: [-] BUG: Page fault when user thread creates new process            | 11 Apr 24 | 12 Apr 24  |
+| Does not happend when a kernel thread in creating the process.          |           |            |
+| Solution: This was not a bug, but expected. Creation of process         |           |            |
+| requires access to Kernel pages (kmalloc) which user mode cannot do.    |           |            |
+| Moreover, kpg_map invalidates caches, which are privilaged instructions |           |            |
+| ::: [X] BUG: 86Box and Bochs resets when making syscall from process1   | 11 Apr 24 | 12 Apr 24  |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [X] Rename include/assert.h to kassert.h.                               | 16 Mar 24 | 17 Mar 24  |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |
 | `statement-expressions` to mitigate these.                              |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] String functions like strcmp etc                                    | 06 Mar 24 |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Have two macros like BUG_ON, WARN_ON BUG_ON panics, WARN_ON         |           |            |
 | prints warning. They will replace k_assert and remain in release        |           |            |
 | as well, thus these macros must have little impact on binary size       |           |            |
 | and loose the text description of k_assert.                             |           |            |
-| [ ] Remove k_errorText. Has no use in the kernel. It just wasts space.  |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [X] Remove k_errorText. Has no use in the kernel. It just wasts space.  |           | 24 Mar 24  |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Space saving measures                                               |           |            |
 | ::: [X] \n instead of \r\n. No use of LF.                               |           | 16 Mar 24  |
 | Did nothing for space saving for some reason.                           |           |            |
-| ::: [ ] 0x printed automatically with %x.                               |           |            |
+| ::: [X] 0x printed automatically with %x.                               |           | 24 Apr 24  |
 | ::: [ ] Assert message only valid for unittests.                        |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Create a Kernel context Structure. It will contain various          |           |            |
 | global pointers state, etc required by the kernel.                      |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Virutal memory allocator                                            |           |            |
 | ::: [ ] How to do lazy allocation?                                      |           |            |
-| ::: [ ] Allocate a new virtual address                                  |           |            |
-| ::: [ ] Map a virtual to physical address                               |           |            |
+| ::: [X] Allocate a new virtual address                                  |           | 25 Mar 24  |
+| ::: [X] Map a virtual to physical address                               |           |            |
 | ::: [[ ]] Higher half mapping maps first 2MiB physical memory           |           |            |
 | entirely to 0xC0000000. Initially only the physical memory where the    |           |            |
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [X] Log and print to E9 port the following:                             |           | 06 Mar 24  |
 | ::: [X] Function name & location when entering and leaving functions    |           | 06 Mar 24  |
 | FUNC_ENTRY macro can be used for this. Not doing Logging when leaving.  |           |            |
 | ::: [X] Just before change to PT/PD etc.                                | 26 FEB 24 | 06 Mar 24  |
 | Can be acheived using the INFO macro.                                   |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [X] Println and Print instead of printf                                 | 03 Mar 24 | 06 Mar 24  |
+|-------------------------------------------------------------------------|-----------|------------|
 | [X] Physical memory allocator                                           |           | 20 JUL 23  |
 | ::: [X] Reimplement using common/bitmap                                 |           |            |
 | ::: [ ] Lock to protect the PAB.                                        |           |            |
 | ::: [ ] Make allocation and deallocation atomic                         |           |            |
 | ::: [X] PAGEFRAMES_TO_BYTES seems duplicate of PAGEFRAME_TO_PHYSICAL    | 4 JAN 24  | 09 JAN 24  |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Various functions like kdisp_ioctl, etc must implement error        |           |            |
 | reporting.                                                              |           |            |
 | ::: [X] kdisp_ioctl                                                     |           |            |
@@ -129,6 +193,7 @@
 | argument getting to these functions means there is something wrong      |           |            |
 | within the kernel code. We should fail fast the moment such conditions  |           |            |
 | occur in the kernel.                                                    |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [X] k_panic called from interrupt handlers must show correct            |           | 08 JUL 23  |
 | exception location. Use the interrupt frame.                            |           |            |
 | [X] Print interrupt frame in exception handlers                         |           | 08 JUL 23  |

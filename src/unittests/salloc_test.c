@@ -7,7 +7,6 @@
 #include <kerror.h>
 
 KernelErrorCodes k_errorNumber;
-char* k_errorText[] = {};
 
 static U8 salloc_buffer[SALLOC_SIZE_BYTES];
 

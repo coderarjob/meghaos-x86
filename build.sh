@@ -128,12 +128,16 @@ if [ $LINK_USING_LD -eq 1 ]; then
     export LD_FLAGS="--nmagic \
                      --script build/kernel.ld \
                      -L $LIBPATH/$GCCVER/"
+    export LD_FLAGS_USERLAND="--nmagic \
+                              --script build/process.ld \
+                              -L $LIBPATH/$GCCVER/"
     export LD_KERNEL="i686-elf-ld"
 else
      export LD_OPTIONS="-ffreestanding \
                        -nostdlib \
                        -lgcc"
      export LD_FLAGS="-T build/kernel.ld"
+     export LD_FLAGS_USERLAND="-T build/process.ld"
      export LD_KERNEL="$GCC32"
 fi
 
@@ -164,16 +168,10 @@ mkdir $LISTDIR         || exit
 bash src/bootloader/x86/build.sh  || exit
 
 # Build kernel
-bash src/kernel/build.sh  2>"$REPORTSDIR/build_warnings.txt"
+bash src/kernel/build.sh || exit
 
-# If build fails, build_warnings.txt will contain errors, as well as warnings,
-# otherwise will contain warnings only.
-# In case of build failure, the whole file is printed.
-if [ $? -ne 0 ]; then
-    cat "$REPORTSDIR/build_warnings.txt"
-    rm "$REPORTSDIR/build_warnings.txt"
-    exit
-fi
+# Build user processses
+bash src/userland/build.sh || exit
 
 # ---------------------------------------------------------------------------
 # Build the floppy image
@@ -188,6 +186,7 @@ sudo mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
 echo "    [ Copy files to floppy ]    "
 sudo cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
 sudo cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/userland/*.flt $DISKTEMPDIR ||exit
 
 # Unmount the image
 echo "    [ Copy of files done. Unmounting image ]    "
@@ -218,9 +217,7 @@ rm -f -r $DISKTEMPDIR || exit
 
 # ---------------------------------------------------------------------------
 echo "    [ Report: Warning count ]"
-WARNCOUNT_GCC=`grep -c -r "warning:" build/reports/build_warnings.txt`
 WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`
-echo "Total compiler warnings: $WARNCOUNT_GCC"
 echo "Total lint warnings: $WARNCOUNT_LINT"
 
 # ---------------------------------------------------------------------------

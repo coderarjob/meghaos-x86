@@ -25,7 +25,6 @@ static U8 pab[PAB_SIZE_BYTES];
 Physical g_pab = PHYSICAL ((USYSINT)pab);
 
 KernelErrorCodes k_errorNumber;
-char *k_errorText[] = {};
 
 void kdebug_printf_ndu (const CHAR *fmt, ...) {}
 static void validate_pab (const U8 *pab, USYSINT addr, KernelPhysicalMemoryStates state);

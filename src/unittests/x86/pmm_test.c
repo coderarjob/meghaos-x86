@@ -5,7 +5,6 @@
 #include <kerror.h>
 
 KernelErrorCodes k_errorNumber;
-char *k_errorText[] = {};
 void kdebug_printf_ndu (const CHAR *fmt, ...) { }
 
 TEST(PMM, actual_accessable_ram)

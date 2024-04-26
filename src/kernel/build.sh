@@ -13,7 +13,6 @@ C_FILES=(
     'kernel/printk.c'
     'kernel/kstdlib.c'
     'kernel/disp.c'
-    'kernel/kerror.c'
     'kernel/pmm.c'
     'common/bitmap.c'
     'common/utils.c'

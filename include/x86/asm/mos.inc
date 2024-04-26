@@ -47,11 +47,11 @@
 	SEG_MEM_LOC     FILE_BUFF,    0x1800_0000  ; 0000:8000h + 64KB = 18000
 
     ; Non segmented Memories
-	MEM_LOC     KERNEL_STACK_TOP, 0x0004_2FFF
+	MEM_LOC     KERNEL_STACK_TOP, 0x0002_2FFF
 	MEM_LOC     KERNEL_IMG,       0x0010_0000  ; Kernel image is copied here.
-	MEM_LOC     KERNEL_PAGE_DIR,  0x0004_3000
-	MEM_LOC     KERNEL_PAGE_TABLE,0x0004_4000
-	MEM_LOC     KERNEL_PAB,       0x0004_5000
+	MEM_LOC     KERNEL_PAGE_DIR,  0x0002_3000
+	MEM_LOC     KERNEL_PAGE_TABLE,0x0002_4000
+	MEM_LOC     KERNEL_PAB,       0x0002_5000
 
     ; Constants
     ; ------------------------------------------------------------------------
@@ -60,7 +60,8 @@
 
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"
-    %define RAMDISK0_FILE   "RAMDISK0FLT"
+    %define PROC1_FILE      "PROC1   FLT"
+    %define MPDEMO_FILE     "MPDEMO  FLT"
 
 	; Structures
     ; ------------------------------------------------------------------------

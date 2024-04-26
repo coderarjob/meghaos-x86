@@ -40,7 +40,6 @@ ListNode s_freeHead, s_allocHead, s_adjHead;
 __attribute__ ((aligned (4096))) char kmalloc_buffer[KMALLOC_SIZE_BYTES];
 
 KernelErrorCodes k_errorNumber;
-char* k_errorText[] = {};
 
 static inline size_t getNodeSize (size_t usableSize)
 {

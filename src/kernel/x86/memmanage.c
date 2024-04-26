@@ -5,6 +5,7 @@
  * This is one of be basic Heap allocators in the kernel
  * --------------------------------------------------------------------------------------------------
  */
+#include <kerror.h>
 #include <x86/memloc.h>
 #include <paging.h>
 #include <pmm.h>
@@ -16,23 +17,25 @@ static void s_preAllocateMemory (SIZE sz_pages, PTR va_start)
 {
     /* Pre-allocate all memory for salloc */
     Physical pa;
-    if (kpmm_alloc (&pa, sz_pages, PMM_REGION_ANY) == false)
-        k_panic ("Memory allocaiton failed");
+    if (kpmm_alloc (&pa, sz_pages, PMM_REGION_ANY) == false) {
+        k_panicOnError();
+    }
 
-    INFO ("Physical page allocated at: 0x%px", pa.val);
+    INFO ("Physical page allocated at: %px", pa.val);
     INFO ("Allocation size pages : %lu", sz_pages);
-    INFO ("Virtual map starts from : 0x%px", va_start);
+    INFO ("Virtual map starts from : %px", va_start);
 
     PageDirectory pd = kpg_getcurrentpd();
 
     /* As we are pre-allocating all the physical pages, we have also map the virtual pages. This is
      * required because there is no other way to reserve virtual pages */
-    for (UINT pageIndex = 0; pageIndex < sz_pages; pageIndex++)
-    {
+    for (UINT pageIndex = 0; pageIndex < sz_pages; pageIndex++) {
         PTR this_va      = va_start + PAGEFRAMES_TO_BYTES (pageIndex);
         Physical this_pa = PHYSICAL (pa.val + PAGEFRAMES_TO_BYTES (pageIndex));
-        if (kpg_map (pd, this_va, this_pa, PG_MAP_FLAG_KERNEL) == false)
-            k_panic ("Page map failed");
+        if (!kpg_map (pd, this_va, this_pa,
+                      PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
+            k_panicOnError();
+        }
     }
 }
 

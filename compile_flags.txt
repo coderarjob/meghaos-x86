@@ -1,7 +1,7 @@
 -D
-ARCH=x86
+__i386__
 -D
-UNITTEST
+ARCH=x86
 -D
 DEBUG
 -D
@@ -18,3 +18,4 @@ DEBUG_LEVEL=3
 ./include/mock/kernel/x86
 -I
 ./include/unittest
+--target=i386-pc-none-elf

@@ -44,9 +44,9 @@ g_kernel_entry:
     and eax, 0b11111111_11111111_11111111_11001111
     mov cr4, eax
 
-    ; Enable paging
+    ; Enable paging and Write Protection
     mov eax, cr0
-    or eax, 0x80000000
+    or eax, 0x80010000 ; PG, WP flags are set.
     mov cr0, eax
 
     ; The below .text portion will get linked at a different location
