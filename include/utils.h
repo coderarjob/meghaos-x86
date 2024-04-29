@@ -70,6 +70,10 @@ UINT power_of_two(UINT e);
  * Checks is bit s (represented by the shifted value) is not set in w. */
 #define BIT_ISUNSET(w, s) ((BIT_ISSET (w, s) == 1U ? 0U : 1U) & 0x1)
 
+/** Power of Two
+ * Returns 2^n value */
+#define POWER_OF_TWO(n) (1 << (n))
+
 /** Stringfy macros */
 #define STR_NDU(v) #v
 #define STR(v) STR_NDU(v)

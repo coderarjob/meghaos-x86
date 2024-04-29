@@ -25,8 +25,8 @@ typedef struct Bitmap
                  BitmapState new); /* Function returns true if state change can be done. */
 } Bitmap;
 
-#define BITMAP_MAX_STATE(b)       (power_of_two((b)->bitsPerState))
-#define BITMAP_STATE_MASK(b)      (power_of_two((b)->bitsPerState) - 1)
+#define BITMAP_MAX_STATE(b)       (POWER_OF_TWO((b)->bitsPerState))
+#define BITMAP_STATE_MASK(b)      (POWER_OF_TWO((b)->bitsPerState) - 1)
 #define BITMAP_STATES_PER_BYTE(b) (8 / ((b)->bitsPerState))
 #define BITMAP_CAPACITY(b)        ((b)->size * BITMAP_STATES_PER_BYTE(b))
 

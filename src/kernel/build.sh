@@ -15,7 +15,6 @@ C_FILES=(
     'kernel/disp.c'
     'kernel/pmm.c'
     'common/bitmap.c'
-    'common/utils.c'
     'kernel/salloc.c'
     'kernel/kmalloc.c'
 )

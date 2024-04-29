@@ -116,8 +116,7 @@ get_arch_independent_test_definition()
                                      'unittests/unittest.c')
                             };;
           utils)            {
-                                SRC=('common/utils.c'
-                                     'unittests/utils_test.c'
+                                SRC=('unittests/utils_test.c'
                                      'unittests/unittest.c')
                             };;
           paging)           {
