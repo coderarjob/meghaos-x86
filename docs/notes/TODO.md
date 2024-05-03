@@ -113,6 +113,10 @@
 | Need a way to avoid creation of ZOMBIE processes.                       |           |            |
 | ::: [ ] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 |            |
 | supported.                                                              |           |            |
+| ::: [ ] Process Exit: Copy the Kernel PDEs from PD of the process to    | 27 Apr 24 |            |
+| ::: PD of the Kernel. At the start we copy the Kernel PDEs but are not  |           |            |
+| ::: copying it back. The Kernel memory mapping might have changed by    |           |            |
+| ::: now, so this copying is needed.                                     |           |            |
 | ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
 | ::: ::: [X] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 | 23 Apr 24  |
 | ::: ::: stack is used in the Kernel mode. kpg_unmap will cause page     |           |            |

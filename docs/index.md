@@ -47,7 +47,7 @@
 - [Study on executable binary file format for the Kernel and other module files.](notes/object_file_format.md#Study-on-executable-binary-file-format-for-the-Kernel-and-other-module-files.)
 - [Is it required for all the structures to be opaque?](notes/opaque_data_types.md#Is-it-required-for-all-the-structures-to-be-opaque)
 - [Why are opaque data types needed?](notes/opaque_data_types.md#Why-are-opaque-data-types-needed)
-- [Different ways to handle error/invalid input in Kernel](notes/when-to-assert.md#Different-ways-to-handle-error/invalid-input-in-Kernel)
+- [Understanding when to use assert in Kernel code](notes/when-to-assert.md#Understanding-when-to-use-assert-in-Kernel-code)
 - [When to panic in a kernel?](notes/when-to-assert.md#When-to-panic-in-a-kernel)
 
 ### Future feature ideas
@@ -55,6 +55,7 @@
 - [User Interface notes](notes/ui.md#User-Interface-notes)
 
 ### x86 Notes
+- [System call frame and signature](notes/abi.md#System-call-frame-and-signature)
 - [Why separate stack does not work with GCC](notes/gdt.md#Why-separate-stack-does-not-work-with-GCC)
 - [Stack overflow protection using GDT](notes/gdt.md#Stack-overflow-protection-using-GDT)
 - [Physical page allocation basics](notes/memorymanagement.md#Physical-page-allocation-basics)
@@ -62,6 +63,10 @@
 - [How to use page tables to map Virtual Addresses to Physical Addresses?](notes/paging.md#How-to-use-page-tables-to-map-Virtual-Addresses-to-Physical-Addresses)
 - [Notes: Why not preallocate the whole 256 MB? ](notes/paging.md#Notes:-Why-not-preallocate-the-whole-256-MB-)
 - [Recursive mapping and temporary mapping in Kernel](notes/recursive_map_clarity_with_example.md#Recursive-mapping-and-temporary-mapping-in-Kernel)
+- [Keeping track of Virtual pages using Bitmap](notes/Scratch.md#Keeping-track-of-Virtual-pages-using-Bitmap)
+- [System call frame](notes/Scratch.md#System-call-frame)
+- [Round-robin operation using queue](notes/Scratch.md#Round-robin-operation-using-queue)
+- [Code snippets](notes/Scratch.md#Code-snippets)
 - [System call stack in User and Kernel processes](notes/Scratch.md#System-call-stack-in-User-and-Kernel-processes)
 - [Different way to switch privilege levels in x86 processors](notes/Scratch.md#Different-way-to-switch-privilege-levels-in-x86-processors)
 - [Strange behaviour because of Stale TLB](notes/Scratch.md#Strange-behaviour-because-of-Stale-TLB)
@@ -73,6 +78,7 @@
 
 ### Obsolete Notes
 - [Asserts and Panics in Unittests in MeghaOS](notes/assert-panic-in-meghaos.md#Asserts-and-Panics-in-Unittests-in-MeghaOS)
+- [Different ways to handle error/invalid input in Kernel](notes/when-to-assert.md#Different-ways-to-handle-error/invalid-input-in-Kernel)
 
 ### Obsolete x86 Notes
 - [Physical Memory Map](notes/gdt.md#Physical-Memory-Map)
