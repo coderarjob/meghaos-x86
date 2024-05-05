@@ -29,7 +29,6 @@ function add_mock_source()
         pmm)    {
                     export SRC=( $SRC_ARRAY
                                  'mock/kernel/x86/pmm.c'
-                                 'mock/common/utils.c'
                                )
                 };;
        pmm_x86) {
@@ -38,11 +37,6 @@ function add_mock_source()
                                  'mock/common/bitmap.c'
                                  'mock/kernel/pmm.c'
                                  'mock/kernel/x86/boot.c'
-                               )
-                };;
-        bitmap) {
-                    export SRC=( $SRC_ARRAY
-                                 'mock/common/utils.c'
                                )
                 };;
        paging_x86) {

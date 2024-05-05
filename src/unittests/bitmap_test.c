@@ -6,7 +6,6 @@
 #include <utils.h>
 #include <kerror.h>
 #include <unittest/fake.h>
-#include <mock/common/utils.h>
 #include <math.h>
 #include <panic.h>
 
@@ -371,14 +370,7 @@ TEST(bitmap, bitmap_splited_mustfail)
     END();
 }
 
-UINT powerOfTwo(UINT e)
-{
-    return pow(2, e);
-}
-
 void reset() {
-    resetUtilsFake();
-    power_of_two_fake.handler = powerOfTwo;
     memset(bitmap, 0xFF, sizeof(bitmap));
     panic_invoked = false;
 }

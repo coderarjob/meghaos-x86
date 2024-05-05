@@ -1,7 +1,6 @@
 #include <unittest/unittest.h>
 #include <mock/kernel/kstdlib.h>
 #include <mock/kernel/x86/pmm.h>
-#include <mock/common/utils.h>
 #include <string.h>
 #include <utils.h>
 #include <moslimits.h>
@@ -16,7 +15,7 @@
 
 #define BITS_PER_STATE  2U
 #define STATES_PER_BYTE (8U / BITS_PER_STATE)
-#define MAX_STATE       (power_of_two (BITS_PER_STATE) - 1)
+#define MAX_STATE       (POWER_OF_TWO(BITS_PER_STATE) - 1)
 
 #define PAB_BYTE(addr) ((addr) / (STATES_PER_BYTE))
 #define PAB_BIT(addr)  (((addr) % (STATES_PER_BYTE)) * BITS_PER_STATE)
@@ -251,8 +250,6 @@ TEST (PMM, memSize_somefree)
     END();
 }
 
-UINT powerOfTwo (UINT e) { return pow (2, e); }
-
 static void set_pab (U8 *const pab, USYSINT start, UINT pgCount, KernelPhysicalMemoryStates state)
 {
     for (; pgCount > 0; pgCount--, start += CONFIG_PAGE_FRAME_SIZE_BYTES)
@@ -280,9 +277,6 @@ void reset()
     panic_invoked = false;
     k_errorNumber = ERR_NONE;
     resetX86Pmm();
-    resetUtilsFake();
-
-    power_of_two_fake.handler = powerOfTwo;
 
     // Default size of RAM is set to 2 MB.
     kpmm_arch_getInstalledMemoryByteCount_fake.ret = 2 * MB;
