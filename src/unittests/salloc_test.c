@@ -5,8 +5,7 @@
 #include <types.h>
 #include <memmanage.h>
 #include <kerror.h>
-
-KernelErrorCodes k_errorNumber;
+#include <x86/kernel.h>
 
 static U8 salloc_buffer[SALLOC_SIZE_BYTES];
 
@@ -42,7 +41,7 @@ TEST (salloc, salloc_out_of_memory)
 {
     EQ_SCALAR ((PTR)salloc (SALLOC_SIZE_BYTES), (PTR)salloc_buffer);
     EQ_SCALAR ((PTR)salloc (1), (PTR)NULL);
-    EQ_SCALAR (k_errorNumber, ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
     END();
 }
 
@@ -62,15 +61,14 @@ TEST (salloc, invalid_inputs)
 {
     SIZE invalid_inputs[] = { 0, SALLOC_SIZE_BYTES + 1 };
 
-    for (int i = 0; i < 2; i++)
-    {
+    for (int i = 0; i < 2; i++) {
         EQ_SCALAR ((PTR)scalloc (invalid_inputs[i]), 0);
-        EQ_SCALAR (k_errorNumber, ERR_INVALID_RANGE);
-        k_errorNumber = ERR_NONE;
+        EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_RANGE);
+        g_kstate.errorNumber = ERR_NONE;
 
         EQ_SCALAR ((PTR)salloc (invalid_inputs[i]), 0);
-        EQ_SCALAR (k_errorNumber, ERR_INVALID_RANGE);
-        k_errorNumber = ERR_NONE;
+        EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_RANGE);
+        g_kstate.errorNumber = ERR_NONE;
     }
 
     END();
@@ -82,8 +80,7 @@ TEST (salloc, get_used_memory)
     EQ_SCALAR (salloc_getUsedMemory(), 0U);
 
     // When some memory is used.
-    SIZE sizes[] = {ALIGNED_SIZE(SALLOC_SIZE_BYTES/2),
-                    ALIGNED_SIZE(SALLOC_SIZE_BYTES/3)};
+    SIZE sizes[] = { ALIGNED_SIZE (SALLOC_SIZE_BYTES / 2), ALIGNED_SIZE (SALLOC_SIZE_BYTES / 3) };
     NEQ_SCALAR (salloc (sizes[0]), NULL);
     NEQ_SCALAR (salloc (sizes[1]), NULL);
 
@@ -96,7 +93,7 @@ void reset()
     resetX86MemManageFake();
 
     salloc_arch_preAllocateMemory_fake.ret = salloc_buffer;
-    k_errorNumber                          = ERR_NONE;
+    g_kstate.errorNumber                   = ERR_NONE;
 
     salloc_init();
 }

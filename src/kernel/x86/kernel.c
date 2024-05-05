@@ -36,6 +36,7 @@
 #include <kstdlib.h>
 #include <process.h>
 #include <x86/cpu.h>
+#include <x86/kernel.h>
 
 static void display_system_info ();
 static void s_markUsedMemory ();
@@ -50,10 +51,10 @@ static void process_poc();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 
-/* This variable is globally used to set error codes*/
-KernelErrorCodes k_errorNumber;
+/* Kernel state global variable */
+KernelStateInfo g_kstate;
 
-__attribute__ ((noreturn)) 
+__attribute__ ((noreturn))
 void kernel_main ()
 {
     kdisp_init ();

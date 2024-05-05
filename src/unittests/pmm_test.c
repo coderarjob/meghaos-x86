@@ -9,6 +9,7 @@
 #include <pmm.h>
 #include <math.h>
 #include <panic.h>
+#include <x86/kernel.h>
 
 #define ACTUAL_MEMORY_SIZE    (kpmm_getUsableMemorySize (PMM_REGION_ANY))
 #define MAX_ACTUAL_PAGE_COUNT (BYTES_TO_PAGEFRAMES_FLOOR (ACTUAL_MEMORY_SIZE))
@@ -22,8 +23,6 @@
 
 static U8 pab[PAB_SIZE_BYTES];
 Physical g_pab = PHYSICAL ((USYSINT)pab);
-
-KernelErrorCodes k_errorNumber;
 
 void kdebug_printf_ndu (const CHAR *fmt, ...) {}
 static void validate_pab (const U8 *pab, USYSINT addr, KernelPhysicalMemoryStates state);
@@ -65,13 +64,13 @@ TEST (PMM, zero_page_count)
 {
     Physical addr = createPhysical (CONFIG_PAGE_FRAME_SIZE_BYTES);
     EQ_SCALAR (false, kpmm_free (addr, 0));
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
 
     EQ_SCALAR (false, kpmm_allocAt (addr, 0, PMM_REGION_ANY));
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
 
     EQ_SCALAR (false, kpmm_alloc (&addr, 0, PMM_REGION_ANY));
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
     END();
 }
 
@@ -79,10 +78,10 @@ TEST (PMM, free_allocat_misaligned)
 {
     Physical addr = createPhysical (CONFIG_PAGE_FRAME_SIZE_BYTES + 1);
     EQ_SCALAR (false, kpmm_free (addr, 1));
-    EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
 
     EQ_SCALAR (false, kpmm_allocAt (addr, 1, PMM_REGION_ANY));
-    EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -105,10 +104,10 @@ TEST (PMM, free_allocat_outsideRange)
 
         printf ("\n:: With address %x, page count: %d", t->addr.val, t->pageCount);
         EQ_SCALAR (false, kpmm_free (t->addr, t->pageCount));
-        EQ_SCALAR (k_errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
+        EQ_SCALAR (g_kstate.errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
 
         EQ_SCALAR (false, kpmm_allocAt (t->addr, t->pageCount, PMM_REGION_ANY));
-        EQ_SCALAR (k_errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
+        EQ_SCALAR (g_kstate.errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
     }
 
     END();
@@ -143,10 +142,10 @@ TEST (PMM, alloc_allocAt_outOfMem)
 
     Physical addr = createPhysical (0);
     EQ_SCALAR (false, kpmm_alloc (&addr, 2, PMM_REGION_ANY));
-    EQ_SCALAR (k_errorNumber, ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
 
     EQ_SCALAR (false, kpmm_allocAt (addr, 2, PMM_REGION_ANY));
-    EQ_SCALAR (k_errorNumber, ERR_DOUBLE_ALLOC);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_ALLOC);
     END();
 }
 
@@ -275,7 +274,7 @@ static void validate_pab (const U8 *pab, USYSINT addr, KernelPhysicalMemoryState
 void reset()
 {
     panic_invoked = false;
-    k_errorNumber = ERR_NONE;
+    g_kstate.errorNumber = ERR_NONE;
     resetX86Pmm();
 
     // Default size of RAM is set to 2 MB.
