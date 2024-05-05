@@ -16,6 +16,7 @@
 #include <kdebug.h>
 #include <kerror.h>
 #include <common/bitmap.h>
+#include <utils.h>
 
 typedef struct PhysicalMemoryRegion
 {
@@ -33,7 +34,7 @@ static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions 
 {
     switch (reg) {
         case PMM_REGION_ANY: return &s_pmm_completeRegion;
-        default: k_assert(false, "Invalid region. Must not be here");
+        default: UNREACHABLE();
     }
     return NULL;
 }
@@ -244,8 +245,8 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
         return true;
     }
 
-    k_assert(false, "Not possible to come here.");
-    return false;
+    UNREACHABLE();
+    NORETURN();
 }
 
 
