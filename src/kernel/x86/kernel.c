@@ -196,7 +196,11 @@ static void multithread_demo_kernel_thread()
     kearly_printf ("Kernel thread:");
 
     UINT column = 0;
-    UINT max    = 100000;
+#if (DEBUG_LEVEL & 1)
+    UINT max    = 960;
+#else
+    UINT max    = 96000;
+#endif
     UINT step   = max / MAX_VGA_COLUMNS;
 
     for (UINT i = 0; i < max; i++) {
