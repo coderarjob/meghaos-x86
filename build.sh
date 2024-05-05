@@ -27,7 +27,6 @@ if [ ! -z $1 ]; then
     case "$1" in
         --arch   ) ARCH=$2        ;;
         --release) DEBUG=NDEBUG   ;;
-        --lint   ) BUILDMODE=LINT ;;
         --all    ) BUILDMODE=ALL  ;;
         *        )
             echo "Invalid command $@"
@@ -199,23 +198,22 @@ dd conv=notrunc if=$OBJDIR/boot0.flt of=$IMAGEDIR/mos.flp || exit
 echo "    [ Report: Storage Utilization ]"
 wc -c $OBJDIR/*.flt
 
+echo "    [ Generating tags file ]"
+ctags -R ./src ./include/ || exit
+cscope -R -I include -k -b || exit
+
+echo "    [ Cleaning up ]"
+rm -f -r $DISKTEMPDIR || exit
+
 # ---------------------------------------------------------------------------
 # Lint and compiler warning reports
 # ---------------------------------------------------------------------------
-[[ $BUILDMODE -ge $LINT ]] || exit 0
 
 echo "    [ Running linting tool ]"
 ./lint.sh -D__i386__ \
           -D$DEBUG \
           -DDEBUG_LEVEL=$DEBUGLEVEL >"$REPORTSDIR/lint_report.txt" 2>&1 || exit
 
-echo "    [ Generating tags file ]"
-ctags -R ./src ./include/ || exit
-
-echo "    [ Cleaning up ]"
-rm -f -r $DISKTEMPDIR || exit
-
-# ---------------------------------------------------------------------------
 echo "    [ Report: Warning count ]"
 WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`
 echo "Total lint warnings: $WARNCOUNT_LINT"
