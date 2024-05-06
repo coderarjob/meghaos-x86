@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <utils.h>
+#include <x86/kernel.h>
 
 
 TEST(kearly_snprintf, no_vargs)
@@ -211,40 +212,6 @@ void kdisp_putc_hander (CHAR c)
 }
 // -------------------------------------------------------------------------------------------------
 
-TEST(kearly_snprintf, printk_test_disp_initialized)
-{
-    kdisp_isInitialized_fake.ret = true;
-    kdisp_putc_fake.handler = kdisp_putc_hander;
-
-    USYSINT num = 0xABC;
-
-    // Bytes must be in little endian order. The exp_output has bytes as bytes will appear in vgab
-    // in memory.
-    U8 exp_output[10] = {'A', 0xFF,      // 0xFF is the attribute.
-                         'B', 0xFF,      // 0xFF is the attribute.
-                         'C', 0xFF,      // 0xFF is the attribute.
-                         'h', 0xFF};     // 0xFF is the attribute.
-
-    INT ret = kearly_printf ("%px", num);
-    EQ_SCALAR(ret, 4);
-    EQ_MEM (exp_output, vgab, ARRAY_LENGTH(exp_output));
-    END();
-}
-
-TEST(kearly_snprintf, printk_test_disp_not_initialized)
-{
-    kdisp_isInitialized_fake.ret = false;
-    kdisp_putc_fake.handler = kdisp_putc_hander;
-
-    // Nothing should be printed, as display is not initialized.
-    U8 exp_output[6] = {};
-
-    INT ret = kearly_printf ("%s", "Hello");
-    EQ_SCALAR(ret, 0);
-    EQ_MEM (exp_output, vgab, ARRAY_LENGTH(exp_output));
-    END();
-}
-
 void reset()
 {
     resetVgaDisp();
@@ -272,6 +239,4 @@ int main()
     limit_check_at_edge();
     memory_overlap();
     pointer_literal();
-    printk_test_disp_initialized();
-    printk_test_disp_not_initialized();
 }

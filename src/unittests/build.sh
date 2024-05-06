@@ -93,6 +93,7 @@ get_arch_independent_test_definition()
                             {
                                 SRC=('kernel/printk.c'
                                      'unittests/printk_test.c'
+                                     'unittests/common.c'
                                      'unittests/unittest.c')
                             };;
         kstdlib)

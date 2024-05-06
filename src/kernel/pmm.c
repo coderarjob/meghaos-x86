@@ -17,6 +17,7 @@
 #include <kerror.h>
 #include <common/bitmap.h>
 #include <utils.h>
+#include <x86/kernel.h>
 
 typedef struct PhysicalMemoryRegion
 {
@@ -27,7 +28,6 @@ typedef struct PhysicalMemoryRegion
 
 static PhysicalMemoryRegion s_pmm_completeRegion = {0};
 static U8 *s_pab = NULL;
-static bool s_isInitialized = false;
 static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg);
 
 static PhysicalMemoryRegion *s_getBitmapFromRegion (KernelPhysicalMemoryRegions reg)
@@ -59,7 +59,7 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
     if (old == PMM_STATE_FREE && new == PMM_STATE_FREE)
         k_panic ("Double free: Page %u", pageFrame);
 
-    if (s_isInitialized && old == PMM_STATE_RESERVED)
+    if (g_kstate.phase >= KERNEL_PHASE_STATE_PMM_READY && old == PMM_STATE_RESERVED)
         k_panic ("Use of Reserved page: Page %u", pageFrame);
 
     if (old == PMM_STATE_INVALID)
@@ -92,9 +92,6 @@ void kpmm_init ()
 {
     FUNC_ENTRY();
 
-    if (kpmm_isInitialized())
-        k_panic ("Called after PMM initialization.");
-
     s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
 
     s_pmm_completeRegion.bitmap.allow = s_verifyChange;
@@ -107,7 +104,7 @@ void kpmm_init ()
     kpmm_arch_init(&s_pmm_completeRegion.bitmap);
 
     // PMM is now initialized
-    s_isInitialized = true;
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_PMM_READY);
 }
 
 /***************************************************************************************************
@@ -125,7 +122,7 @@ bool kpmm_free (Physical startAddress, UINT pageCount)
 {
     FUNC_ENTRY("startAddress = %x, pageCount = %u", startAddress, pageCount);
 
-    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_PMM_READY);
 
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
@@ -166,7 +163,7 @@ bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions r
 {
     FUNC_ENTRY("start = %x, pageCount = %u, region = %u", start.val, pageCount, reg);
 
-    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_PMM_READY);
 
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
@@ -219,7 +216,7 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
 {
     FUNC_ENTRY("pageCount = %u, region = %u", pageCount, reg);
 
-    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_PMM_READY);
 
     if (pageCount == 0)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
@@ -249,19 +246,6 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
     NORETURN();
 }
 
-
-/***************************************************************************************************
- * Returns status of PAB array initialization.
- * PAB initialization is complete after kpmm_init has finished execution and there is no error.
- *
- * @return      true if PAB array was initialized and PMM is ready, false otherwise.
- **************************************************************************************************/
-bool kpmm_isInitialized ()
-{
-    FUNC_ENTRY();
-    return s_isInitialized == true;
-}
-
 /***************************************************************************************************
  * Calculates the size of free system memory based on PAB
  *
@@ -272,7 +256,7 @@ size_t kpmm_getFreeMemorySize ()
 {
     FUNC_ENTRY();
 
-    k_assert(kpmm_isInitialized(), "Called before PMM initialization.");
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_PMM_READY);
 
     UINT usablePageCount = kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY);
     PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
@@ -328,7 +312,7 @@ KernelPhysicalMemoryStates kpmm_getPageStatus (Physical phy)
 {
     FUNC_ENTRY ("Physical address = %x", phy);
 
-    k_assert (kpmm_isInitialized(), "Called before PMM initialization.");
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_PMM_READY);
 
     // Check alignment of the address. Must be aligned to page boundary.
     if (IS_ALIGNED (phy.val, CONFIG_PAGE_FRAME_SIZE_BYTES) == false) {

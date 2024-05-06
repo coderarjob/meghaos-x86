@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <utils.h>
+#include <x86/kernel.h>
 
 typedef enum IntTypes 
 {
@@ -41,8 +42,7 @@ static U64 s_readint (IntTypes inttype, va_list *l);
  **************************************************************************************************/
 INT kearly_printf (const CHAR *fmt, ...)
 {
-    if (kdisp_isInitialized() == false)
-        return 0;
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_TEXTDISP_READY);
 
     va_list l;
     va_start (l, fmt);

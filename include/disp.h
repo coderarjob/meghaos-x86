@@ -62,13 +62,6 @@ void kdisp_init ();
  **************************************************************************************************/
 void kdisp_putc (CHAR c);
 
-/***************************************************************************************************
- * Returns status of text display initialization.
- *
- * @return true if kdisp_init has been called.
- **************************************************************************************************/
-bool kdisp_isInitialized ();
-
 INT kearly_printf (const CHAR *fmt, ...);
 INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);
 INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);

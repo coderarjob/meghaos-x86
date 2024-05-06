@@ -57,6 +57,10 @@ KernelStateInfo g_kstate;
 __attribute__ ((noreturn))
 void kernel_main ()
 {
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
+    g_kstate.kernelPageDirectory = g_page_dir;
+
+    // Initialize Text display
     kdisp_init ();
 
     // Initilaize Physical Memory Manger
@@ -97,6 +101,8 @@ void kernel_main ()
     kearly_printf ("\r[OK]");
 
     kprocess_init();
+
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_KERNEL_READY);
 
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,GREEN,0));
     kearly_println ("Kernel initialization finished..");
