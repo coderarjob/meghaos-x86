@@ -199,7 +199,7 @@ static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
 
         if (!kpg_map (pd, (PTR)pinfo->virt.Entry, pinfo->physical.Binary,
                       PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Map failed
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
         }
     }
 
@@ -513,16 +513,16 @@ bool kprocess_exit()
                      // arguments of this function which were on the stack cannot be accesssed from
                      // here on.
                      "   mov esp, " STR (INTEL_32_KSTACK_TOP) ";"
-                                                              ".cont:;"
-                                                              // Call to kprocess_exit will not
-                                                              // return if it succeeds.
-                                                              "   call kprocess_exit_internal;"
-                                                              "   mov %0, eax;"
-                                                              // kprocess_exit returned which means
-                                                              // it did not succeed. Restore the
-                                                              // stack.
-                                                              "   mov esp, ebp;"
-                                                              "   pop ebp;"
+                    ".cont:;"
+                    // Call to kprocess_exit will not
+                    // return if it succeeds.
+                    "   call kprocess_exit_internal;"
+                    "   mov %0, eax;"
+                    // kprocess_exit returned which means
+                    // it did not succeed. Restore the
+                    // stack.
+                    "   mov esp, ebp;"
+                    "   pop ebp;"
                      : "=r"(ret)
                      : "r"(flags)
                      : // No clobber

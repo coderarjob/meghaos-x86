@@ -1,6 +1,6 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - x86 Kernel - Physical Memory Management Header
+* Megha Operating System V2 - Cross Platform Kernel - Physical Memory Management Header
 * ---------------------------------------------------------------------------
 */
 
@@ -30,7 +30,6 @@ typedef enum KernelPhysicalMemoryStates {
 
 void kpmm_init ();
 void kpmm_arch_init (Bitmap *bitmap);
-bool kpmm_isInitialized ();
 
 bool kpmm_free (Physical startAddress, UINT pageCount);
 bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions reg);
