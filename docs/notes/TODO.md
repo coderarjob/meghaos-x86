@@ -162,14 +162,14 @@
 | ::: [X] 0x printed automatically with %x.                               |           | 24 Apr 24  |
 | ::: [ ] Assert message only valid for unittests.                        |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] Create a Kernel context Structure. It will contain various          |           |            |
+| [X] Create a Kernel context Structure. It will contain various          |           | 05 Apr 24  |
 | global pointers state, etc required by the kernel.                      |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Virutal memory allocator                                            |           |            |
 | ::: [ ] How to do lazy allocation?                                      |           |            |
 | ::: [X] Allocate a new virtual address                                  |           | 25 Mar 24  |
 | ::: [X] Map a virtual to physical address                               |           |            |
-| ::: [[ ]] Higher half mapping maps first 2MiB physical memory           |           |            |
+| ::: [[X]] Higher half mapping maps first 2MiB physical memory           |           | 23 Mar 24  |
 | entirely to 0xC0000000. Initially only the physical memory where the    |           |            |
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |

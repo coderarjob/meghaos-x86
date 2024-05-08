@@ -3,7 +3,7 @@
 
 ## Virtual memory management - Concept of Regions
 categories: note, x86
-_6 April 2022_
+_6 April 2024_
 
 Regions cover small (say 20 pages in size) continuous virtual addresses and keep track of virtual &
 physical page allocations/deallocations within its address space. Region combine the PMM and paging
@@ -21,6 +21,20 @@ Without Region, the following becomes a problem:
    another region.
 
 Which means that through Regions, we will get our VMM.
+
+Note that the same information which can be stored in bitmaps can also be stored in Page tables and
+get the same benefits of 'late commit' of physical pages and 'uncommitted allocation'. However this
+route will have some disadvantages.
+
+1. For storing allocation data into Page tables, Page tables must exist. So this means even for
+   uncommitted allocation, page tables must be created so that the data about the allocation can be
+   stored there. The benefit of late commitment is reduced and becomes more prominent when
+   allocations that spans multiple page tables.
+2. Much slower than scanning a bitmap.
+3. Care must be taken so the magic number used to indicate 'uncommitted allocation' and
+   'unallocated' pages never occurs naturally.
+4. Architecture and paging structure depth dependent. For example moving from 2-level to 4-level
+   paging may required extensive changes to the virtual page allocation logic.
 
 ----------------------------------------------------------------------------------------------------
 

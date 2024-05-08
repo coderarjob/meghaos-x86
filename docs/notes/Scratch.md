@@ -14,8 +14,80 @@
 
 ------------------------------------
 
+## Keeping track of Virtual pages using Bitmap
+categories: note, x86
+_27 April 2024_
+
+A = getPage(region, 50, flags)
+setPageAttr(A, 0 , NULL_PAGE)  // To set the page at offset 0 from the start to NULL page
+setPageAttr(A, 49 , NULL_PAGE) // To set the page at offset 49 from the start to NULL page
+
+getPage works on the current Page directory. Flags will determine where the virtual page is
+allocated from (called regions) - Below, High, Kernel.
+
+These regions are not overlapping and will have a head for each.
+
+At the time of getPage it will start scanning from the head for an AddressSpace with enough free
+pages. Once found pages will be marked in the PAB of the AddressSpace. If not found then new
+AddressSpace will be created.
+
+AddressSpaces are of fixed size and contain a bitmap to track virutal pages. If the fixed size is
+256KiB and we use 2 bits for each Bitmap state, then the bitmap need to be of 16 bytes.
+
+Note that AddressSpace is a way we are using to keep track of Virtual pages and is transparent to
+its users.
+
+Now to share pages we need to store the count somewhere. It can be stored in the bitmap itself. In
+that case instead of 2 bits we will use 5 bits:
+    0-1 -> State (Allocated, Free, Committed, Null)
+    2-4 -> Share count. Starts with 0 which means not shared with any other process.
+
+But this required change in the bitmap implementation.
+
+### What changes will be requried in Bitmap
+
+```
+/* Bitmap:
+* Bitmap can be thought of an array of items, each of size 'b' bits. Out of the 'b' bits, 'm' LSB
+* bits represent state and remaining 'b' - 'm' MSB bits are arbitary and can used to store metadata.
+* In case there is no metadata then 'm' = 'b'. The states and its metadata only has meaning to the
+* user of the bitmap, however the bitmap must know the number of total bits in an bitmap item and
+* the number of bits in a 'state' in order to get items and search for items with matching state.
+* So the general view of the Bitmap is the following:
+*
+*     +----+----+----+----+----+----+----+----+----+
+*     |   Item 2     |   Item 1     |   Item 0     |
+*     +----+----+----+----+----+----+----+----+----+
+* MSB |MD 2| State 2 |MD 1| State 1 |MD 0| State 0 | LSB
+*     +----+----+----+----+----+----+----+----+----+
+*
+* Here is an example:
+* In the example below, each item is 2 bits no metadata, (which means state is also of 2 bits).
+* These states are addresses with their index in the bitmap. Indices start from 0.
+*
+*    7    6    5    4    3    2    1    0
+*     +----+----+----+----+----+----+----+----+
+*     | Item 3  | Item 2  | Item 1  | Item 0  |
+*     +----+----+----+----+----+----+----+----+
+* MSB | State 3 | State 2 | State 1 | State 0 | LSB
+*     +----+----+----+----+----+----+----+----+
+*/
+
+typedef struct Bitmap {
+    BitmapState* bitmap; /* Pointer to the actual Bitmap */
+    SIZE size;           /* Number of bytes in the bitmap array. */
+    SIZE bitsPerItem;    /* one Item in bitmap requires this many bits. Must be a factor
+                            of 8. */
+    SIZE bitsPerState;   /* one state in bitmap requires this many bits. Must be a factor
+                            of 8 and must be <= bits per item. */
+    bool (*allow) (UINT index, BitmapState old,
+                   BitmapState new); /* Function returns true if state change can be done. */
+} Bitmap;
+```
+
+------------------------------------
 ## Round-robin operation using queue
-categories: note, obsolete, x86
+categories: note, x86
 _11 April 2024_
 
 ```
@@ -64,27 +136,6 @@ typedef enum PagingTemporaryMapModes {
     PG_TEMPO_MAP_MODE_KERNEL
 } PagingTemporaryMapModes;
 
-```
-
-### Free process info implementation
-
-```c
-static bool s_processInfo_free(UINT processID);
-static bool s_processInfo_free(UINT processID)
-{
-     if (processID >= processCount) {
-         RETURN_ERROR (ERR_INVALID_RANGE, false);
-     }
-
-     ProcessInfo* pinfo = processTable[processID];
-     kfree(pinfo->registerStates);
-     kfree(pinfo);
-
-     processTable[processID] = NULL;
-     processCount--;
-
-     return true;
-}
 ```
 
 ------------------------------------
