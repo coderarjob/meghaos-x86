@@ -9,6 +9,38 @@ set(MOS_ASM_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include/x86/asm
     )
 
+set(MOS_GCC_INCLUDE_DIRS
+    ${PROJECT_SOURCE_DIR}/include
+    )
+
+set(MOS_GCC_WARN_FLAGS
+    -Wpedantic
+    -Wall
+    -Wextra
+    -Wconversion
+    -Wdangling-else
+    -Werror
+    )
+
+set(MOS_GCC_FLAGS
+    ${MOS_GCC_WARN_FLAGS}
+    -std=c99
+    -nostartfiles
+    -ffreestanding
+    -fno-pie
+    -fno-stack-protector
+    -fno-asynchronous-unwind-tables
+    -m32
+    -march=i386
+    -masm=intel
+    -mno-red-zone
+    -mno-sse
+    -O1
+    -fno-unit-at-a-time
+    -fno-omit-frame-pointer
+    -fno-inline-functions-called-once
+    )
+
 set(CMAKE_C_COMPILER i686-elf-gcc)
 set(CMAKE_FIND_ROOT_PATH ${CROSSCOMPILE_PATH})
 set(CMAKE_SYSROOT ${CROSSCOMPILE_PATH})
