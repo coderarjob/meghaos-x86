@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(MeghaOS-V2 C ASM_NASM)
+project(MeghaOS-V2 C)
 
 include(cmake/assemble.cmake)
 
