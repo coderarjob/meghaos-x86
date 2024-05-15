@@ -16,16 +16,21 @@ set(KERNEL_X86_SOURCES
 
 add_library(
     kernel_X86
-    STATIC
+    OBJECT
     ${KERNEL_X86_SOURCES})
 
 target_include_directories(kernel_X86 PRIVATE ${MOS_GCC_INCLUDE_DIRS})
 target_compile_options(kernel_X86 PRIVATE ${MOS_GCC_FLAGS})
 
 add_library(kernel_entry
-    STATIC
+    OBJECT
     ${CMAKE_CURRENT_SOURCE_DIR}/entry.s
     )
 
 target_include_directories(kernel_entry PRIVATE ${MOS_ASM_INCLUDE_DIRS})
 target_compile_options(kernel_entry PRIVATE -O0 -f elf)
+
+target_sources(kernel.elf PRIVATE 
+    $<TARGET_OBJECTS:kernel_X86>
+    $<TARGET_OBJECTS:kernel_entry>
+    )

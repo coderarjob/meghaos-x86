@@ -9,8 +9,10 @@ set(KERNEL_SOURCES
 
 add_library(
     kernel
-    STATIC
+    OBJECT
     ${KERNEL_SOURCES})
 
 target_include_directories(kernel PRIVATE ${MOS_GCC_INCLUDE_DIRS})
 target_compile_options(kernel PRIVATE ${MOS_GCC_FLAGS})
+
+target_sources(kernel.elf PRIVATE $<TARGET_OBJECTS:kernel>)

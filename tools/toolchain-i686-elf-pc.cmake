@@ -25,6 +25,7 @@ set(MOS_GCC_WARN_FLAGS
 set(MOS_GCC_FLAGS
     ${MOS_GCC_WARN_FLAGS}
     -std=c99
+    -g
     -nostartfiles
     -ffreestanding
     -fno-pie
@@ -39,6 +40,17 @@ set(MOS_GCC_FLAGS
     -fno-unit-at-a-time
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
+    -DDEBUG
+    -DDEBUG_LEVEL=1
+    )
+
+set(MOS_LINKER_FLAGS_KERNEL
+    -T ${PROJECT_SOURCE_DIR}/build/kernel.ld
+    )
+
+set(MOS_LINKER_OPTIONS
+    -ffreestanding
+    -nostdlib
     )
 
 set(CMAKE_C_COMPILER i686-elf-gcc)
