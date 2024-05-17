@@ -1,7 +1,26 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 project(MeghaOS-V2 C ASM_NASM)
 
+set(MOS_DEBUG_LEVEL "1" CACHE STRING "Sets DEBUG_LEVEL option to this value")
+set(MOS_BUILD_MODE "Debug" CACHE STRING "Debug mode")
+
+set(MOS_BUILD_MODES "Debug" "NDebug")
+set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
+
+#---------------------------------------------------------------------------
+# Validate User settable options
+#---------------------------------------------------------------------------
+if (NOT MOS_BUILD_MODE IN_LIST MOS_BUILD_MODES)
+    message(FATAL_ERROR "${MOS_BUILD_MODE} is not a valid build mode.")
+endif()
+
+if (CMAKE_BUILD_TYPE)
+    message(FATAL_ERROR "MOS_BUILD_MODE should be used to setup build mode.")
+endif()
+#---------------------------------------------------------------------------
+
 include(cmake/assemble.cmake)
+include(cmake/${ARCH}/mosflags.cmake)
 
 set(MOS_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 set(MOS_LISTS_DIR ${CMAKE_BINARY_DIR}/lists)
@@ -10,6 +29,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${MOS_BIN_DIR})
 
 file(MAKE_DIRECTORY ${MOS_LISTS_DIR})
 file(MAKE_DIRECTORY ${MOS_DISKIMAGE_DIR})
+
+#---------------------------------------------------------------------------
+# Just for debugging. DELETE THIS WHEN FINAL
+#---------------------------------------------------------------------------
+add_custom_target(debug ALL
+    COMMAND ${CMAKE_COMMAND} -E echo "MOS_BUILD_MODE: ${MOS_BUILD_MODE}"
+    COMMAND ${CMAKE_COMMAND} -E echo "MOS_DEBUG_LEVEL: ${MOS_DEBUG_LEVEL}"
+    COMMAND ${CMAKE_COMMAND} -E echo "MODE: $ENV{MODE}"
+    )
+#---------------------------------------------------------------------------
 
 if(CMAKE_CROSSCOMPILING)
     #---------------------------------------------------------------------------
@@ -25,21 +54,23 @@ if(CMAKE_CROSSCOMPILING)
     set_target_properties(kernel.elf 
         PROPERTIES LINK_DEPENDS ${MOS_LINKER_SCRIPT_FILE})
 
-    add_custom_command(
-        TARGET kernel.elf
-        POST_BUILD
-        BYPRODUCTS 
-            ${MOS_BIN_DIR}/kernel.flt
-            ${MOS_DISKIMAGE_DIR}/mos.flp
-        COMMAND ${CROSS_OBJDIR} 
-                -O binary $<TARGET_FILE:kernel.elf> ${MOS_BIN_DIR}/kernel.flt
-        COMMAND ${CMAKE_SOURCE_DIR}/create-floppyimg.sh ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
-        )
-
     add_subdirectory(src/bootloader/x86)
     add_subdirectory(src/common)
     add_subdirectory(src/kernel)
     add_subdirectory(src/kernel/x86)
+
+    add_custom_target(kernel.flt
+        BYPRODUCTS ${MOS_BIN_DIR}/kernel.flt
+        COMMAND ${CROSS_OBJDIR} 
+                -O binary $<TARGET_FILE:kernel.elf> ${MOS_BIN_DIR}/kernel.flt
+        )
+
+    add_custom_target(mos.flp ALL
+        BYPRODUCTS ${MOS_DISKIMAGE_DIR}/mos.flp
+        COMMAND ${CMAKE_SOURCE_DIR}/create-floppyimg.sh ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
+        )
+
+    add_dependencies(mos.flp kernel.flt boot1 boot0)
 else()
     message(FATAL_ERROR "Not implemented")
 endif()
