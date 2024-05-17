@@ -32,7 +32,7 @@ if (MOS_BUILD_MODE STREQUAL "Debug")
     set(MOS_GCC_FLAGS ${MOS_GCC_FLAGS} -g)
 endif()
 
-set(MOS_LINKER_OPTIONS
+set(MOS_KERNEL_LINKER_OPTIONS
     -ffreestanding
     -nostdlib
     )
@@ -46,4 +46,4 @@ set(MOS_GCC_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include
     )
 
-set(MOS_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/build/kernel.ld)
+set(MOS_KERNEL_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/build/kernel.ld)

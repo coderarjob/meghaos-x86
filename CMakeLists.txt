@@ -48,11 +48,11 @@ if(CMAKE_CROSSCOMPILING)
     add_executable(kernel.elf)
     target_link_libraries(kernel.elf PRIVATE gcc)
     target_link_options(kernel.elf PRIVATE
-        -T ${MOS_LINKER_SCRIPT_FILE}
-        ${MOS_LINKER_OPTIONS}
+        -T ${MOS_KERNEL_LINKER_SCRIPT_FILE}
+        ${MOS_KERNEL_LINKER_OPTIONS}
         )
     set_target_properties(kernel.elf 
-        PROPERTIES LINK_DEPENDS ${MOS_LINKER_SCRIPT_FILE})
+        PROPERTIES LINK_DEPENDS ${MOS_KERNEL_LINKER_SCRIPT_FILE})
 
     add_subdirectory(src/bootloader/x86)
     add_subdirectory(src/common)
