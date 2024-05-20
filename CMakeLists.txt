@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 project(MeghaOS-V2 C ASM_NASM)
 
 set(MOS_DEBUG_LEVEL "1" CACHE STRING "Sets DEBUG_LEVEL option to this value")
-set(MOS_BUILD_MODE "Debug" CACHE STRING "Debug mode")
+set(MOS_BUILD_MODE "DEBUG" CACHE STRING "Debug mode")
 
-set(MOS_BUILD_MODES "Debug" "NDebug")
+set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
 set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
 
 #---------------------------------------------------------------------------
