@@ -48,7 +48,7 @@ function(link)
     if (LINK_FLATEN)
         # When FLATTEN option is set, then the linked executabled is an intermediate the flattened
         # binary is the final. That is the reason for the '.in' suffix - standing for intermediate.
-        set(EXE_NAME ${LINK_NAME}.in)
+        set(EXE_NAME ${LINK_NAME}.${MOS_INTERMEDIATE_EXTENSION})
     else()
         set(EXE_NAME ${LINK_NAME})
     endif()

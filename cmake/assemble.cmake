@@ -7,7 +7,7 @@ function(assemble_and_copy_bin)
     # -------------------------------------------------------------------------------------------
     # Compile and copy binary files to destinations
     # -------------------------------------------------------------------------------------------
-    set(INTERMEDIATE_BIN_NANME ${ASSEMBLE_NAME}.in)
+    set(INTERMEDIATE_BIN_NANME ${ASSEMBLE_NAME}.${MOS_INTERMEDIATE_EXTENSION})
     compile_lib(
         NAME ${INTERMEDIATE_BIN_NANME}
         SOURCES ${ASSEMBLE_SOURCES}
