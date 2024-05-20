@@ -58,6 +58,7 @@ if(CMAKE_CROSSCOMPILING)
     add_subdirectory(src/common)
     add_subdirectory(src/kernel)
     add_subdirectory(src/kernel/x86)
+    add_subdirectory(src/userland)
 
     add_custom_target(kernel.flt
         BYPRODUCTS ${MOS_BIN_DIR}/kernel.flt
@@ -70,7 +71,21 @@ if(CMAKE_CROSSCOMPILING)
         COMMAND ${CMAKE_SOURCE_DIR}/create-floppyimg.sh ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
         )
 
-    add_dependencies(mos.flp kernel.flt boot1 boot0)
+    add_dependencies(mos.flp kernel.flt boot1 boot0 proc1.flt mpdemo.flt)
+
+    #---------------------------------------------------------------------------
+    # Runs the image in qemu
+    #---------------------------------------------------------------------------
+    add_custom_target(run
+        DEPENDS mos.flp
+        COMMAND qemu-system-i386 -m 2561k -fda ${MOS_DISKIMAGE_DIR}/mos.flp
+                                      -boot a
+                                      -cpu 486
+                                      -debugcon stdio
+                                      -no-reboot
+                                      -no-shutdown
+                                      -d cpu_reset
+        )
 else()
     message(FATAL_ERROR "Not implemented")
 endif()

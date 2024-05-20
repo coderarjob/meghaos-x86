@@ -27,7 +27,8 @@ sudo mount $IMAGEDIR/mos.flp $DISKTEMPDIR || exit
 echo "    [ Copy files to floppy ]    "
 sudo cp -v $OBJDIR/boot1.flt $DISKTEMPDIR ||exit
 sudo cp -v $OBJDIR/kernel.flt $DISKTEMPDIR ||exit
-#sudo cp -v $OBJDIR/userland/*.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/proc1.flt $DISKTEMPDIR ||exit
+sudo cp -v $OBJDIR/mpdemo.flt $DISKTEMPDIR ||exit
 
 # Unmount the image
 echo "    [ Copy of files done. Unmounting image ]    "
