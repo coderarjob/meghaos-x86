@@ -81,6 +81,17 @@ function(link)
             COMMAND ${CROSS_OBJDIR} -O binary $<TARGET_FILE:${EXE_NAME}> ${OUT_FLAT_FILE}
             )
     endif()
+    # -------------------------------------------------------------------------------------------
+    # Generate listing files
+    # -------------------------------------------------------------------------------------------
+    set(OUTPUT_LIST_FILE "${MOS_LISTS_DIR}/${LINK_NAME}.lst")
+    add_custom_command(
+        TARGET ${EXE_NAME}
+        BYPRODUCTS ${OUTPUT_LIST_FILE}
+        POST_BUILD
+        COMMAND ${CROSS_OBJDUMP} -dSl -M intel $<TARGET_FILE:${EXE_NAME}> > ${OUTPUT_LIST_FILE}
+        COMMENT "Building listing file for ${LINK_NAME}"
+        )
 endfunction()
     
 function(copy_object_file)

@@ -44,6 +44,11 @@ add_custom_target(debug ALL
 #---------------------------------------------------------------------------
 
 if(CMAKE_CROSSCOMPILING)
+    add_custom_target(build-all ALL)
+
+    #---------------------------------------------------------------------------
+    # Build & link kernel and process binaries
+    #---------------------------------------------------------------------------
     add_subdirectory(src/bootloader/x86)
     add_subdirectory(src/common)
     add_subdirectory(src/kernel)
@@ -63,12 +68,16 @@ if(CMAKE_CROSSCOMPILING)
         LINK_LIBRARIES gcc
         )
 
-    add_custom_target(mos.flp ALL
+    #---------------------------------------------------------------------------
+    # Create new floppy image and the copy flat binary files
+    #---------------------------------------------------------------------------
+    add_custom_target(mos.flp
         BYPRODUCTS ${MOS_DISKIMAGE_DIR}/mos.flp
         COMMAND ${CMAKE_SOURCE_DIR}/create-floppyimg.sh ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
         )
 
     add_dependencies(mos.flp kernel.flt boot1.flt boot0.flt proc1.flt mpdemo.flt)
+    add_dependencies(build-all mos.flp)
 
     #---------------------------------------------------------------------------
     # Runs the image in qemu
