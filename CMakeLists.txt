@@ -66,7 +66,7 @@ if(CMAKE_CROSSCOMPILING)
         COMMAND ${CMAKE_SOURCE_DIR}/create-floppyimg.sh ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
         )
 
-    add_dependencies(mos.flp kernel.flt boot1 boot0 proc1.flt mpdemo.flt)
+    add_dependencies(mos.flp kernel.flt boot1.flt boot0.flt proc1.flt mpdemo.flt)
 
     #---------------------------------------------------------------------------
     # Runs the image in qemu

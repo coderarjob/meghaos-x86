@@ -83,4 +83,28 @@ function(link)
     endif()
 endfunction()
     
+function(copy_object_file)
+    set(multiValueArgs)
+    set(options)
+    set(oneValueArgs NAME DEPENDS OUTPUT_DIRECTORY)
+    cmake_parse_arguments(PARSE_ARGV 0 CPOBJ "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    # -------------------------------------------------------------------------------------------
+    # Check validity
+    # -------------------------------------------------------------------------------------------
+    if (NOT CPOBJ_NAME OR NOT CPOBJ_DEPENDS OR NOT CPOBJ_OUTPUT_DIRECTORY)
+        message(FATAL_ERROR "Name and dependency and output directory must be given.")
+    endif()
+
+    # -------------------------------------------------------------------------------------------
+    # Copy the object file produced by the 'Dependency' to the 'output directory'
+    # -------------------------------------------------------------------------------------------
+    set(OUT_FLAT_FILE ${CPOBJ_OUTPUT_DIRECTORY}/${CPOBJ_NAME})
+    add_custom_target(
+        ${CPOBJ_NAME}
+        BYPRODUCTS ${OUT_FLAT_FILE}
+        DEPENDS ${CPOBJ_DEPENDS}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${CPOBJ_DEPENDS}> ${OUT_FLAT_FILE}
+        )
+endfunction()
 
