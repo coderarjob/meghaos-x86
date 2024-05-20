@@ -20,6 +20,7 @@ endif()
 #---------------------------------------------------------------------------
 
 include(cmake/assemble.cmake)
+include(cmake/compile_link.cmake)
 include(cmake/${ARCH}/mosflags.cmake)
 
 set(MOS_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
@@ -41,29 +42,23 @@ add_custom_target(debug ALL
 #---------------------------------------------------------------------------
 
 if(CMAKE_CROSSCOMPILING)
-    #---------------------------------------------------------------------------
-    # This is the top level/parent target for other sub targets for building the
-    # Kernel elf file.
-    #---------------------------------------------------------------------------
-    add_executable(kernel.elf)
-    target_link_libraries(kernel.elf PRIVATE gcc)
-    target_link_options(kernel.elf PRIVATE
-        -T ${MOS_KERNEL_LINKER_SCRIPT_FILE}
-        ${MOS_KERNEL_LINKER_OPTIONS}
-        )
-    set_target_properties(kernel.elf 
-        PROPERTIES LINK_DEPENDS ${MOS_KERNEL_LINKER_SCRIPT_FILE})
-
     add_subdirectory(src/bootloader/x86)
     add_subdirectory(src/common)
     add_subdirectory(src/kernel)
     add_subdirectory(src/kernel/x86)
     add_subdirectory(src/userland)
 
-    add_custom_target(kernel.flt
-        BYPRODUCTS ${MOS_BIN_DIR}/kernel.flt
-        COMMAND ${CROSS_OBJDIR} 
-                -O binary $<TARGET_FILE:kernel.elf> ${MOS_BIN_DIR}/kernel.flt
+    link(
+        FLATEN
+        NAME kernel.flt
+        DEPENDS 
+            common
+            kernel
+            kernel_entry
+            kernel_X86
+        FLAGS ${MOS_KERNEL_LINKER_OPTIONS}
+        LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
+        LINK_LIBRARIES gcc
         )
 
     add_custom_target(mos.flp ALL

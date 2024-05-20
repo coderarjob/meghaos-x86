@@ -7,12 +7,9 @@ set(KERNEL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/salloc.c
     )
 
-add_library(
-    kernel
-    OBJECT
-    ${KERNEL_SOURCES})
-
-target_include_directories(kernel PRIVATE ${MOS_GCC_INCLUDE_DIRS})
-target_compile_options(kernel PRIVATE ${MOS_GCC_FLAGS})
-
-target_sources(kernel.elf PRIVATE $<TARGET_OBJECTS:kernel>)
+compile_lib(
+    NAME kernel
+    SOURCES ${KERNEL_SOURCES}
+    FLAGS ${MOS_GCC_FLAGS}
+    INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
+    )

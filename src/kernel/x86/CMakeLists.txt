@@ -14,23 +14,16 @@ set(KERNEL_X86_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/vgadisp.c
     )
 
-add_library(
-    kernel_X86
-    OBJECT
-    ${KERNEL_X86_SOURCES})
-
-target_include_directories(kernel_X86 PRIVATE ${MOS_GCC_INCLUDE_DIRS})
-target_compile_options(kernel_X86 PRIVATE ${MOS_GCC_FLAGS})
-
-add_library(kernel_entry
-    OBJECT
-    ${CMAKE_CURRENT_SOURCE_DIR}/entry.s
+compile_lib(
+    NAME kernel_X86
+    SOURCES ${KERNEL_X86_SOURCES}
+    FLAGS ${MOS_GCC_FLAGS}
+    INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
     )
 
-target_include_directories(kernel_entry PRIVATE ${MOS_ASM_INCLUDE_DIRS})
-target_compile_options(kernel_entry PRIVATE -O0 -f elf)
-
-target_sources(kernel.elf PRIVATE 
-    $<TARGET_OBJECTS:kernel_X86>
-    $<TARGET_OBJECTS:kernel_entry>
+compile_lib(
+    NAME kernel_entry
+    SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/entry.s
+    FLAGS -O0 -f elf
+    INCLUDE_DIRECTORIES ${MOS_ASM_INCLUDE_DIRS}
     )
