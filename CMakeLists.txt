@@ -95,5 +95,10 @@ if(CMAKE_CROSSCOMPILING)
                                       -d cpu_reset
         )
 else()
-    message(FATAL_ERROR "Not implemented")
+    include(cmake/${ARCH}/unittestflags.cmake)
+
+    add_custom_target(build-all ALL)
+
+    add_subdirectory(src/unittests)
+    add_subdirectory(src/unittests/x86)
 endif()

@@ -27,7 +27,7 @@ endfunction()
 function(link)
     set(oneValueArgs NAME)
     set(multiValueArgs DEPENDS FLAGS LINKER_FILE LINK_LIBRARIES)
-    set(options FLATEN)
+    set(options FLATEN NO_LIST)
     cmake_parse_arguments(PARSE_ARGV 0 LINK "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     # -------------------------------------------------------------------------------------------
@@ -84,14 +84,16 @@ function(link)
     # -------------------------------------------------------------------------------------------
     # Generate listing files
     # -------------------------------------------------------------------------------------------
-    set(OUTPUT_LIST_FILE "${MOS_LISTS_DIR}/${LINK_NAME}.lst")
-    add_custom_command(
-        TARGET ${EXE_NAME}
-        BYPRODUCTS ${OUTPUT_LIST_FILE}
-        POST_BUILD
-        COMMAND ${CROSS_OBJDUMP} -dSl -M intel $<TARGET_FILE:${EXE_NAME}> > ${OUTPUT_LIST_FILE}
-        COMMENT "Building listing file for ${LINK_NAME}"
-        )
+    if (NOT LINK_NO_LIST)
+        set(OUTPUT_LIST_FILE "${MOS_LISTS_DIR}/${LINK_NAME}.lst")
+        add_custom_command(
+            TARGET ${EXE_NAME}
+            BYPRODUCTS ${OUTPUT_LIST_FILE}
+            POST_BUILD
+            COMMAND ${CROSS_OBJDUMP} -dSl -M intel $<TARGET_FILE:${EXE_NAME}> > ${OUTPUT_LIST_FILE}
+            COMMENT "Building listing file for ${LINK_NAME}"
+            )
+    endif()
 endfunction()
     
 function(copy_object_file)
@@ -117,5 +119,41 @@ function(copy_object_file)
         DEPENDS ${CPOBJ_DEPENDS}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${CPOBJ_DEPENDS}> ${OUT_FLAT_FILE}
         )
+endfunction()
+
+function(test)
+    set(oneValueArgs NAME DEPENDENT_FOR)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES)
+    set(options)
+    cmake_parse_arguments(PARSE_ARGV 0 TEST "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    # -------------------------------------------------------------------------------------------
+    # Check validity
+    # -------------------------------------------------------------------------------------------
+    if (NOT TEST_NAME)
+        message(FATAL_ERROR "Name must be given.")
+    endif()
+
+    # -------------------------------------------------------------------------------------------
+    # Compile and link
+    # -------------------------------------------------------------------------------------------
+    compile_lib(
+        NAME ${TEST_NAME}.co
+        SOURCES ${TEST_SOURCES}
+        FLAGS ${MOS_UNITTESTS_GCC_FLAGS}
+        INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
+        )
+
+    link(
+        NO_LIST
+        NAME ${TEST_NAME}
+        DEPENDS ${TEST_NAME}.co
+        FLAGS ${MOS_UNITEST_LINKER_OPTIONS}
+        LINK_LIBRARIES gcov m
+        )
+
+    if (TEST_DEPENDENT_FOR)
+        add_dependencies(${TEST_DEPENDENT_FOR} ${TEST_NAME})
+    endif()
 endfunction()
 
