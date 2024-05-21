@@ -21,7 +21,7 @@ endif()
 
 include(cmake/assemble.cmake)
 include(cmake/compile_link.cmake)
-include(cmake/${ARCH}/mosflags.cmake)
+include(cmake/${ARCH}/kernelflags.cmake)
 
 set(MOS_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 set(MOS_LISTS_DIR ${CMAKE_BINARY_DIR}/lists)

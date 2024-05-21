@@ -1,4 +1,4 @@
-set(MOS_GCC_WARN_FLAGS
+set(MOS_KERNEL_GCC_WARN_FLAGS
     -Wpedantic
     -Wall
     -Wextra
@@ -7,8 +7,8 @@ set(MOS_GCC_WARN_FLAGS
     -Werror
     )
 
-set(MOS_GCC_FLAGS
-    ${MOS_GCC_WARN_FLAGS}
+set(MOS_KERNEL_GCC_FLAGS
+    ${MOS_KERNEL_GCC_WARN_FLAGS}
     -std=c99
     -nostartfiles
     -ffreestanding
