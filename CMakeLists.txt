@@ -24,15 +24,11 @@ include(cmake/compile_link.cmake)
 
 set(MOS_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR ${CMAKE_BINARY_DIR}/obj)
-set(MOS_LISTS_DIR ${CMAKE_BINARY_DIR}/lists)
-set(MOS_DISKIMAGE_DIR ${CMAKE_BINARY_DIR}/diskimage/${ARCH})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${MOS_OBJ_DIR})
 
 set(MOS_INTERMEDIATE_EXTENSION "in")
 
 file(MAKE_DIRECTORY ${MOS_BIN_DIR})
-file(MAKE_DIRECTORY ${MOS_LISTS_DIR})
-file(MAKE_DIRECTORY ${MOS_DISKIMAGE_DIR})
 
 #---------------------------------------------------------------------------
 # Just for debugging. DELETE THIS WHEN FINAL
@@ -47,6 +43,12 @@ add_custom_target(debug ALL
 if(CMAKE_CROSSCOMPILING)
     include(cmake/${ARCH}/kernelflags.cmake)
 
+    set(MOS_LISTS_DIR ${CMAKE_BINARY_DIR}/lists)
+    set(MOS_DISKIMAGE_DIR ${CMAKE_BINARY_DIR}/diskimage/${ARCH})
+    file(MAKE_DIRECTORY ${MOS_LISTS_DIR})
+    file(MAKE_DIRECTORY ${MOS_DISKIMAGE_DIR})
+
+    #---------------------------------------------------------------------------
     add_custom_target(build-all ALL)
     add_dependencies(build-all kernel.flt boot1.flt boot0.flt proc1.flt mpdemo.flt)
 
@@ -56,7 +58,7 @@ if(CMAKE_CROSSCOMPILING)
     add_subdirectory(src/bootloader/x86)
     add_subdirectory(src/common)
     add_subdirectory(src/kernel)
-    add_subdirectory(src/kernel/x86)
+    add_subdirectory(src/kernel/${ARCH})
     add_subdirectory(src/userland)
 
     link(
