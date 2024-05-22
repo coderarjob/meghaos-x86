@@ -18,6 +18,11 @@ if (CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "MOS_BUILD_MODE should be used to setup build mode.")
 endif()
 #---------------------------------------------------------------------------
+# Validate other programs required
+#---------------------------------------------------------------------------
+find_program(CTAGS NAMES ctags)
+find_program(CSCOPE NAMES cscope)
+#---------------------------------------------------------------------------
 
 include(cmake/assemble.cmake)
 include(cmake/compile_link.cmake)
@@ -82,6 +87,27 @@ if(CMAKE_CROSSCOMPILING)
         BYPRODUCTS ${MOS_DISKIMAGE_DIR}/mos.flp
         COMMAND ${CMAKE_SOURCE_DIR}/create-floppyimg.sh ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
         )
+
+    #---------------------------------------------------------------------------
+    # Generate tag files post kernel.flt build
+    #---------------------------------------------------------------------------
+    if (CTAGS AND CSCOPE)
+        add_custom_command(
+            TARGET build-all
+            POST_BUILD
+            BYPRODUCTS ${PROJECT_SOURCE_DIR}/tags
+                       ${PROJECT_SOURCE_DIR}/cscope.out
+            COMMAND ${CTAGS} -R
+                    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/include
+            COMMAND ${CSCOPE} -R -k -b
+                    -I ${PROJECT_SOURCE_DIR}/include
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            COMMENT "Tag file generation"
+            )
+    else()
+        message(WARNING
+            "Tag file will not be created: cscope or ctags was not found in the system.")
+    endif()
 
     #---------------------------------------------------------------------------
     # Runs the image in qemu
