@@ -125,18 +125,18 @@ if [ $LINK_USING_LD -eq 1 ]; then
 
     export LD_OPTIONS="-lgcc"       
     export LD_FLAGS="--nmagic \
-                     --script build/kernel.ld \
+                     --script src/kernel/x86/kernel.ld \
                      -L $LIBPATH/$GCCVER/"
     export LD_FLAGS_USERLAND="--nmagic \
-                              --script build/process.ld \
+                              --script src/kernel/x86/process.ld \
                               -L $LIBPATH/$GCCVER/"
     export LD_KERNEL="i686-elf-ld"
 else
      export LD_OPTIONS="-ffreestanding \
                        -nostdlib \
                        -lgcc"
-     export LD_FLAGS="-T build/kernel.ld"
-     export LD_FLAGS_USERLAND="-T build/process.ld"
+     export LD_FLAGS="-T src/kernel/x86/kernel.ld"
+     export LD_FLAGS_USERLAND="-T src/kernel/x86/process.ld"
      export LD_KERNEL="$GCC32"
 fi
 
