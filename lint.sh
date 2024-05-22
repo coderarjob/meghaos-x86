@@ -8,9 +8,10 @@ if [ ! -e "$LINTPATH" ]; then
     exit 1
 fi
 
-EXTRAARGS=$@
+OUTFILE=$1
 
-cppcheck --language=c \
+cppcheck --output-file="$OUTFILE" \
+         --language=c \
          --enable=warning,performance,portability,style \
          --template=gcc \
          --std=c99 \
@@ -18,5 +19,7 @@ cppcheck --language=c \
          --quiet \
          --platform=unix32 \
          -I include \
-         $EXTRAARGS \
+         -D__i386__ \
+         -DDEBUG \
+         -DEBUG_LEVEL=3 \
          src/common src/kernel/ || exit

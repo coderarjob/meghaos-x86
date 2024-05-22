@@ -27,13 +27,15 @@ find_program(CSCOPE NAMES cscope)
 include(cmake/assemble.cmake)
 include(cmake/compile_link.cmake)
 
+set(MOS_INTERMEDIATE_EXTENSION "in")
+
 set(MOS_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR ${CMAKE_BINARY_DIR}/obj)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${MOS_OBJ_DIR})
-
-set(MOS_INTERMEDIATE_EXTENSION "in")
+set(MOS_REPOSTS_DIR ${CMAKE_BINARY_DIR}/reports)
 
 file(MAKE_DIRECTORY ${MOS_BIN_DIR})
+file(MAKE_DIRECTORY ${MOS_REPOSTS_DIR})
 
 #---------------------------------------------------------------------------
 # Just for debugging. DELETE THIS WHEN FINAL
@@ -108,6 +110,16 @@ if(CMAKE_CROSSCOMPILING)
         message(WARNING
             "Tag file will not be created: cscope or ctags was not found in the system.")
     endif()
+
+    #---------------------------------------------------------------------------
+    # Runs linter script
+    #---------------------------------------------------------------------------
+    set(MOS_LINT_REPORT_FILE ${MOS_REPOSTS_DIR}/lintreport.txt)
+    add_custom_target(lintreport
+        BYPRODUCTS ${MOS_LINT_REPORT_FILE}
+        COMMAND ${PROJECT_SOURCE_DIR}/lint.sh ${MOS_LINT_REPORT_FILE}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
 
     #---------------------------------------------------------------------------
     # Runs the image in qemu
