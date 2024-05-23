@@ -210,7 +210,7 @@ rm -f -r $DISKTEMPDIR || exit
 # ---------------------------------------------------------------------------
 
 echo "    [ Running linting tool ]"
-./lint.sh "$REPORTSDIR/lint_report.txt" 2>&1 || exit
+./scripts/lint.sh "$REPORTSDIR/lint_report.txt" 2>&1 || exit
 
 echo "    [ Report: Warning count ]"
 WARNCOUNT_LINT=`grep -c -r "warning:" build/reports/lint_report.txt`

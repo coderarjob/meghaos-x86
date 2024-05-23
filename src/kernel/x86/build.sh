@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds Kernel (Platform dependent parts:  x86 architecture)
 
-source functions.sh
+source scripts/functions.sh
 
 # Build the x86 part Kernel
 echo "    [ Compilling x86 Kernel ]    "

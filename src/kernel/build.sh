@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds Kernel (Platform independent parts)
 
-source functions.sh
+source scripts/functions.sh
 
 # Build the Platform dependent Kernel
 bash src/kernel/x86/build.sh || exit

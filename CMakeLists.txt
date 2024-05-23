@@ -55,6 +55,9 @@ if(CMAKE_CROSSCOMPILING)
     file(MAKE_DIRECTORY ${MOS_LISTS_DIR})
     file(MAKE_DIRECTORY ${MOS_DISKIMAGE_DIR})
 
+    set(CREATE_FLOPPY_IMAGE_SCRIPT_PATH ${PROJECT_SOURCE_DIR}/scripts/create-floppyimg.sh)
+    set(LINTER_SCRIPT_PATH ${PROJECT_SOURCE_DIR}/scripts/lint.sh)
+
     #---------------------------------------------------------------------------
     add_custom_target(build-all ALL)
     add_dependencies(build-all kernel.flt boot1.flt boot0.flt proc1.flt mpdemo.flt)
@@ -87,7 +90,7 @@ if(CMAKE_CROSSCOMPILING)
     add_custom_target(mos.flp
         DEPENDS build-all
         BYPRODUCTS ${MOS_DISKIMAGE_DIR}/mos.flp
-        COMMAND ${CMAKE_SOURCE_DIR}/create-floppyimg.sh ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
+        COMMAND ${CREATE_FLOPPY_IMAGE_SCRIPT_PATH} ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
         )
 
     #---------------------------------------------------------------------------
@@ -117,7 +120,7 @@ if(CMAKE_CROSSCOMPILING)
     set(MOS_LINT_REPORT_FILE ${MOS_REPOSTS_DIR}/lintreport.txt)
     add_custom_target(lintreport
         BYPRODUCTS ${MOS_LINT_REPORT_FILE}
-        COMMAND ${PROJECT_SOURCE_DIR}/lint.sh ${MOS_LINT_REPORT_FILE}
+        COMMAND ${LINTER_SCRIPT_PATH} ${MOS_LINT_REPORT_FILE}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         )
 

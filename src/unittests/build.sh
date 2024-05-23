@@ -9,7 +9,7 @@
 # using a separate script specific for that architecture.
 # ---------------------------------------------------------------------------
 
-source functions.sh
+source scripts/functions.sh
 source src/mock/build-${ARCH}.sh
 source src/unittests/$ARCH/build.sh
 

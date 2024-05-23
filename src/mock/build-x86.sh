@@ -5,7 +5,7 @@
 # specific mock files of a particular test.
 # ---------------------------------------------------------------------------
 
-source functions.sh
+source scripts/functions.sh
 
 # ----------------------------------------------------------------------------
 # add_mock_source
