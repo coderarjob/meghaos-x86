@@ -55,8 +55,10 @@ if(CMAKE_CROSSCOMPILING)
     file(MAKE_DIRECTORY ${MOS_LISTS_DIR})
     file(MAKE_DIRECTORY ${MOS_DISKIMAGE_DIR})
 
-    set(CREATE_FLOPPY_IMAGE_SCRIPT_PATH ${PROJECT_SOURCE_DIR}/scripts/create-floppyimg.sh)
-    set(LINTER_SCRIPT_PATH ${PROJECT_SOURCE_DIR}/scripts/lint.sh)
+    set(CREATE_FLOPPY_IMAGE_SCRIPT_PATH scripts/create-floppyimg.sh)
+    set(LINTER_SCRIPT_PATH              scripts/lint.sh)
+    set(INVOKEPROG_SCRIPT_PATH          scripts/invokeprog.sh)
+    set(RUN_SCRIPT_PATH                 scripts/run.sh)
 
     #---------------------------------------------------------------------------
     add_custom_target(build-all ALL)
@@ -91,6 +93,7 @@ if(CMAKE_CROSSCOMPILING)
         DEPENDS build-all
         BYPRODUCTS ${MOS_DISKIMAGE_DIR}/mos.flp
         COMMAND ${CREATE_FLOPPY_IMAGE_SCRIPT_PATH} ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         )
 
     #---------------------------------------------------------------------------
@@ -127,15 +130,16 @@ if(CMAKE_CROSSCOMPILING)
     #---------------------------------------------------------------------------
     # Runs the image in qemu
     #---------------------------------------------------------------------------
+    set(EMU_REPORTS_FILE ${MOS_REPOSTS_DIR}/qemulog.txt)
     add_custom_target(run
         DEPENDS mos.flp
-        COMMAND qemu-system-i386 -m 2561k -fda ${MOS_DISKIMAGE_DIR}/mos.flp
-                                      -boot a
-                                      -cpu 486
-                                      -debugcon stdio
-                                      -no-reboot
-                                      -no-shutdown
-                                      -d cpu_reset
+        BYPRODUCTS ${EMU_REPORTS_FILE}
+        COMMAND ${INVOKEPROG_SCRIPT_PATH} ${RUN_SCRIPT_PATH}
+                --img ${MOS_DISKIMAGE_DIR}/mos.flp
+                --report-out ${EMU_REPORTS_FILE}
+                --  # This -- makes ARGS assignments simpler. Otherwise `--` need to be in ARGS env
+                    # variable. For example `make ARGS="-- -S -s" run`.
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         )
 else()
     include(cmake/${ARCH}/unittestflags.cmake)
