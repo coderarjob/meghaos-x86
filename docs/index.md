@@ -6,6 +6,7 @@
 ### TODO
 - [TODO](notes/TODO.md)
 - [Scratch](notes/Scratch.md)
+- [BUGS](notes/BUGS.md)
 
 ### Guidelines Docs
 - [MeghaOS code style](notes/coding_style.md#MeghaOS-code-style)
@@ -63,6 +64,7 @@
 - [How to use page tables to map Virtual Addresses to Physical Addresses?](notes/paging.md#How-to-use-page-tables-to-map-Virtual-Addresses-to-Physical-Addresses)
 - [Notes: Why not preallocate the whole 256 MB? ](notes/paging.md#Notes:-Why-not-preallocate-the-whole-256-MB-)
 - [Recursive mapping and temporary mapping in Kernel](notes/recursive_map_clarity_with_example.md#Recursive-mapping-and-temporary-mapping-in-Kernel)
+- [notes/Scratch.md-### Temporary: Rule to generate ctags and cscope files from camke](notes/Scratch.md#notes/Scratch.md-###-Temporary:-Rule-to-generate-ctags-and-cscope-files-from-camke)
 - [Keeping track of Virtual pages using Bitmap](notes/Scratch.md#Keeping-track-of-Virtual-pages-using-Bitmap)
 - [System call frame](notes/Scratch.md#System-call-frame)
 - [Round-robin operation using queue](notes/Scratch.md#Round-robin-operation-using-queue)
