@@ -18,11 +18,6 @@ if (CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "MOS_BUILD_MODE should be used to setup build mode.")
 endif()
 #---------------------------------------------------------------------------
-# Validate other programs required
-#---------------------------------------------------------------------------
-find_program(CTAGS NAMES ctags)
-find_program(CSCOPE NAMES cscope)
-#---------------------------------------------------------------------------
 
 include(cmake/assemble.cmake)
 include(cmake/compile_link.cmake)
@@ -36,6 +31,10 @@ set(MOS_REPOSTS_DIR ${CMAKE_BINARY_DIR}/reports)
 
 file(MAKE_DIRECTORY ${MOS_BIN_DIR})
 file(MAKE_DIRECTORY ${MOS_REPOSTS_DIR})
+
+set(INVOKEPROG_SCRIPT_PATH scripts/invokeprog.sh)
+set(RUN_SCRIPT_PATH        scripts/run.sh)
+set(POST_BULD_SCRIPT_PATH  scripts/postbuild.sh)
 
 #---------------------------------------------------------------------------
 # Just for debugging. DELETE THIS WHEN FINAL
@@ -57,8 +56,6 @@ if(CMAKE_CROSSCOMPILING)
 
     set(CREATE_FLOPPY_IMAGE_SCRIPT_PATH scripts/create-floppyimg.sh)
     set(LINTER_SCRIPT_PATH              scripts/lint.sh)
-    set(INVOKEPROG_SCRIPT_PATH          scripts/invokeprog.sh)
-    set(RUN_SCRIPT_PATH                 scripts/run.sh)
 
     #---------------------------------------------------------------------------
     add_custom_target(build-all ALL)
@@ -99,23 +96,15 @@ if(CMAKE_CROSSCOMPILING)
     #---------------------------------------------------------------------------
     # Generate tag files post kernel.flt build
     #---------------------------------------------------------------------------
-    if (CTAGS AND CSCOPE)
-        add_custom_command(
-            TARGET build-all
-            POST_BUILD
-            BYPRODUCTS ${PROJECT_SOURCE_DIR}/tags
-                       ${PROJECT_SOURCE_DIR}/cscope.out
-            COMMAND ${CTAGS} -R
-                    ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/include
-            COMMAND ${CSCOPE} -R -k -b
-                    -I ${PROJECT_SOURCE_DIR}/include
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-            COMMENT "Tag file generation"
-            )
-    else()
-        message(WARNING
-            "Tag file will not be created: cscope or ctags was not found in the system.")
-    endif()
+    add_custom_command(
+        TARGET build-all
+        POST_BUILD
+        BYPRODUCTS ${PROJECT_SOURCE_DIR}/tags
+                   ${PROJECT_SOURCE_DIR}/cscope.out
+        COMMAND ${POST_BULD_SCRIPT_PATH}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Tag file generation"
+        )
 
     #---------------------------------------------------------------------------
     # Runs linter script
