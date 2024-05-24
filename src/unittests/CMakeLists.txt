@@ -2,7 +2,7 @@
 include(${PROJECT_SOURCE_DIR}/src/mock/mockfortests_${ARCH}.cmake)
 
 test(
-    NAME c99_conformance
+    NAME c99_conformance_test
     DEPENDENT_FOR build-all
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/c99_conformance_test.c
@@ -10,7 +10,7 @@ test(
     )
 
 test(
-    NAME kstdlib
+    NAME kstdlib_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/kstdlib.c
@@ -19,7 +19,7 @@ test(
     )
 
 test(
-    NAME printk
+    NAME printk_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/printk.c
@@ -30,7 +30,7 @@ test(
     )
 
 test(
-    NAME bitmap
+    NAME bitmap_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/common/bitmap.c
@@ -40,7 +40,7 @@ test(
     )
 
 test(
-    NAME utils
+    NAME utils_test
     DEPENDENT_FOR build-all
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/utils_test.c
@@ -48,7 +48,7 @@ test(
     )
 
 test(
-    NAME paging
+    NAME paging_test
     DEPENDENT_FOR build-all
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/paging_test.c
@@ -56,7 +56,7 @@ test(
     )
 
 test(
-    NAME intrusive_list
+    NAME intrusive_list_test
     DEPENDENT_FOR build-all
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/intrusive_list_test.c
@@ -64,7 +64,7 @@ test(
     )
 
 test(
-    NAME intrusive_queue
+    NAME intrusive_queue_test
     DEPENDENT_FOR build-all
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/intrusive_queue_test.c
@@ -72,7 +72,7 @@ test(
     )
 
 test(
-    NAME pmm
+    NAME pmm_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/pmm.c
@@ -84,7 +84,7 @@ test(
     )
 
 test(
-    NAME kmalloc
+    NAME kmalloc_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/kmalloc.c
@@ -95,7 +95,7 @@ test(
     )
 
 test(
-    NAME salloc
+    NAME salloc_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/salloc.c

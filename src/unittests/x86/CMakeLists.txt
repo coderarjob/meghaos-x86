@@ -1,6 +1,6 @@
 
 test(
-    NAME pmm_x86
+    NAME pmm_x86_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/x86/pmm.c
@@ -15,7 +15,7 @@ test(
     )
 
 test(
-    NAME paging_x86
+    NAME paging_x86_test
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/x86/paging.c
