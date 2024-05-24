@@ -25,11 +25,15 @@ run_test_by_name()
 # Prints usage and exits
 function fatal()
 {
-    USAGE="\n$0 operates in these two modes:"
-    USAGE+="\nQEMU:\t\t -img=<path to image> -report-out=<report file path> "
-    USAGE+="-- <args to qemu>."
-    USAGE+="\nUNITTEST:\t -test-dir=<path to test bins > [-name=<test name>].\n"
-    USAGE+="Only runs [test name] if provided."
+    USAGE="\nRuns either the MOS diskimage or one or all unittests.\n"
+    USAGE+="Usage:\n"
+    USAGE+="* To run disk image in qemu:\n"
+    USAGE+="\t$0 -img=<path to image> -report-out=<report file path> "
+    USAGE+="[-- <args to qemu>] "
+
+    USAGE+="\n* To run one or all unittests:\n"
+    USAGE+="\t$0 -test-dir=<path to test bins > [-name=<test name>]."
+    USAGE+="\n\tOnly runs [test name] if provided."
 
     echo -e $USAGE
     exit 1

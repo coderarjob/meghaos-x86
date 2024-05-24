@@ -24,17 +24,17 @@ include(cmake/compile_link.cmake)
 
 set(MOS_INTERMEDIATE_EXTENSION "in")
 
-set(MOS_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
-set(MOS_OBJ_DIR ${CMAKE_BINARY_DIR}/obj)
+set(MOS_BIN_DIR                    ${CMAKE_BINARY_DIR}/bin)
+set(MOS_OBJ_DIR                    ${CMAKE_BINARY_DIR}/obj)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${MOS_OBJ_DIR})
-set(MOS_REPOSTS_DIR ${CMAKE_BINARY_DIR}/reports)
+set(MOS_REPOSTS_DIR                ${CMAKE_BINARY_DIR}/reports)
 
 file(MAKE_DIRECTORY ${MOS_BIN_DIR})
 file(MAKE_DIRECTORY ${MOS_REPOSTS_DIR})
 
 set(INVOKEPROG_SCRIPT_PATH scripts/invokeprog.sh)
 set(RUN_SCRIPT_PATH        scripts/run.sh)
-set(POST_BUILD_SCRIPT_PATH  scripts/postbuild.sh)
+set(POST_BUILD_SCRIPT_PATH scripts/postbuild.sh)
 
 #---------------------------------------------------------------------------
 # Just for debugging. DELETE THIS WHEN FINAL
@@ -49,10 +49,10 @@ add_custom_target(debug ALL
 if(CMAKE_CROSSCOMPILING)
     include(cmake/${ARCH}/kernelflags.cmake)
 
-    set(MOS_LISTS_DIR ${CMAKE_BINARY_DIR}/lists)
+    set(MOS_LISTS_DIR     ${CMAKE_BINARY_DIR}/lists)
     set(MOS_DISKIMAGE_DIR ${CMAKE_BINARY_DIR}/diskimage/${ARCH})
-    file(MAKE_DIRECTORY ${MOS_LISTS_DIR})
-    file(MAKE_DIRECTORY ${MOS_DISKIMAGE_DIR})
+    file(MAKE_DIRECTORY   ${MOS_LISTS_DIR})
+    file(MAKE_DIRECTORY   ${MOS_DISKIMAGE_DIR})
 
     set(CREATE_FLOPPY_IMAGE_SCRIPT_PATH scripts/create-floppyimg.sh)
     set(LINTER_SCRIPT_PATH              scripts/lint.sh)
