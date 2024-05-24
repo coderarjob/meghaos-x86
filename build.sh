@@ -233,7 +233,7 @@ if [ ! -e "$LCOV_AVAILABLE" ] || [ ! -e "$GENHTML_AVAILABLE" ]; then
     echo "Cannot find lcov and genhtml. Skipping report generation."
 else
     ./run.sh unittests > /dev/null 2>&1
-    lcov --capture --directory . \
+    lcov --capture --directory ./build \
          -rc lcov_branch_coverage=1 \
          --output-file build/coverage/capture.data > /dev/null  || exit
     genhtml build/coverage/capture.data \
