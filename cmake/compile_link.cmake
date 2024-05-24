@@ -86,7 +86,7 @@ function(link)
         add_custom_target(
             ${LINK_NAME}
             BYPRODUCTS ${OUT_FLAT_FILE}
-            COMMAND ${CROSS_OBJDIR} -O binary $<TARGET_FILE:${EXE_NAME}> ${OUT_FLAT_FILE}
+            COMMAND ${CROSS_OBJCOPY} -O binary $<TARGET_FILE:${EXE_NAME}> ${OUT_FLAT_FILE}
             )
     endif()
     # -------------------------------------------------------------------------------------------

@@ -42,7 +42,6 @@ set(POST_BUILD_SCRIPT_PATH scripts/postbuild.sh)
 add_custom_target(debug ALL
     COMMAND ${CMAKE_COMMAND} -E echo "MOS_BUILD_MODE: ${MOS_BUILD_MODE}"
     COMMAND ${CMAKE_COMMAND} -E echo "MOS_DEBUG_LEVEL: ${MOS_DEBUG_LEVEL}"
-    COMMAND ${CMAKE_COMMAND} -E echo "MODE: $ENV{MODE}"
     )
 #---------------------------------------------------------------------------
 
@@ -146,7 +145,6 @@ else()
     #---------------------------------------------------------------------------
     # Generage unittest coverage report
     #---------------------------------------------------------------------------
-
     add_custom_target(gen-cov
         DEPENDS build-all
         BYPRODUCTS ${MOS_COV_DIR}
@@ -164,7 +162,6 @@ else()
     # Run every test using `make run`
     # Run single test using `make ARGS="--name <test bin name>" run`
     #---------------------------------------------------------------------------
-    set(EMU_REPORTS_FILE ${MOS_REPOSTS_DIR}/qemulog.txt)
     add_custom_target(run
         DEPENDS build-all
         BYPRODUCTS ${EMU_REPORTS_FILE}
