@@ -34,7 +34,7 @@ file(MAKE_DIRECTORY ${MOS_REPOSTS_DIR})
 
 set(INVOKEPROG_SCRIPT_PATH scripts/invokeprog.sh)
 set(RUN_SCRIPT_PATH        scripts/run.sh)
-set(POST_BULD_SCRIPT_PATH  scripts/postbuild.sh)
+set(POST_BUILD_SCRIPT_PATH  scripts/postbuild.sh)
 
 #---------------------------------------------------------------------------
 # Just for debugging. DELETE THIS WHEN FINAL
@@ -101,7 +101,7 @@ if(CMAKE_CROSSCOMPILING)
         POST_BUILD
         BYPRODUCTS ${PROJECT_SOURCE_DIR}/tags
                    ${PROJECT_SOURCE_DIR}/cscope.out
-        COMMAND ${POST_BULD_SCRIPT_PATH}
+        COMMAND ${POST_BUILD_SCRIPT_PATH}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Tag file generation"
         )
@@ -118,6 +118,8 @@ if(CMAKE_CROSSCOMPILING)
 
     #---------------------------------------------------------------------------
     # Runs the image in qemu
+    # Run disk image using `make run`
+    # Run disk image with arguments example: `make ARGS="-S -s" run`
     #---------------------------------------------------------------------------
     set(EMU_REPORTS_FILE ${MOS_REPOSTS_DIR}/qemulog.txt)
     add_custom_target(run
@@ -133,8 +135,41 @@ if(CMAKE_CROSSCOMPILING)
 else()
     include(cmake/${ARCH}/unittestflags.cmake)
 
-    add_custom_target(build-all ALL)
+    #---------------------------------------------------------------------------
+    set(MOS_COV_DIR ${MOS_REPOSTS_DIR}/coverage)
+    #---------------------------------------------------------------------------
 
+    add_custom_target(build-all ALL)
     add_subdirectory(src/unittests)
     add_subdirectory(src/unittests/x86)
+
+    #---------------------------------------------------------------------------
+    # Generage unittest coverage report
+    #---------------------------------------------------------------------------
+
+    add_custom_target(gen-cov
+        DEPENDS build-all
+        BYPRODUCTS ${MOS_COV_DIR}
+        # Creation of directory is required because the same is also the BYPRODUCT, which will be
+        # removed after `make clean`. `file(MAKE_DIRECTORY ..)` which works at generation time so
+        # will not create the directory at build time.
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${MOS_COV_DIR}
+        COMMAND ${POST_BUILD_SCRIPT_PATH}
+                --tests-dir=${MOS_BIN_DIR}
+                --cov-dir=${MOS_COV_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
+    #---------------------------------------------------------------------------
+    # Runs all unittest or a particular one
+    # Run every test using `make run`
+    # Run single test using `make ARGS="--name <test bin name>" run`
+    #---------------------------------------------------------------------------
+    set(EMU_REPORTS_FILE ${MOS_REPOSTS_DIR}/qemulog.txt)
+    add_custom_target(run
+        DEPENDS build-all
+        BYPRODUCTS ${EMU_REPORTS_FILE}
+        COMMAND ${INVOKEPROG_SCRIPT_PATH} ${RUN_SCRIPT_PATH}
+                --tests-dir ${MOS_BIN_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
 endif()
