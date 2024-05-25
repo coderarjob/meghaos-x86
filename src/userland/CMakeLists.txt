@@ -9,7 +9,7 @@ compile_lib(
     )
 
 link(
-    FLATEN
+    FLATTEN
     NAME proc1.flt
     DEPENDS proc1
     FLAGS ${MOS_KERNEL_LINKER_OPTIONS}
@@ -27,7 +27,7 @@ compile_lib(
     )
 
 link(
-    FLATEN
+    FLATTEN
     NAME mpdemo.flt
     DEPENDS mpdemo
     FLAGS ${MOS_KERNEL_LINKER_OPTIONS}

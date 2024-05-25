@@ -78,7 +78,7 @@ endfunction()
 function(link)
     set(oneValueArgs NAME)
     set(multiValueArgs DEPENDS FLAGS LINKER_FILE LINK_LIBRARIES)
-    set(options FLATEN NO_LIST)
+    set(options FLATTEN NO_LIST)
     cmake_parse_arguments(PARSE_ARGV 0 LINK "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     # -------------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ function(link)
     # -------------------------------------------------------------------------------------------
     # Link to form an ELF object binary
     # -------------------------------------------------------------------------------------------
-    if (LINK_FLATEN)
+    if (LINK_FLATTEN)
         # When FLATTEN option is set, then the linked executabled is an intermediate the flattened
         # binary is the final. That is the reason for the '.in' suffix - standing for intermediate.
         set(INTERMEDIATE_EXTENSION "in")
@@ -107,7 +107,7 @@ function(link)
 
     add_executable(${EXE_NAME} EXCLUDE_FROM_ALL)
 
-    if (NOT LINK_FLATEN)
+    if (NOT LINK_FLATTEN)
         # The final binary should be in the ${MOS_BIN_DIR} directory. In case of non-flat binaries
         # the output from add_executable() is final and thus should be placed in the ${MOS_BIN_DIR}.
         set_target_properties(${EXE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${MOS_BIN_DIR})
@@ -127,11 +127,11 @@ function(link)
         target_link_libraries(${EXE_NAME} PRIVATE ${LINK_LINK_LIBRARIES})
     endif()
     # -------------------------------------------------------------------------------------------
-    # Flaten ELF binary is 'FLATEN' option is ON
+    # Flatten ELF binary is 'FLATTEN' option is ON
     # -------------------------------------------------------------------------------------------
     # Note: Due to use of TARGET_FILE gen expression, the dependency between <LINK_NAME> and 
     # <EXE_NAME> targets is added automatically.
-    if (LINK_FLATEN)
+    if (LINK_FLATTEN)
         # The final binary should be in the ${MOS_BIN_DIR} directory. In case of flat binaries the
         # output from objdump should go to ${MOS_BIN_DIR} directory.
         set(OUT_FLAT_FILE ${MOS_BIN_DIR}/${LINK_NAME})

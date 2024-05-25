@@ -69,7 +69,7 @@ if(CMAKE_CROSSCOMPILING)
     add_subdirectory(src/userland)
 
     link(
-        FLATEN
+        FLATTEN
         NAME kernel.flt
         DEPENDS 
             common
