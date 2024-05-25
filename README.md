@@ -51,36 +51,86 @@ The end product will be ready for a programmer but not for general use.
 ### Prerequisites
 
 1. Requires Linux environment. May also be possible on WSL.
-1. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
+2. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
    Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Add the installation 
    path to the $PATH variable.
-2. nasm assembler version 2.15.05 or higher.
+3. nasm assembler version 2.15.05 or higher.
+4. Cmake 3.10
 
-### Prerequisites: Unittests
+### Building
+
+Generate the build system and then run the build system:
+
+```
+# DEBUG mode build
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DMOS_BUILD_MODE=DEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
+
+# NDEBUG mode build
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DMOS_BUILD_MODE=NDEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
+$ cd build-os
+$ make
+```
+
+### Running
+
+To run the diskimage in Qemu use the following command:
+```
+$ cd build-os
+
+# Asuming your build system is `make`
+$ make run
+
+# Run diskimage in Qemu with arguments
+$ make ARGS="<qemu arguments> run
+```
+## Building Unittests
+
+### Prerequisites:
 
 1. gcc and binutils 8.3 or higher.
 2. gcc-multilib if host computer processor is anything other than x86.
+3. Cmake 3.10
 
 ### Prerequisites: Code coverage report
 
 1. gcc and gcov library 8.3 or higher.
 2. lcov and genhtml package.
 
-After the perquisites are met, just run `./build.sh`. This will build the floppy image,
-the unittests and code coverage report.
+### Building
 
-## Running on host computer.
+Build unittests using the following command:
+```
+$ cmake -DMOS_DEBUG_LEVEL="3" -DARCH="x86" -B build-ut
+$ cd build-ut
+$ make
+```
 
-To run the OS natively on a x86 or a86_64 machine, flash a pendrive with the floppy image and boot
-from it.
+### Running
 
-You can also run it on an emulator like Qemu or VirtualBox.  If you have Qemu, just run `./run.sh`.
+To run unittests or any specific test use the following command:
+```
+$ cd build-ut
 
-To run the unittests run `./run.sh unittests`.
+# Asuming your build system is `make`
+# Run every unittests
+$ make run
 
-## Code coverage report
+# Run specific test
+$ make ARGS="--name <test name> run
 
-You will find the report in `build/coverage/report/index.html`.
+```
+Coverage report for the unittests can be do this way:
+
+```
+$ cd build-ut
+
+# Asuming your build system is `make`
+$ make gen-cov
+```
+
+You will find the report in `build-ut/reports/coverage/report/index.html`.
 
 ## Development Specifics
 
