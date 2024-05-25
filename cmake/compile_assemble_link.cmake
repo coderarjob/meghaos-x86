@@ -1,3 +1,12 @@
+# ==================================================================================================
+# compile_lib (NAME name
+#              SOURCES <source> [<source> ...]
+#              [FLAGS <flag> ...]
+#              [INCLUDE_DIRECTORIES <paths> ...])
+#
+# Creates object files for the sources provided. The object files can be accessed later using the
+# generator expression $<TARGET_OBJECTS:name>.
+# ==================================================================================================
 function(compile_lib)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES FLAGS INCLUDE_DIRECTORIES)
@@ -24,6 +33,48 @@ function(compile_lib)
     target_compile_options(${COMPILE_NAME} PRIVATE ${COMPILE_FLAGS})
 endfunction()
 
+# ==================================================================================================
+# link (NAME name
+#       DEPENDS <target> [<target> ...]
+#       [FLAGS <linker flags>]
+#       [LINKER_FILE <path to link script>]
+#       [LINK_LIBRARIES <libraries to link>]
+#       [FLATTEN]
+#       [NO_LIST])
+#
+# Links object files associated with the dependencies and produces a single binary (flattened or
+# not) in MOS_BIN_DIR directory. Also produces listing file in MOS_LISTS_DIR unless NO_LIST option
+# is given.
+#
+# NAME
+# Target name associated with the final binary produced. If FLATTEN option is given then  produces
+# two targets:
+# 1. <name>.in - For the `add_executable` which produces the linked ELF binary. However as it is
+#                not the final file the target of this is appended with `.in`.
+# 2. <name>    - For the custom target producing the final flat binary.
+#
+# If FLATTEN option is not given then there is only one target:
+# 1. <name>    - For the `add_executable` which produces the linked ELF executable.
+#
+# DEPENDS
+# Names from `compile_lib` which this depends on.
+#
+# FLAGS
+# Linker flags
+#
+# LINK_LIBRARIES
+# List of external libraries which this depends on.
+#
+# LINKER_FILE
+# Path to linker file. If provided `-T` option will be added to the FLAGS and the file will be added
+# as dependency for the `add_executable` target.
+#
+# FLATTEN
+# Produces flat binaries in MOS_BIN_DIR, using the linked ELF binary.
+#
+# NO_LIST
+# Does not produce listing files.
+# ==================================================================================================
 function(link)
     set(oneValueArgs NAME)
     set(multiValueArgs DEPENDS FLAGS LINKER_FILE LINK_LIBRARIES)
@@ -48,7 +99,8 @@ function(link)
     if (LINK_FLATEN)
         # When FLATTEN option is set, then the linked executabled is an intermediate the flattened
         # binary is the final. That is the reason for the '.in' suffix - standing for intermediate.
-        set(EXE_NAME ${LINK_NAME}.${MOS_INTERMEDIATE_EXTENSION})
+        set(INTERMEDIATE_EXTENSION "in")
+        set(EXE_NAME ${LINK_NAME}.${INTERMEDIATE_EXTENSION})
     else()
         set(EXE_NAME ${LINK_NAME})
     endif()
@@ -104,6 +156,13 @@ function(link)
     endif()
 endfunction()
     
+# ==================================================================================================
+# copy_object_file (NAME name
+#                   DEPENDS <target>
+#                   OUTPUT_DIRECTORY <path where to copy>)
+#
+# Copies object files associated with `compile_lib` dependency to OUTPUT_DIRECTORY directory.
+# ==================================================================================================
 function(copy_object_file)
     set(multiValueArgs)
     set(options)
@@ -129,6 +188,15 @@ function(copy_object_file)
         )
 endfunction()
 
+# ==================================================================================================
+# test (NAME name
+#       [DEPENDENT_FOR target]
+#       [SOURCES <source> [<source> ...]
+#       [INCLUDE_DIRECTORIES <paths> ..])
+#
+# Produces test executable from the source files. Binary files so produced are placed in
+# MOS_BIN_DIR. It is added as a dependency for DEPENDENT_FOR.
+# ==================================================================================================
 function(test)
     set(oneValueArgs NAME DEPENDENT_FOR)
     set(multiValueArgs SOURCES INCLUDE_DIRECTORIES)
@@ -165,6 +233,14 @@ function(test)
     endif()
 endfunction()
 
+# ==================================================================================================
+# assemble_and_copy_bin (NAME name
+#                        SOURCES <source> [<source> ...]
+#                        [FLAGS <assembler flag> ...]
+#                        [INCLUDE_DIRECTORIES <paths> ..])
+#
+# Compiles a assembly files using NASM then copies each object files to MOS_BIN_DIR.
+# ==================================================================================================
 function(assemble_and_copy_bin)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES FLAGS INCLUDE_DIRECTORIES)
@@ -174,7 +250,7 @@ function(assemble_and_copy_bin)
     # -------------------------------------------------------------------------------------------
     # Compile and copy binary files to destinations
     # -------------------------------------------------------------------------------------------
-    set(INTERMEDIATE_BIN_NANME ${ASSEMBLE_NAME}.${MOS_INTERMEDIATE_EXTENSION})
+    set(INTERMEDIATE_BIN_NANME ${ASSEMBLE_NAME}-lib)
     compile_lib(
         NAME ${INTERMEDIATE_BIN_NANME}
         SOURCES ${ASSEMBLE_SOURCES}

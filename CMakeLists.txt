@@ -21,8 +21,6 @@ endif()
 
 include(cmake/compile_assemble_link.cmake)
 
-set(MOS_INTERMEDIATE_EXTENSION "in")
-
 set(MOS_BIN_DIR                    ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR                    ${CMAKE_BINARY_DIR}/obj)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${MOS_OBJ_DIR})
