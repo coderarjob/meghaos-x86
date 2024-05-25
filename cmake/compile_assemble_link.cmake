@@ -16,6 +16,10 @@ function(compile_lib)
     # -------------------------------------------------------------------------------------------
     # Check validity
     # -------------------------------------------------------------------------------------------
+    if (COMPILE_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "Invalid option: ${COMPILE_UNPARSED_ARGUMENTS}")
+    endif()
+
     if (NOT COMPILE_NAME)
         message(FATAL_ERROR "Name must be given.")
     endif()
@@ -84,6 +88,10 @@ function(link)
     # -------------------------------------------------------------------------------------------
     # Check validity
     # -------------------------------------------------------------------------------------------
+    if (LINK_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "Invalid option: ${LINK_UNPARSED_ARGUMENTS}")
+    endif()
+
     if (NOT LINK_NAME)
         message(FATAL_ERROR "Name must be given.")
     endif()
@@ -172,6 +180,10 @@ function(copy_object_file)
     # -------------------------------------------------------------------------------------------
     # Check validity
     # -------------------------------------------------------------------------------------------
+    if (CPOBJ_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "Invalid option: ${CPOBJ_UNPARSED_ARGUMENTS}")
+    endif()
+
     if (NOT CPOBJ_NAME OR NOT CPOBJ_DEPENDS OR NOT CPOBJ_OUTPUT_DIRECTORY)
         message(FATAL_ERROR "Name and dependency and output directory must be given.")
     endif()
@@ -206,6 +218,10 @@ function(test)
     # -------------------------------------------------------------------------------------------
     # Check validity
     # -------------------------------------------------------------------------------------------
+    if (TEST_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "Invalid option: ${TEST_UNPARSED_ARGUMENTS}")
+    endif()
+
     if (NOT TEST_NAME)
         message(FATAL_ERROR "Name must be given.")
     endif()
@@ -246,6 +262,13 @@ function(assemble_and_copy_bin)
     set(multiValueArgs SOURCES FLAGS INCLUDE_DIRECTORIES)
     set(options)
     cmake_parse_arguments(PARSE_ARGV 0 ASSEMBLE "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    # -------------------------------------------------------------------------------------------
+    # Check validity
+    # -------------------------------------------------------------------------------------------
+    if (ASSEMBLE_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "Invalid option: ${ASSEMBLE_UNPARSED_ARGUMENTS}")
+    endif()
 
     # -------------------------------------------------------------------------------------------
     # Compile and copy binary files to destinations
