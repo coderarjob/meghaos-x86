@@ -24,6 +24,6 @@ compile_lib(
 compile_lib(
     NAME kernel_entry
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/entry.s
-    FLAGS -O0 -f elf
+    FLAGS ${MOS_KERNEL_NASM_ELF_MODE_FLAGS}
     INCLUDE_DIRECTORIES ${MOS_ASM_INCLUDE_DIRS}
     )
