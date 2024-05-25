@@ -19,8 +19,7 @@ if (CMAKE_BUILD_TYPE)
 endif()
 #---------------------------------------------------------------------------
 
-include(cmake/assemble.cmake)
-include(cmake/compile_link.cmake)
+include(cmake/compile_assemble_link.cmake)
 
 set(MOS_INTERMEDIATE_EXTENSION "in")
 
