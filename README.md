@@ -8,7 +8,7 @@ It runs of a 1.44 MiB floppy and can be configured to use minimal physical memor
 
 | ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
 |---|
-| `Cooperative multitasking demo` |
+| `Cooperative multitasking demo - Processes running 'simultaniously'` |
 
 Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
 changed by the rider.
@@ -46,7 +46,7 @@ The end product will be ready for a programmer but not for general use.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] Rudimentary shell.
 
-## Building MeghaOS
+## Building and running MeghaOS
 
 ### Prerequisites
 
@@ -55,7 +55,7 @@ The end product will be ready for a programmer but not for general use.
    Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Add the installation 
    path to the $PATH variable.
 3. nasm assembler version 2.15.05 or higher.
-4. Cmake 3.10
+4. Cmake version >= 3.10
 
 ### Building
 
@@ -75,28 +75,24 @@ $ make
 
 ### Running
 
-To run the diskimage in Qemu use the following command:
+To run the disk image in Qemu use the following command:
 ```
 $ cd build-os
 
 # Asuming your build system is `make`
+# Run the disk image in Qemu
 $ make run
 
-# Run diskimage in Qemu with arguments
+# Pass arguments to Qemu
 $ make ARGS="<qemu arguments> run
 ```
-## Building Unittests
+## Building and running Unittests
 
 ### Prerequisites:
 
 1. gcc and binutils 8.3 or higher.
 2. gcc-multilib if host computer processor is anything other than x86.
 3. Cmake 3.10
-
-### Prerequisites: Code coverage report
-
-1. gcc and gcov library 8.3 or higher.
-2. lcov and genhtml package.
 
 ### Building
 
@@ -109,7 +105,7 @@ $ make
 
 ### Running
 
-To run unittests or any specific test use the following command:
+To run every or any specific test use the following command:
 ```
 $ cd build-ut
 
@@ -121,8 +117,12 @@ $ make run
 $ make ARGS="--name <test name> run
 
 ```
-Coverage report for the unittests can be do this way:
+### Prerequisites: Code coverage report
 
+1. gcov library 8.3 or higher.
+2. lcov and genhtml package.
+
+To generate code coverage report run the following command:
 ```
 $ cd build-ut
 
