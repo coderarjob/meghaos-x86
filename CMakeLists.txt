@@ -1,4 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
+
+#---------------------------------------------------------------------------
+# Override few defaults for compiling with NASM
+# Note: Need to be before project().
+#---------------------------------------------------------------------------
+set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -o <OBJECT> <SOURCE>")
+# .s and .S files should be treated as assembler files.
+set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS ${CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS} s S)
+#---------------------------------------------------------------------------
+
 project(MeghaOS-V2 C ASM_NASM)
 
 set(MOS_DEBUG_LEVEL "1" CACHE STRING "Sets DEBUG_LEVEL option to this value")
@@ -6,7 +16,6 @@ set(MOS_BUILD_MODE "DEBUG" CACHE STRING "Debug mode")
 
 set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
 set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
-
 #---------------------------------------------------------------------------
 # Validate User settable options
 #---------------------------------------------------------------------------
@@ -46,6 +55,11 @@ add_custom_target(debug ALL
 
 if(CMAKE_CROSSCOMPILING)
     include(cmake/${ARCH}/kernelflags.cmake)
+
+    #---------------------------------------------------------------------------
+    find_program(CROSS_OBJCOPY NAMES ${CMAKE_SYSTEM_PROCESSOR}-elf-objcopy REQUIRED)
+    find_program(CROSS_OBJDUMP NAMES ${CMAKE_SYSTEM_PROCESSOR}-elf-objdump REQUIRED)
+    #---------------------------------------------------------------------------
 
     set(MOS_LISTS_DIR     ${CMAKE_BINARY_DIR}/lists)
     set(MOS_DISKIMAGE_DIR ${CMAKE_BINARY_DIR}/diskimage/${ARCH})

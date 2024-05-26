@@ -52,8 +52,8 @@ The end product will be ready for a programmer but not for general use.
 
 1. Requires Linux environment. May also be possible on WSL.
 2. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
-   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Add the installation 
-   path to the $PATH variable.
+   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Either add the
+   installation path to the $PATH variable or pass the path in `CMAKE_PREFIX_PATH`.
 3. nasm assembler version 2.15.05 or higher.
 4. Cmake version >= 3.10
 
@@ -62,16 +62,34 @@ The end product will be ready for a programmer but not for general use.
 Generate the build system and then run the build system:
 
 ```
-# DEBUG mode build
-$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
-        -DMOS_BUILD_MODE=DEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
+# Option 1: DEBUG mode build
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake -B build-os
 
-# NDEBUG mode build
+# Option 2: NDEBUG mode build with DEBUG_LEVEL set to print debug messages both on the screen and E9
+# port.
 $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
         -DMOS_BUILD_MODE=NDEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
-$ cd build-os
-$ make
+
+# Option 2: Passing cross compiler installation path
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross -B build-os
 ```
+```
+$ cd build-os
+
+# Compiles the Kernel and user programs. Does not bulid disk image.
+$ make
+
+# Compiles and bulid disk image.
+$ make mos.flp
+```
+#### Cmake build options
+
+* CMAKE_TOOLCHAIN_FILE (Required) - Path to toolchain file.
+* MOS_BUILD_MODE (Defaults to DEBUG) - Valid values are DEBUG, NDEBUG.
+* MOS_DEBUG_LEVEL (Defaults to 1) - Enables/disables debug printing. Bit 0: E9, Bit 1: Screen.
+* CMAKE_PREFIX_PATH - Path to where cross compiler is installed. Required if PATH environment
+    variable does not include it.
 
 ### Running
 
@@ -80,7 +98,7 @@ To run the disk image in Qemu use the following command:
 $ cd build-os
 
 # Asuming your build system is `make`
-# Run the disk image in Qemu
+# Builds disk image and runs in Qemu
 $ make run
 
 # Pass arguments to Qemu
