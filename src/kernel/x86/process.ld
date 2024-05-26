@@ -1,22 +1,22 @@
 
 SECTIONS
 {
-    . = 0x00010000; 
+    . = 0x00010000;
 
     .text : ALIGN(8)
     {
-        *.o (.text);             
+        *(.text);
     }
     .data : ALIGN(8)
     {
-        *.o (.data);
+        *(.data);
 
         . = ALIGN(8);
-        *.o (.rodata*);
+        *(.rodata*);
 
         . = ALIGN(8);
-        *.o (.bss);
-        *.o (COMMON);
+        *(.bss);
+        *(COMMON);
     }
 
     /DISCARD/ : 

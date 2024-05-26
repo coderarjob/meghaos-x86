@@ -8,7 +8,7 @@ It runs of a 1.44 MiB floppy and can be configured to use minimal physical memor
 
 | ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
 |---|
-| `Cooperative multitasking demo` |
+| `Cooperative multitasking demo - Processes running 'simultaneously'` |
 
 Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
 changed by the rider.
@@ -46,41 +46,109 @@ The end product will be ready for a programmer but not for general use.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] Rudimentary shell.
 
-## Building MeghaOS
+## Building and running MeghaOS
 
 ### Prerequisites
 
 1. Requires Linux environment. May also be possible on WSL.
-1. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
-   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Add the installation 
-   path to the $PATH variable.
-2. nasm assembler version 2.15.05 or higher.
+2. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
+   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Either add the
+   installation path to the $PATH variable or pass the path in `CMAKE_PREFIX_PATH`.
+3. nasm assembler version 2.15.05 or higher.
+4. Cmake version >= 3.3
 
-### Prerequisites: Unittests
+### Building
+
+Generate the build system and then run the build system:
+
+```
+# Option 1: DEBUG mode build
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake -B build-os
+
+# Option 2: NDEBUG mode build with DEBUG_LEVEL set to print debug messages both on the screen and E9
+# port.
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DMOS_BUILD_MODE=NDEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
+
+# Option 2: Passing cross compiler installation path
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross -B build-os
+```
+```
+$ cd build-os
+
+# Compiles the Kernel and user programs. Does not bulid disk image.
+$ make
+
+# Compiles and bulid disk image.
+$ make mos.flp
+```
+#### Cmake build options
+
+* `CMAKE_TOOLCHAIN_FILE` (Required) - Path to toolchain file.
+* `MOS_BUILD_MODE` (Defaults to DEBUG) - Valid values are DEBUG, NDEBUG.
+* `MOS_DEBUG_LEVEL` (Defaults to 1) - Enables/disables debug printing. Bit 0: E9, Bit 1: Screen.
+* `CMAKE_PREFIX_PATH` - Path to where cross compiler is installed. Required if PATH environment
+    variable does not include it.
+
+### Running
+
+To run the disk image in Qemu use the following command:
+```
+$ cd build-os
+
+# Asuming your build system is `make`
+# Builds disk image and runs in Qemu
+$ make run
+
+# Pass arguments to Qemu
+$ make ARGS="<qemu arguments> run
+```
+## Building and running Unittests
+
+### Prerequisites:
 
 1. gcc and binutils 8.3 or higher.
 2. gcc-multilib if host computer processor is anything other than x86.
+4. Cmake version >= 3.3
 
+### Building
+
+Build unittests using the following command:
+```
+$ cmake -DMOS_DEBUG_LEVEL="3" -DARCH="x86" -B build-ut
+$ cd build-ut
+$ make
+```
+
+### Running
+
+To run every or any specific test use the following command:
+```
+$ cd build-ut
+
+# Asuming your build system is `make`
+# Run every unittests
+$ make run
+
+# Run specific test
+$ make ARGS="--name <test name> run
+
+```
 ### Prerequisites: Code coverage report
 
-1. gcc and gcov library 8.3 or higher.
+1. gcov library 8.3 or higher.
 2. lcov and genhtml package.
 
-After the perquisites are met, just run `./build.sh`. This will build the floppy image,
-the unittests and code coverage report.
+To generate code coverage report run the following command:
+```
+$ cd build-ut
 
-## Running on host computer.
+# Asuming your build system is `make`
+$ make gen-cov
+```
 
-To run the OS natively on a x86 or a86_64 machine, flash a pendrive with the floppy image and boot
-from it.
-
-You can also run it on an emulator like Qemu or VirtualBox.  If you have Qemu, just run `./run.sh`.
-
-To run the unittests run `./run.sh unittests`.
-
-## Code coverage report
-
-You will find the report in `build/coverage/report/index.html`.
+You will find the report in `build-ut/reports/coverage/report/index.html`.
 
 ## Development Specifics
 
