@@ -8,7 +8,7 @@ It runs of a 1.44 MiB floppy and can be configured to use minimal physical memor
 
 | ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
 |---|
-| `Cooperative multitasking demo - Processes running 'simultaniously'` |
+| `Cooperative multitasking demo - Processes running 'simultaneously'` |
 
 Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
 changed by the rider.
@@ -55,7 +55,7 @@ The end product will be ready for a programmer but not for general use.
    Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Either add the
    installation path to the $PATH variable or pass the path in `CMAKE_PREFIX_PATH`.
 3. nasm assembler version 2.15.05 or higher.
-4. Cmake version >= 3.10
+4. Cmake version >= 3.3
 
 ### Building
 
@@ -85,10 +85,10 @@ $ make mos.flp
 ```
 #### Cmake build options
 
-* CMAKE_TOOLCHAIN_FILE (Required) - Path to toolchain file.
-* MOS_BUILD_MODE (Defaults to DEBUG) - Valid values are DEBUG, NDEBUG.
-* MOS_DEBUG_LEVEL (Defaults to 1) - Enables/disables debug printing. Bit 0: E9, Bit 1: Screen.
-* CMAKE_PREFIX_PATH - Path to where cross compiler is installed. Required if PATH environment
+* `CMAKE_TOOLCHAIN_FILE` (Required) - Path to toolchain file.
+* `MOS_BUILD_MODE` (Defaults to DEBUG) - Valid values are DEBUG, NDEBUG.
+* `MOS_DEBUG_LEVEL` (Defaults to 1) - Enables/disables debug printing. Bit 0: E9, Bit 1: Screen.
+* `CMAKE_PREFIX_PATH` - Path to where cross compiler is installed. Required if PATH environment
     variable does not include it.
 
 ### Running
@@ -110,7 +110,7 @@ $ make ARGS="<qemu arguments> run
 
 1. gcc and binutils 8.3 or higher.
 2. gcc-multilib if host computer processor is anything other than x86.
-3. Cmake 3.10
+4. Cmake version >= 3.3
 
 ### Building
 
