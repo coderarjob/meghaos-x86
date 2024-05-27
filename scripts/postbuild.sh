@@ -54,12 +54,12 @@ function gentag()
 {
     command -v ctags > /dev/null || {
         echo "ctags not found. Skipping"
-        exit 1
+        exit
     }
 
     command -v cscope > /dev/null || {
         echo "scope not found. Skipping"
-        exit 1
+        exit
     }
 
     ctags -R ./src ./include
