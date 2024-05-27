@@ -8,8 +8,10 @@
 #include <stdio.h>
 #include <types.h>
 #include <stdarg.h>
+#include <x86/kernel.h>
 
 /* Panic handler */
+KernelStateInfo g_kstate;
 bool panic_invoked;
 void unittest_panic_handler(const CHAR *s,...)
 {

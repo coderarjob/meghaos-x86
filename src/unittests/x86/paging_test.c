@@ -7,8 +7,7 @@
 #include <mock/kernel/pmm.h>
 #include <kerror.h>
 #include <panic.h>
-
-KernelErrorCodes k_errorNumber;
+#include <x86/kernel.h>
 
 #define UNITTEST_PG_MAP_DONT_CARE \
     PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED
@@ -73,7 +72,7 @@ TEST (paging, temporary_map_failure_input_not_aligned)
 
     Physical pa = PHYSICAL (0x12); // Address is not page aligned.
     EQ_SCALAR ((PTR)NULL, (PTR)kpg_temporaryMap (pa));
-    EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -129,7 +128,7 @@ TEST (paging, map_failure_double_allocate)
 
     EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_FLAG_KERNEL), false);
 
-    EQ_SCALAR (k_errorNumber, ERR_DOUBLE_ALLOC);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_ALLOC);
 
     END();
 }
@@ -176,7 +175,7 @@ TEST (paging, map_failure_va_not_aligned)
 
     EQ_SCALAR (kpg_map (&pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
 
-    EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -189,7 +188,7 @@ TEST (paging, map_failure_pa_not_aligned)
 
     EQ_SCALAR (kpg_map (&pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
 
-    EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -378,7 +377,7 @@ TEST (paging, unmap_failure_page_table_not_present)
 
     EQ_SCALAR (kpg_unmap (pd, va), false);
 
-    EQ_SCALAR (k_errorNumber, ERR_DOUBLE_FREE);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_FREE);
 
     END();
 }
@@ -417,7 +416,7 @@ TEST (paging, unmap_failure_double_unmap)
     EQ_SCALAR (kpg_unmap (pd, va), false);
 
     // After the unmap the present bit should get unset.
-    EQ_SCALAR (k_errorNumber, ERR_DOUBLE_FREE);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_FREE);
 
     END();
 }
@@ -429,7 +428,7 @@ TEST (paging, unmap_failure_va_not_aligned)
 
     EQ_SCALAR (kpg_unmap (&pd, va), false);
 
-    EQ_SCALAR (k_errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
 
     END();
 }

@@ -11,6 +11,7 @@
 #include <types.h>
 #include <kstdlib.h>
 #include <memmanage.h>
+#include <x86/kernel.h>
 
 #define SPACE_USED()                 ((PTR)s_next - s_start)
 #define IS_SPACE_AVAILABLE(sz_bytes) ((SPACE_USED() + (sz_bytes)-1) < SALLOC_SIZE_BYTES)
@@ -28,6 +29,7 @@ void salloc_init()
     FUNC_ENTRY();
     s_start = (PTR)salloc_arch_preAllocateMemory();
     s_next  = (void*)s_start;
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_SALLOC_READY);
 }
 
 /***************************************************************************************************

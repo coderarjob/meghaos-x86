@@ -12,6 +12,7 @@
 #include <memmanage.h>
 #include <types.h>
 #include <utils.h>
+#include <x86/kernel.h>
 
 typedef enum FindCriteria
 {
@@ -54,6 +55,8 @@ void kmalloc_init()
     MallocHeader* newH = s_createNewNode (s_buffer, KMALLOC_SIZE_BYTES);
     list_add_before (&s_freeHead, &newH->freenode);
     list_add_before (&s_adjHead, &newH->adjnode);
+
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_KMALLOC_READY);
 
     INFO ("Size of MallocHeader: %lu bytes", sizeof (MallocHeader));
     INFO ("Malloc buffer is at: %px", s_buffer);

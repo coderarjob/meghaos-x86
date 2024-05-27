@@ -24,7 +24,11 @@ void proc_main()
     syscall (0, (PTR) "Process 0:\n", 0, 0, 0, 0);
 
     UINT column = 0;
+#if (DEBUG_LEVEL & 1)
+    UINT max    = 950;
+#else
     UINT max    = 95000;
+#endif
     UINT step   = max / MAX_VGA_COLUMNS;
 
     for (UINT i = 0; i < max; i++) {
@@ -49,7 +53,11 @@ void thread0()
     syscall (0, (PTR) "Thread 0:\n", 0, 0, 0, 0);
 
     UINT column = 0;
+#if (DEBUG_LEVEL & 1)
+    UINT max    = 940;
+#else
     UINT max    = 94000;
+#endif // DEBUG_LEVEL
     UINT step   = max / MAX_VGA_COLUMNS;
 
     for (UINT i = 0; i < max; i++) {
@@ -72,7 +80,11 @@ void thread1()
     syscall (0, (PTR) "Thread 1:\n", 0, 0, 0, 0);
 
     UINT column = 0;
+#if (DEBUG_LEVEL & 1)
+    UINT max    = 940;
+#else
     UINT max    = 94000;
+#endif // DEBUG_LEVEL
     UINT step   = max / MAX_VGA_COLUMNS;
 
     for (UINT i = 0; i < max; i++) {

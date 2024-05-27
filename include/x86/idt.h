@@ -28,7 +28,7 @@ void kidt_init ();
 /* Edits an IDT descriptor */
 void kidt_edit (INT                index,
                 void             (*func)(),
-                U16                seg_tss_selector,
+                U16                seg_selector,
                 IDTDescriptorTypes type,
                 U8                 dpl);
 

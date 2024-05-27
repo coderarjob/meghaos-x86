@@ -36,6 +36,7 @@
 #include <kstdlib.h>
 #include <process.h>
 #include <x86/cpu.h>
+#include <x86/kernel.h>
 
 static void display_system_info ();
 static void s_markUsedMemory ();
@@ -50,12 +51,16 @@ static void process_poc();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 
-/* This variable is globally used to set error codes*/
-KernelErrorCodes k_errorNumber;
+/* Kernel state global variable */
+KernelStateInfo g_kstate;
 
-__attribute__ ((noreturn)) 
+__attribute__ ((noreturn))
 void kernel_main ()
 {
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
+    g_kstate.kernelPageDirectory = g_page_dir;
+
+    // Initialize Text display
     kdisp_init ();
 
     // Initilaize Physical Memory Manger
@@ -96,6 +101,8 @@ void kernel_main ()
     kearly_printf ("\r[OK]");
 
     kprocess_init();
+
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_KERNEL_READY);
 
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,GREEN,0));
     kearly_println ("Kernel initialization finished..");
@@ -195,7 +202,11 @@ static void multithread_demo_kernel_thread()
     kearly_printf ("Kernel thread:");
 
     UINT column = 0;
-    UINT max    = 100000;
+#if (DEBUG_LEVEL & 1)
+    UINT max    = 960;
+#else
+    UINT max    = 96000;
+#endif
     UINT step   = max / MAX_VGA_COLUMNS;
 
     for (UINT i = 0; i < max; i++) {

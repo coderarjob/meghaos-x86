@@ -14,6 +14,7 @@
 #include <kassert.h>
 #include <kdebug.h>
 #include <panic.h>
+#include <x86/kernel.h>
 
 /* Error codes that can be set inside the kernel.*/
 typedef enum KernelErrorCodes {
@@ -32,31 +33,28 @@ typedef enum KernelErrorCodes {
     ERR_SCHEDULER_QUEUE_EMPTY     = 12, // No process in the process table to schedule next
 } KernelErrorCodes;
 
-/* This variable is globally used to set error codes*/
-extern KernelErrorCodes k_errorNumber;
-
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what
 // is already set.
-#define ERROR_PASSTHROUGH k_errorNumber
-
-/* Can be used to set the k_errorNumber global and return from a function */
-#define RETURN_ERROR(errno, rval)                                                            \
-            do {                                                                             \
-                   ERROR ("Error %x.", errno);                                               \
-                   k_errorNumber = errno;                                                    \
-                   return rval;                                                              \
-                }while(0)
+#define ERROR_PASSTHROUGH g_kstate.errorNumber
 
 #define KERNEL_EXIT_SUCCESS  0
 #define KERNEL_EXIT_FAILURE -1
 
-/* Displays error description if k_errorNumber != 0 */
-#define k_assertOnError() k_assert (k_errorNumber == ERR_NONE, "Assert on error")
-#define k_panicOnError()                                            \
-    do {                                                            \
-        if (k_errorNumber != ERR_NONE) {                            \
-            k_panic ("Panic on error.Error %x\n", k_errorNumber);   \
-        }                                                           \
+/* Can be used to store an error code and return from a function */
+#define RETURN_ERROR(errno, rval)     \
+    do {                              \
+        ERROR ("Error %x.", errno);   \
+        g_kstate.errorNumber = errno; \
+        return rval;                  \
+    } while (0)
+
+/* Displays error description if error code != 0 */
+#define k_assertOnError() k_assert (g_kstate.errorNumber == ERR_NONE, "Assert on error")
+#define k_panicOnError()                                                 \
+    do {                                                                 \
+        if (g_kstate.errorNumber != ERR_NONE) {                          \
+            k_panic ("Panic on error.Error %x\n", g_kstate.errorNumber); \
+        }                                                                \
     } while (0)
 
 #endif // ERRORNO_H

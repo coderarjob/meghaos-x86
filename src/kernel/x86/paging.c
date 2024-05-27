@@ -6,7 +6,6 @@
  * use as well as when allocating memory for user space processes.
  * ---------------------------------------------------------------------------
  */
-#include "x86/types.h"
 #include <kstdlib.h>
 #include <pmm.h>
 #include <kerror.h>

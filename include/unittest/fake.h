@@ -35,7 +35,7 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // ----------------------------------------------------------------------------
 #define FK_STRUCT_TAG(f) f ## _fake_tag
 #define FK_STRUCT_VAR(f) f ## _fake
-#define FK_STRUCT_HANDLER(f) f ## _handler
+#define FK_STRUCT_HANDLER(f) f ## _fake_handler
 
 // ----------------------------------------------------------------------------
 // Macros to find out the number of arguments passed to a variarg macros
@@ -57,11 +57,17 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 // ----
 #define FK_DEFINE_FUNC_STRUCT(f)  FK_STRUCT_TAG(f) FK_STRUCT_VAR(f) = {}
 
-#define FK_DEFINE_FUNC_BODY_VOID(n, f, ...) \
-    void f(FK_FUNC_PARAMS_X(n, __VA_ARGS__)) { FK_RETURN_VOID (n, f, __VA_ARGS__); }
+#define FK_DEFINE_FUNC_BODY_VOID(n, f, ...)                                    \
+  void f(FK_FUNC_PARAMS_X(n, __VA_ARGS__)) {                                   \
+    FK_STRUCT_VAR(f).invokeCount++;                                            \
+    FK_RETURN_VOID(n, f, __VA_ARGS__);                                         \
+  }
 
-#define FK_DEFINE_FUNC_BODY(n, rt, f, ...) \
-    rt f(FK_FUNC_PARAMS_X(n, __VA_ARGS__)) { FK_RETURN (n, f, __VA_ARGS__); }
+#define FK_DEFINE_FUNC_BODY(n, rt, f, ...)                                     \
+  rt f(FK_FUNC_PARAMS_X(n, __VA_ARGS__)) {                                     \
+    FK_STRUCT_VAR(f).invokeCount++;                                            \
+    FK_RETURN(n, f, __VA_ARGS__);                                              \
+  }
 
 #define FK_RETURN_VOID(n,f,...)                        \
     if (FK_STRUCT_VAR(f).handler)                      \
@@ -86,26 +92,30 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
 #define FK_FUNC_ARG_0()
 
 // =======================[ FAKE FUNCTION DECLARATION ]========================
-#define DECLARE_FUNC_VOID(f, ...)                \
-    typedef void (* f ## _handler)(__VA_ARGS__); \
-    FK_DECLARE_STRUCT_VOID(f)
+#define DECLARE_FUNC_VOID(f, ...)                   \
+    typedef void (*f##_fake_handler) (__VA_ARGS__); \
+    FK_DECLARE_STRUCT_VOID (f)
 
 // ----
-#define DECLARE_FUNC(rt, f, ...)               \
-    typedef rt (* f ## _handler)(__VA_ARGS__); \
-    FK_DECLARE_STRUCT(rt, f)
+#define DECLARE_FUNC(rt, f, ...)                  \
+    typedef rt (*f##_fake_handler) (__VA_ARGS__); \
+    FK_DECLARE_STRUCT (rt, f)
 
 // ----
-#define FK_DECLARE_STRUCT_VOID(f)                        \
-    FK_DECLARE_STRUCT_START(f);                          \
-        FK_STRUCT_FIELD(FK_STRUCT_HANDLER(f), handler);  \
-    FK_DECLARE_STRUCT_END(f)
+#define FK_DECLARE_STRUCT_VOID(f)                         \
+    FK_DECLARE_STRUCT_START (f)                           \
+        FK_STRUCT_FIELD (void*, resources);               \
+        FK_STRUCT_FIELD (unsigned int, invokeCount);      \
+        FK_STRUCT_FIELD (FK_STRUCT_HANDLER (f), handler); \
+    FK_DECLARE_STRUCT_END (f)
 
-#define FK_DECLARE_STRUCT(rt, f)                         \
-    FK_DECLARE_STRUCT_START(f);                          \
-        FK_STRUCT_FIELD(rt, ret);                        \
-        FK_STRUCT_FIELD(FK_STRUCT_HANDLER(f), handler);  \
-    FK_DECLARE_STRUCT_END(f)
+#define FK_DECLARE_STRUCT(rt, f)                          \
+    FK_DECLARE_STRUCT_START (f)                           \
+        FK_STRUCT_FIELD (void*, resources);               \
+        FK_STRUCT_FIELD (unsigned int, invokeCount);      \
+        FK_STRUCT_FIELD (rt, ret);                        \
+        FK_STRUCT_FIELD (FK_STRUCT_HANDLER (f), handler); \
+    FK_DECLARE_STRUCT_END (f)
 
 #define FK_DECLARE_STRUCT_START(f)  typedef struct FK_STRUCT_TAG(f) {
 #define FK_STRUCT_FIELD(pt, p)              pt p;

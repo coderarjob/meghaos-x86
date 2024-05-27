@@ -1,8 +1,70 @@
 # Megha Operating System V2
 ------------------------------------------------------------------------------
 
-##  Different ways to handle error/invalid input in Kernel
+##  Understanding when to use assert in Kernel code
 categories: note, independent
+01 May 2024
+
+I previously said this:
+> Using assert to validate input is a horrible idea. For the current implementation, failing an 
+> assert freezes the machine. For an operating system this is not a good idea to halt the system 
+> completely."
+
+However I am now second guessing this. Under the normal operation kernel functions cannot receive
+invalid inputs. I do not see no way for a function to receive an invalid input other than
+corruption/failure somewhere. Input from processes can be wrong, and must be handled by the system 
+call routines before passing them to other kernel functions.
+
+As low level modules receive inputs from modules higher up, it asserting or returning an error code 
+makes no difference because it must never have received an invalid input in the first place from the
+higher modules. And an assertion check implies that such a condition is impossible to occur, which
+an if check cannot convey.
+
+For example, say a function receives a NULL pointer when it is an impossibility. If it returns a 
+fault code instead of asserting then chances exist of it being ignored by the caller function and
+this corruption/bug gets hidden.
+
+The argument against asserting was this:
+> If this was not the case and PMM uses assertions, then modules higher up must be checking for this
+> policy violation. But who? There is no clear taker. 
+> Also if this policy changes (say 0x000 address is now valid) changes will be much more spread out,
+> instead of just the PMM and lower modules.
+
+All physical address must come from one of these:
+* Calculated in some way
+* Fixed address (say for some HW IO)
+* Most likely from PMM allocation function.
+
+In none of ways listed above is it possible to get an invalid physical page. If we do get one, then
+that is a sign of bug and so assertions to check for NULL physical address within PMM is justified.
+
+And the question who should validate? Well no one in particular, the design must of the system
+should be such that explicit checks should not be required (beyond a point). And the assertions
+should exist only the module which is responsible for this not spread out everywhere.
+
+Assertions should check logic and policies which must always be held.
+
+Now the question is how do we handle these. Is halting the system a suitable reaction on data
+corruption, or should we just kill the offending process?
+
+The kernel data is not specific to any process and so a corruption there would effect every process,
+and thus we cannot guarantee in what way the system would behave if we let it continue.
+
+Note that a function failing should not be treated as an impossibility. If there is not enough
+memory (exception may be the low level allocations) for say a process or a buffer, these should not
+halt the system because such scenarios can occur. In this cases however one can panic if there is no
+other way to handle it.
+
+However double free/allocation could be a sign of corruption of data/bug within the allocator and 
+should be seen a bug and it expected to halt the system.
+
+I do this story is not yet complete and my understanding is also not fully stable, but I think I can
+continue with the basis and decide whether to assert on a case by case basis.
+
+------------------------------------------------------------------------------
+
+##  Different ways to handle error/invalid input in Kernel
+categories: note, independent, obsolete
 _25 June 2023_
 
 Using assert to validate input is a horrible idea. For the current implementation, failing an assert

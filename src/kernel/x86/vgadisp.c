@@ -18,6 +18,7 @@
 #include <kerror.h>
 #include <x86/memloc.h>
 #include <x86/io.h>
+#include <x86/kernel.h>
 
 #define TABSTOP             4U
 #define VGA_COLUMNS         MAX_VGA_COLUMNS
@@ -42,7 +43,6 @@
 
 static UINT row, column, crtc_flags, text_attr;
 static U16 *vgab;
-static bool is_initialized;
 
 static void s_updateCursor ();
 
@@ -142,7 +142,7 @@ void kdisp_init ()
 
     // ------------------------------------------------------------
     // Initialization is done.
-    is_initialized = true;
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_TEXTDISP_READY);
 }
 
 /***************************************************************************************************
@@ -224,14 +224,4 @@ void kdisp_putc (CHAR c)
         kdisp_scrollDown ();
 
     s_updateCursor ();
-}
-
-/***************************************************************************************************
- * Returns status of text display initialization.
- *
- * @return true if kdisp_init has been called.
- **************************************************************************************************/
-bool kdisp_isInitialized ()
-{
-    return is_initialized;
 }

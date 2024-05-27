@@ -38,9 +38,6 @@
 /** Minimum of two integers. If equal, returns 'b' */
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
-/** Power of two */
-UINT power_of_two(UINT e);
-
 /** Bit mask
  * Example: BIT_MASK(19, 1) = 0xFFFFE */
 #define BIT_MASK(r, l) (((1 << ((r) - (l) + 1)) - 1) << l)
@@ -69,6 +66,10 @@ UINT power_of_two(UINT e);
 /**Bit test
  * Checks is bit s (represented by the shifted value) is not set in w. */
 #define BIT_ISUNSET(w, s) ((BIT_ISSET (w, s) == 1U ? 0U : 1U) & 0x1)
+
+/** Power of Two
+ * Returns 2^n value */
+#define POWER_OF_TWO(n) (1 << (n))
 
 /** Stringfy macros */
 #define STR_NDU(v) #v

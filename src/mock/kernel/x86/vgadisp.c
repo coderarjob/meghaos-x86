@@ -4,7 +4,6 @@
 DEFINE_FUNC_VOID(kdisp_putc, CHAR);
 DEFINE_FUNC_VOID(kdisp_scrollDown);
 DEFINE_FUNC_VOID(kdisp_init);
-DEFINE_FUNC(bool, kdisp_isInitialized);
 
 /* kdisp_ioctl has a veridac parameter. There is no way to define such a
  * function in fake.h*/
@@ -14,5 +13,4 @@ void resetVgaDisp()
     RESET_FAKE(kdisp_putc);
     RESET_FAKE(kdisp_scrollDown);
     RESET_FAKE(kdisp_init);
-    RESET_FAKE(kdisp_isInitialized);
 }

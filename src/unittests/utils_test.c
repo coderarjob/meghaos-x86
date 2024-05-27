@@ -84,10 +84,10 @@ TEST (utils, Bitmask) {
 }
 
 TEST (utils, PowerOfTwo) {
-    EQ_SCALAR(power_of_two(0), 1);
-    EQ_SCALAR(power_of_two(2), 4);
-    EQ_SCALAR(power_of_two(3), 8);
-    EQ_SCALAR(power_of_two(10), 1024);
+    EQ_SCALAR(POWER_OF_TWO(0), 1);
+    EQ_SCALAR(POWER_OF_TWO(2), 4);
+    EQ_SCALAR(POWER_OF_TWO(3), 8);
+    EQ_SCALAR(POWER_OF_TWO(10), 1024);
     END();
 }
 

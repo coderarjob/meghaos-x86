@@ -7,6 +7,7 @@
 #include <kerror.h>
 #include <utils.h>
 #include <assert.h>
+#include <x86/kernel.h>
 
 /* |Test case description                                       | Test function name             |
  * |------------------------------------------------------------|--------------------------------|
@@ -38,8 +39,6 @@ extern ListNode s_freeHead, s_allocHead, s_adjHead;
 ListNode s_freeHead, s_allocHead, s_adjHead;
 
 __attribute__ ((aligned (4096))) char kmalloc_buffer[KMALLOC_SIZE_BYTES];
-
-KernelErrorCodes k_errorNumber;
 
 static inline size_t getNodeSize (size_t usableSize)
 {
@@ -91,7 +90,7 @@ TEST (kmalloc, allocation_space_uavailable)
 
     // Allocation fails because there is not enough space.
     EQ_SCALAR (kmalloc (KMALLOC_SIZE_BYTES), NULL);
-    EQ_SCALAR (k_errorNumber, ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
 
     // Alloc, Free list sizes must not change.
     EQ_SCALAR (getCapacity (FREE_LIST), freeListCapPrev);
@@ -181,7 +180,7 @@ TEST (kfree, kfree_success)
 TEST (kfree, kfree_wrong_input)
 {
     EQ_SCALAR (kfree (NULL), false);
-    EQ_SCALAR (k_errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
     END();
 }
 
