@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# :: gcc and make and other dependencies ::
-# apt-get install build-essential
-# apt-get install bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo
+if [ $1 == "--install-dep" ]; then
+    # :: gcc and make and other dependencies ::
+    apt-get install -y build-essential                       || exit 1
+    apt-get install -y bison flex libgmp3-dev \
+                            libmpc-dev libmpfr-dev texinfo   || exit 1
+    echo "Dependencies installed. Run script again."
+    exit
+fi
 
 # :: Download binutils and gcc ::
 BINUTILS_VER='2.31.1'

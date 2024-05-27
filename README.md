@@ -52,10 +52,17 @@ The end product will be ready for a programmer but not for general use.
 
 1. Requires Linux environment. May also be possible on WSL.
 2. gcc and binutils version 8.3 or higher, configured to target 1686-elf.
-   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Either add the
-   installation path to the $PATH variable or pass the path in `CMAKE_PREFIX_PATH`.
+   Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Follow the following
+   steps:
+
+   * Install build dependencies run:  `tools/build_i686_gcc.sh --install-dep`.
+   * Build and installGCC and binutils: `tools/build_i686_gcc.sh`.
+
+   Then either add the installation path to the $PATH variable or pass the path in
+   `CMAKE_PREFIX_PATH`.
 3. nasm assembler version 2.15.05 or higher.
 4. Cmake version >= 3.3
+5. `dosfstools` for creation of disk image.
 
 ### Building
 
