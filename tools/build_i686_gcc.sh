@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/bash
 
 # :: gcc and make and other dependencies ::
 # apt-get install build-essential
@@ -21,24 +21,25 @@ export TARGET=i686-elf
 export PATH="$PREFIX/bin:$PATH"
 
 # :: Build and install binutls ::
-mkdir build-binutils
-cd build-binutils
+mkdir build-binutils || exit 1
+pushd build-binutils
 ../binutils-$BINUTILS_VER/configure --target=$TARGET --prefix="$PREFIX" --with-sysroot \
                          --disable-nls --disable-werror
 make 
 make install
+popd
 
 # :: Build and install gcc ::
 # The $PREFIX/bin dir _must_ be in the PATH. We did that above.
 which -- $TARGET-as || echo $TARGET-as is not in the PATH
  
-mkdir build-gcc
-cd build-gcc
+mkdir build-gcc || exit 1
+pushd build-gcc
 ../gcc-$GCC_VER/configure --target=$TARGET --prefix="$PREFIX" --disable-nls \
                           --enable-languages=c,c++ --without-headers
 make all-gcc
 make all-target-libgcc
 make install-gcc
 make install-target-libgcc
-
+popd
 # :: Done ::
