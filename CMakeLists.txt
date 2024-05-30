@@ -26,6 +26,10 @@ endif()
 if (CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "MOS_BUILD_MODE should be used to setup build mode.")
 endif()
+
+if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    message(FATAL_ERROR "Compiler type '${CMAKE_C_COMPILER_ID}' is not supported.")
+endif()
 #---------------------------------------------------------------------------
 
 include(cmake/compile_assemble_link.cmake)
@@ -146,6 +150,19 @@ if(CMAKE_CROSSCOMPILING)
         )
 else()
     include(cmake/${ARCH}/unittestflags.cmake)
+
+    #---------------------------------------------------------------------------
+    # Validate compiler features required for compiling unittests
+    #---------------------------------------------------------------------------
+    if (NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86")
+        execute_process( COMMAND ${CMAKE_C_COMPILER} -v ERROR_VARIABLE COMPILER_FEATURES)
+
+        if (NOT COMPILER_FEATURES MATCHES "--enable-multilibs")
+            message(FATAL_ERROR "Compiler multilib support : Absent/Undetermined")
+        endif()
+
+        message(STATUS "Compiler multilib support : Present")
+    endif()
 
     #---------------------------------------------------------------------------
     set(MOS_COV_DIR ${MOS_REPOSTS_DIR}/coverage)
