@@ -198,24 +198,13 @@ static void multithread_demo_kernel_thread()
     INFO ("Process ID: %u", processID);
 
     // ----------------------
-    kdisp_ioctl (DISP_SETCOORDS, 27, 0);
-    kearly_printf ("Kernel thread:");
-
-    UINT column = 0;
 #if (DEBUG_LEVEL & 1)
-    UINT max    = 960;
+    UINT max = 12 * MAX_VGA_COLUMNS;
 #else
-    UINT max    = 96000;
+    UINT max = 602 * MAX_VGA_COLUMNS;
 #endif
-    UINT step   = max / MAX_VGA_COLUMNS;
 
     for (UINT i = 0; i < max; i++) {
-        kdisp_ioctl (DISP_SETCOORDS, 28, column);
-        kdisp_ioctl (DISP_SETATTR, k_dispAttr (MAGENTA, WHITE, 0));
-        if (i % step == 0) {
-            column = (column + 1) % MAX_VGA_COLUMNS;
-        }
-        syscall (0, (PTR) " ", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
     // ----------------------
