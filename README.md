@@ -66,30 +66,6 @@ The end product will be ready for a programmer but not for general use.
 
 ### Building
 
-Generate the build system and then run the build system:
-
-```
-# Option 1: DEBUG mode build
-$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake -B build-os
-
-# Option 2: NDEBUG mode build with DEBUG_LEVEL set to print debug messages both on the screen and E9
-# port.
-$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
-        -DMOS_BUILD_MODE=NDEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
-
-# Option 2: Passing cross compiler installation path
-$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
-        -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross -B build-os
-```
-```
-$ cd build-os
-
-# Compiles the Kernel and user programs. Does not bulid disk image.
-$ make
-
-# Compiles and bulid disk image.
-$ make mos.flp
-```
 #### Cmake build options
 
 * `CMAKE_TOOLCHAIN_FILE` (Required) - Path to toolchain file.
@@ -97,6 +73,32 @@ $ make mos.flp
 * `MOS_DEBUG_LEVEL` (Defaults to 1) - Enables/disables debug printing. Bit 0: E9, Bit 1: Screen.
 * `CMAKE_PREFIX_PATH` - Path to where cross compiler is installed. Required if PATH environment
     variable does not include it.
+
+Generate the build system and then start the build:
+```
+# Option 1: DEBUG build and cross compiler installation path passed explicitly.
+
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross                \
+        -B build-os
+
+# Option 2: NDEBUG mode build with DEBUG_LEVEL = 3.
+
+# NOTE; Cross compiler path taken from $PATH.
+# NOTE: DEBUG_LEVEL = 3 causes debug messages to print on both on the screen and E9 port.
+
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DMOS_BUILD_MODE=NDEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
+```
+```
+$ cd build-os
+
+# Compiles the Kernel and user programs. Does not bulid disk image.
+$ make
+
+# Compiles and bulids disk image.
+$ make mos.flp
+```
 
 ### Running
 

@@ -48,6 +48,7 @@
 | C and assembly.                                                         |           |            |
 | NOTE: This can be done using CMake, so separate script is not required. |           |            |
 | [ ] Using Flawfinder to check for security flaws seem intersting.       |           |            |
+| [X] Switch to CMake from build.sh                                       |           | 25 May 24  |
 | [X] x86 Cross compiler setup                                            |           |            |
 | [X] Create a tools folder, with scripts to build gcc cross-compiler.    |           |            |
 | [X] Idea of VERBOSE to print debug messages on screen is faulty.        |           | 07 SEP 21  |
@@ -174,6 +175,8 @@
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] DEBUG_LEVEL determines where debug messages are printed. Does it    | 27 May 24 |            |
+| makes sense to print debug messages in NDEBUG build mode?               |           |            |
 | [X] Log and print to E9 port the following:                             |           | 06 Mar 24  |
 | ::: [X] Function name & location when entering and leaving functions    |           | 06 Mar 24  |
 | FUNC_ENTRY macro can be used for this. Not doing Logging when leaving.  |           |            |
