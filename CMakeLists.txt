@@ -157,7 +157,7 @@ else()
     if (NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86")
         execute_process( COMMAND ${CMAKE_C_COMPILER} -v ERROR_VARIABLE COMPILER_FEATURES)
 
-        if (NOT COMPILER_FEATURES MATCHES "--enable-multilibs")
+        if (NOT COMPILER_FEATURES MATCHES "--enable-multilib")
             message(FATAL_ERROR "Compiler multilib support : Absent/Undetermined")
         endif()
 
