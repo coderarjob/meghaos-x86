@@ -47,13 +47,15 @@ set(RUN_SCRIPT_PATH        scripts/run.sh)
 set(POST_BUILD_SCRIPT_PATH scripts/postbuild.sh)
 
 #---------------------------------------------------------------------------
-# Just for debugging. DELETE THIS WHEN FINAL
+# Shows some info about the build configuration
 #---------------------------------------------------------------------------
-add_custom_target(debug ALL
+add_custom_target(show-info ALL
+    COMMAND ${CMAKE_COMMAND} -E echo "--------- BUID INFO --------"
     COMMAND ${CMAKE_COMMAND} -E echo "- CROSS COMPILING : ${CMAKE_CROSSCOMPILING}"
     COMMAND ${CMAKE_COMMAND} -E echo "- C COMPILER      : ${CMAKE_C_COMPILER}"
     COMMAND ${CMAKE_COMMAND} -E echo "- BUILD MODE      : ${MOS_BUILD_MODE}"
     COMMAND ${CMAKE_COMMAND} -E echo "- DEBUG LEVEL     : ${MOS_DEBUG_LEVEL}"
+    COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"
     )
 #---------------------------------------------------------------------------
 
