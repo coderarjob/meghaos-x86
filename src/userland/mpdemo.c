@@ -48,11 +48,8 @@ void proc_main()
 
     s_printString (25, 0, BLACK, DARK_GRAY, "Process 0:\n");
 
-#if (DEBUG_LEVEL & 1)
     UINT iterPerStep = 11;
-#else
-    UINT iterPerStep = 601;
-#endif // DEBUG_LEVEL
+
     s_progressbar (iterPerStep, "Process 0:\n", 25, RED);
 
     syscall (3, 0, 0, 0, 0, 0);
@@ -64,21 +61,15 @@ void proc_main()
 
 void thread0()
 {
-#if (DEBUG_LEVEL & 1)
     UINT iterPerStep = 10;
-#else
-    UINT iterPerStep = 600;
-#endif // DEBUG_LEVEL
+
     s_progressbar (iterPerStep, "Thread 0:\n", 29, GREEN);
 }
 
 void thread1()
 {
-#if (DEBUG_LEVEL & 1)
     UINT iterPerStep = 7;
-#else
-    UINT iterPerStep = 400;
-#endif // DEBUG_LEVEL
+
     s_progressbar (iterPerStep, "Thread 1:\n", 33, YELLOW);
 }
 
