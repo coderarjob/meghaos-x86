@@ -75,6 +75,8 @@ void* kmalloc (size_t bytes)
 {
     FUNC_ENTRY ("Bytes: %x", bytes);
 
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_KMALLOC_READY);
+
     INFO ("Requested net size of %lu bytes", NET_ALLOCATION_SIZE (bytes));
 
     // Search for suitable node
@@ -104,6 +106,8 @@ bool kfree (void* addr)
 {
     FUNC_ENTRY ("Address: %px", addr);
 
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_KMALLOC_READY);
+
     void* headerAddress    = (void*)((PTR)addr - sizeof (MallocHeader));
     MallocHeader* allocHdr = s_findFirst (&s_allocHead, FIND_CRIT_NODE_ADDRESS, (PTR)headerAddress);
     if (allocHdr != NULL)
@@ -129,6 +133,8 @@ bool kfree (void* addr)
 SIZE kmalloc_getUsedMemory()
 {
     FUNC_ENTRY();
+
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_KMALLOC_READY);
 
     SIZE usedSz = 0U;
     ListNode* node;

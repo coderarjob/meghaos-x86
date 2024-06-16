@@ -47,6 +47,8 @@ void* salloc (UINT bytes)
 {
     FUNC_ENTRY ("Bytes: %px", bytes);
 
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_SALLOC_READY);
+
     if (bytes == 0 || bytes > SALLOC_SIZE_BYTES)
         RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 
@@ -76,6 +78,8 @@ void* scalloc (UINT bytes)
 {
     FUNC_ENTRY ("Bytes: %px", bytes);
 
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_SALLOC_READY);
+
     if (bytes == 0 || bytes > SALLOC_SIZE_BYTES)
         RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 
@@ -97,6 +101,8 @@ void* scalloc (UINT bytes)
 SIZE salloc_getUsedMemory()
 {
     FUNC_ENTRY();
+
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_SALLOC_READY);
 
     SIZE usedSz = (PTR)s_next - (PTR)s_start;
 
