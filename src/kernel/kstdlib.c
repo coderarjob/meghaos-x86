@@ -43,7 +43,7 @@ void* k_memcpy (void* dest, const void* src, size_t n)
  * @Input n     Number of bytes to fill.
  * @return      Pointer to the start of the destination.
 ***************************************************************************************************/
-void *k_memset (void *s, INT c, size_t n)
+void *k_memset (void *s, U8 c, size_t n)
 {
     FUNC_ENTRY ("Dest: %px, Byte: %px, Len: %x bytes", (PTR)s, c, n);
 

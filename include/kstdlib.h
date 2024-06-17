@@ -15,6 +15,6 @@
 void *k_memcpy (void *dest, const void *src, size_t n);
 
 /* Fills memory with constant byte */
-void *k_memset (void *s, INT c, size_t n);
+void *k_memset (void *s, U8 c, size_t n);
 
 #endif //MEM_H
