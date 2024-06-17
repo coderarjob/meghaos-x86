@@ -18,25 +18,21 @@
  * @Input n        Number of bytes to copy.
  * @return         Pointer to the start of the destination.
 ***************************************************************************************************/
-void *k_memcpy (void *dest, const void *src, size_t n)
+void* k_memcpy (void* dest, const void* src, size_t n)
 {
     FUNC_ENTRY ("Dest: %px, Src: %px, Len: %x bytes", (PTR)dest, (PTR)src, n);
 
-    U8 *cdest = (U8 *)dest;
-    U8 *csrc = (U8 *)src;
+    U8* cdest = (U8*)dest;
+    U8* csrc  = (U8*)src;
 
-    if (cdest > csrc && cdest < csrc + n) {
-        // This handles the scenario where destination overlaps the source.
-        cdest += n - 1;
-        csrc += n - 1;
-        while (n--)
-            *cdest-- = *csrc--;
-    }
-    else {
-        __builtin_memcpy(dest, src, n);
-    }
+    // This handles the scenario where destination overlaps the source.
+    cdest += n - 1;
+    csrc += n - 1;
 
-    return (CHAR *)dest;
+    while (n--)
+        *cdest-- = *csrc--;
+
+    return (CHAR*)dest;
 }
 
 /***************************************************************************************************
