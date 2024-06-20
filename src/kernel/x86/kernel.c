@@ -47,7 +47,7 @@ static void s_markUsedMemory ();
 static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 //static void find_virtual_address();
 static void process_poc();
-//static void new_thread_1();
+//static void multiprocess_demo();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 
@@ -57,6 +57,8 @@ KernelStateInfo g_kstate;
 __attribute__ ((noreturn))
 void kernel_main ()
 {
+    FUNC_ENTRY();
+
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
     g_kstate.kernelPageDirectory = g_page_dir;
 
@@ -129,7 +131,7 @@ void kernel_main ()
     k_halt();
 }
 
-//static void new_thread_1()
+//static void multiprocess_demo()
 //{
 //    FUNC_ENTRY();
 //
@@ -155,7 +157,7 @@ void kernel_main ()
 //
 //    for (int i = 0; i < 8; i++)
 //    {
-//        kearly_println("Kernel thread - Running");
+//        kearly_println("Kernel thread - Yielding");
 //        syscall (2, 0, 0, 0, 0, 0);
 //    }
 //
@@ -198,11 +200,7 @@ static void multithread_demo_kernel_thread()
     INFO ("Process ID: %u", processID);
 
     // ----------------------
-#if (DEBUG_LEVEL & 1)
     UINT max = 12 * MAX_VGA_COLUMNS;
-#else
-    UINT max = 602 * MAX_VGA_COLUMNS;
-#endif
 
     for (UINT i = 0; i < max; i++) {
         syscall (2, 0, 0, 0, 0, 0);
@@ -233,7 +231,7 @@ static void process_poc()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
     void* startAddress_va = multithread_demo_kernel_thread;
-    //void* startAddress_va = new_thread_1;
+    //void* startAddress_va = multiprocess_demo;
 #pragma GCC diagnostic pop
 
     INT processID = kprocess_create (startAddress_va, 0,
