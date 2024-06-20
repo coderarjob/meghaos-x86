@@ -4,7 +4,7 @@
 compile_lib(
     NAME proc1
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/proc1.c
-    FLAGS ${MOS_KERNEL_GCC_FLAGS}
+    FLAGS ${MOS_KERNEL_GCC_FLAGS} -fno-inline-small-functions
     INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
     )
 
@@ -22,7 +22,7 @@ link(
 compile_lib(
     NAME mpdemo
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mpdemo.c
-    FLAGS ${MOS_KERNEL_GCC_FLAGS}
+    FLAGS ${MOS_KERNEL_GCC_FLAGS} -fno-inline-small-functions
     INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
     )
 

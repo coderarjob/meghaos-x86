@@ -16,11 +16,12 @@ set(MOS_KERNEL_GCC_FLAGS
     -fno-stack-protector
     -fno-asynchronous-unwind-tables
     -m32
-    -march=i386
+    -march=i686
     -masm=intel
     -mno-red-zone
     -mno-sse
-    -O1
+    -malign-data=abi
+    -Os
     -fno-unit-at-a-time
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
