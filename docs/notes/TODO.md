@@ -39,7 +39,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Separate warning flags for Release, and user processes              | 12 Apr 24 |            |
 | [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 24 |            |
-| variants in C.                                                          |           |            |
+| variants in C. Does nothing if flags are OR'ed.                         |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
 | [ ] Remove libgcc. Write two macros do_div() for div & mod opeartions   | 06 Mar 24 |            |
 | [ ] Configuration header files for C and assembly.                      |           |            |

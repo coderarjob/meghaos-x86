@@ -1,8 +1,20 @@
 # Megha Operating System V2 - x86
 ----------------------------------------------------------------------------------------------------
 
-## Virtual memory management - Concept of Regions
+## Virtual memory management - Regions and Mapping
 categories: note, x86
+_24 June 2024_
+
+The below idea about storing state of individual virtual pages in a bitmap was a overkill. If we
+keep track of the state for a much larger 'range' then that is enought. This range can cover as
+small as one page or more usually several pages. Once we have a range we can 'shorten' or
+'lenghthen' the virtual address space covered (akin to 'brk' syscall).
+
+
+----------------------------------------------------------------------------------------------------
+
+## Virtual memory management - Concept of Regions
+categories: note, x86, obsolete
 _6 April 2024_
 
 Regions cover small (say 20 pages in size) continuous virtual addresses and keep track of virtual &
