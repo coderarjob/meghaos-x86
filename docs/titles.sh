@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 TAG_LINE_PATTERN="categories"
 TAG_PAT=""
