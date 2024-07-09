@@ -47,8 +47,8 @@
  * NOTE: `& 0x1` makes the GCC happy when assigning to bit field.*/
 #define BIT_ISSET(w, s)             \
     (__extension__({                \
-         INT w_ = (w);      \
-         INT s_ = (s);      \
+         UINT w_ = (w);             \
+         UINT s_ = (s);             \
          (w_ & s_) == s_ ? 1U : 0U; \
      }) & 0x1)
 
