@@ -22,9 +22,6 @@
 #include <intrusive_list.h>
 #include <intrusive_queue.h>
 
-#define PROCESS_TEXT_VA_START  0x00010000
-#define PROCESS_STACK_VA_START 0x00030000
-
 #define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
     ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
@@ -130,6 +127,7 @@ static ProcessInfo* s_processInfo_malloc()
     pInfo->state     = PROCESS_STATE_INVALID;
     pInfo->processID = processCount++;
     list_init (&pInfo->schedulerQueueNode);
+    list_init(&pInfo->vmm_virtAddrListHead);
 
     return pInfo;
 }
@@ -529,4 +527,12 @@ bool kprocess_exit()
     );
 
     return (ret == true);
+}
+
+// TODO:
+// Exposing the local currentProcess to the outside world may not be a good idea. Returning a
+// shallow copy (passing by value) would not cut it.
+ProcessInfo* kprocess_getCurrentProcess()
+{
+    return currentProcess;
 }
