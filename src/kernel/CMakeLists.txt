@@ -5,6 +5,7 @@ set(KERNEL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pmm.c
     ${CMAKE_CURRENT_SOURCE_DIR}/printk.c
     ${CMAKE_CURRENT_SOURCE_DIR}/salloc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/vmm.c
     )
 
 compile_lib(

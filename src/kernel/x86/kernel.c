@@ -37,6 +37,7 @@
 #include <process.h>
 #include <x86/cpu.h>
 #include <x86/kernel.h>
+#include <vmm.h>
 
 static void display_system_info ();
 static void s_markUsedMemory ();
@@ -68,11 +69,29 @@ void kernel_main ()
     // Initilaize Physical Memory Manger
     kpmm_init ();
 
+    display_system_info ();
+
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
     s_markUsedMemory();
 
     salloc_init();
     kmalloc_init();
+
+    vmm_init();
+
+    PTR va1 = vmm_reserve (1, PG_MAP_FLAG_KERNEL);
+    PTR va2 = vmm_reserve (5, PG_MAP_FLAG_KERNEL);
+    PTR va3 = vmm_reserve (1, PG_MAP_FLAG_KERNEL);
+
+    vmm_unreserve (va2);
+    vmm_reserve (3, PG_MAP_FLAG_KERNEL);
+    vmm_reserve (2, PG_MAP_FLAG_KERNEL);
+
+    (void)va1;
+    (void)va2;
+    (void)va3;
+
+    k_halt();
 
     kearly_println ("[OK]\tPaging enabled.");
 
@@ -111,7 +130,6 @@ void kernel_main ()
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,LIGHT_GRAY,0));
 
     // Display available memory
-    display_system_info ();
     //s_dumpPab();
     // Paging information
     //extern void paging_print ();

@@ -31,6 +31,8 @@ typedef enum KernelErrorCodes {
     ERR_PAGE_WRONG_STATE          = 10, // Page table/directory is in wrong state
     ERR_SCHEDULER_QUEUE_FULL      = 11, // No space for new process in process table
     ERR_SCHEDULER_QUEUE_EMPTY     = 12, // No process in the process table to schedule next
+    ERR_VMM_NOT_ALLOCATED         = 13, // Virutal address space is not allocated
+    ERR_VMM_NOT_RESERVED          = 14, // Virtual address space is not reserved
 } KernelErrorCodes;
 
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what
