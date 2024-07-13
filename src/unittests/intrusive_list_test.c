@@ -15,6 +15,29 @@ TEST (LIST, single_node)
     END();
 }
 
+TEST (LIST, is_empty)
+{
+    ListNode head = { 0 };
+    list_init (&head);
+
+    // Newly initialized list is empty.
+    EQ_SCALAR (list_is_empty (&head), true);
+
+    // Add one item to the list
+    ListNode n1;
+    list_add_before (&head, &n1);
+
+    // List has one item, so is not empty.
+    EQ_SCALAR (list_is_empty (&head), false);
+
+    // Remove all items in the list
+    list_remove (&n1);
+
+    // List has zero items, so is empty.
+    EQ_SCALAR (list_is_empty (&head), true);
+    END();
+}
+
 TEST (LIST, three_nodes)
 {
     ListNode head = { 0 };
@@ -317,5 +340,6 @@ int main()
     remove_node_all();
     list_position_independence();
     list_item_retrival();
+    is_empty();
     return 0;
 }

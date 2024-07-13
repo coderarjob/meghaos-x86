@@ -1,6 +1,7 @@
 #ifndef INTRUSIVE_LIST_H
 #define INTRUSIVE_LIST_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -14,6 +15,11 @@ static inline void list_init (ListNode* node)
 {
     node->next = node;
     node->prev = node;
+}
+
+static inline bool list_is_empty(ListNode *head)
+{
+    return (head->next == head && head->prev == head);
 }
 
 static inline void list_add_before (ListNode* node, ListNode* item)
