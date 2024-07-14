@@ -80,17 +80,20 @@ void kernel_main ()
     g_kstate.kernelVMM = vmm_create (KERNEL_LOW_REGION_START, 0xFFBFFFFF);
     vmm_init (g_kstate.kernelVMM);
 
-    PTR va1 = vmm_reserve (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL, false);
+    vmm_reserveAt (g_kstate.kernelVMM, 0xC0004000, 5, PG_MAP_FLAG_KERNEL, false);
+
+    vmm_reserve (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL, false);
     PTR va2 = vmm_reserve (g_kstate.kernelVMM, 5, PG_MAP_FLAG_KERNEL, false);
-    PTR va3 = vmm_reserve (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL, false);
+    vmm_reserve (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL, false);
+
+    vmm_printVASList (g_kstate.kernelVMM);
 
     vmm_unreserve (g_kstate.kernelVMM, va2);
     vmm_reserve (g_kstate.kernelVMM, 3, PG_MAP_FLAG_KERNEL, false);
     vmm_reserve (g_kstate.kernelVMM, 2, PG_MAP_FLAG_KERNEL, false);
-
-    (void)va1;
     (void)va2;
-    (void)va3;
+
+    vmm_printVASList (g_kstate.kernelVMM);
 
     k_halt();
 

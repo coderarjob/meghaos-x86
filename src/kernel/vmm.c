@@ -1,9 +1,9 @@
 /*
- * --------------------------------------------------------------------------------------------------
+ * -------------------------------------------------------------------------------------------------
  * Megha Operating System V2 - Cross Platform Kernel - Virtual Memory Management
  *
  * Manage virtual memory space of a process
- * --------------------------------------------------------------------------------------------------
+ * -------------------------------------------------------------------------------------------------
  */
 
 #include <pmm.h>
@@ -46,43 +46,103 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reser
     return new;
 }
 
-static VMM_VirtualAddressSpace* find_next_va (ListNode* listHead, SIZE pageCount)
+static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE pageCount,
+                                       PagingMapFlags pgFlags, VMM_AddressSpaceFlags vasFlags)
 {
-    ListNode* node                    = NULL;
-    VMM_VirtualAddressSpace* vas_prev = NULL; // Used for SEARCH_CRI_FIND_FREE_VIRT_MEM
+    VMM_VirtualAddressSpace* newVas = createNewVirtAddrSpace (start_va, pageCount, pgFlags,
+                                                              vasFlags);
+    if (newVas == NULL) {
+        // TODO: May be we should panic.
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
 
-    list_for_each (listHead, node)
+    // If virtual address space list is empty, just add a new address space at the head
+    if (list_is_empty (&vmm->head)) {
+        list_add_after (&vmm->head, &newVas->adjMappingNode);
+        return true;
+    }
+
+    // If there are already some items in the list, we find a suitable spot such that the list
+    // remains sorted (by start_va) in increasing order
+    ListNode* node;
+    bool found                   = false;
+    VMM_VirtualAddressSpace* vas = NULL;
+    list_for_each (&vmm->head, node)
+    {
+        vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
+        k_assert (vas != NULL, "Virtual Address space object in the list cannot be NULL");
+
+        if (vas->start_vm > newVas->start_vm) {
+            found = true;
+            break;
+        }
+    }
+
+    if (found == false) {
+        // The new VAS has the largest VA, so add it at the end, which is before head.
+        list_add_before (&vmm->head, &newVas->adjMappingNode);
+    } else {
+        // Add before the found VAS if there is gap
+        if (newVas->start_vm + PAGEFRAMES_TO_BYTES (pageCount) > vas->start_vm) {
+            // Cannot add, new VAS is overlapping existing VAS.
+            RETURN_ERROR (ERR_VMM_OVERLAPING_VAS, false);
+        }
+        list_add_before (&vas->adjMappingNode, &newVas->adjMappingNode);
+    }
+
+    return true;
+}
+
+static PTR find_next_va (VMManager* vmm, SIZE pageCount)
+{
+    // Check if address space list is empty. If so then return the 'start' address.
+    if (list_is_empty (&vmm->head)) {
+        return vmm->start;
+    }
+
+    // Address space contains some items, so we traverse the list to find a large enough gap in the
+    // address space
+    ListNode* node                    = NULL;
+    VMM_VirtualAddressSpace* vas_prev = NULL;
+    PTR new_va                        = 0;
+
+    list_for_each (&vmm->head, node)
     {
         VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
         k_assert (vas != NULL, "Virtual Address space object in the list cannot be NULL");
 
-        INFO ("VAS found: start: %x, total size: %u, flags: %x, processID: %u", vas->start_vm,
-              vas->reservedPageCount, vas->vasFlags, vas->processID);
-
+        SIZE addr_space_gap = 0;
         if (vas_prev != NULL) {
             k_assert (vas->start_vm > vas_prev->start_vm,
                       "Address space list must be in sorted order");
 
-            SIZE addr_space_gap = (vas->start_vm -
-                                   (vas_prev->start_vm +
-                                    PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount)));
+            addr_space_gap = vas->start_vm - (vas_prev->start_vm +
+                                              PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount));
+            new_va         = vas_prev->start_vm + PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount);
 
-            if (addr_space_gap >= PAGEFRAMES_TO_BYTES (pageCount)) {
-                return vas_prev;
-            }
+        } else {
+            addr_space_gap = vas->start_vm - vmm->start;
+            new_va         = vmm->start;
+        }
+
+        if (addr_space_gap >= PAGEFRAMES_TO_BYTES (pageCount)) {
+            return new_va;
         }
         vas_prev = vas;
     }
 
-    if (vas_prev != NULL) {
-        // TODO: Need to check that we not not going past a limit.
-        // For Kernel and user the limits are 4GB - 4KB and 3GB - 4KB respectively.
-        INFO ("Found");
-        return vas_prev;
+    k_assert (vas_prev != NULL, "There must have been a single VAS");
+
+    // Since new address space is at the end, check that we are not exceeding the 'end'
+    SIZE addr_space_gap = vmm->end -
+                          (vas_prev->start_vm + PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount));
+    if (addr_space_gap >= PAGEFRAMES_TO_BYTES (pageCount)) {
+        new_va = vas_prev->start_vm + PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount);
+        return new_va;
     }
 
     // Suitable free address space not found
-    return NULL;
+    return 0;
 }
 
 static VMM_VirtualAddressSpace* find_vas (ListNode* listHead, PTR startVA, bool searchAllocated)
@@ -196,51 +256,33 @@ void vmm_shareMapping (PTR start, SIZE count, U32 processID)
 //     return true;
 // }
 
+PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE count, PagingMapFlags pgFlags, bool isPremapped)
+{
+    FUNC_ENTRY ("vmm: %x, va: %x, count: %u, paging flags: %x, IsPremapped: %x", vmm, va, count,
+                pgFlags, isPremapped);
+
+    VMM_AddressSpaceFlags vasFlags = (isPremapped) ? VMM_ADDR_SPACE_FLAG_PREMAP
+                                                   : VMM_ADDR_SPACE_FLAG_NONE;
+
+    if (addNewVirtualAddressSpace (vmm, va, count, pgFlags, vasFlags) == false) {
+        k_panicOnError();
+    }
+
+    return va;
+}
+
 PTR vmm_reserve (VMManager* vmm, SIZE count, PagingMapFlags pgFlags, bool isPremapped)
 {
     FUNC_ENTRY ("vmm: %x, count: %u, paging flags: %x, IsPremapped: %x", vmm, count, pgFlags,
                 isPremapped);
 
-    VMM_AddressSpaceFlags vasFlags   = (isPremapped) ? VMM_ADDR_SPACE_FLAG_PREMAP
-                                                     : VMM_ADDR_SPACE_FLAG_NONE;
-    VMM_VirtualAddressSpace* new_vas = NULL;
-
-    if (list_is_empty (&vmm->head)) {
-        // Since there are no address reserved, we crate a new reservation at the start of the
-        // adderss space.
-        if ((new_vas = createNewVirtAddrSpace (vmm->start, count, pgFlags, vasFlags)) == NULL) {
-            k_panic ("Cannot create initial virutal address space object");
-        }
-
-        // Insert using 'list_add_after' ensures sorted order
-        list_add_after (&vmm->head, &new_vas->adjMappingNode);
-    } else {
-        // There are some address spaces already reserved, so we need to search for a large enough
-        // gap in the address space that is not reserved and we can use next.
-        VMM_VirtualAddressSpace* before_vas = NULL;
-        if ((before_vas = find_next_va (&vmm->head, count)) == NULL) {
-            // No Virutal memory address space found!!
-            RETURN_ERROR (ERR_OUT_OF_MEM, 0);
-        }
-
-        // Next address space starts where the 'found' address space finished
-        PTR next_va = before_vas->start_vm + PAGEFRAMES_TO_BYTES (before_vas->reservedPageCount);
-
-        if ((new_vas = createNewVirtAddrSpace (next_va, count, pgFlags, vasFlags)) == NULL) {
-            k_panic ("Cannot create initial virutal address space object");
-        }
-
-        // Insert using 'list_add_after' ensures sorted order
-        list_add_after (&before_vas->adjMappingNode, &new_vas->adjMappingNode);
+    PTR next_va = find_next_va (vmm, count);
+    if (next_va == 0) {
+        // No Virutal memory address space found!!
+        RETURN_ERROR (ERR_OUT_OF_MEM, 0);
     }
 
-    k_assert (IS_ALIGNED (new_vas->start_vm, CONFIG_PAGE_FRAME_SIZE_BYTES),
-              "Address must be page aligned");
-
-    INFO ("New address allocated is: %x & length: %u pages", new_vas->start_vm,
-          new_vas->reservedPageCount);
-
-    return new_vas->start_vm;
+    return vmm_reserveAt (vmm, next_va, count, pgFlags, isPremapped);
 }
 
 bool vmm_unreserve (VMManager* vmm, PTR start_va)
@@ -272,4 +314,22 @@ bool vmm_unreserve (VMManager* vmm, PTR start_va)
     kfree (vas);
 
     return true;
+}
+
+void vmm_printVASList (VMManager* vmm)
+{
+    ListNode* node = NULL;
+    if (list_is_empty (&vmm->head)) {
+        INFO ("List is empty");
+    }
+
+    list_for_each (&vmm->head, node)
+    {
+        VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
+
+        INFO ("* start: %x, reserved size: %u, allocated size: %x, vasflags: %x, pgFlags: %x, "
+              "processID: %u.",
+              vas->start_vm, vas->reservedPageCount, vas->allocatedPageCount, vas->vasFlags,
+              vas->pgFlags, vas->processID);
+    }
 }

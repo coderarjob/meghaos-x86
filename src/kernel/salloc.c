@@ -58,6 +58,8 @@ void* salloc (UINT bytes)
     if (!IS_SPACE_AVAILABLE (allocSize))
         RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
 
+    INFO ("Allocated at: %x", s_next);
+
     s_next = (void*)((PTR)s_next + allocSize);
     return (void*)((PTR)s_next - allocSize);
 }
