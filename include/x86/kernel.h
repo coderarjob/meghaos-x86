@@ -7,7 +7,7 @@
 
 #include <types.h>
 #include <kassert.h>
-#include <intrusive_list.h>
+#include <vmm.h>
 
 typedef struct KernelStateInfo {
     enum {
@@ -21,8 +21,8 @@ typedef struct KernelStateInfo {
     } phase;                       // Phase in which the Kernel is in currently.
     UINT errorNumber;              // Code for last error.
     Physical kernelPageDirectory;  // Physical location of Kernel Page Directory.
-    // Virtual memories of kernel are stored in a list. This is its head node.
-    ListNode vmm_virtAddrListHead;
+    // Kernel address spaces are managed through this VMM.
+    VMManager* kernelVMM;
 } KernelStateInfo;
 
 extern KernelStateInfo g_kstate;

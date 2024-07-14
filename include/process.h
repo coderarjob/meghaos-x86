@@ -8,6 +8,7 @@
 
 #include <types.h>
 #include <intrusive_queue.h>
+#include <vmm.h>
 
 typedef enum ProcessStates {
     PROCESS_STATE_INVALID = 0,
@@ -41,8 +42,8 @@ typedef struct ProcessInfo {
     } virt;
     // ProcessInfos' are part of the scheduler process table through this node.
     ListNode schedulerQueueNode;
-    // Virtual memories of this process are stored in a list. This is its head node.
-    ListNode vmm_virtAddrListHead;
+    // Process address spaces are managed through this VMM.
+    VMManager* processVMM;
     // Initial states. These do not change throuout the lifetime of the process.
     UINT processID;
     ProcessFlags flags;
@@ -55,4 +56,3 @@ void kprocess_init();
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
 bool kprocess_exit();
-ProcessInfo* kprocess_getCurrentProcess();

@@ -9,48 +9,19 @@
 #include <pmm.h>
 #include <stdbool.h>
 #include <vmm.h>
+#include <vmm_struct.h>
 #include <intrusive_list.h>
 #include <types.h>
-#include <x86/kernel.h>
-#include <process.h>
 #include <kassert.h>
 #include <memmanage.h>
 #include <kstdlib.h>
 #include <kerror.h>
-#include <x86/memloc.h>
-
-typedef enum VMM_AddressSpaceFlags {
-    VMM_ADDR_SPACE_FLAG_NOT_PRESENT  = (1 << 0),
-    VMM_ADDR_SPACE_FLAG_GROWABLE     = (1 << 1),
-    VMM_ADDR_SPACE_FLAG_STATIC_ALLOC = (1 << 2), // Allocated using salloc not kmalloc
-    VMM_ADDR_SPACE_FLAG_PREMAP       = (1 << 3), // Address mappings are not handled by VMM. So no
-                                           // depend allocation, unreserve, freePage is allowed.
-                                           // These addresses spaces are assumed fully allocated.
-} VMM_AddressSpaceFlags;
-
-typedef struct VMM_MemoryShare {
-    Physical* pages;
-    SIZE count;    // Number of pages added to the pages array
-    SIZE refcount; // Number of VirtualAddressSpace objects that share this Memory
-} VMM_MemoryShare;
-
-typedef struct VMM_VirtualAddressSpace {
-    VMM_AddressSpaceFlags flags; // Arch independent VMM flags
-    PagingMapFlags pgFlags;      // Arch independent Paging flags
-    PTR start_vm;                // Address space starts from this Virtual address
-    SIZE reservedPageCount;      // Number of virtual pages reserved by this Address space
-    SIZE allocatedPageCount;     // Number of virtual pages allocated
-    S32 processID;          // 0 - Not associated with any process, otherwise this is the process ID
-    VMM_MemoryShare* share; // MemoryShare associated with this mapping.
-    ListNode adjMappingNode; // Adds to Virtual Address space list through this node.
-} VMM_VirtualAddressSpace;
 
 static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reservePageCount,
-                                                        PagingMapFlags pgFlags)
+                                                        PagingMapFlags pgFlags,
+                                                        VMM_AddressSpaceFlags vasFlags)
 {
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_SALLOC_READY);
-
-    VMM_AddressSpaceFlags vasFlags = 0;
 
     VMM_VirtualAddressSpace* new = NULL;
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
@@ -68,7 +39,7 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reser
     new->reservedPageCount  = reservePageCount;
     new->allocatedPageCount = 0;
     new->pgFlags            = pgFlags;
-    new->flags              = vasFlags;
+    new->vasFlags           = vasFlags;
     new->processID          = 0;
     new->share              = NULL;
     list_init (&new->adjMappingNode);
@@ -86,7 +57,7 @@ static VMM_VirtualAddressSpace* find_next_va (ListNode* listHead, SIZE pageCount
         k_assert (vas != NULL, "Virtual Address space object in the list cannot be NULL");
 
         INFO ("VAS found: start: %x, total size: %u, flags: %x, processID: %u", vas->start_vm,
-              vas->reservedPageCount, vas->flags, vas->processID);
+              vas->reservedPageCount, vas->vasFlags, vas->processID);
 
         if (vas_prev != NULL) {
             k_assert (vas->start_vm > vas_prev->start_vm,
@@ -133,11 +104,29 @@ static VMM_VirtualAddressSpace* find_vas (ListNode* listHead, PTR startVA, bool 
     return NULL;
 }
 
-void vmm_init()
+VMManager* vmm_create (PTR start, PTR end)
+{
+    FUNC_ENTRY ("start: %x, end: %x", start, end);
+
+    if (start >= end) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, NULL);
+    }
+
+    VMManager* new_vmm = NULL;
+    if ((new_vmm = salloc (sizeof (VMManager))) == NULL) {
+        k_panicOnError();
+    }
+
+    new_vmm->start = start;
+    new_vmm->end   = end;
+    return new_vmm;
+}
+
+void vmm_init (VMManager* vmm)
 {
     FUNC_ENTRY();
 
-    list_init (&g_kstate.vmm_virtAddrListHead);
+    list_init (&vmm->head);
 }
 
 void vmm_shareMapping (PTR start, SIZE count, U32 processID)
@@ -207,37 +196,29 @@ void vmm_shareMapping (PTR start, SIZE count, U32 processID)
 //     return true;
 // }
 
-PTR vmm_reserve (SIZE count, PagingMapFlags flags)
+PTR vmm_reserve (VMManager* vmm, SIZE count, PagingMapFlags pgFlags, bool isPremapped)
 {
-    FUNC_ENTRY ("count: %u, flags: %x", count, flags);
+    FUNC_ENTRY ("vmm: %x, count: %u, paging flags: %x, IsPremapped: %x", vmm, count, pgFlags,
+                isPremapped);
 
-    ListNode* listHead            = &g_kstate.vmm_virtAddrListHead;
-    PTR default_virtAddress_start = KERNEL_LOW_REGION_START;
-
-    if (BIT_ISUNSET (flags, PG_MAP_FLAG_KERNEL)) {
-        ProcessInfo* pi = NULL;
-        k_assert ((pi = kprocess_getCurrentProcess()) != NULL, "Must have a process");
-
-        listHead                  = &pi->vmm_virtAddrListHead;
-        default_virtAddress_start = PROCESS_ADDR_SPACE_START;
-    }
-
+    VMM_AddressSpaceFlags vasFlags   = (isPremapped) ? VMM_ADDR_SPACE_FLAG_PREMAP
+                                                     : VMM_ADDR_SPACE_FLAG_NONE;
     VMM_VirtualAddressSpace* new_vas = NULL;
 
-    if (list_is_empty (listHead)) {
+    if (list_is_empty (&vmm->head)) {
         // Since there are no address reserved, we crate a new reservation at the start of the
         // adderss space.
-        if ((new_vas = createNewVirtAddrSpace (default_virtAddress_start, count, flags)) == NULL) {
+        if ((new_vas = createNewVirtAddrSpace (vmm->start, count, pgFlags, vasFlags)) == NULL) {
             k_panic ("Cannot create initial virutal address space object");
         }
 
         // Insert using 'list_add_after' ensures sorted order
-        list_add_after (listHead, &new_vas->adjMappingNode);
+        list_add_after (&vmm->head, &new_vas->adjMappingNode);
     } else {
         // There are some address spaces already reserved, so we need to search for a large enough
         // gap in the address space that is not reserved and we can use next.
         VMM_VirtualAddressSpace* before_vas = NULL;
-        if ((before_vas = find_next_va (listHead, count)) == NULL) {
+        if ((before_vas = find_next_va (&vmm->head, count)) == NULL) {
             // No Virutal memory address space found!!
             RETURN_ERROR (ERR_OUT_OF_MEM, 0);
         }
@@ -245,7 +226,7 @@ PTR vmm_reserve (SIZE count, PagingMapFlags flags)
         // Next address space starts where the 'found' address space finished
         PTR next_va = before_vas->start_vm + PAGEFRAMES_TO_BYTES (before_vas->reservedPageCount);
 
-        if ((new_vas = createNewVirtAddrSpace (next_va, count, flags)) == NULL) {
+        if ((new_vas = createNewVirtAddrSpace (next_va, count, pgFlags, vasFlags)) == NULL) {
             k_panic ("Cannot create initial virutal address space object");
         }
 
@@ -262,19 +243,18 @@ PTR vmm_reserve (SIZE count, PagingMapFlags flags)
     return new_vas->start_vm;
 }
 
-bool vmm_unreserve (PTR start_va)
+bool vmm_unreserve (VMManager* vmm, PTR start_va)
 {
-    FUNC_ENTRY ("start va: %x", start_va);
+    FUNC_ENTRY ("vmm: %x, start va: %x", vmm, start_va);
 
     VMM_VirtualAddressSpace* vas = NULL;
 
-    // TODO: List head is selected by the virtual address value.
-    if ((vas = find_vas (&g_kstate.vmm_virtAddrListHead, start_va, false)) == NULL) {
+    if ((vas = find_vas (&vmm->head, start_va, false)) == NULL) {
         RETURN_ERROR (ERR_VMM_NOT_RESERVED, false);
     }
 
     // Address spaces that are reserved using salloc cannot be unreserved.
-    if (BIT_ISSET (vas->flags, VMM_ADDR_SPACE_FLAG_STATIC_ALLOC)) {
+    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_STATIC_ALLOC)) {
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
     }
 

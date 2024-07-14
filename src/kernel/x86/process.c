@@ -21,6 +21,7 @@
 #include <x86/cpu.h>
 #include <intrusive_list.h>
 #include <intrusive_queue.h>
+#include <vmm.h>
 
 #define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
@@ -127,7 +128,9 @@ static ProcessInfo* s_processInfo_malloc()
     pInfo->state     = PROCESS_STATE_INVALID;
     pInfo->processID = processCount++;
     list_init (&pInfo->schedulerQueueNode);
-    list_init(&pInfo->vmm_virtAddrListHead);
+    if ((pInfo->processVMM = vmm_create (PROCESS_STACK_VA_START, 3 * GB)) == NULL) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
+    }
 
     return pInfo;
 }
@@ -527,12 +530,4 @@ bool kprocess_exit()
     );
 
     return (ret == true);
-}
-
-// TODO:
-// Exposing the local currentProcess to the outside world may not be a good idea. Returning a
-// shallow copy (passing by value) would not cut it.
-ProcessInfo* kprocess_getCurrentProcess()
-{
-    return currentProcess;
 }
