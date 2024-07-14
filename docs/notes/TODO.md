@@ -174,6 +174,7 @@
 | entirely to 0xC0000000. Initially only the physical memory where the    |           |            |
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
+| ::: [ ] May be kpg_temporaryMap/Unmap can call kpg_map.                 | 14 Jul 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] DEBUG_LEVEL determines where debug messages are printed. Does it    | 27 May 24 |            |
 | makes sense to print debug messages in NDEBUG build mode?               |           |            |

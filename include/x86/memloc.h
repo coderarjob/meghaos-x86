@@ -23,6 +23,10 @@
     #define KERNEL_PAB              0xC0025000
     #define KERNEL_LOW_REGION_END   0xC0026000
 
+    #define MEM_START_PAGING_RECURSIVE_MAP 0xFFC00000U // Recursive map of PDs
+    #define MEM_START_PAGING_EXT_TEMP_MAP  0xC03FE000U // Temporary map for external modules
+    #define MEM_START_PAGING_INT_TEMP_MAP  0xC03FF000U // Temporary map for Paging module
+
     #define SALLOC_MEM_START  (3 * GB + 2 * MB)
     #define KMALLOC_MEM_START (3 * GB + 3 * MB)
 

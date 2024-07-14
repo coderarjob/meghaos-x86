@@ -15,6 +15,7 @@
 
 #include <types.h>
 #include <buildcheck.h>
+#include <x86/memloc.h>
 
 #define PDE_SHIFT    22U
 #define PTE_SHIFT    12U
@@ -24,10 +25,10 @@
 #define PTE_MASK    0x003FF000U
 #define OFFSET_MASK 0x00000FFFU
 
-#define RECURSIVE_PDE_INDEX          1023U
-#define KERNEL_PDE_INDEX             768U
-#define TEMPORARY_PTE_INDEX_EXTERN   1022U
-#define TEMPORARY_PTE_INDEX_INTERNAL 1023U
+#define RECURSIVE_PDE_INDEX          ((MEM_START_PAGING_RECURSIVE_MAP & PDE_MASK) >> PDE_SHIFT)
+#define KERNEL_PDE_INDEX             ((KERNEL_LOW_REGION_START & PDE_MASK) >> PDE_SHIFT)
+#define TEMPORARY_PTE_INDEX_EXTERN   ((MEM_START_PAGING_EXT_TEMP_MAP & PTE_MASK) >> PTE_SHIFT)
+#define TEMPORARY_PTE_INDEX_INTERNAL ((MEM_START_PAGING_INT_TEMP_MAP & PTE_MASK) >> PTE_SHIFT)
 
 #define x86_PG_DEFAULT_IS_CACHING_DISABLED 0 // 0 - Enabled cache, 1 - Disables cache
 #define x86_PG_DEFAULT_IS_WRITE_THROUGH    0 // 0 - Write back, 1 - Write through
