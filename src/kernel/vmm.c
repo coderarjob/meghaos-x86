@@ -16,13 +16,12 @@
 #include <memmanage.h>
 #include <kstdlib.h>
 #include <kerror.h>
+#include <kernel.h>
 
 static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reservedBytes,
                                                         PagingMapFlags pgFlags,
                                                         VMM_AddressSpaceFlags vasFlags)
 {
-    KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_SALLOC_READY);
-
     VMM_VirtualAddressSpace* new = NULL;
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
         if ((new = kmalloc (sizeof (VMM_VirtualAddressSpace))) == NULL) {

@@ -36,7 +36,7 @@
 #include <kstdlib.h>
 #include <process.h>
 #include <x86/cpu.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 #include <vmm.h>
 
 static void display_system_info ();

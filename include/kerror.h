@@ -14,7 +14,7 @@
 #include <kassert.h>
 #include <kdebug.h>
 #include <panic.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 /* Error codes that can be set inside the kernel.*/
 typedef enum KernelErrorCodes {

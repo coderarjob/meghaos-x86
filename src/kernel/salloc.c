@@ -11,7 +11,7 @@
 #include <types.h>
 #include <kstdlib.h>
 #include <memmanage.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 #define SPACE_USED()                 ((PTR)s_next - s_start)
 #define IS_SPACE_AVAILABLE(sz_bytes) ((SPACE_USED() + (sz_bytes)-1) < SALLOC_SIZE_BYTES)

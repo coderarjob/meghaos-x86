@@ -18,7 +18,7 @@
 #include <kerror.h>
 #include <x86/memloc.h>
 #include <x86/io.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 #define TABSTOP             4U
 #define VGA_COLUMNS         MAX_VGA_COLUMNS

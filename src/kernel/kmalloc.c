@@ -12,7 +12,7 @@
 #include <memmanage.h>
 #include <types.h>
 #include <utils.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 typedef enum FindCriteria
 {
