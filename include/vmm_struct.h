@@ -36,8 +36,8 @@ typedef struct VMM_VirtualAddressSpace {
     VMM_AddressSpaceFlags vasFlags; // Arch independent VMM flags
     PagingMapFlags pgFlags;         // Arch independent Paging flags
     PTR start_vm;                   // Address space starts from this Virtual address
-    SIZE reservedPageCount;         // Number of virtual pages reserved by this Address space
-    SIZE allocatedPageCount;        // Number of virtual pages allocated
+    SIZE reservedBytes;             // Number of virtual pages reserved by this Address space
+    SIZE allocatedBytes;            // Number of virtual pages allocated
     S32 processID;          // 0 - Not associated with any process, otherwise this is the process ID
     VMM_MemoryShare* share; // MemoryShare associated with this mapping.
     ListNode adjMappingNode; // Adds to Virtual Address space list through this node.

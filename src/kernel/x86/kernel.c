@@ -81,6 +81,7 @@ void kernel_main ()
     vmm_init (g_kstate.kernelVMM);
 
     vmm_reserveAt (g_kstate.kernelVMM, 0xC0004000, 5, PG_MAP_FLAG_KERNEL, false);
+    vmm_reserveAt (g_kstate.kernelVMM, 0xC0009000, 1, PG_MAP_FLAG_KERNEL, false);
 
     vmm_reserve (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL, false);
     PTR va2 = vmm_reserve (g_kstate.kernelVMM, 5, PG_MAP_FLAG_KERNEL, false);

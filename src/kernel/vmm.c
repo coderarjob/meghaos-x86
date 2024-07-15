@@ -17,7 +17,7 @@
 #include <kstdlib.h>
 #include <kerror.h>
 
-static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reservePageCount,
+static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reservedBytes,
                                                         PagingMapFlags pgFlags,
                                                         VMM_AddressSpaceFlags vasFlags)
 {
@@ -35,22 +35,23 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reser
         vasFlags |= VMM_ADDR_SPACE_FLAG_STATIC_ALLOC;
     }
 
-    new->start_vm           = start_vm;
-    new->reservedPageCount  = reservePageCount;
-    new->allocatedPageCount = 0;
-    new->pgFlags            = pgFlags;
-    new->vasFlags           = vasFlags;
-    new->processID          = 0;
-    new->share              = NULL;
+    new->start_vm       = start_vm;
+    new->reservedBytes  = reservedBytes;
+    new->allocatedBytes = 0;
+    new->pgFlags        = pgFlags;
+    new->vasFlags       = vasFlags;
+    new->processID      = 0;
+    new->share          = NULL;
     list_init (&new->adjMappingNode);
     return new;
 }
 
-static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE pageCount,
+static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPages,
                                        PagingMapFlags pgFlags, VMM_AddressSpaceFlags vasFlags)
 {
-    VMM_VirtualAddressSpace* newVas = createNewVirtAddrSpace (start_va, pageCount, pgFlags,
-                                                              vasFlags);
+    SIZE szBytes = PAGEFRAMES_TO_BYTES (szPages);
+
+    VMM_VirtualAddressSpace* newVas = createNewVirtAddrSpace (start_va, szBytes, pgFlags, vasFlags);
     if (newVas == NULL) {
         // TODO: May be we should panic.
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
@@ -68,7 +69,7 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE pageCo
     VMM_VirtualAddressSpace* vas = NULL;
 
     PTR newvas_startvm = newVas->start_vm;
-    PTR newvas_endvm   = newvas_startvm + PAGEFRAMES_TO_BYTES (newVas->reservedPageCount) - 1;
+    PTR newvas_endvm   = newvas_startvm + newVas->reservedBytes - 1;
     list_for_each (&vmm->head, node)
     {
         vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
@@ -76,7 +77,7 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE pageCo
 
         // Address space overlap/duplication detection
         PTR vas_startvm = vas->start_vm;
-        PTR vas_endvm   = vas_startvm + PAGEFRAMES_TO_BYTES (vas->reservedPageCount) - 1;
+        PTR vas_endvm   = vas_startvm + vas->reservedBytes - 1;
 
         if ((newvas_startvm >= vas_startvm && newvas_startvm <= vas_endvm) ||
             (newvas_endvm >= vas_startvm && newvas_endvm <= vas_endvm)) {
@@ -99,8 +100,10 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE pageCo
     return true;
 }
 
-static PTR find_next_va (VMManager* vmm, SIZE pageCount)
+static PTR find_next_va (VMManager* vmm, SIZE szPages)
 {
+    SIZE szBytes = PAGEFRAMES_TO_BYTES (szPages);
+
     // Check if address space list is empty. If so then return the 'start' address.
     if (list_is_empty (&vmm->head)) {
         return vmm->start;
@@ -122,16 +125,14 @@ static PTR find_next_va (VMManager* vmm, SIZE pageCount)
             k_assert (vas->start_vm > vas_prev->start_vm,
                       "Address space list must be in sorted order");
 
-            addr_space_gap = vas->start_vm - (vas_prev->start_vm +
-                                              PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount));
-            new_va         = vas_prev->start_vm + PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount);
-
+            new_va         = (vas_prev->start_vm + vas_prev->reservedBytes);
+            addr_space_gap = vas->start_vm - new_va;
         } else {
-            addr_space_gap = vas->start_vm - vmm->start;
             new_va         = vmm->start;
+            addr_space_gap = vas->start_vm - new_va;
         }
 
-        if (addr_space_gap >= PAGEFRAMES_TO_BYTES (pageCount)) {
+        if (addr_space_gap >= szBytes) {
             return new_va;
         }
         vas_prev = vas;
@@ -140,10 +141,9 @@ static PTR find_next_va (VMManager* vmm, SIZE pageCount)
     k_assert (vas_prev != NULL, "There must have been a single VAS");
 
     // Since new address space is at the end, check that we are not exceeding the 'end'
-    SIZE addr_space_gap = vmm->end -
-                          (vas_prev->start_vm + PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount));
-    if (addr_space_gap >= PAGEFRAMES_TO_BYTES (pageCount)) {
-        new_va = vas_prev->start_vm + PAGEFRAMES_TO_BYTES (vas_prev->reservedPageCount);
+    SIZE addr_space_gap = vmm->end - (vas_prev->start_vm + vas_prev->reservedBytes);
+    if (addr_space_gap >= szBytes) {
+        new_va = vas_prev->start_vm + vas_prev->reservedBytes;
         return new_va;
     }
 
@@ -158,10 +158,9 @@ static VMM_VirtualAddressSpace* find_vas (ListNode* listHead, PTR startVA, bool 
     {
         VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
         PTR start_vm                 = vas->start_vm;
-        PTR end_vm                   = (searchAllocated)
-                                           ? start_vm + PAGEFRAMES_TO_BYTES (vas->allocatedPageCount) - 1
-                                           : start_vm + PAGEFRAMES_TO_BYTES (vas->reservedPageCount) - 1;
-        if (startVA >= start_vm && startVA <= end_vm) {
+        PTR end_vm                   = (searchAllocated) ? start_vm + vas->allocatedBytes
+                                                         : start_vm + vas->reservedBytes;
+        if (startVA >= start_vm && startVA < end_vm) {
             return vas;
         }
     }
@@ -193,35 +192,6 @@ void vmm_init (VMManager* vmm)
     FUNC_ENTRY();
 
     list_init (&vmm->head);
-}
-
-void vmm_shareMapping (PTR start, SIZE count, U32 processID)
-{
-    (void)start;
-    (void)count;
-    (void)processID;
-
-    // To be called from the source process/kernel. Need to decide (NTD) whether only the process
-    // who owns the memory can share, or can the process with which it was shared can reshare to
-    // another process.
-
-    // Region is a collection of a fixed number of pages. These many physical pages can be tracked
-    // in one Region. Now when a Mapping is created, it also has a size, which comes from the input.
-    // If
-    // Find region from the 'start' address.
-    // If region has KERNEL flag then
-    //     Create new Mapping object with the new Region
-    //         Start_VM      = start
-    //         size_numPages = count (this must always be less than the VMM_REGION_SIZE)
-    //         ProcessID     = ProcessID
-    // Otherwise
-    //     Search Process Mapping list to find a free virtual address
-    //     Create new Mapping object with the new Region
-    //         Start_VM      = found virtual addresss
-    //         size_numPages = count (this must always be less than the VMM_REGION_SIZE)
-    //         ProcessID     = ProcessID
-    // Add new mapping to Mappings List of the ProcessID process.
-    // Add new mapping to Region's Mapping list
 }
 
 // bool vmm_freePage (PTR addr)
@@ -262,33 +232,38 @@ void vmm_shareMapping (PTR start, SIZE count, U32 processID)
 //     return true;
 // }
 
-PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE count, PagingMapFlags pgFlags, bool isPremapped)
+PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags, bool isPremapped)
 {
-    FUNC_ENTRY ("vmm: %x, va: %x, count: %u, paging flags: %x, IsPremapped: %x", vmm, va, count,
+    FUNC_ENTRY ("vmm: %x, va: %x, szPages: %x, paging flags: %x, IsPremapped: %x", vmm, va, szPages,
                 pgFlags, isPremapped);
+
+    // Start virtual address must be page aligned
+    if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, 0);
+    }
 
     VMM_AddressSpaceFlags vasFlags = (isPremapped) ? VMM_ADDR_SPACE_FLAG_PREMAP
                                                    : VMM_ADDR_SPACE_FLAG_NONE;
 
-    if (addNewVirtualAddressSpace (vmm, va, count, pgFlags, vasFlags) == false) {
+    if (addNewVirtualAddressSpace (vmm, va, szPages, pgFlags, vasFlags) == false) {
         k_panicOnError();
     }
 
     return va;
 }
 
-PTR vmm_reserve (VMManager* vmm, SIZE count, PagingMapFlags pgFlags, bool isPremapped)
+PTR vmm_reserve (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags, bool isPremapped)
 {
-    FUNC_ENTRY ("vmm: %x, count: %u, paging flags: %x, IsPremapped: %x", vmm, count, pgFlags,
+    FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x, IsPremapped: %x", vmm, szPages, pgFlags,
                 isPremapped);
 
-    PTR next_va = find_next_va (vmm, count);
+    PTR next_va = find_next_va (vmm, szPages);
     if (next_va == 0) {
         // No Virutal memory address space found!!
         RETURN_ERROR (ERR_OUT_OF_MEM, 0);
     }
 
-    return vmm_reserveAt (vmm, next_va, count, pgFlags, isPremapped);
+    return vmm_reserveAt (vmm, next_va, szPages, pgFlags, isPremapped);
 }
 
 bool vmm_unreserve (VMManager* vmm, PTR start_va)
@@ -324,6 +299,7 @@ bool vmm_unreserve (VMManager* vmm, PTR start_va)
 
 void vmm_printVASList (VMManager* vmm)
 {
+#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
     ListNode* node = NULL;
     if (list_is_empty (&vmm->head)) {
         INFO ("List is empty");
@@ -333,9 +309,12 @@ void vmm_printVASList (VMManager* vmm)
     {
         VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
 
-        INFO ("* start: %x, reserved size: %u, allocated size: %x, vasflags: %x, pgFlags: %x, "
+        INFO ("* %x -> %x. Reserved size: %x, allocated size: %x, vasflags: %x, pgFlags: %x, "
               "processID: %u.",
-              vas->start_vm, vas->reservedPageCount, vas->allocatedPageCount, vas->vasFlags,
-              vas->pgFlags, vas->processID);
+              vas->start_vm, vas->start_vm + vas->reservedBytes - 1, vas->reservedBytes,
+              vas->allocatedBytes, vas->vasFlags, vas->pgFlags, vas->processID);
     }
+#else
+    (void)vmm;
+#endif
 }
