@@ -65,30 +65,36 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE pageCo
     // If there are already some items in the list, we find a suitable spot such that the list
     // remains sorted (by start_va) in increasing order
     ListNode* node;
-    bool found                   = false;
     VMM_VirtualAddressSpace* vas = NULL;
+
+    PTR newvas_startvm = newVas->start_vm;
+    PTR newvas_endvm   = newvas_startvm + PAGEFRAMES_TO_BYTES (newVas->reservedPageCount) - 1;
     list_for_each (&vmm->head, node)
     {
         vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
         k_assert (vas != NULL, "Virtual Address space object in the list cannot be NULL");
 
+        // Address space overlap/duplication detection
+        PTR vas_startvm = vas->start_vm;
+        PTR vas_endvm   = vas_startvm + PAGEFRAMES_TO_BYTES (vas->reservedPageCount) - 1;
+
+        if ((newvas_startvm >= vas_startvm && newvas_startvm <= vas_endvm) ||
+            (newvas_endvm >= vas_startvm && newvas_endvm <= vas_endvm)) {
+            // Cannot add, new VAS is overlapping existing VAS.
+            INFO ("Overlap detected.new vas (%x, %x), vas (%x, %x)", newvas_startvm, newvas_endvm,
+                  vas_startvm, vas_endvm);
+            RETURN_ERROR (ERR_VMM_OVERLAPING_VAS, false);
+        }
+
         if (vas->start_vm > newVas->start_vm) {
-            found = true;
-            break;
+            // Add before the found VAS if there is gap
+            list_add_before (&vas->adjMappingNode, &newVas->adjMappingNode);
+            return true;
         }
     }
 
-    if (found == false) {
-        // The new VAS has the largest VA, so add it at the end, which is before head.
-        list_add_before (&vmm->head, &newVas->adjMappingNode);
-    } else {
-        // Add before the found VAS if there is gap
-        if (newVas->start_vm + PAGEFRAMES_TO_BYTES (pageCount) > vas->start_vm) {
-            // Cannot add, new VAS is overlapping existing VAS.
-            RETURN_ERROR (ERR_VMM_OVERLAPING_VAS, false);
-        }
-        list_add_before (&vas->adjMappingNode, &newVas->adjMappingNode);
-    }
+    // The new VAS has the largest VA, so add it at the end, which is before head.
+    list_add_before (&vmm->head, &newVas->adjMappingNode);
 
     return true;
 }
