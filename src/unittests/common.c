@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <types.h>
 #include <stdarg.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 /* Panic handler */
 KernelStateInfo g_kstate;

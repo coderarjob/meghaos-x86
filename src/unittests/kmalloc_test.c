@@ -7,7 +7,7 @@
 #include <kerror.h>
 #include <utils.h>
 #include <assert.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 /* |Test case description                                       | Test function name             |
  * |------------------------------------------------------------|--------------------------------|

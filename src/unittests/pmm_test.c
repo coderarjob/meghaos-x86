@@ -9,7 +9,7 @@
 #include <pmm.h>
 #include <math.h>
 #include <panic.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 #define ACTUAL_MEMORY_SIZE    (kpmm_getUsableMemorySize (PMM_REGION_ANY))
 #define MAX_ACTUAL_PAGE_COUNT (BYTES_TO_PAGEFRAMES_FLOOR (ACTUAL_MEMORY_SIZE))

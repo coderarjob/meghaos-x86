@@ -5,7 +5,7 @@
 #include <types.h>
 #include <memmanage.h>
 #include <kerror.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 static U8 salloc_buffer[SALLOC_SIZE_BYTES];
 
