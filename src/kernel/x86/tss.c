@@ -83,7 +83,7 @@ void ktss_init ()
     // privilate level INT instruction, the stack will have the 
     // user mode CS, EIP, EFLAGS, SS, ESP.
     tss_entry->ss0 = GDT_SELECTOR_KDATA;
-    tss_entry->esp0 = INTEL_32_KSTACK_TOP;
+    tss_entry->esp0 = MEM_KSTACK_TOP;
 
     // Install a TSS Segment
     kgdt_edit (GDT_INDEX_KTSS,

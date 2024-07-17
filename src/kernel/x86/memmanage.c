@@ -50,6 +50,6 @@ void* kmalloc_arch_preAllocateMemory()
 {
     FUNC_ENTRY();
 
-    s_preAllocateMemory (KMALLOC_SIZE_PAGES, KMALLOC_MEM_START);
-    return (void*)KMALLOC_MEM_START;
+    s_preAllocateMemory (KMALLOC_SIZE_PAGES, MEM_START_KMALLOC);
+    return (void*)MEM_START_KMALLOC;
 }

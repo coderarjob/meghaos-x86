@@ -106,7 +106,7 @@ error_invalid_range:
  **************************************************************************************************/
 void kdisp_init ()
 { 
-    vgab = (U16 *)VIDEO_RAM_LOCATION;
+    vgab = (U16 *)MEM_START_VGA_TEXT;
     // ------------------------------------------------------------
     // Scan the vga buffer to find where the next character should go.
     U16 s,          // Current Scan index.

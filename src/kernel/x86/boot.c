@@ -10,8 +10,8 @@
 
 BootLoaderInfo* kboot_getCurrentBootLoaderInfo ()
 {
-    k_assert (BOOT_INFO_LOCATION, "BOOT INFO LOCATION is invalid");
-    BootLoaderInfo* mi = (BootLoaderInfo*)BOOT_INFO_LOCATION;
+    k_assert (MEM_START_BOOT_INFO, "BOOT INFO LOCATION is invalid");
+    BootLoaderInfo* mi = (BootLoaderInfo*)MEM_START_BOOT_INFO;
     return mi;
 }
 

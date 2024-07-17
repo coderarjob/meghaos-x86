@@ -11,27 +11,50 @@
     #define MEM_LOC_H_X86
 
     #include <buildcheck.h>
+    #include <config.h>
+    #include <moslimits.h>
 
-    #define KERNEL_LOW_REGION_START 0xC0000000
-    #define INTEL_32_IDT_LOCATION   0xC0000000
-    #define INTEL_32_GDT_LOCATION   0xC0001000
-    #define BOOT_INFO_LOCATION      0xC0002000
-    #define INTEL_32_KSTACK_TOP     0xC0022FFF /* Stack grows down from here */
-    #define VIDEO_RAM_LOCATION      0xC00B8000 /* VGA Text mode buffer */
-    #define KERNEL_PAGE_DIR         0xC0023000
-    #define KERNEL_PAGE_TABLE       0xC0024000
-    #define KERNEL_PAB              0xC0025000
-    #define MEM_START_SALLOC        0xC0026000
-    #define MEM_LEN_BYTES_SALLOC    (128 * KB)
-    #define KERNEL_LOW_REGION_END   0xC0046000
-    #define MEM_START_PAGING_RECURSIVE_MAP 0xFFC00000U // Recursive map of PDs
-    #define MEM_START_PAGING_EXT_TEMP_MAP  0xC03FE000U // Temporary map for external modules
-    #define MEM_START_PAGING_INT_TEMP_MAP  0xC03FF000U // Temporary map for Paging module
+    #define KERNEL_LOW_REGION_START         (3 * GB)
 
-    #define KMALLOC_MEM_START (3 * GB + 3 * MB)
+    #define MEM_START_IDT                   KERNEL_LOW_REGION_START
+    #define MEM_LEN_BYTES_IDT               (4 * KB)
 
-    #define PROCESS_ADDR_SPACE_START 0x00010000
-    #define PROCESS_TEXT_VA_START    0x00010000 // TODO: May need to rename these two. Why VA??
-    #define PROCESS_STACK_VA_START   0x00030000
+    #define MEM_START_GDT                   0xC0001000
+    #define MEM_LEN_BYTES_GDT               (4 * KB)
+
+    #define MEM_START_BOOT_INFO             0xC0002000
+    #define MEM_LEN_BYTES_BOOT_INFO         (4 * KB)
+
+    #define MEM_START_KSTACK                0xC0003000
+    #define MEM_LEN_BYTES_KSTACK            (128 * KB)
+    /* Stack grows down from here */
+    #define MEM_KSTACK_TOP                  ((MEM_START_KSTACK + MEM_LEN_BYTES_KSTACK) - 1)
+
+    #define MEM_START_VGA_TEXT              0xC00B8000 /* VGA Text mode buffer */
+
+    #define MEM_START_KERNEL_PAGE_DIR       0xC0023000
+    #define MEM_LEN_BYTES_KERNEL_PAGE_DIR   (4 * KB)
+
+    #define MEM_START_KERNEL_PAGE_TABLE     0xC0024000
+    #define MEM_LEN_BYTES_KERNEL_PAGE_TABLE (4 * KB)
+
+    #define MEM_START_KERNEL_PAB            0xC0025000
+    #define MEM_LEN_BYTES_KERNEL_PAB        PAB_SIZE_BYTES
+
+    #define MEM_START_SALLOC                0xC0026000
+    #define MEM_LEN_BYTES_SALLOC            (128 * KB)
+
+    #define KERNEL_LOW_REGION_END           0xC0046000
+
+    #define MEM_START_KMALLOC               0xC0300000
+    #define MEM_LEN_BYTES_KMALLOC           (128 * KB)
+
+    #define PROCESS_ADDR_SPACE_START        0x00010000
+    #define PROCESS_TEXT_VA_START           0x00010000
+    #define PROCESS_STACK_VA_START          0x00030000
+
+    #define MEM_START_PAGING_RECURSIVE_MAP  0xFFC00000U // Recursive map of PDs
+    #define MEM_START_PAGING_EXT_TEMP_MAP   0xC03FE000U // Temporary map for external modules
+    #define MEM_START_PAGING_INT_TEMP_MAP   0xC03FF000U // Temporary map for Paging module
 
 #endif // MEM_LOC_H_X86

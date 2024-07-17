@@ -513,7 +513,7 @@ bool kprocess_exit()
                      // to each process. NOTE: As we have switched stack, local variables/function
                      // arguments of this function which were on the stack cannot be accesssed from
                      // here on.
-                     "   mov esp, " STR (INTEL_32_KSTACK_TOP) ";"
+                     "   mov esp, " STR (MEM_KSTACK_TOP) ";"
                     ".cont:;"
                     // Call to kprocess_exit will not
                     // return if it succeeds.
