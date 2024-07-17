@@ -43,8 +43,7 @@ void* salloc_arch_preAllocateMemory()
 {
     FUNC_ENTRY();
 
-    s_preAllocateMemory (SALLOC_MEM_SIZE_PAGES, SALLOC_MEM_START);
-    return (void*)SALLOC_MEM_START;
+    return (void*)MEM_START_SALLOC;
 }
 
 void* kmalloc_arch_preAllocateMemory()
