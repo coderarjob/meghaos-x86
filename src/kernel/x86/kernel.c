@@ -73,38 +73,14 @@ void kernel_main ()
 
     salloc_init();
 
-    g_kstate.kernelVMM = vmm_create (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION);
-    vmm_init(g_kstate.kernelVMM);
+    // Initialize VMM
+    g_kstate.kernelVMM = vmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION);
 
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
     s_markUsedMemory();
 
-    salloc_init();
     kmalloc_init();
-
-    g_kstate.kernelVMM = vmm_create (KERNEL_LOW_REGION_START, 0xFFBFFFFF);
-    vmm_init (g_kstate.kernelVMM);
-
-    vmm_reserveAt (g_kstate.kernelVMM, 0xC0004000, 5, PG_MAP_FLAG_KERNEL, false);
-    vmm_reserveAt (g_kstate.kernelVMM, 0xC0009000, 1, PG_MAP_FLAG_KERNEL, false);
-
-    vmm_reserve (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL, false);
-    PTR va2 = vmm_reserve (g_kstate.kernelVMM, 5, PG_MAP_FLAG_KERNEL, false);
-    vmm_reserve (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL, false);
-
-    vmm_printVASList (g_kstate.kernelVMM);
-
-    vmm_unreserve (g_kstate.kernelVMM, va2);
-    vmm_reserve (g_kstate.kernelVMM, 3, PG_MAP_FLAG_KERNEL, false);
-    vmm_reserve (g_kstate.kernelVMM, 2, PG_MAP_FLAG_KERNEL, false);
-    (void)va2;
-
-    vmm_printVASList (g_kstate.kernelVMM);
-
-    k_halt();
-
-    kmalloc_init();
-    kearly_println ("[OK]\tPaging enabled.");
+    kearly_println ("[OK]\tMemory management enabled.");
 
     // TSS setup
     kearly_println ("[  ]\tTSS setup.");

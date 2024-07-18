@@ -12,9 +12,8 @@
 
 typedef struct VMManager VMManager;
 
-VMManager* vmm_create (PTR start, PTR end);
-void vmm_init (VMManager* vmm);
-PTR vmm_reserve (VMManager* vmm, SIZE pgCount, PagingMapFlags pgFlags, bool isPremapped);
+VMManager* vmm_new (PTR start, PTR end);
+PTR vmm_reserve (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags);
 PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE pgCount, PagingMapFlags pgFlags, bool isPremapped);
 bool vmm_unreserve (VMManager* vmm, PTR start_va);
 bool vmm_allocPage (PTR addr);

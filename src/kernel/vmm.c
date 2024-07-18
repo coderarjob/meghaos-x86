@@ -36,7 +36,7 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reser
 
     new->start_vm       = start_vm;
     new->reservedBytes  = reservedBytes;
-    new->allocatedBytes = 0;
+    new->allocatedBytes = BIT_ISSET (vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP) ? reservedBytes : 0;
     new->pgFlags        = pgFlags;
     new->vasFlags       = vasFlags;
     new->processID      = 0;
@@ -49,6 +49,19 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPage
                                        PagingMapFlags pgFlags, VMM_AddressSpaceFlags vasFlags)
 {
     SIZE szBytes = PAGEFRAMES_TO_BYTES (szPages);
+
+    INFO ("Adding address space: %x -> %x, pgFlags: %x, vas flags: %x", start_va,
+          (start_va + szBytes - 1), pgFlags, vasFlags);
+
+    // Start virtual address must be page aligned
+    if (!IS_ALIGNED (start_va, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
+    }
+
+    // Check is input start_va is within VMM managed address space
+    if (start_va < vmm->start || start_va > vmm->end) {
+        RETURN_ERROR (ERR_INVALID_RANGE, false);
+    }
 
     VMM_VirtualAddressSpace* newVas = createNewVirtAddrSpace (start_va, szBytes, pgFlags, vasFlags);
     if (newVas == NULL) {
@@ -168,7 +181,7 @@ static VMM_VirtualAddressSpace* find_vas (ListNode* listHead, PTR startVA, bool 
     return NULL;
 }
 
-VMManager* vmm_create (PTR start, PTR end)
+VMManager* vmm_new (PTR start, PTR end)
 {
     FUNC_ENTRY ("start: %x, end: %x", start, end);
 
@@ -183,14 +196,9 @@ VMManager* vmm_create (PTR start, PTR end)
 
     new_vmm->start = start;
     new_vmm->end   = end;
+    list_init (&new_vmm->head);
+
     return new_vmm;
-}
-
-void vmm_init (VMManager* vmm)
-{
-    FUNC_ENTRY();
-
-    list_init (&vmm->head);
 }
 
 // bool vmm_freePage (PTR addr)
@@ -236,11 +244,6 @@ PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
     FUNC_ENTRY ("vmm: %x, va: %x, szPages: %x, paging flags: %x, IsPremapped: %x", vmm, va, szPages,
                 pgFlags, isPremapped);
 
-    // Start virtual address must be page aligned
-    if (!IS_ALIGNED (va, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
-        RETURN_ERROR (ERR_WRONG_ALIGNMENT, 0);
-    }
-
     VMM_AddressSpaceFlags vasFlags = (isPremapped) ? VMM_ADDR_SPACE_FLAG_PREMAP
                                                    : VMM_ADDR_SPACE_FLAG_NONE;
 
@@ -251,10 +254,9 @@ PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
     return va;
 }
 
-PTR vmm_reserve (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags, bool isPremapped)
+PTR vmm_reserve (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
 {
-    FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x, IsPremapped: %x", vmm, szPages, pgFlags,
-                isPremapped);
+    FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x", vmm, szPages, pgFlags);
 
     PTR next_va = find_next_va (vmm, szPages);
     if (next_va == 0) {
@@ -262,7 +264,12 @@ PTR vmm_reserve (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags, bool isPr
         RETURN_ERROR (ERR_OUT_OF_MEM, 0);
     }
 
-    return vmm_reserveAt (vmm, next_va, szPages, pgFlags, isPremapped);
+    if (addNewVirtualAddressSpace (vmm, next_va, szPages, pgFlags, VMM_ADDR_SPACE_FLAG_NONE) ==
+        false) {
+        k_panicOnError();
+    }
+
+    return next_va;
 }
 
 bool vmm_unreserve (VMManager* vmm, PTR start_va)
@@ -298,6 +305,8 @@ bool vmm_unreserve (VMManager* vmm, PTR start_va)
 
 void vmm_printVASList (VMManager* vmm)
 {
+    FUNC_ENTRY ("vmm: %x", vmm);
+
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
     ListNode* node = NULL;
     if (list_is_empty (&vmm->head)) {
