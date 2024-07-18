@@ -14,9 +14,11 @@
     #include <config.h>
     #include <moslimits.h>
 
-    #define KERNEL_LOW_REGION_START         (3 * GB)
+    #define MEM_LEN_BYTES(start, end)       (end - start + 1)
 
-    #define MEM_START_IDT                   KERNEL_LOW_REGION_START
+    #define MEM_START_KERNEL_LOW_REGION     (3 * GB)
+
+    #define MEM_START_IDT                   MEM_START_KERNEL_LOW_REGION
     #define MEM_LEN_BYTES_IDT               (4 * KB)
 
     #define MEM_START_GDT                   0xC0001000
@@ -44,17 +46,25 @@
     #define MEM_START_SALLOC                0xC0026000
     #define MEM_LEN_BYTES_SALLOC            (128 * KB)
 
-    #define KERNEL_LOW_REGION_END           0xC0046000
+    #define MEM_END_KERNEL_LOW_REGION       (0xC0046000 - 1)
+    #define MEM_LEN_BYTES_KERNEL_LOW_REGION \
+        MEM_LEN_BYTES (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_LOW_REGION)
 
-    #define MEM_START_KMALLOC               0xC0300000
-    #define MEM_LEN_BYTES_KMALLOC           (128 * KB)
+    #define MEM_START_KERNEL_HIGH_REGION   0xC0100000
 
-    #define PROCESS_ADDR_SPACE_START        0x00010000
-    #define PROCESS_TEXT_VA_START           0x00010000
-    #define PROCESS_STACK_VA_START          0x00030000
+    #define MEM_START_KMALLOC              0xC0300000
+    #define MEM_LEN_BYTES_KMALLOC          (128 * KB)
 
-    #define MEM_START_PAGING_RECURSIVE_MAP  0xFFC00000U // Recursive map of PDs
-    #define MEM_START_PAGING_EXT_TEMP_MAP   0xC03FE000U // Temporary map for external modules
-    #define MEM_START_PAGING_INT_TEMP_MAP   0xC03FF000U // Temporary map for Paging module
+    #define PROCESS_ADDR_SPACE_START       0x00010000
+    #define PROCESS_TEXT_VA_START          0x00010000
+    #define PROCESS_STACK_VA_START         0x00030000
+
+    #define MEM_START_PAGING_EXT_TEMP_MAP  0xC03FE000U // Temporary map for external modules
+    #define MEM_START_PAGING_INT_TEMP_MAP  0xC03FF000U // Temporary map for Paging module
+    #define MEM_START_PAGING_RECURSIVE_MAP 0xFFC00000U // Recursive map of PDs
+
+    #define MEM_END_KERNEL_HIGH_REGION     (4 * GB - 1)
+    #define MEM_LEN_BYTES_KERNEL_HIGH_REGION \
+        MEM_LEN_BYTES (MEM_START_KERNEL_HIGH_REGION, MEM_END_KERNEL_HIGH_REGION)
 
 #endif // MEM_LOC_H_X86

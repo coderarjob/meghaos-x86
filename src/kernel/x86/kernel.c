@@ -71,6 +71,11 @@ void kernel_main ()
 
     display_system_info ();
 
+    salloc_init();
+
+    g_kstate.kernelVMM = vmm_create (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION);
+    vmm_init(g_kstate.kernelVMM);
+
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
     s_markUsedMemory();
 
@@ -98,6 +103,7 @@ void kernel_main ()
 
     k_halt();
 
+    kmalloc_init();
     kearly_println ("[OK]\tPaging enabled.");
 
     // TSS setup
@@ -446,6 +452,7 @@ static void s_unmapInitialUnusedAddressSpace (Physical start, Physical end)
 
     k_assert (IS_ALIGNED (startva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
     k_assert (IS_ALIGNED (endva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
+    k_assert(startva < endva, "Invalid range: Start VA is more than the end");
 
     for (PTR va = startva; va < endva; va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
         if (!kpg_unmap (pd, va)) {
@@ -468,9 +475,9 @@ static void s_markUsedMemory()
 {
     FUNC_ENTRY();
 
-    /* Kernel reserved (0 to 400KiB) */
+    /* Reserve Kernel Low Region (Physical and Virtual)*/
     Physical kernel_low_region_end_phy = { 0 };
-    if (!kpg_getPhysicalMapping (kpg_getcurrentpd(), KERNEL_LOW_REGION_END,
+    if (!kpg_getPhysicalMapping (kpg_getcurrentpd(), (MEM_END_KERNEL_LOW_REGION + 1),
                                  &kernel_low_region_end_phy)) {
         k_panicOnError(); // KERNEL_LOW_REGION_END must have physical mapping.
     }
@@ -480,8 +487,20 @@ static void s_markUsedMemory()
         k_panicOnError(); // Kernel low region of physical memory must be free.
     }
 
+    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_KERNEL_LOW_REGION, pageCount,
+                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+        k_panicOnError();
+    }
+
     /* Remove unnecessary virtual page mappings (400KiB to 640 KiB)*/
     s_unmapInitialUnusedAddressSpace (kernel_low_region_end_phy, createPhysical (640 * KB));
+
+    /* Reserve virtual memory space from 640 KiB to 1 MiB */
+    pageCount = BYTES_TO_PAGEFRAMES_CEILING (MEM_START_KERNEL_LOW_REGION - (3 * GB + 640 * KB));
+    if (vmm_reserveAt (g_kstate.kernelVMM, (3 * GB + 640 * KB), pageCount,
+                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+        k_panicOnError();
+    }
 
     /* Accounting of physical memory used by module files */
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
@@ -509,4 +528,27 @@ static void s_markUsedMemory()
                                                                     last_lengthBytes,
                                                                 CONFIG_PAGE_FRAME_SIZE_BYTES)),
                                       createPhysical (2 * MB));
+
+    /* Reserve virtual memory space from 1 MiB to Module end*/
+    pageCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
+    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_KERNEL_HIGH_REGION, pageCount,
+                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+        k_panicOnError();
+    }
+
+    /* Reserve Special reserved address spaces*/
+    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_PAGING_RECURSIVE_MAP, 1,
+                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+        k_panicOnError();
+    }
+
+    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_PAGING_EXT_TEMP_MAP, 1,
+                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+        k_panicOnError();
+    }
+
+    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_PAGING_INT_TEMP_MAP, 1,
+                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+        k_panicOnError();
+    }
 }
