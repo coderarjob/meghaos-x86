@@ -14,8 +14,6 @@
 #include <config.h>
 #include <common/bitmap.h>
 
-extern Physical g_pab; /* Address of Page Allocation Bitmap array */
-
 typedef enum KernelPhysicalMemoryRegions
 {
     PMM_REGION_ANY

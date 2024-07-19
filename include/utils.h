@@ -78,4 +78,7 @@
 #define NORETURN() __builtin_unreachable()
 #define UNREACHABLE() k_assert(false, "Unreachable code")
 
+// Calculate number of bytes between the start and end of a memory region
+#define MEM_LEN_BYTES(start, end)       (end - start + 1U)
+
 #endif // UTILS_H

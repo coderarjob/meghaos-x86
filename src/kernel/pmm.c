@@ -92,7 +92,7 @@ void kpmm_init ()
 {
     FUNC_ENTRY();
 
-    s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
+    s_pab = (U8 *)MEM_START_KERNEL_PAB;
 
     s_pmm_completeRegion.bitmap.allow = s_verifyChange;
     s_pmm_completeRegion.bitmap.bitmap = s_pab;

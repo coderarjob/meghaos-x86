@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <unittest/unittest.h>
 #include <mock/kernel/kstdlib.h>
 #include <mock/kernel/x86/pmm.h>
@@ -10,6 +11,7 @@
 #include <math.h>
 #include <panic.h>
 #include <kernel.h>
+#include <mosunittest.h>
 
 #define ACTUAL_MEMORY_SIZE    (kpmm_getUsableMemorySize (PMM_REGION_ANY))
 #define MAX_ACTUAL_PAGE_COUNT (BYTES_TO_PAGEFRAMES_FLOOR (ACTUAL_MEMORY_SIZE))
@@ -22,7 +24,6 @@
 #define PAB_BIT(addr)  (((addr) % (STATES_PER_BYTE)) * BITS_PER_STATE)
 
 static U8 pab[PAB_SIZE_BYTES];
-Physical g_pab = PHYSICAL ((USYSINT)pab);
 
 void kdebug_printf_ndu (const CHAR *fmt, ...) {}
 static void validate_pab (const U8 *pab, USYSINT addr, KernelPhysicalMemoryStates state);
@@ -288,6 +289,7 @@ int main()
     // Will just set pointer `s_pab` to point to `pab` buffer defined here. No allocation or
     // deallocation will take place as memory map count and files count are not set and will be at
     // default zero.
+    utmm.mem_start_kernel_pab = (uintptr_t)pab;     // Mock MEM_START_KERNEL_PAB macro
     kpmm_init();
 
     zero_page_count();

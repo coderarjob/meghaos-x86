@@ -71,18 +71,16 @@
     #define X86_TLB_INVAL_COMPLETE()   (void)0
 #endif
 
-/* Casts a linear mapped physical address to virtual address */
-static inline void* CAST_PA_TO_VA (Physical a)
+static inline void* HIGHER_HALF_KERNEL_TO_VA (Physical a)
 {
-#if !defined(UNITTEST)
     return (void *)(0xC0000000 + a.val);
-#else
-    return (void *)a.val;
-#endif
 }
 
-extern Physical g_page_dir,     /* Address of the initial page dir */
-                g_page_table;   /* Address of the initial page table*/
+static inline Physical HIGHER_HALF_KERNEL_TO_PA (PTR va)
+{
+    Physical ret = PHYSICAL(va - 0xC0000000);
+    return ret;
+}
 
 /* 4 KByte Page table entry */
 struct ArchPageTableEntry

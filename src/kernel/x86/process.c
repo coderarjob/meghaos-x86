@@ -364,7 +364,7 @@ static bool kprocess_exit_internal()
         register x86_CR3 cr3 = { 0 };
         cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
         cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-        cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_page_dir.val);
+        cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_kstate.kernelPageDirectory.val);
 
         x86_LOAD_REG (CR3, cr3);
 

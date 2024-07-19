@@ -104,6 +104,11 @@
 | Reason:                                                                 |           |            |
 | This happened because the CR0.WP (Write Protect) flag was unset.        |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [X] Since locations for PAB, initial PD and PT are fixed, the need for  | 17 Jul 24 | 19 Jul 14  |
+| ::: g_pab, g_page_dir, g_page_table are not required. Only issue is     |           |            |
+| ::: unittests how are we going to mock, so for unittests something else |           |            |
+| ::: need to be done.                                                    |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
 | ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
 | ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |

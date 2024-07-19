@@ -61,7 +61,7 @@ void kernel_main ()
     FUNC_ENTRY();
 
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
-    g_kstate.kernelPageDirectory = g_page_dir;
+    g_kstate.kernelPageDirectory = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
 
     // Initialize Text display
     kdisp_init ();
@@ -196,7 +196,7 @@ static void multithread_demo_kernel_thread()
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
     kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
 
-    void* startAddress_va = CAST_PA_TO_VA (startAddress);
+    void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
     INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
     if (processID < 0) {
         k_panicOnError();
@@ -423,8 +423,8 @@ static void s_unmapInitialUnusedAddressSpace (Physical start, Physical end)
     FUNC_ENTRY ("start: %px, end: %px", start.val, end.val);
 
     PageDirectory pd = kpg_getcurrentpd();
-    PTR startva      = (PTR)CAST_PA_TO_VA (start);
-    PTR endva        = (PTR)CAST_PA_TO_VA (end);
+    PTR startva      = (PTR)HIGHER_HALF_KERNEL_TO_VA (start);
+    PTR endva        = (PTR)HIGHER_HALF_KERNEL_TO_VA (end);
 
     k_assert (IS_ALIGNED (startva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
     k_assert (IS_ALIGNED (endva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");

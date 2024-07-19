@@ -7,12 +7,14 @@
 #pragma once
 
 #if defined(UNITTEST)
+#include <stdint.h>
 typedef struct MockedMacro {
     // Add fields here corresponding to the macro you are mocking
     int recursive_pde_index;
     int kernel_pde_index;
     int temporary_pte_index_extern;
     int temporary_pte_index_internal;
+    uintptr_t mem_start_kernel_pab;
 } MockedMacro;
 
 // Need to define it when building unittests
