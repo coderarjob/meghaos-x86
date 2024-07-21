@@ -40,12 +40,11 @@
 #include <vmm.h>
 
 static void display_system_info ();
-static void s_markUsedMemory ();
+static void s_initializeMemoryManagers ();
 //static void s_dumpPab ();
 //static void paging_test_map_unmap();
 //static void paging_test_temp_map_unmap();
 //static void kmalloc_test();
-static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 //static void find_virtual_address();
 static void process_poc();
 //static void multiprocess_demo();
@@ -79,7 +78,7 @@ void kernel_main ()
     g_kstate.kernelVMM = vmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION);
 
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
-    s_markUsedMemory();
+    s_initializeMemoryManagers();
 
     kmalloc_init();
     kearly_printf ("\r[OK]");
@@ -413,74 +412,35 @@ void display_system_info()
 }
 
 /***************************************************************************************************
- * Unmaps higher-half virtual pages corresponding to the input physcial memory range.
+ * Completing the initialization up of PMM, VMM and page mappings based on BIOS memory map and
+ * Module files information passed down from the Bootloader.
  *
- * @Input      Start physical address. Must by page aligned.
- * @Input      End physical address. Must by page aligned.
- * @return nothing
- * @error   On failure, processor is halted.
- **************************************************************************************************/
-static void s_unmapInitialUnusedAddressSpace (Physical start, Physical end)
-{
-    FUNC_ENTRY ("start: %px, end: %px", start.val, end.val);
-
-    PageDirectory pd = kpg_getcurrentpd();
-    PTR startva      = (PTR)HIGHER_HALF_KERNEL_TO_VA (start);
-    PTR endva        = (PTR)HIGHER_HALF_KERNEL_TO_VA (end);
-
-    k_assert (IS_ALIGNED (startva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
-    k_assert (IS_ALIGNED (endva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
-    k_assert(startva < endva, "Invalid range: Start VA is more than the end");
-
-    for (PTR va = startva; va < endva; va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
-        if (!kpg_unmap (pd, va)) {
-            k_panicOnError(); // Unmap must not fail.
-        }
-    }
-}
-
-/***************************************************************************************************
- * Marks pages occupied by module files as occupied.
+ * After the basic initialization of PMM, here we allocate those pages which are specific to the
+ * Kernel operation (Reserved memories of Kernel and area used by module files). After this is done,
+ * the PMM is in a state that is expected by both the system and the Kernel.
  *
- * It consults the bootloader structures and it marks memory occupied by module files.
- * If memory map length is not aligned, memory is marked allocated, till the next page boundary.
- * This means length is aligned to the next multiple of CONFIG_PAGE_FRAME_SIZE_BYTES.
+ * Now since there is 1:1 relattion between Physical memory and Virtual memory due the Higher Half
+ * memory mapping, the VMM and page mappings need to be brought up to say the same thing as the PMM.
  *
  * @return nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_markUsedMemory()
+static void s_initializeMemoryManagers()
 {
     FUNC_ENTRY();
 
-    /* Reserve Kernel Low Region (Physical and Virtual)*/
-    Physical kernel_low_region_end_phy = { 0 };
-    if (!kpg_getPhysicalMapping (kpg_getcurrentpd(), (MEM_END_KERNEL_LOW_REGION + 1),
-                                 &kernel_low_region_end_phy)) {
-        k_panicOnError(); // KERNEL_LOW_REGION_END must have physical mapping.
-    }
+    // ---------------------------------------------------------------------------------------------
+    // Kernel reserves a region at the very beginning of the physical memory. This is called the Low
+    // Region.
+    UINT pageCount = BYTES_TO_PAGEFRAMES_CEILING (MEM_LEN_BYTES_KERNEL_LOW_REGION);
 
-    UINT pageCount = BYTES_TO_PAGEFRAMES_CEILING (kernel_low_region_end_phy.val);
     if (kpmm_allocAt (createPhysical (0), pageCount, PMM_REGION_ANY) == false) {
         k_panicOnError(); // Kernel low region of physical memory must be free.
     }
 
-    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_KERNEL_LOW_REGION, pageCount,
-                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
-        k_panicOnError();
-    }
-
-    /* Remove unnecessary virtual page mappings (400KiB to 640 KiB)*/
-    s_unmapInitialUnusedAddressSpace (kernel_low_region_end_phy, createPhysical (640 * KB));
-
-    /* Reserve virtual memory space from 640 KiB to 1 MiB */
-    pageCount = BYTES_TO_PAGEFRAMES_CEILING (MEM_START_KERNEL_LOW_REGION - (3 * GB + 640 * KB));
-    if (vmm_reserveAt (g_kstate.kernelVMM, (3 * GB + 640 * KB), pageCount,
-                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
-        k_panicOnError();
-    }
-
-    /* Accounting of physical memory used by module files */
+    // ---------------------------------------------------------------------------------------------
+    // Then another reserved/used region is where the module files are loaded. PMM is made 'aware'
+    // of that here.
     BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
     INT filesCount                 = kBootLoaderInfo_getFilesCount (bootloaderinfo);
 
@@ -501,32 +461,39 @@ static void s_markUsedMemory()
         k_panicOnError(); // Physical memory allocation must pass.
     }
 
-    /* Remove unnecessory vritual page mappings (ModuleFilesEnd to 2 MiB)*/
-    s_unmapInitialUnusedAddressSpace (createPhysical (ALIGN_UP (last_startAddress.val +
-                                                                    last_lengthBytes,
-                                                                CONFIG_PAGE_FRAME_SIZE_BYTES)),
-                                      createPhysical (2 * MB));
+    // ---------------------------------------------------------------------------------------------
+    // Now that the PMM holds the complete picture of all the physical memories used & reserved, we
+    // use that to initialize VMM and paging within the part which Higher Half mapped.
+    Physical paStart = PHYSICAL (0);
+    SIZE paSize      = MIN (kpmm_getUsableMemorySize (PMM_REGION_ANY),
+                            HIGHER_HALF_KERNEL_TO_PA (MEM_END_HIGHER_HALF_MAP).val);
+    PageDirectory pd = kpg_getcurrentpd();
 
-    /* Reserve virtual memory space from 1 MiB to Module end*/
-    pageCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
-    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_KERNEL_HIGH_REGION, pageCount,
-                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
-        k_panicOnError();
+    for (Physical pa = paStart; pa.val < paSize; pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        KernelPhysicalMemoryStates state = kpmm_getPageStatus (pa);
+        PTR va                           = (PTR)HIGHER_HALF_KERNEL_TO_VA (pa);
+        if (state == PMM_STATE_FREE) {
+            if (kpg_unmap (pd, va) == false) {
+                k_panicOnError(); // Unmap must not fail.
+            }
+        }
+        if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
+            if (vmm_reserveAt (g_kstate.kernelVMM, va, 1, PG_MAP_FLAG_KERNEL_DEFAULT, true) == 0) {
+                k_panicOnError(); // must not fail.
+            }
+        }
     }
 
-    /* Reserve Special reserved address spaces*/
-    if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_PAGING_RECURSIVE_MAP, 1,
-                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
-        k_panicOnError();
-    }
-
+    // ---------------------------------------------------------------------------------------------
+    // There are certain virutal addresses that are reserved for Kernel use. These are reserved
+    // here.
     if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_PAGING_EXT_TEMP_MAP, 1,
-                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+                       PG_MAP_FLAG_KERNEL_DEFAULT, true) == 0) {
         k_panicOnError();
     }
 
     if (vmm_reserveAt (g_kstate.kernelVMM, MEM_START_PAGING_INT_TEMP_MAP, 1,
-                       PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE, true) == 0) {
+                       PG_MAP_FLAG_KERNEL_DEFAULT, true) == 0) {
         k_panicOnError();
     }
 }
