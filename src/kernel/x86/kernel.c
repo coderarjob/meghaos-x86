@@ -41,6 +41,7 @@
 
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
+static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end);
 //static void s_dumpPab ();
 //static void paging_test_map_unmap();
 //static void paging_test_temp_map_unmap();
@@ -412,6 +413,30 @@ void display_system_info()
 }
 
 /***************************************************************************************************
+ * Returns the number of consecutive pages from 'pa' which have the same state in PAB as the state
+ * of 'pa'. The search ends when physical memory address reaches 'end'.
+ *
+ * @return nothing
+ * @error   On failure, processor is halted.
+ **************************************************************************************************/
+static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end)
+{
+    KernelPhysicalMemoryStates initialState = kpmm_getPageStatus (pa);
+    KernelPhysicalMemoryStates state        = initialState;
+    SIZE szPages                            = 0;
+
+    while (initialState == state && pa.val < end.val) {
+        pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
+        if ((state = kpmm_getPageStatus (pa)) == PMM_STATE_INVALID) {
+            k_panicOnError();
+        }
+        szPages += 1;
+    }
+
+    return szPages;
+}
+
+/***************************************************************************************************
  * Completing the initialization up of PMM, VMM and page mappings based on BIOS memory map and
  * Module files information passed down from the Bootloader.
  *
@@ -453,10 +478,9 @@ static void s_initializeMemoryManagers()
     SIZE totalModulesLengthBytes = (last_startAddress.val - first_startAddress.val) +
                                    last_lengthBytes;
 
-    UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
-
     INFO ("Total size of module files: %x bytes", totalModulesLengthBytes);
 
+    UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
     if (kpmm_allocAt (first_startAddress, pageFrameCount, PMM_REGION_ANY) == false) {
         k_panicOnError(); // Physical memory allocation must pass.
     }
@@ -464,23 +488,28 @@ static void s_initializeMemoryManagers()
     // ---------------------------------------------------------------------------------------------
     // Now that the PMM holds the complete picture of all the physical memories used & reserved, we
     // use that to initialize VMM and paging within the part which Higher Half mapped.
-    Physical paStart = PHYSICAL (0);
-    SIZE paSize      = MIN (kpmm_getUsableMemorySize (PMM_REGION_ANY),
-                            HIGHER_HALF_KERNEL_TO_PA (MEM_END_HIGHER_HALF_MAP).val);
-    PageDirectory pd = kpg_getcurrentpd();
+    Physical pa                = PHYSICAL (0);
+    SIZE paRegionSizeBytes     = MIN (kpmm_getUsableMemorySize (PMM_REGION_ANY),
+                                      HIGHER_HALF_KERNEL_TO_PA (MEM_END_HIGHER_HALF_MAP).val);
+    const Physical paRegionEnd = PHYSICAL (pa.val + paRegionSizeBytes);
+    const PageDirectory pd     = kpg_getcurrentpd();
 
-    for (Physical pa = paStart; pa.val < paSize; pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES) {
-        KernelPhysicalMemoryStates state = kpmm_getPageStatus (pa);
-        PTR va                           = (PTR)HIGHER_HALF_KERNEL_TO_VA (pa);
+    while (pa.val < paRegionEnd.val) {
+        const KernelPhysicalMemoryStates state = kpmm_getPageStatus (pa);
+        const PTR va                           = (PTR)HIGHER_HALF_KERNEL_TO_VA (pa);
+
         if (state == PMM_STATE_FREE) {
             if (kpg_unmap (pd, va) == false) {
                 k_panicOnError(); // Unmap must not fail.
             }
-        }
-        if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
-            if (vmm_reserveAt (g_kstate.kernelVMM, va, 1, PG_MAP_FLAG_KERNEL_DEFAULT, true) == 0) {
+            pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
+        } else if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
+            const SIZE szPages = s_getPhysicalBlockPageCount (pa, paRegionEnd);
+            if (vmm_reserveAt (g_kstate.kernelVMM, va, szPages, PG_MAP_FLAG_KERNEL_DEFAULT, true) ==
+                0) {
                 k_panicOnError(); // must not fail.
             }
+            pa.val += PAGEFRAMES_TO_BYTES (szPages);
         }
     }
 
