@@ -12,6 +12,8 @@
 #include <kdebug.h>
 #include <kassert.h>
 #include <moslimits.h>
+#include <vmm.h>
+#include <kernel.h>
 
 typedef struct GPFError
 {
@@ -58,11 +60,19 @@ void double_fault_handler (InterruptFrame *frame, UINT errorcode)
 }
 
 EXCEPTION_WITH_CODE_HANDLER(page_fault)
-__attribute__ ((noreturn))
 void page_fault_handler (InterruptFrame *frame, UINT errorcode)
 {
-    register INT fault_addr;
+    register PTR fault_addr;
     __asm__ volatile ("mov %0, cr2":"=r"(fault_addr));
+
+    INFO("Page fault: Address: %px", fault_addr);
+
+    if (kvmm_commitPage(g_kstate.kernelVMM, fault_addr)) {
+        INFO("Here 1");
+        k_halt();
+        return; // And retry
+    }
+    INFO("Here 2");
 
     PageFaultError *err = (PageFaultError*) &errorcode;
     s_callPanic(frame, "Page fault when accessing address %x (error: %x)"
@@ -72,7 +82,7 @@ void page_fault_handler (InterruptFrame *frame, UINT errorcode)
                        err->Present, err->WriteFault, err->UserMode, err->ReserveViolation,
                        err->InstrucionFetchFault, err->ProtectionkeyViolation,
                        err->ShadowStackAccessFault, err->SGXViolation);
-    NORETURN();
+    //NORETURN();
 }
 
 EXCEPTION_WITH_CODE_HANDLER(general_protection_fault)

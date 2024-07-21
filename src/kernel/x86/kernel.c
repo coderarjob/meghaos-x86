@@ -118,6 +118,15 @@ void kernel_main ()
     kearly_println ("Kernel initialization finished..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,LIGHT_GRAY,0));
 
+    int* addr = (int*)kvmm_alloc (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL_DEFAULT);
+    INFO ("Allocated address: %px", addr);
+
+    vmm_printVASList (g_kstate.kernelVMM);
+
+    *addr = 10;
+
+    k_halt();
+
     // Display available memory
     //s_dumpPab();
     // Paging information

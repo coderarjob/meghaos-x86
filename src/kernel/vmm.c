@@ -162,10 +162,10 @@ static PTR find_next_va (VMManager* vmm, SIZE szPages)
     return 0;
 }
 
-static VMM_VirtualAddressSpace* find_vas (ListNode* listHead, PTR startVA)
+static VMM_VirtualAddressSpace* find_vas (VMManager const* const vmm, PTR startVA)
 {
     ListNode* node = NULL;
-    list_for_each (listHead, node)
+    list_for_each (&vmm->head, node)
     {
         VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
         PTR start_vm                 = vas->start_vm;
@@ -239,7 +239,7 @@ bool kvmm_free (VMManager* vmm, PTR start_va)
 
     VMM_VirtualAddressSpace* vas = NULL;
 
-    if ((vas = find_vas (&vmm->head, start_va)) == NULL) {
+    if ((vas = find_vas (vmm, start_va)) == NULL) {
         RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
     }
 
@@ -264,11 +264,11 @@ bool kvmm_free (VMManager* vmm, PTR start_va)
     return true;
 }
 
+#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 void vmm_printVASList (VMManager* vmm)
 {
     FUNC_ENTRY ("vmm: %x", vmm);
 
-#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
     ListNode* node = NULL;
     if (list_is_empty (&vmm->head)) {
         INFO ("List is empty");
@@ -283,7 +283,31 @@ void vmm_printVASList (VMManager* vmm)
               vas->start_vm, vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes,
               vas->vasFlags, vas->pgFlags, vas->processID);
     }
-#else
-    (void)vmm;
+}
 #endif
+
+bool kvmm_commitPage (VMManager* vmm, PTR va)
+{
+    FUNC_ENTRY ("vmm: %x, va: %px", vmm, va);
+
+    VMM_VirtualAddressSpace* vas = NULL;
+    if ((vas = find_vas (vmm, va)) == NULL) {
+        RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
+    }
+
+    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP)) {
+        RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
+    }
+
+    Physical pa;
+    if (kpmm_alloc (&pa, 1, PMM_REGION_ANY) == false) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    PageDirectory pd = kpg_getcurrentpd();
+    if (kpg_map (pd, va, pa, vas->pgFlags) == false) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    return true;
 }
