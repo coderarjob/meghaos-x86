@@ -59,7 +59,7 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPage
     }
 
     // Check is input start_va is within VMM managed address space
-    if (start_va < vmm->start || start_va > vmm->end) {
+    if (start_va < vmm->start || (start_va + szBytes) > vmm->end) {
         RETURN_ERROR (ERR_INVALID_RANGE, false);
     }
 

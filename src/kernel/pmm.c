@@ -59,7 +59,7 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
     if (old == PMM_STATE_FREE && new == PMM_STATE_FREE)
         k_panic ("Double free: Page %u", pageFrame);
 
-    if (g_kstate.phase >= KERNEL_PHASE_STATE_PMM_READY && old == PMM_STATE_RESERVED)
+    if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_PMM_READY) && old == PMM_STATE_RESERVED)
         k_panic ("Use of Reserved page: Page %u", pageFrame);
 
     if (old == PMM_STATE_INVALID)

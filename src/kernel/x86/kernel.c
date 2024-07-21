@@ -71,6 +71,8 @@ void kernel_main ()
 
     display_system_info ();
 
+    kearly_println ("[  ]\tMemory management.");
+
     salloc_init();
 
     // Initialize VMM
@@ -80,7 +82,7 @@ void kernel_main ()
     s_markUsedMemory();
 
     kmalloc_init();
-    kearly_println ("[OK]\tMemory management enabled.");
+    kearly_printf ("\r[OK]");
 
     // TSS setup
     kearly_println ("[  ]\tTSS setup.");
