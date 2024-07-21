@@ -18,7 +18,7 @@
 #include <kerror.h>
 #include <kernel.h>
 
-static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reservedBytes,
+static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocatedBytes,
                                                         PagingMapFlags pgFlags,
                                                         VMM_AddressSpaceFlags vasFlags)
 {
@@ -34,13 +34,12 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE reser
         vasFlags |= VMM_ADDR_SPACE_FLAG_STATIC_ALLOC;
     }
 
-    new->start_vm       = start_vm;
-    new->reservedBytes  = reservedBytes;
-    new->allocatedBytes = BIT_ISSET (vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP) ? reservedBytes : 0;
-    new->pgFlags        = pgFlags;
-    new->vasFlags       = vasFlags;
-    new->processID      = 0;
-    new->share          = NULL;
+    new->start_vm          = start_vm;
+    new->allocationSzBytes = allocatedBytes;
+    new->pgFlags           = pgFlags;
+    new->vasFlags          = vasFlags;
+    new->processID         = 0;
+    new->share             = NULL;
     list_init (&new->adjMappingNode);
     return new;
 }
@@ -81,7 +80,7 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPage
     VMM_VirtualAddressSpace* vas = NULL;
 
     PTR newvas_startvm = newVas->start_vm;
-    PTR newvas_endvm   = newvas_startvm + newVas->reservedBytes - 1;
+    PTR newvas_endvm   = newvas_startvm + newVas->allocationSzBytes - 1;
     list_for_each (&vmm->head, node)
     {
         vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
@@ -89,7 +88,7 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPage
 
         // Address space overlap/duplication detection
         PTR vas_startvm = vas->start_vm;
-        PTR vas_endvm   = vas_startvm + vas->reservedBytes - 1;
+        PTR vas_endvm   = vas_startvm + vas->allocationSzBytes - 1;
 
         if ((newvas_startvm >= vas_startvm && newvas_startvm <= vas_endvm) ||
             (newvas_endvm >= vas_startvm && newvas_endvm <= vas_endvm)) {
@@ -137,7 +136,7 @@ static PTR find_next_va (VMManager* vmm, SIZE szPages)
             k_assert (vas->start_vm > vas_prev->start_vm,
                       "Address space list must be in sorted order");
 
-            new_va         = (vas_prev->start_vm + vas_prev->reservedBytes);
+            new_va         = (vas_prev->start_vm + vas_prev->allocationSzBytes);
             addr_space_gap = vas->start_vm - new_va;
         } else {
             new_va         = vmm->start;
@@ -153,9 +152,9 @@ static PTR find_next_va (VMManager* vmm, SIZE szPages)
     k_assert (vas_prev != NULL, "There must have been a single VAS");
 
     // Since new address space is at the end, check that we are not exceeding the 'end'
-    SIZE addr_space_gap = vmm->end - (vas_prev->start_vm + vas_prev->reservedBytes);
+    SIZE addr_space_gap = vmm->end - (vas_prev->start_vm + vas_prev->allocationSzBytes);
     if (addr_space_gap >= szBytes) {
-        new_va = vas_prev->start_vm + vas_prev->reservedBytes;
+        new_va = vas_prev->start_vm + vas_prev->allocationSzBytes;
         return new_va;
     }
 
@@ -163,15 +162,15 @@ static PTR find_next_va (VMManager* vmm, SIZE szPages)
     return 0;
 }
 
-static VMM_VirtualAddressSpace* find_vas (ListNode* listHead, PTR startVA, bool searchAllocated)
+static VMM_VirtualAddressSpace* find_vas (ListNode* listHead, PTR startVA)
 {
     ListNode* node = NULL;
     list_for_each (listHead, node)
     {
         VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
         PTR start_vm                 = vas->start_vm;
-        PTR end_vm                   = (searchAllocated) ? start_vm + vas->allocatedBytes
-                                                         : start_vm + vas->reservedBytes;
+        PTR end_vm                   = start_vm + vas->allocationSzBytes;
+
         if (startVA >= start_vm && startVA < end_vm) {
             return vas;
         }
@@ -201,45 +200,7 @@ VMManager* vmm_new (PTR start, PTR end)
     return new_vmm;
 }
 
-// bool vmm_freePage (PTR addr)
-//{
-//     FUNC_ENTRY ("addr: %x", addr);
-//
-//     VMM_VirtualAddressSpace* vas = NULL;
-//
-//     // TODO: List head is selected by the virtual address value.
-//     if ((vas = find_vas (&g_kstate.vmm_virtAddrListHead, addr, true)) == NULL) {
-//         RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
-//     }
-//
-//     if (vas->allocatedPageCount == 0) {
-//         RETURN_ERROR(ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
-//     }
-//
-//     vas->allocatedPageCount -= 1;
-//     return true;
-// }
-//
-// bool vmm_allocPage (PTR addr)
-//{
-//     FUNC_ENTRY ("addr: %x", addr);
-//
-//     VMM_VirtualAddressSpace* vas = NULL;
-//
-//     // TODO: List head is selected by the virtual address value.
-//     if ((vas = find_vas (&g_kstate.vmm_virtAddrListHead, addr, false)) == NULL) {
-//         RETURN_ERROR (ERR_VMM_NOT_RESERVED, false);
-//     }
-//
-//     if (vas->allocatedPageCount == vas->reservedPageCount) {
-//         RETURN_ERROR(ERR_OUTSIDE_ADDRESSABLE_RANGE, false);
-//     }
-//
-//     vas->allocatedPageCount += 1;
-//     return true;
-// }
-
-PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags, bool isPremapped)
+PTR kvmm_allocAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags, bool isPremapped)
 {
     FUNC_ENTRY ("vmm: %x, va: %x, szPages: %x, paging flags: %x, IsPremapped: %x", vmm, va, szPages,
                 pgFlags, isPremapped);
@@ -254,7 +215,7 @@ PTR vmm_reserveAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
     return va;
 }
 
-PTR vmm_reserve (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
+PTR kvmm_alloc (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
 {
     FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x", vmm, szPages, pgFlags);
 
@@ -272,17 +233,17 @@ PTR vmm_reserve (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
     return next_va;
 }
 
-bool vmm_unreserve (VMManager* vmm, PTR start_va)
+bool kvmm_free (VMManager* vmm, PTR start_va)
 {
     FUNC_ENTRY ("vmm: %x, start va: %x", vmm, start_va);
 
     VMM_VirtualAddressSpace* vas = NULL;
 
-    if ((vas = find_vas (&vmm->head, start_va, false)) == NULL) {
-        RETURN_ERROR (ERR_VMM_NOT_RESERVED, false);
+    if ((vas = find_vas (&vmm->head, start_va)) == NULL) {
+        RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
     }
 
-    // Address spaces that are reserved using salloc cannot be unreserved.
+    // Address spaces that are allocated using salloc cannot be unreserved.
     if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_STATIC_ALLOC)) {
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
     }
@@ -317,10 +278,10 @@ void vmm_printVASList (VMManager* vmm)
     {
         VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
 
-        INFO ("* %x -> %x. Reserved size: %x, allocated size: %x, vasflags: %x, pgFlags: %x, "
+        INFO ("* %x -> %x. allocated size: %x, vasflags: %x, pgFlags: %x, "
               "processID: %u.",
-              vas->start_vm, vas->start_vm + vas->reservedBytes - 1, vas->reservedBytes,
-              vas->allocatedBytes, vas->vasFlags, vas->pgFlags, vas->processID);
+              vas->start_vm, vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes,
+              vas->vasFlags, vas->pgFlags, vas->processID);
     }
 #else
     (void)vmm;
