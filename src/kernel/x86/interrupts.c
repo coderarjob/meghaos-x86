@@ -62,19 +62,19 @@ void double_fault_handler (InterruptFrame *frame, UINT errorcode)
 EXCEPTION_WITH_CODE_HANDLER(page_fault)
 void page_fault_handler (InterruptFrame *frame, UINT errorcode)
 {
-    register PTR fault_addr;
-    __asm__ volatile ("mov %0, cr2":"=r"(fault_addr));
-
-    INFO("Page fault: Address: %px", fault_addr);
-
-    if (kvmm_commitPage(g_kstate.kernelVMM, fault_addr)) {
-        INFO("Here 1");
-        k_halt();
-        return; // And retry
-    }
-    INFO("Here 2");
+    FUNC_ENTRY("frame: %px, error code: %x", frame, errorcode);
 
     PageFaultError *err = (PageFaultError*) &errorcode;
+    register PTR fault_addr;
+    __asm__ volatile ("mov %0, cr2":"=r"(fault_addr));
+    INFO("Page fault: Address: %px", fault_addr);
+
+    // Page faults can occur for various reasons, it could be permissions or if page frame is not
+    // present. Commit a physical page only it there is not one already allocated.
+    if (err->Present == false && kvmm_commitPage (g_kstate.kernelVMM, fault_addr)) {
+        return; // then retry
+    }
+
     s_callPanic(frame, "Page fault when accessing address %x (error: %x)"
                        "\n\n- P: %x\n- Write: %x\n- UserM: %x\n- ResV: %x"
                        "\n- InsF: %x\n- PKV: %x\n- SSA: %x\n- SGX: %x",

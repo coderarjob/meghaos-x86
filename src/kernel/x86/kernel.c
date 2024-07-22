@@ -124,6 +124,7 @@ void kernel_main ()
     vmm_printVASList (g_kstate.kernelVMM);
 
     *addr = 10;
+    kdebug_println("Value is %u", *addr);
 
     k_halt();
 
