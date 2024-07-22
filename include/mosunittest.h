@@ -18,8 +18,8 @@ typedef struct MockedMacro {
 } MockedMacro;
 
 // Need to define it when building unittests
-extern MockedMacro utmm;
+extern MockedMacro g_utmm;
 
-    #define MOCK_THIS_MACRO_USING(mock_variable_name) utmm.mock_variable_name
-    #define SET_MACRO_MOCK(mock_variable_name, value) utmm.mock_variable_name = (value)
+    #define MOCK_THIS_MACRO_USING(mock_variable_name) g_utmm.mock_variable_name
+    #define SET_MACRO_MOCK(mock_variable_name, value) g_utmm.mock_variable_name = (value)
 #endif // UNITTEST

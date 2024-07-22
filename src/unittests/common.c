@@ -12,7 +12,7 @@
 #include <mosunittest.h>
 
 /* MOS Unittest Macro mock global structure */
-MockedMacro utmm = { 0 };
+MockedMacro g_utmm = { 0 };
 
 /* Panic handler */
 KernelStateInfo g_kstate;
