@@ -12,9 +12,10 @@
 #include <kstdlib.h>
 #include <memmanage.h>
 #include <kernel.h>
+#include <memloc.h>
 
 #define SPACE_USED()                 ((PTR)s_next - s_start)
-#define IS_SPACE_AVAILABLE(sz_bytes) ((SPACE_USED() + (sz_bytes)-1) < SALLOC_SIZE_BYTES)
+#define IS_SPACE_AVAILABLE(sz_bytes) ((SPACE_USED() + (sz_bytes)-1) < ARCH_MEM_LEN_BYTES_SALLOC)
 
 static void* s_next = NULL; // Points to the start of next allocation.
 static PTR s_start  = 0;    // Points to the start salloc buffer.
@@ -27,9 +28,11 @@ static PTR s_start  = 0;    // Points to the start salloc buffer.
 void salloc_init()
 {
     FUNC_ENTRY();
-    s_start = (PTR)salloc_arch_preAllocateMemory();
+    s_start = (PTR)ARCH_MEM_START_SALLOC;
     s_next  = (void*)s_start;
-    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_SALLOC_READY);
+    KERNEL_PHASE_SET (KERNEL_PHASE_STATE_SALLOC_READY);
+
+    INFO ("salloc starts at: %px", s_start);
 }
 
 /***************************************************************************************************
@@ -49,7 +52,7 @@ void* salloc (UINT bytes)
 
     KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_SALLOC_READY);
 
-    if (bytes == 0 || bytes > SALLOC_SIZE_BYTES)
+    if (bytes == 0 || bytes > ARCH_MEM_LEN_BYTES_SALLOC)
         RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);
@@ -82,7 +85,7 @@ void* scalloc (UINT bytes)
 
     KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_SALLOC_READY);
 
-    if (bytes == 0 || bytes > SALLOC_SIZE_BYTES)
+    if (bytes == 0 || bytes > ARCH_MEM_LEN_BYTES_SALLOC)
         RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);

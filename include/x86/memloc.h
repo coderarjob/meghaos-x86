@@ -44,8 +44,8 @@
         #define MEM_START_KERNEL_PAB            0xC0025000
         #define MEM_LEN_BYTES_KERNEL_PAB        PAB_SIZE_BYTES
 
-        #define MEM_START_SALLOC                0xC0026000
-        #define MEM_LEN_BYTES_SALLOC            (128 * KB)
+        #define X86_MEM_START_SALLOC            0xC0026000
+        #define X86_MEM_LEN_BYTES_SALLOC        (128 * KB)
 
         #define MEM_END_KERNEL_LOW_REGION       (0xC0046000 - 1)
         #define MEM_LEN_BYTES_KERNEL_LOW_REGION \

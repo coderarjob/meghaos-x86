@@ -39,13 +39,6 @@ static void s_preAllocateMemory (SIZE sz_pages, PTR va_start)
     }
 }
 
-void* salloc_arch_preAllocateMemory()
-{
-    FUNC_ENTRY();
-
-    return (void*)MEM_START_SALLOC;
-}
-
 void* kmalloc_arch_preAllocateMemory()
 {
     FUNC_ENTRY();
