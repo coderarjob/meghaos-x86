@@ -12,9 +12,11 @@
 
 typedef enum VMMemoryAddressSpaceFlags {
     VMM_ADDR_SPACE_FLAG_NONE   = 0,
-    VMM_ADDR_SPACE_FLAG_PREMAP = (1 << 1), // Address mappings are not handled by VMM. So no
-                                           // depend allocation, unreserve, freePage is allowed.
-                                           // These addresses spaces are assumed fully allocated.
+    VMM_ADDR_SPACE_FLAG_PREMAP = (1 << 1),   // Address mappings are not handled by VMM. So no
+                                             // depend allocation, unreserve, freePage is allowed.
+                                             // These addresses spaces are assumed fully allocated.
+    VMM_ADDR_SPACE_FLAG_NULLPAGE = (1 << 2), // Will be treated as a NULL page. VMM will not
+                                             // allocate a physical page for it.
 } VMemoryAddressSpaceFlags;
 
 typedef struct VMemoryManager VMemoryManager;

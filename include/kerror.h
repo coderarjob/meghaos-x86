@@ -33,6 +33,7 @@ typedef enum KernelErrorCodes {
     ERR_SCHEDULER_QUEUE_EMPTY     = 12, // No process in the process table to schedule next
     ERR_VMM_NOT_ALLOCATED         = 13, // Virutal address space is not allocated
     ERR_VMM_OVERLAPING_VAS        = 14, // New Virtual address space is overlaps another one
+    ERR_VMM_NULL_PAGE_ACCESS      = 15, // Trying to commit a NULL page.
 } KernelErrorCodes;
 
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what

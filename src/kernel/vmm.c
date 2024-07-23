@@ -300,6 +300,10 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 
+    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+        RETURN_ERROR (ERR_VMM_NULL_PAGE_ACCESS, false);
+    }
+
     Physical pa;
     if (kpmm_alloc (&pa, 1, PMM_REGION_ANY) == false) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
@@ -310,5 +314,6 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
+    INFO ("Commit successful for VA: %px", va);
     return true;
 }
