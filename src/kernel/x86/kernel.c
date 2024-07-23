@@ -145,6 +145,24 @@ void kernel_main ()
     //display_system_info ();
     //s_dumpPab();
     
+    //---------------
+    int cpuflags_present = 0;
+    __asm__ volatile("pushfd;"
+                     "pushfd;"
+                     "xor dword ptr [esp], (1 << 21);"
+                     "popfd;"
+                     "pushfd;"
+                     "pop eax;"
+                     "xor eax, [esp];"
+                     "popfd;"
+                     : "=a"(cpuflags_present));
+    kearly_println ("CPUID detected: %x", cpuflags_present);
+
+    int eax = 0;
+    __asm__ volatile ("cpuid;":"+eax"(eax):"eax"(0));
+    kearly_println ("CPUID [EAX=0]: %x", eax);
+
+    //---------------
     process_poc();
     //new_process();
     //new_process_2();
