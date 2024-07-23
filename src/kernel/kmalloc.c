@@ -13,6 +13,7 @@
 #include <types.h>
 #include <utils.h>
 #include <kernel.h>
+#include <memloc.h>
 
 typedef enum FindCriteria
 {
@@ -50,9 +51,16 @@ void kmalloc_init()
     list_init (&s_allocHead);
     list_init (&s_adjHead);
 
-    s_buffer = kmalloc_arch_preAllocateMemory();
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_VMM_READY);
 
-    MallocHeader* newH = s_createNewNode (s_buffer, KMALLOC_SIZE_BYTES);
+    s_buffer = (void*)kvmm_alloc (g_kstate.kernelVMM,
+                                  BYTES_TO_PAGEFRAMES_CEILING (ARCH_MEM_LEN_BYTES_KMALLOC),
+                                  PG_MAP_FLAG_KERNEL_DEFAULT);
+    if (s_buffer == NULL) {
+        k_panicOnError();
+    }
+
+    MallocHeader* newH = s_createNewNode (s_buffer, ARCH_MEM_LEN_BYTES_KMALLOC);
     list_add_before (&s_freeHead, &newH->freenode);
     list_add_before (&s_adjHead, &newH->adjnode);
 
@@ -139,13 +147,13 @@ SIZE kmalloc_getUsedMemory()
     SIZE usedSz = 0U;
     ListNode* node;
 
-    INFO ("Kmalloc buffer size: %u bytes", KMALLOC_SIZE_BYTES);
+    INFO ("Kmalloc buffer size: %u bytes", ARCH_MEM_LEN_BYTES_KMALLOC);
 
     list_for_each (&s_allocHead, node)
     {
         MallocHeader* header = LIST_ITEM (node, MallocHeader, allocnode);
         INFO ("Node size: %u bytes", header->netNodeSize);
-        k_assert (header && (header->netNodeSize < KMALLOC_SIZE_BYTES),
+        k_assert (header && (header->netNodeSize < ARCH_MEM_LEN_BYTES_KMALLOC),
                   "Invalid state of kmalloc data");
         usedSz += header->netNodeSize;
     }
@@ -194,7 +202,7 @@ static void s_combineAdjFreeNodes (MallocHeader* currentNode)
 
 static MallocHeader* s_createNewNode (void* at, size_t netSize)
 {
-    k_assert (((PTR)at + netSize - 1) < ((PTR)s_buffer + KMALLOC_SIZE_BYTES),
+    k_assert (((PTR)at + netSize - 1) < ((PTR)s_buffer + ARCH_MEM_LEN_BYTES_KMALLOC),
               "Node netSize too large");
 
     MallocHeader* newH = at;

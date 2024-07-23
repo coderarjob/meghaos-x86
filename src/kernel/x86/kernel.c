@@ -71,17 +71,17 @@ void kernel_main ()
 
     display_system_info ();
 
-    kearly_println ("[  ]\tMemory management.");
+    kearly_println ("[  ]\tVirtual memory management.");
 
     salloc_init();
 
     // Initialize VMM
     g_kstate.kernelVMM = vmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION);
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_VMM_READY);
 
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
     s_initializeMemoryManagers();
 
-    kmalloc_init();
     kearly_printf ("\r[OK]");
 
     // TSS setup
@@ -108,6 +108,10 @@ void kernel_main ()
     kidt_edit (0x40, sys_dummy_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
     kidt_edit (0x50, syscall_asm_despatcher, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
 
+    kearly_printf ("\r[OK]");
+
+    kearly_println ("[  ]\tKernel memory management.");
+    kmalloc_init();
     kearly_printf ("\r[OK]");
 
     kprocess_init();

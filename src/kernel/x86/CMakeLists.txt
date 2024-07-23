@@ -5,7 +5,6 @@ set(KERNEL_X86_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/interrupts.c
     ${CMAKE_CURRENT_SOURCE_DIR}/kdebug.c
     ${CMAKE_CURRENT_SOURCE_DIR}/kernel.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/memmanage.c
     ${CMAKE_CURRENT_SOURCE_DIR}/paging.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pmm.c
     ${CMAKE_CURRENT_SOURCE_DIR}/process.c

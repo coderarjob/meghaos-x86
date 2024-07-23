@@ -53,8 +53,7 @@
 
         #define MEM_START_KERNEL_HIGH_REGION   0xC0100000
 
-        #define MEM_START_KMALLOC              0xC0300000
-        #define MEM_LEN_BYTES_KMALLOC          (128 * KB)
+        #define X86_MEM_LEN_BYTES_KMALLOC      (128 * KB)
 
         #define MEM_END_HIGHER_HALF_MAP        0xC0200000
 

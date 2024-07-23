@@ -14,8 +14,8 @@ typedef struct KernelStateInfo {
         KERNEL_PHASE_STATE_BOOT_COMPLETE = 0,
         KERNEL_PHASE_STATE_TEXTDISP_READY,
         KERNEL_PHASE_STATE_PMM_READY,
-        KERNEL_PHASE_STATE_VMM_READY,
         KERNEL_PHASE_STATE_SALLOC_READY,
+        KERNEL_PHASE_STATE_VMM_READY,
         KERNEL_PHASE_STATE_KMALLOC_READY,
         KERNEL_PHASE_STATE_KERNEL_READY
     } phase;                       // Phase in which the Kernel is in currently.
