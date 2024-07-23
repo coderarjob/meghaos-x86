@@ -1,13 +1,17 @@
+#include <stdint.h>
 #include <utils.h>
 #include <string.h>
 #include <unittest/unittest.h>
-#include <mock/kernel/x86/memmanage.h>
 #include <types.h>
 #include <memmanage.h>
 #include <kerror.h>
 #include <kernel.h>
+#include <mosunittest.h>
 
-static U8 salloc_buffer[SALLOC_SIZE_BYTES];
+// Must be multiple of SALLOC_GRANUALITY for some tests to pass
+#define UT_SALLOC_SIZE_BYTES 64
+
+static U8 salloc_buffer[UT_SALLOC_SIZE_BYTES];
 
 #define ALIGNED_SIZE(sz) ALIGN_UP ((sz), SALLOC_GRANUALITY)
 
@@ -32,14 +36,14 @@ TEST (salloc, small_allocations_success)
 
 TEST (salloc, large_allocations_success)
 {
-    EQ_SCALAR ((PTR)salloc (SALLOC_SIZE_BYTES), (PTR)salloc_buffer);
+    EQ_SCALAR ((PTR)salloc (UT_SALLOC_SIZE_BYTES), (PTR)salloc_buffer);
     EQ_SCALAR ((PTR)scalloc (1), (PTR)NULL);
     END();
 }
 
 TEST (salloc, salloc_out_of_memory)
 {
-    EQ_SCALAR ((PTR)salloc (SALLOC_SIZE_BYTES), (PTR)salloc_buffer);
+    EQ_SCALAR ((PTR)salloc (UT_SALLOC_SIZE_BYTES), (PTR)salloc_buffer);
     EQ_SCALAR ((PTR)salloc (1), (PTR)NULL);
     EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
     END();
@@ -59,7 +63,7 @@ TEST (salloc, salloc_alignments)
 
 TEST (salloc, invalid_inputs)
 {
-    SIZE invalid_inputs[] = { 0, SALLOC_SIZE_BYTES + 1 };
+    SIZE invalid_inputs[] = { 0, UT_SALLOC_SIZE_BYTES + 1 };
 
     for (int i = 0; i < 2; i++) {
         EQ_SCALAR ((PTR)scalloc (invalid_inputs[i]), 0);
@@ -80,7 +84,8 @@ TEST (salloc, get_used_memory)
     EQ_SCALAR (salloc_getUsedMemory(), 0U);
 
     // When some memory is used.
-    SIZE sizes[] = { ALIGNED_SIZE (SALLOC_SIZE_BYTES / 2), ALIGNED_SIZE (SALLOC_SIZE_BYTES / 3) };
+    SIZE sizes[] = { ALIGNED_SIZE (UT_SALLOC_SIZE_BYTES / 2),
+                     ALIGNED_SIZE (UT_SALLOC_SIZE_BYTES / 3) };
     NEQ_SCALAR (salloc (sizes[0]), NULL);
     NEQ_SCALAR (salloc (sizes[1]), NULL);
 
@@ -90,11 +95,10 @@ TEST (salloc, get_used_memory)
 
 void reset()
 {
-    resetX86MemManageFake();
+    g_kstate.errorNumber = ERR_NONE;
 
-    salloc_arch_preAllocateMemory_fake.ret = salloc_buffer;
-    g_kstate.errorNumber                   = ERR_NONE;
-
+    g_utmm.arch_mem_len_bytes_salloc = UT_SALLOC_SIZE_BYTES;
+    g_utmm.arch_mem_start_salloc     = (uintptr_t)salloc_buffer;
     salloc_init();
 }
 

@@ -8,6 +8,8 @@
 
 #if defined(UNITTEST)
 #include <stdint.h>
+#include <stddef.h>
+
 typedef struct MockedMacro {
     // Add fields here corresponding to the macro you are mocking
     int recursive_pde_index;
@@ -15,6 +17,8 @@ typedef struct MockedMacro {
     int temporary_pte_index_extern;
     int temporary_pte_index_internal;
     uintptr_t arch_mem_start_kernel_pab;
+    uintptr_t arch_mem_start_salloc;
+    size_t arch_mem_len_bytes_salloc;
 } MockedMacro;
 
 // Need to define it when building unittests
