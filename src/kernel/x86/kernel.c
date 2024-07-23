@@ -519,8 +519,8 @@ static void s_initializeMemoryManagers()
             pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
         } else if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
             const SIZE szPages = s_getPhysicalBlockPageCount (pa, paRegionEnd);
-            if (kvmm_allocAt (g_kstate.kernelVMM, va, szPages, PG_MAP_FLAG_KERNEL_DEFAULT, true) ==
-                0) {
+            if (kvmm_allocAt (g_kstate.kernelVMM, va, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
+                              VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
                 k_panicOnError(); // must not fail.
             }
             pa.val += PAGEFRAMES_TO_BYTES (szPages);
@@ -531,12 +531,12 @@ static void s_initializeMemoryManagers()
     // There are certain virutal addresses that are reserved for Kernel use. These are reserved
     // here.
     if (kvmm_allocAt (g_kstate.kernelVMM, MEM_START_PAGING_EXT_TEMP_MAP, 1,
-                       PG_MAP_FLAG_KERNEL_DEFAULT, true) == 0) {
+                      PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
         k_panicOnError();
     }
 
     if (kvmm_allocAt (g_kstate.kernelVMM, MEM_START_PAGING_INT_TEMP_MAP, 1,
-                       PG_MAP_FLAG_KERNEL_DEFAULT, true) == 0) {
+                      PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
         k_panicOnError();
     }
 }

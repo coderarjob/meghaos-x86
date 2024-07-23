@@ -22,7 +22,9 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE alloc
                                                         PagingMapFlags pgFlags,
                                                         VMM_AddressSpaceFlags vasFlags)
 {
-    VMM_VirtualAddressSpace* new = NULL;
+    VMM_VirtualAddressSpace* new                   = NULL;
+    VMM_InternalAddressSpaceFlags vasInternalFlags = VMM_INTERNAL_ADDR_SPACE_FLAG_NONE;
+
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
         if ((new = kmalloc (sizeof (VMM_VirtualAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
@@ -31,13 +33,14 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE alloc
         if ((new = salloc (sizeof (VMM_VirtualAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
-        vasFlags |= VMM_ADDR_SPACE_FLAG_STATIC_ALLOC;
+        vasInternalFlags |= VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC;
     }
 
     new->start_vm          = start_vm;
     new->allocationSzBytes = allocatedBytes;
     new->pgFlags           = pgFlags;
     new->vasFlags          = vasFlags;
+    new->vasInternalFlags  = vasInternalFlags;
     new->processID         = 0;
     new->share             = NULL;
     list_init (&new->adjMappingNode);
@@ -200,13 +203,11 @@ VMManager* vmm_new (PTR start, PTR end)
     return new_vmm;
 }
 
-PTR kvmm_allocAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags, bool isPremapped)
+PTR kvmm_allocAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
+                  VMM_AddressSpaceFlags vasFlags)
 {
-    FUNC_ENTRY ("vmm: %x, va: %x, szPages: %x, paging flags: %x, IsPremapped: %x", vmm, va, szPages,
-                pgFlags, isPremapped);
-
-    VMM_AddressSpaceFlags vasFlags = (isPremapped) ? VMM_ADDR_SPACE_FLAG_PREMAP
-                                                   : VMM_ADDR_SPACE_FLAG_NONE;
+    FUNC_ENTRY ("vmm: %x, va: %x, szPages: %x, paging flags: %x, Vas flags: %x", vmm, va, szPages,
+                pgFlags, vasFlags);
 
     if (addNewVirtualAddressSpace (vmm, va, szPages, pgFlags, vasFlags) == false) {
         k_panicOnError();
@@ -244,7 +245,7 @@ bool kvmm_free (VMManager* vmm, PTR start_va)
     }
 
     // Address spaces that are allocated using salloc cannot be unreserved.
-    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_STATIC_ALLOC)) {
+    if (BIT_ISSET (vas->vasInternalFlags, VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC)) {
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
     }
 
