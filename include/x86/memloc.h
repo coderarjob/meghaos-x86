@@ -41,8 +41,8 @@
         #define MEM_START_KERNEL_PAGE_TABLE     0xC0024000
         #define MEM_LEN_BYTES_KERNEL_PAGE_TABLE (4 * KB)
 
-        #define MEM_START_KERNEL_PAB            0xC0025000
-        #define MEM_LEN_BYTES_KERNEL_PAB        PAB_SIZE_BYTES
+        #define X86_MEM_START_KERNEL_PAB        0xC0025000
+        #define X86_MEM_LEN_BYTES_KERNEL_PAB    PAB_SIZE_BYTES
 
         #define X86_MEM_START_SALLOC            0xC0026000
         #define X86_MEM_LEN_BYTES_SALLOC        (128 * KB)
@@ -68,9 +68,6 @@
         #define MEM_END_KERNEL_HIGH_REGION     (MEM_START_PAGING_RECURSIVE_MAP - 1)
         #define MEM_LEN_BYTES_KERNEL_HIGH_REGION \
             MEM_LEN_BYTES (MEM_START_KERNEL_HIGH_REGION, MEM_END_KERNEL_HIGH_REGION)
-    #else
-        #include <mosunittest.h>
-        #define MEM_START_KERNEL_PAB MOCK_THIS_MACRO_USING (mem_start_kernel_pab)
     #endif // UNITTEST
 
 #endif // MEM_LOC_H_X86

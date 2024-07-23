@@ -6,11 +6,21 @@
 
 #pragma once
 
-#if defined(__i386__) && !defined(UNITTEST)
-    #include <x86/memloc.h>
+#include <buildcheck.h>
 
-    #define ARCH_MEM_START_SALLOC      X86_MEM_START_SALLOC
-    #define ARCH_MEM_LEN_BYTES_SALLOC  X86_MEM_LEN_BYTES_SALLOC
+#if defined(UNITTEST)
+    #include <mosunittest.h>
+    #define ARCH_MEM_START_KERNEL_PAB MOCK_THIS_MACRO_USING (arch_mem_start_kernel_pab)
+#else
+    #if defined(__i386__) || (defined(UNITTEST) && ARCH == x86)
+        #include <x86/memloc.h>
 
-    #define ARCH_MEM_LEN_BYTES_KMALLOC X86_MEM_LEN_BYTES_KMALLOC
+        #define ARCH_MEM_START_SALLOC         X86_MEM_START_SALLOC
+        #define ARCH_MEM_LEN_BYTES_SALLOC     X86_MEM_LEN_BYTES_SALLOC
+
+        #define ARCH_MEM_LEN_BYTES_KMALLOC    X86_MEM_LEN_BYTES_KMALLOC
+
+        #define ARCH_MEM_START_KERNEL_PAB     X86_MEM_START_KERNEL_PAB
+        #define ARCH_MEM_LEN_BYTES_KERNEL_PAB X86_MEM_LEN_BYTES_KERNEL_PAB
+    #endif
 #endif

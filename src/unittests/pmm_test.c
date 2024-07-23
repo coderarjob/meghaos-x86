@@ -289,7 +289,7 @@ int main()
     // Will just set pointer `s_pab` to point to `pab` buffer defined here. No allocation or
     // deallocation will take place as memory map count and files count are not set and will be at
     // default zero.
-    SET_MACRO_MOCK (mem_start_kernel_pab, (PTR)pab); // Mock MEM_START_KERNEL_PAB macro
+    SET_MACRO_MOCK (arch_mem_start_kernel_pab, (PTR)pab);
     kpmm_init();
 
     zero_page_count();

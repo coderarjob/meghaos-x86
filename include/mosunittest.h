@@ -14,7 +14,7 @@ typedef struct MockedMacro {
     int kernel_pde_index;
     int temporary_pte_index_extern;
     int temporary_pte_index_internal;
-    uintptr_t mem_start_kernel_pab;
+    uintptr_t arch_mem_start_kernel_pab;
 } MockedMacro;
 
 // Need to define it when building unittests

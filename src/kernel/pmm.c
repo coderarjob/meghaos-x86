@@ -11,13 +11,13 @@
 #include <panic.h>
 #include <moslimits.h>
 #include <types.h>
-#include <x86/paging.h>
 #include <paging.h>
 #include <kdebug.h>
 #include <kerror.h>
 #include <common/bitmap.h>
 #include <utils.h>
 #include <kernel.h>
+#include <memloc.h>
 
 typedef struct PhysicalMemoryRegion
 {
@@ -92,7 +92,7 @@ void kpmm_init ()
 {
     FUNC_ENTRY();
 
-    s_pab = (U8 *)MEM_START_KERNEL_PAB;
+    s_pab = (U8 *)ARCH_MEM_START_KERNEL_PAB;
 
     s_pmm_completeRegion.bitmap.allow = s_verifyChange;
     s_pmm_completeRegion.bitmap.bitmap = s_pab;
