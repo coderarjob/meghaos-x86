@@ -22,7 +22,7 @@ typedef struct KernelStateInfo {
     UINT errorNumber;              // Code for last error.
     Physical kernelPageDirectory;  // Physical location of Kernel Page Directory.
     // Kernel address spaces are managed through this VMM.
-    VMManager* kernelVMM;
+    VMemoryManager* kernelVMM;
 } KernelStateInfo;
 
 extern KernelStateInfo g_kstate;

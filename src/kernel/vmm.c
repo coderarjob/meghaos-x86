@@ -18,19 +18,19 @@
 #include <kerror.h>
 #include <kernel.h>
 
-static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocatedBytes,
-                                                        PagingMapFlags pgFlags,
-                                                        VMM_AddressSpaceFlags vasFlags)
+static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocatedBytes,
+                                                    PagingMapFlags pgFlags,
+                                                    VMemoryAddressSpaceFlags vasFlags)
 {
-    VMM_VirtualAddressSpace* new                   = NULL;
-    VMM_InternalAddressSpaceFlags vasInternalFlags = VMM_INTERNAL_ADDR_SPACE_FLAG_NONE;
+    VMemoryAddressSpace* new                     = NULL;
+    VMemoryAddressSpaceIntFlags vasInternalFlags = VMM_INTERNAL_ADDR_SPACE_FLAG_NONE;
 
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
-        if ((new = kmalloc (sizeof (VMM_VirtualAddressSpace))) == NULL) {
+        if ((new = kmalloc (sizeof (VMemoryAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
     } else {
-        if ((new = salloc (sizeof (VMM_VirtualAddressSpace))) == NULL) {
+        if ((new = salloc (sizeof (VMemoryAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
         vasInternalFlags |= VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC;
@@ -47,8 +47,8 @@ static VMM_VirtualAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE alloc
     return new;
 }
 
-static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPages,
-                                       PagingMapFlags pgFlags, VMM_AddressSpaceFlags vasFlags)
+static bool addNewVirtualAddressSpace (VMemoryManager* vmm, PTR start_va, SIZE szPages,
+                                       PagingMapFlags pgFlags, VMemoryAddressSpaceFlags vasFlags)
 {
     SIZE szBytes = PAGEFRAMES_TO_BYTES (szPages);
 
@@ -65,7 +65,7 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPage
         RETURN_ERROR (ERR_INVALID_RANGE, false);
     }
 
-    VMM_VirtualAddressSpace* newVas = createNewVirtAddrSpace (start_va, szBytes, pgFlags, vasFlags);
+    VMemoryAddressSpace* newVas = createNewVirtAddrSpace (start_va, szBytes, pgFlags, vasFlags);
     if (newVas == NULL) {
         // TODO: May be we should panic.
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
@@ -80,13 +80,13 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPage
     // If there are already some items in the list, we find a suitable spot such that the list
     // remains sorted (by start_va) in increasing order
     ListNode* node;
-    VMM_VirtualAddressSpace* vas = NULL;
+    VMemoryAddressSpace* vas = NULL;
 
     PTR newvas_startvm = newVas->start_vm;
     PTR newvas_endvm   = newvas_startvm + newVas->allocationSzBytes - 1;
     list_for_each (&vmm->head, node)
     {
-        vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
+        vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
         k_assert (vas != NULL, "Virtual Address space object in the list cannot be NULL");
 
         // Address space overlap/duplication detection
@@ -114,7 +114,7 @@ static bool addNewVirtualAddressSpace (VMManager* vmm, PTR start_va, SIZE szPage
     return true;
 }
 
-static PTR find_next_va (VMManager* vmm, SIZE szPages)
+static PTR find_next_va (VMemoryManager* vmm, SIZE szPages)
 {
     SIZE szBytes = PAGEFRAMES_TO_BYTES (szPages);
 
@@ -125,13 +125,13 @@ static PTR find_next_va (VMManager* vmm, SIZE szPages)
 
     // Address space contains some items, so we traverse the list to find a large enough gap in the
     // address space
-    ListNode* node                    = NULL;
-    VMM_VirtualAddressSpace* vas_prev = NULL;
-    PTR new_va                        = 0;
+    ListNode* node                = NULL;
+    VMemoryAddressSpace* vas_prev = NULL;
+    PTR new_va                    = 0;
 
     list_for_each (&vmm->head, node)
     {
-        VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
+        VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
         k_assert (vas != NULL, "Virtual Address space object in the list cannot be NULL");
 
         SIZE addr_space_gap = 0;
@@ -165,14 +165,14 @@ static PTR find_next_va (VMManager* vmm, SIZE szPages)
     return 0;
 }
 
-static VMM_VirtualAddressSpace* find_vas (VMManager const* const vmm, PTR startVA)
+static VMemoryAddressSpace* find_vas (VMemoryManager const* const vmm, PTR startVA)
 {
     ListNode* node = NULL;
     list_for_each (&vmm->head, node)
     {
-        VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
-        PTR start_vm                 = vas->start_vm;
-        PTR end_vm                   = start_vm + vas->allocationSzBytes;
+        VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
+        PTR start_vm             = vas->start_vm;
+        PTR end_vm               = start_vm + vas->allocationSzBytes;
 
         if (startVA >= start_vm && startVA < end_vm) {
             return vas;
@@ -183,7 +183,7 @@ static VMM_VirtualAddressSpace* find_vas (VMManager const* const vmm, PTR startV
     return NULL;
 }
 
-VMManager* vmm_new (PTR start, PTR end)
+VMemoryManager* vmm_new (PTR start, PTR end)
 {
     FUNC_ENTRY ("start: %x, end: %x", start, end);
 
@@ -191,8 +191,8 @@ VMManager* vmm_new (PTR start, PTR end)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, NULL);
     }
 
-    VMManager* new_vmm = NULL;
-    if ((new_vmm = salloc (sizeof (VMManager))) == NULL) {
+    VMemoryManager* new_vmm = NULL;
+    if ((new_vmm = salloc (sizeof (VMemoryManager))) == NULL) {
         k_panicOnError();
     }
 
@@ -203,8 +203,8 @@ VMManager* vmm_new (PTR start, PTR end)
     return new_vmm;
 }
 
-PTR kvmm_allocAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
-                  VMM_AddressSpaceFlags vasFlags)
+PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
+                  VMemoryAddressSpaceFlags vasFlags)
 {
     FUNC_ENTRY ("vmm: %x, va: %x, szPages: %x, paging flags: %x, Vas flags: %x", vmm, va, szPages,
                 pgFlags, vasFlags);
@@ -216,7 +216,7 @@ PTR kvmm_allocAt (VMManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
     return va;
 }
 
-PTR kvmm_alloc (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
+PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
 {
     FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x", vmm, szPages, pgFlags);
 
@@ -234,11 +234,11 @@ PTR kvmm_alloc (VMManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
     return next_va;
 }
 
-bool kvmm_free (VMManager* vmm, PTR start_va)
+bool kvmm_free (VMemoryManager* vmm, PTR start_va)
 {
     FUNC_ENTRY ("vmm: %x, start va: %x", vmm, start_va);
 
-    VMM_VirtualAddressSpace* vas = NULL;
+    VMemoryAddressSpace* vas = NULL;
 
     if ((vas = find_vas (vmm, start_va)) == NULL) {
         RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
@@ -266,7 +266,7 @@ bool kvmm_free (VMManager* vmm, PTR start_va)
 }
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
-void vmm_printVASList (VMManager* vmm)
+void vmm_printVASList (VMemoryManager* vmm)
 {
     FUNC_ENTRY ("vmm: %x", vmm);
 
@@ -277,7 +277,7 @@ void vmm_printVASList (VMManager* vmm)
 
     list_for_each (&vmm->head, node)
     {
-        VMM_VirtualAddressSpace* vas = LIST_ITEM (node, VMM_VirtualAddressSpace, adjMappingNode);
+        VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
 
         INFO ("* %x -> %x. allocated size: %x, vasflags: %x, pgFlags: %x, "
               "processID: %u.",
@@ -287,11 +287,11 @@ void vmm_printVASList (VMManager* vmm)
 }
 #endif
 
-bool kvmm_commitPage (VMManager* vmm, PTR va)
+bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
 {
     FUNC_ENTRY ("vmm: %x, va: %px", vmm, va);
 
-    VMM_VirtualAddressSpace* vas = NULL;
+    VMemoryAddressSpace* vas = NULL;
     if ((vas = find_vas (vmm, va)) == NULL) {
         RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
     }

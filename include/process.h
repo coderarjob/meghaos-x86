@@ -43,7 +43,7 @@ typedef struct ProcessInfo {
     // ProcessInfos' are part of the scheduler process table through this node.
     ListNode schedulerQueueNode;
     // Process address spaces are managed through this VMM.
-    VMManager* processVMM;
+    VMemoryManager* processVMM;
     // Initial states. These do not change throuout the lifetime of the process.
     UINT processID;
     ProcessFlags flags;
