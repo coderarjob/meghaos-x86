@@ -19,6 +19,7 @@ typedef struct MockedMacro {
     uintptr_t arch_mem_start_kernel_pab;
     uintptr_t arch_mem_start_salloc;
     size_t arch_mem_len_bytes_salloc;
+    size_t arch_mem_len_bytes_kmalloc;
 } MockedMacro;
 
 // Need to define it when building unittests
