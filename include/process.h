@@ -56,3 +56,4 @@ void kprocess_init();
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
 bool kprocess_exit();
+VMemoryManager* kprocess_getCurrentVMManager();

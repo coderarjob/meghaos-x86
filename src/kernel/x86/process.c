@@ -531,3 +531,8 @@ bool kprocess_exit()
 
     return (ret == true);
 }
+
+VMemoryManager* kprocess_getCurrentVMManager()
+{
+    return (currentProcess == NULL) ? g_kstate.kernelVMM : currentProcess->processVMM;
+}
