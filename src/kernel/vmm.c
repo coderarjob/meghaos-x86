@@ -311,7 +311,8 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
     }
 
     PageDirectory pd = kpg_getcurrentpd();
-    if (kpg_map (pd, va, pa, vas->pgFlags) == false) {
+    PTR pageStart = ALIGN_DOWN(va, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    if (kpg_map (pd, pageStart, pa, vas->pgFlags) == false) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
