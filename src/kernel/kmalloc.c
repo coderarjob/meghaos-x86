@@ -14,6 +14,7 @@
 #include <utils.h>
 #include <kernel.h>
 #include <memloc.h>
+#include <vmm.h>
 
 typedef enum FindCriteria
 {
@@ -55,7 +56,7 @@ void kmalloc_init()
 
     s_buffer = (void*)kvmm_alloc (g_kstate.kernelVMM,
                                   BYTES_TO_PAGEFRAMES_CEILING (ARCH_MEM_LEN_BYTES_KMALLOC),
-                                  PG_MAP_FLAG_KERNEL_DEFAULT);
+                                  PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_NONE);
     if (s_buffer == NULL) {
         k_panicOnError();
     }

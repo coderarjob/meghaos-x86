@@ -10,7 +10,7 @@
 #include <types.h>
 #include <paging.h>
 
-typedef enum VMMemoryAddressSpaceFlags {
+typedef enum VMemoryAddressSpaceFlags {
     VMM_ADDR_SPACE_FLAG_NONE   = 0,
     VMM_ADDR_SPACE_FLAG_PREMAP = (1 << 1),   // Address mappings are not handled by VMM. So no
                                              // depend allocation, unreserve, freePage is allowed.
@@ -22,7 +22,8 @@ typedef enum VMMemoryAddressSpaceFlags {
 typedef struct VMemoryManager VMemoryManager;
 
 VMemoryManager* vmm_new (PTR start, PTR end);
-PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags);
+PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
+                VMemoryAddressSpaceFlags vasFlags);
 PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
                   VMemoryAddressSpaceFlags vasFlags);
 bool kvmm_free (VMemoryManager* vmm, PTR start_va);

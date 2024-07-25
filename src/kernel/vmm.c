@@ -216,9 +216,11 @@ PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFl
     return va;
 }
 
-PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
+PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
+                VMemoryAddressSpaceFlags vasFlags)
 {
-    FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x", vmm, szPages, pgFlags);
+    FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x, Vas flags:", vmm, szPages, pgFlags,
+                vasFlags);
 
     PTR next_va = find_next_va (vmm, szPages);
     if (next_va == 0) {
@@ -226,8 +228,7 @@ PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags)
         RETURN_ERROR (ERR_OUT_OF_MEM, 0);
     }
 
-    if (addNewVirtualAddressSpace (vmm, next_va, szPages, pgFlags, VMM_ADDR_SPACE_FLAG_NONE) ==
-        false) {
+    if (addNewVirtualAddressSpace (vmm, next_va, szPages, pgFlags, vasFlags) == false) {
         k_panicOnError();
     }
 
