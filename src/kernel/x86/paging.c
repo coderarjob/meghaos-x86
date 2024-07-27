@@ -225,6 +225,33 @@ PageDirectory kpg_getcurrentpd()
 }
 
 /***************************************************************************************************
+ * Disassociates multiple mappings of physical pages with virtual ones. It does not deallocate
+ * paging structures that created when mapping.
+ *
+ * @Input   pd        Page directory which will contain this virtual address.
+ * @Input   va        Virtual address which will be unmapped. Must be page aligned.
+ * @Input   numPages  Number of pages to map. Must be more than 0.
+ * @return            True if unmapping was successful, false otherwise. Error number is set.
+ * @error             ERR_INVALID_ARGUMENT - Number of pages is zero which is invalid.
+ **************************************************************************************************/
+bool kpg_unmapContinous (PageDirectory pd, PTR vaStart, SIZE numPages)
+{
+    FUNC_ENTRY ("PD: %px, VA Start: %px, %px, num Pages: %x", pd, vaStart, numPages);
+
+    if (numPages == 0) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    }
+
+    PTR va = vaStart;
+    for (SIZE pgIndex = 0; pgIndex < numPages; pgIndex++, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        if (!kpg_unmap (pd, va)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+        }
+    }
+    return true;
+}
+
+/***************************************************************************************************
  * Disassociates mapping between a physical page and virtual page. It does not deallocate paging
  * structures that were allocated for this mapping to work.
  *
@@ -266,6 +293,39 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
     s_internal_temporaryUnmap();
 
+    return true;
+}
+
+/***************************************************************************************************
+ * Associates multiple physical pages with virtual ones. It will create necessary paging structures
+ * if it does not exist for the mapping to work.
+ *
+ * @Input   pd        Page directory which will contain this virtual address.
+ * @Input   vaStart   Virtual address which will map to the physical address. Must be page aligned.
+ * @Input   paStart   Physical address. Must be page aligned.
+ * @Input   numPages  Number of pages to map. Must be more than 0.
+ * @Input   flags     PDE/PTE flags to be used for the mapping. PG_MAP_FLAG_* items.
+ * @return            True if mapping was successful, false otherwise. Error number is set.
+ * @error             ERR_INVALID_ARGUMENT - Number of pages is zero which is invalid.
+ **************************************************************************************************/
+bool kpg_mapContinous (PageDirectory pd, PTR vaStart, Physical paStart, SIZE numPages,
+                       PagingMapFlags flags)
+{
+    FUNC_ENTRY ("PD: %px, VA Start: %px, PA Start: %px, num Pages: %x, flags: %x", pd, vaStart,
+                paStart.val, numPages, flags);
+
+    if (numPages == 0) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    }
+
+    Physical pa = paStart;
+    PTR va      = vaStart;
+    for (SIZE pgIndex = 0; pgIndex < numPages;
+         pgIndex++, pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        if (!kpg_map (pd, va, pa, flags)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+        }
+    }
     return true;
 }
 
