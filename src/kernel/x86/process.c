@@ -128,7 +128,7 @@ static ProcessInfo* s_processInfo_malloc()
     pInfo->state     = PROCESS_STATE_INVALID;
     pInfo->processID = processCount++;
     list_init (&pInfo->schedulerQueueNode);
-    if ((pInfo->processVMM = vmm_create (PROCESS_STACK_VA_START, 3 * GB)) == NULL) {
+    if ((pInfo->processVMM = kvmm_create (PROCESS_STACK_VA_START, 3 * GB)) == NULL) {
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
     }
 

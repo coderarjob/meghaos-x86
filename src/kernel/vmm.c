@@ -183,7 +183,7 @@ static VMemoryAddressSpace* find_vas (VMemoryManager const* const vmm, PTR start
     return NULL;
 }
 
-VMemoryManager* vmm_new (PTR start, PTR end)
+VMemoryManager* kvmm_new (PTR start, PTR end)
 {
     FUNC_ENTRY ("start: %x, end: %x", start, end);
 
