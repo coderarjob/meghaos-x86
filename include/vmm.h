@@ -29,7 +29,7 @@ PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFl
 bool kvmm_free (VMemoryManager* vmm, PTR start_va);
 bool kvmm_commitPage (VMemoryManager* vmm, PTR va);
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
-void vmm_printVASList (VMemoryManager* vmm);
+void kvmm_printVASList (VMemoryManager* vmm);
 #else
     #define vmm_printVASList(a) (void)0
 #endif

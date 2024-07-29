@@ -282,7 +282,7 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
 }
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
-void vmm_printVASList (VMemoryManager* vmm)
+void kvmm_printVASList (VMemoryManager* vmm)
 {
     FUNC_ENTRY ("vmm: %x", vmm);
 

@@ -125,7 +125,7 @@ void kernel_main ()
     int* addr = (int*)kvmm_alloc (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL_DEFAULT);
     INFO ("Allocated address: %px", addr);
 
-    vmm_printVASList (g_kstate.kernelVMM);
+    kvmm_printVASList (g_kstate.kernelVMM);
 
     *addr = 10;
     kdebug_println("Value is %u", *addr);
