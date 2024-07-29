@@ -10,22 +10,28 @@
 #include <types.h>
 #include <vmm.h>
 
-struct VMemoryManager {
-    PTR start;
-    PTR end;
-    ListNode head;
-};
-
 typedef struct VMemoryShare {
     Physical* pages;
     SIZE count;    // Number of pages added to the pages array
     SIZE refcount; // Number of VirtualAddressSpace objects that share this Memory
 } VMemoryShare;
 
+typedef enum VMemoryManagerFlags {
+    VMM_FLAG_NONE         = 0,
+    VMM_FLAG_STATIC_ALLOC = (1 << 1), // Allocated using salloc not kmalloc
+} VMemoryManagerFlags;
+
 typedef enum VMemoryAddressSpaceIntFlags {
     VMM_INTERNAL_ADDR_SPACE_FLAG_NONE         = 0,
     VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC = (1 << 1), // Allocated using salloc not kmalloc
 } VMemoryAddressSpaceIntFlags;
+
+struct VMemoryManager {
+    PTR start;
+    PTR end;
+    VMemoryManagerFlags flags;
+    ListNode head;
+};
 
 typedef struct VMemoryAddressSpace {
     VMemoryAddressSpaceFlags vasFlags;            // Arch independent VMM flags

@@ -191,13 +191,28 @@ VMemoryManager* vmm_new (PTR start, PTR end)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, NULL);
     }
 
-    VMemoryManager* new_vmm = NULL;
-    if ((new_vmm = salloc (sizeof (VMemoryManager))) == NULL) {
-        k_panicOnError();
+    VMemoryManager* new_vmm   = NULL;
+    VMemoryManagerFlags flags = VMM_FLAG_NONE;
+
+    if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
+        if ((new_vmm = kmalloc (sizeof (VMemoryManager))) == NULL) {
+            k_panicOnError();
+        }
+    } else {
+        // NOTE: Creation of VMManager using salloc only happens for Kernel for it tries to capture
+        // the Virtual memory reserved and used regions before kmalloc initialization (this is so
+        // because kmalloc memory is dynamically allocated).
+        // NOTE: It can happen memory for Addresses spaces in it is allocated using kmalloc. That is
+        // not a problem and is expected.
+        if ((new_vmm = salloc (sizeof (VMemoryManager))) == NULL) {
+            k_panicOnError();
+        }
+        flags |= VMM_FLAG_STATIC_ALLOC;
     }
 
     new_vmm->start = start;
     new_vmm->end   = end;
+    new_vmm->flags = flags;
     list_init (&new_vmm->head);
 
     return new_vmm;
