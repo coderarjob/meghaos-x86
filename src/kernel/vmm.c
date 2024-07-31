@@ -36,6 +36,9 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
         vasInternalFlags |= VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC;
     }
 
+    k_assert (IS_ALIGNED (allocatedBytes, CONFIG_PAGE_FRAME_SIZE_BYTES),
+              "Size is not multiple of page size");
+
     new->start_vm          = start_vm;
     new->allocationSzBytes = allocatedBytes;
     new->pgFlags           = pgFlags;
@@ -183,6 +186,40 @@ static VMemoryAddressSpace* find_vas (VMemoryManager const* const vmm, PTR start
     return NULL;
 }
 
+bool kvmm_delete (VMemoryManager** vmm)
+{
+    FUNC_ENTRY ("vmm: %px", *vmm);
+
+    VMemoryManager* the_vmm = *vmm;
+
+    if (BIT_ISSET (the_vmm->flags, VMM_FLAG_STATIC_ALLOC)) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    }
+
+    // Remove every item in the address space list then remove the VMM itself
+    ListNode* node;
+    list_for_each (&the_vmm->head, node)
+    {
+        VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
+        if (!kvmm_free (the_vmm, vas->start_vm)) {
+            // TODO: There should be a clear understanding when to Panic. I do not think panic is
+            // the right response here.
+            // Should we panic here?
+            // Panic when the error could causes system to be unstable. In this case when we cannot
+            // free the data structures for a Address space, it would cause memory leak but would
+            // not cause any other problem.
+            // Should we assert/BugOn?
+            // I think this is something that is plausable. kvmm_free should not fail in the first
+            // place.
+            k_panicOnError();
+        }
+    }
+
+    kfree (the_vmm);
+    (*vmm) = NULL;
+    return true;
+}
+
 VMemoryManager* kvmm_new (PTR start, PTR end)
 {
     FUNC_ENTRY ("start: %x, end: %x", start, end);
@@ -271,8 +308,28 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
         vas->share->refcount--;
     }
 
-    // TODO: If VAS is not shared or refcount == 0 then
-    //       Unmap pagign and unallocate physical pages after freeing virtual address space.
+    // We can continue and unmap virtual addresses from the physical onces and also free the
+    // physical page.
+    PTR va       = start_va;
+    SIZE szPages = BYTES_TO_PAGEFRAMES_CEILING (vas->allocationSzBytes);
+
+    // TODO: Since we are operating on a VMM, and a VMM is linked to a process, we store PD of the
+    // process in the VMManager struct and use that whereever PD is required in VMM.
+    PageDirectory pd = kpg_getcurrentpd();
+    for (SIZE pgIndex = 0; pgIndex < szPages; pgIndex++, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        Physical pa;
+        if (kpg_getPhysicalMapping (pd, va, &pa)) {
+            if (!kpg_unmap (pd, va)) {
+                k_panicOnError();
+            }
+            // We cannot unallocate physical pages if the address space is being shared.
+            if (vas->share == NULL || (vas->share != NULL && vas->share->refcount == 1)) {
+                if (!kpmm_free (pa, 1)) {
+                    k_panicOnError();
+                }
+            }
+        }
+    }
 
     // We now know that node allocation was done through kmalloc, so it can be freed.
     list_remove (&vas->adjMappingNode);
