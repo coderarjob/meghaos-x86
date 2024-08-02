@@ -4,6 +4,6 @@
 #include <types.h>
 #include <vmm.h>
 
-DECLARE_FUNC(PTR, kvmm_alloc, VMemoryManager*, SIZE, PagingMapFlags);
+DECLARE_FUNC(PTR, kvmm_alloc, VMemoryManager*, SIZE, PagingMapFlags, VMemoryAddressSpaceFlags);
 
 void resetVMMFake();
