@@ -9,6 +9,7 @@
 #include <kernel.h>
 #include <mosunittest.h>
 #include <mock/kernel/vmm.h>
+#include <mock/kernel/kstdlib.h>
 
 /* |Test case description                                       | Test function name             |
  * |------------------------------------------------------------|--------------------------------|
@@ -60,6 +61,27 @@ static MallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node);
 static bool isAddressFoundInList (void* addr, MallocLists list);
 static size_t getCapacity (MallocLists list);
 static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, size_t count);
+
+TEST (kmallocz, zero_fill_allocation)
+{
+    // Pre-Condition: Prefill the kmalloc array with non-zeros to check if kmallocz worked.
+    memset (kmalloc_buffer, 0xFF, UT_KMALLOC_SIZE_BYTES);
+
+    // Need to re-init kmalloc buffer since we have overriden initial headers with the previous
+    // memset.
+    kmalloc_init();
+
+    // Not an exact match, but will do for now. Ideally we could have used EXPECT_CALL macro to
+    // check if k_memset is called with the expected arguments.
+    k_memset_fake.handler = memset;
+    // ------------------------------------------------------------------------------------------
+    U8* addr1       = kmallocz (10);
+    U8 expected[10] = { 0 };
+
+    EQ_MEM (addr1, expected, 10);
+
+    END();
+}
 
 TEST (kmalloc, allocation_space_available)
 {
@@ -286,6 +308,7 @@ int main()
     kfree_combining_next_adj_nodes();
     kfree_wrong_input();
     used_memory_test();
+    zero_fill_allocation();
 
     return 0;
 }

@@ -30,6 +30,7 @@ void* salloc_arch_preAllocateMemory();
 SIZE salloc_getUsedMemory();
 
 void* kmalloc (size_t bytes);
+void* kmallocz (size_t bytes);
 bool kfree (void* addr);
 void kmalloc_init();
 void* kmalloc_arch_preAllocateMemory();

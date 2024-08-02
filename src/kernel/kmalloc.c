@@ -15,6 +15,7 @@
 #include <kernel.h>
 #include <memloc.h>
 #include <vmm.h>
+#include <kstdlib.h>
 
 typedef enum FindCriteria
 {
@@ -69,6 +70,25 @@ void kmalloc_init()
 
     INFO ("Size of MallocHeader: %lu bytes", sizeof (MallocHeader));
     INFO ("Malloc buffer is at: %px", s_buffer);
+}
+
+
+/***************************************************************************************************
+ * Allocates at least 'bytes' number of bytes from the kmalloc memory. If successful then zeros the
+ * memory before returning.
+ *
+ * @Input   bytes   Number of bytes to allocate.
+ * @return          Poiter to the start of the allocated memory. Or NULL on failure.
+ **************************************************************************************************/
+void* kmallocz (size_t bytes)
+{
+    FUNC_ENTRY ("Bytes: %x", bytes);
+
+    void* addr = kmalloc (bytes);
+    if (addr != NULL) {
+        k_memset (addr, 0, bytes);
+    }
+    return addr;
 }
 
 /***************************************************************************************************
