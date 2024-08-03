@@ -231,9 +231,7 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     }
 
     // Copy the program to a page aligned physical address
-    void* bin_va = kpg_temporaryMap (pinfo->physical.Binary);
-    k_memcpy (bin_va, processStartAddress, binLengthBytes);
-    kpg_temporaryUnmap();
+    k_memcpyToPhyMem (pinfo->physical.Binary, (PTR)processStartAddress, binLengthBytes);
 
     // Virtual memory for process binary start at a fixed location and need to premapped - otherwise
     // how would the virtual address space map to the physical memory where the binary was loaded.

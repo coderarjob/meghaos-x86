@@ -11,7 +11,6 @@
 #include <panic.h>
 #include <moslimits.h>
 #include <types.h>
-#include <paging.h>
 #include <kdebug.h>
 #include <kerror.h>
 #include <common/bitmap.h>

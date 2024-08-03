@@ -9,6 +9,8 @@
 #include <kstdlib.h>
 #include <types.h>
 #include <kdebug.h>
+#include <kernel.h>
+#include <paging.h>
 
 /***************************************************************************************************
  * Copies n bytes from src to dest. Can handle overlaps.
@@ -50,3 +52,35 @@ void *k_memset (void *s, U8 c, size_t n)
     return __builtin_memset(s, c, n);
 }
 
+/***************************************************************************************************
+ * Copies n bytes from src to dest (raw physical memory).
+ *
+ * @Input dest     Pointer to the destination. Should not be NULL.
+ * @Input src      Physical address of the source.
+ * @Input n        Number of bytes to copy.
+ * @return         Pointer to the start of the destination.
+ ***************************************************************************************************/
+void k_memcpyToPhyMem (Physical dest, PTR src, SIZE n)
+{
+    FUNC_ENTRY ("Dest: %px, Src: %px, Len: %x bytes", dest.val, (PTR)src, n);
+
+    KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_VMM_READY);
+
+    Physical l_dest = dest;
+    PTR l_src       = src;
+    SIZE remBytes   = n;
+
+    // Copy whole pages worth of bytes
+    while (remBytes > CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        k_memcpy (kpg_temporaryMap (l_dest), (void*)l_src, CONFIG_PAGE_FRAME_SIZE_BYTES);
+        kpg_temporaryUnmap();
+        remBytes -= CONFIG_PAGE_FRAME_SIZE_BYTES;
+        l_dest.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
+        l_src += CONFIG_PAGE_FRAME_SIZE_BYTES;
+    }
+
+    // Copy remaining bytes
+    void* bin_va = kpg_temporaryMap (l_dest);
+    k_memcpy (bin_va, (void*)l_src, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    kpg_temporaryUnmap();
+}
