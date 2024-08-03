@@ -220,7 +220,7 @@ bool kvmm_delete (VMemoryManager** vmm)
     return true;
 }
 
-VMemoryManager* kvmm_new (PTR start, PTR end)
+VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd)
 {
     FUNC_ENTRY ("start: %x, end: %x", start, end);
 
@@ -247,9 +247,10 @@ VMemoryManager* kvmm_new (PTR start, PTR end)
         flags |= VMM_FLAG_STATIC_ALLOC;
     }
 
-    new_vmm->start = start;
-    new_vmm->end   = end;
-    new_vmm->flags = flags;
+    new_vmm->start           = start;
+    new_vmm->end             = end;
+    new_vmm->flags           = flags;
+    new_vmm->parentProcessPD = pd;
     list_init (&new_vmm->head);
 
     return new_vmm;
@@ -315,7 +316,7 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
 
     // TODO: Since we are operating on a VMM, and a VMM is linked to a process, we store PD of the
     // process in the VMManager struct and use that whereever PD is required in VMM.
-    PageDirectory pd = kpg_getcurrentpd();
+    PageDirectory pd = kpg_temporaryMap (*vmm->parentProcessPD);
     for (SIZE pgIndex = 0; pgIndex < szPages; pgIndex++, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
         Physical pa;
         if (kpg_getPhysicalMapping (pd, va, &pa)) {
@@ -330,6 +331,7 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
             }
         }
     }
+    kpg_temporaryUnmap();
 
     // We now know that node allocation was done through kmalloc, so it can be freed.
     list_remove (&vas->adjMappingNode);
@@ -382,11 +384,12 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
-    PageDirectory pd = kpg_getcurrentpd();
-    PTR pageStart = ALIGN_DOWN(va, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    PageDirectory pd = kpg_temporaryMap (*vmm->parentProcessPD);
+    PTR pageStart    = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
     if (kpg_map (pd, pageStart, pa, vas->pgFlags) == false) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
+    kpg_temporaryUnmap();
 
     INFO ("Commit successful for VA: %px", va);
     return true;

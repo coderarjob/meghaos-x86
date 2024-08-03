@@ -76,7 +76,8 @@ void kernel_main ()
     salloc_init();
 
     // Initialize VMM
-    g_kstate.kernelVMM = kvmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION);
+    g_kstate.kernelVMM = kvmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION,
+                                   &g_kstate.kernelPageDirectory);
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_VMM_READY);
 
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
