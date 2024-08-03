@@ -62,7 +62,7 @@ void ktss_init ()
 {
     FUNC_ENTRY();
 
-    if ((tss_entry = salloc(sizeof(struct tss))) == NULL)
+    if ((tss_entry = ksalloc(sizeof(struct tss))) == NULL)
     {
         k_panic("Memory allocation failed for TSS");
     }

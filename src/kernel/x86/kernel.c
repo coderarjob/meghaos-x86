@@ -74,7 +74,7 @@ void kernel_main ()
 
     kearly_println ("[  ]\tVirtual memory management.");
 
-    salloc_init();
+    ksalloc_init();
 
     // Initialize VMM
     g_kstate.kernelVMM = kvmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION,
@@ -270,7 +270,7 @@ static void multithread_demo_kernel_thread()
     INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+    kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 
     void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
     INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
@@ -298,7 +298,7 @@ static void multithread_demo_kernel_thread()
 
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+    kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 
     kearly_println ("------ [ END ] ------");
 

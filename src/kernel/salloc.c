@@ -25,7 +25,7 @@ static PTR s_start  = 0;    // Points to the start salloc buffer.
  *
  * @return    None
  **************************************************************************************************/
-void salloc_init()
+void ksalloc_init()
 {
     FUNC_ENTRY();
     s_start = (PTR)ARCH_MEM_START_SALLOC;
@@ -46,7 +46,7 @@ void salloc_init()
  * @error           ERR_INVALID_RANGE - Input is outside valid range.
  * @error           ERR_OUT_OF_MEM    - There is less memory than requested.
  **************************************************************************************************/
-void* salloc (UINT bytes)
+void* ksalloc (UINT bytes)
 {
     FUNC_ENTRY ("Bytes: %px", bytes);
 
@@ -79,7 +79,7 @@ void* salloc (UINT bytes)
  * @error           ERR_INVALID_RANGE - Input is outside valid range.
  * @error           ERR_OUT_OF_MEM    - There is less memory than requested.
  **************************************************************************************************/
-void* scalloc (UINT bytes)
+void* kscalloc (UINT bytes)
 {
     FUNC_ENTRY ("Bytes: %px", bytes);
 
@@ -91,7 +91,7 @@ void* scalloc (UINT bytes)
     UINT allocSize = ALIGN_UP (bytes, SALLOC_GRANUALITY);
     INFO ("Size after aligning: %px", allocSize);
 
-    void* mem = salloc (allocSize);
+    void* mem = ksalloc (allocSize);
     if (mem != NULL)
         k_memset (mem, 0, allocSize);
 
@@ -103,7 +103,7 @@ void* scalloc (UINT bytes)
  *
  * @return          Amount of allocated memory in bytes.
  **************************************************************************************************/
-SIZE salloc_getUsedMemory()
+SIZE ksalloc_getUsedMemory()
 {
     FUNC_ENTRY();
 

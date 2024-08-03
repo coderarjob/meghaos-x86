@@ -49,6 +49,9 @@
 | NOTE: This can be done using CMake, so separate script is not required. |           |            |
 | [ ] Using Flawfinder to check for security flaws seem intersting.       |           |            |
 | [X] Switch to CMake from build.sh                                       |           | 25 May 24  |
+| ::: [ ] Its confusing to have targets like mpdemo, mpdemo.flt.in &      | 24 Jul 24 |            |
+| ::: ::: mpdemo.flt and also boot0.flt-lib & boot0.flt. Why '-lib' and   |           |            |
+| ::: ::: not '.in' for intermediate files?                               |           |            |
 | [X] x86 Cross compiler setup                                            |           |            |
 | [X] Create a tools folder, with scripts to build gcc cross-compiler.    |           |            |
 | [X] Idea of VERBOSE to print debug messages on screen is faulty.        |           | 07 SEP 21  |
@@ -110,19 +113,23 @@
 | ::: need to be done.                                                    |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
-| ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
 | ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
 | ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
 | Possible solution.                                                      |           |            |
 | When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
 | and the scheduler will make sure that the parent gets the message.      |           |            |
 | Need a way to avoid creation of ZOMBIE processes.                       |           |            |
-| ::: [ ] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 |            |
-| supported.                                                              |           |            |
 | ::: [ ] Process Exit: Copy the Kernel PDEs from PD of the process to    | 27 Apr 24 |            |
 | ::: PD of the Kernel. At the start we copy the Kernel PDEs but are not  |           |            |
 | ::: copying it back. The Kernel memory mapping might have changed by    |           |            |
 | ::: now, so this copying is needed.                                     |           |            |
+| ::: [-] Ability to select and extend stack memory as required.          | 12 Apr 24 | 03 Aug 24  |
+| With VMM the stack can be allocated dynamically but is of fixed size,   |           |            |
+| but since we now have lazy on-demand page allocation, the fixed size    |           |            |
+| can be large and does not require explicit 'extention'.                 |           |            |
+| ::: [X] Process exit: Free both virtual physical memory at process exit | 18 Jul 24 | 03 Aug 24  |
+| ::: [X] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 | 03 Aug 24  |
+| supported.                                                              |           |            |
 | ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
 | ::: ::: [X] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 | 23 Apr 24  |
 | ::: ::: stack is used in the Kernel mode. kpg_unmap will cause page     |           |            |
@@ -146,7 +153,7 @@
 | Moreover, kpg_map invalidates caches, which are privilaged instructions |           |            |
 | ::: [X] BUG: 86Box and Bochs resets when making syscall from process1   | 11 Apr 24 | 12 Apr 24  |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
+| [X] Rename salloc to ksalloc.                                           | 16 Mar 24 | 03 Aug 24  |
 |-------------------------------------------------------------------------|-----------|------------|
 | [X] Rename include/assert.h to kassert.h.                               | 16 Mar 24 | 17 Mar 24  |
 |-------------------------------------------------------------------------|-----------|------------|
@@ -172,7 +179,7 @@
 | global pointers state, etc required by the kernel.                      |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Virutal memory allocator                                            |           |            |
-| ::: [ ] How to do lazy allocation?                                      |           |            |
+| ::: [X] Lazy allocation                                                 |           | 22 Jul 24  |
 | ::: [X] Allocate a new virtual address                                  |           | 25 Mar 24  |
 | ::: [X] Map a virtual to physical address                               |           |            |
 | ::: [[X]] Higher half mapping maps first 2MiB physical memory           |           | 23 Mar 24  |

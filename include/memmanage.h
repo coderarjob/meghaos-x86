@@ -23,11 +23,11 @@ typedef struct MallocHeader
     ListNode allocnode; /// A node in the Allocation list
 } MallocHeader;
 
-void salloc_init();
-void* salloc (UINT bytes);
-void* scalloc (UINT bytes);
-void* salloc_arch_preAllocateMemory();
-SIZE salloc_getUsedMemory();
+void ksalloc_init();
+void* ksalloc (UINT bytes);
+void* kscalloc (UINT bytes);
+void* ksalloc_arch_preAllocateMemory();
+SIZE ksalloc_getUsedMemory();
 
 void* kmalloc (size_t bytes);
 void* kmallocz (size_t bytes);

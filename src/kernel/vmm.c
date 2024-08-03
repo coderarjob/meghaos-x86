@@ -30,7 +30,7 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
     } else {
-        if ((new = salloc (sizeof (VMemoryAddressSpace))) == NULL) {
+        if ((new = ksalloc (sizeof (VMemoryAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
         vasInternalFlags |= VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC;
@@ -246,7 +246,7 @@ VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd)
         // because kmalloc memory is dynamically allocated).
         // NOTE: It can happen memory for Addresses spaces in it is allocated using kmalloc. That is
         // not a problem and is expected.
-        if ((new_vmm = salloc (sizeof (VMemoryManager))) == NULL) {
+        if ((new_vmm = ksalloc (sizeof (VMemoryManager))) == NULL) {
             k_panicOnError();
         }
         flags |= VMM_FLAG_STATIC_ALLOC;
