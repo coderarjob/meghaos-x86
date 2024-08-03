@@ -184,6 +184,8 @@ static bool s_enqueue (ProcessInfo* p)
 
 static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
 {
+    FUNC_ENTRY("Pinfo: %px", pinfo);
+
     if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
         // Create physical memory for Page directory of the new non-thread process
         if (!kpg_createNewPageDirectory (&pinfo->physical.PageDirectory,
@@ -214,12 +216,12 @@ static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
 static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
                                         ProcessInfo* pinfo)
 {
-    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
-        // For Threads there is nothing to be setup for program text. The entry point of threads is
-        // part of its parent text wihch is already loaded (otherwise who is creating threads on its
-        // behalf!).
-        return true;
-    }
+    FUNC_ENTRY ("processStartAddress: %px, binLengthBytes: %x, Pinfo: %px", processStartAddress,
+                binLengthBytes, pinfo);
+
+    // For Threads there is nothing to be setup for program text. This function should not be called
+    // for threads.
+    k_assert (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD), "Invalid for threads");
 
     // Allocate physical memory for the program binary.
     k_assert (pinfo != NULL && pinfo->physical.BinarySizePages > 0, "Invalid program size");
@@ -255,8 +257,9 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
 
 static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
 {
-    // Process stacks are always allocated dynamically. Their sizes are fixed for now though
+    FUNC_ENTRY("Pinfo: %px", pinfo);
 
+    // Process stacks are always allocated dynamically. Their sizes are fixed for now though
     PagingMapFlags pgFlags            = PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED;
     VMemoryAddressSpaceFlags vasFlags = VMM_ADDR_SPACE_FLAG_NONE;
 
@@ -440,8 +443,10 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
     }
 
-    if (!s_setupProcessBinaryMemory (processStartAddress, binLengthBytes, pinfo)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+    if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        if (!s_setupProcessBinaryMemory (processStartAddress, binLengthBytes, pinfo)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+        }
     }
 
     if (!s_setupProcessStackMemory (pinfo)) {
