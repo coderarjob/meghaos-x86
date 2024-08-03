@@ -261,9 +261,10 @@ size_t kpmm_getFreeMemorySize ()
     PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
 
     size_t freePages = 0;
-    for (UINT frame = 1; frame < usablePageCount; frame++)
-        if (bitmap_get(&region->bitmap, frame) == PMM_STATE_FREE)
-        freePages++;
+    for (UINT frame = 1; frame < usablePageCount; frame++) {
+        if (bitmap_get (&region->bitmap, frame) == PMM_STATE_FREE)
+            freePages++;
+    }
 
     k_assert(freePages <= kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY), "Invalid frames");
     return PAGEFRAME_TO_PHYSICAL(freePages);

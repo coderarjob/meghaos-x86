@@ -457,7 +457,7 @@ void display_system_info()
     INFO ("Installed RAM bytes: %llx bytes", installed_memory);
     UINT installed_memory_pageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (installed_memory);
     INFO ("Installed RAM Pages: %u", installed_memory_pageCount);
-    INFO ("Free RAM bytes: :%llx bytes", kpmm_getFreeMemorySize());
+    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
 #endif
 }
 
