@@ -33,5 +33,5 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va);
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 void kvmm_printVASList (VMemoryManager* vmm);
 #else
-    #define vmm_printVASList(a) (void)0
+    #define kvmm_printVASList(a) (void)0
 #endif

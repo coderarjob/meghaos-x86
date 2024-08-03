@@ -59,7 +59,7 @@ bool kpg_unmapContinous (PageDirectory pd, PTR vaStart, SIZE numPages);
 bool kpg_unmap (PageDirectory pd, PTR va);
 void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();
-bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa);
+bool kpg_doesMappingExists (PageDirectory pd, PTR va, Physical* pa);
 bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags);
 bool kpg_deletePageDirectory(Physical pd, PagingOperationFlags flags);
 

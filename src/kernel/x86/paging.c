@@ -9,6 +9,7 @@
 #include <kstdlib.h>
 #include <pmm.h>
 #include <kerror.h>
+#include <stdbool.h>
 #include <x86/paging.h>
 #include <paging.h>
 #include <config.h>
@@ -394,39 +395,32 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
  * @Input    pd      Page directory which will contain this virtual address.
  * @Input    va      Virtual address which will map to the physical address.
  * @Output   pa      Pointer where the Physical address will be stored.
- * @return           True if mapping exists, false otherwise. Error number is set.
- * @error            ERR_INVALID_ARGUMENT - Pointer to page directory is null.
+ * @return           True if mapping exists, false otherwise.
  **************************************************************************************************/
-bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
+bool kpg_doesMappingExists (PageDirectory pd, PTR va, Physical* pa)
 {
     FUNC_ENTRY ("Page Directory: %px, VA: %px, Page Attributes: %px", pd, va, pa);
 
-    if (pd == NULL) {
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
-    }
+    k_assert (pd != NULL, "PD cannot be null");
 
     IndexInfo info              = s_getTableIndices (va);
     ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
+    bool isMapped               = false;
 
-    if (!pde->present) {
-        RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
-    }
-
-    Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-    void* pt_vaddr          = s_internal_temporaryMap (pt_phyaddr);
-    ArchPageTableEntry* pte = &((ArchPageTableEntry*)pt_vaddr)[info.pteIndex];
-
-    if (!pte->present) {
+    if (pde->present) {
+        Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
+        void* pt_vaddr          = s_internal_temporaryMap (pt_phyaddr);
+        ArchPageTableEntry* pte = &((ArchPageTableEntry*)pt_vaddr)[info.pteIndex];
+        if (pte->present) {
+            Physical phy_addr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pte->pageFrame) | info.offset);
+            *pa               = phy_addr;
+            isMapped          = true;
+        }
         s_internal_temporaryUnmap();
-        RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
     }
 
-    Physical phy_addr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pte->pageFrame) | info.offset);
-    *pa               = phy_addr;
-
-    s_internal_temporaryUnmap();
-
-    return true;
+    INFO("Is mapped: %x", isMapped);
+    return isMapped;
 }
 
 /***************************************************************************************************

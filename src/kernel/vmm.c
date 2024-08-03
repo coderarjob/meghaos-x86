@@ -332,7 +332,7 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
     PageDirectory pd = kpg_temporaryMap (*vmm->parentProcessPD);
     for (SIZE pgIndex = 0; pgIndex < szPages; pgIndex++, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
         Physical pa;
-        if (kpg_getPhysicalMapping (pd, va, &pa)) {
+        if (kpg_doesMappingExists (pd, va, &pa)) {
             if (!kpg_unmap (pd, va)) {
                 k_panicOnError();
             }
