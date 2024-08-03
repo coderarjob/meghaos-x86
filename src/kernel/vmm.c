@@ -198,8 +198,9 @@ bool kvmm_delete (VMemoryManager** vmm)
 
     // Remove every item in the address space list then remove the VMM itself
     ListNode* node;
-    list_for_each (&the_vmm->head, node)
-    {
+    while (!list_is_empty (&the_vmm->head)) {
+        // Remove the first node every time.
+        node                     = the_vmm->head.next;
         VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
         if (!kvmm_free (the_vmm, vas->start_vm)) {
             // TODO: There should be a clear understanding when to Panic. I do not think panic is
