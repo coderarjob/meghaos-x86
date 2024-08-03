@@ -190,6 +190,8 @@ bool kvmm_delete (VMemoryManager** vmm)
 {
     FUNC_ENTRY ("vmm: %px", *vmm);
 
+    k_assert (vmm != NULL, "VMM not provided");
+
     VMemoryManager* the_vmm = *vmm;
 
     if (BIT_ISSET (the_vmm->flags, VMM_FLAG_STATIC_ALLOC)) {
@@ -229,6 +231,8 @@ VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd)
         RETURN_ERROR (ERR_INVALID_ARGUMENT, NULL);
     }
 
+    k_assert (pd != 0, "PageDirectory address is NULL");
+
     VMemoryManager* new_vmm   = NULL;
     VMemoryManagerFlags flags = VMM_FLAG_NONE;
 
@@ -263,6 +267,8 @@ PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFl
     FUNC_ENTRY ("vmm: %x, va: %x, szPages: %x, paging flags: %x, Vas flags: %x", vmm, va, szPages,
                 pgFlags, vasFlags);
 
+    k_assert (vmm != NULL, "VMM not provided");
+
     if (addNewVirtualAddressSpace (vmm, va, szPages, pgFlags, vasFlags) == false) {
         k_panicOnError();
     }
@@ -275,6 +281,9 @@ PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
 {
     FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x, Vas flags:", vmm, szPages, pgFlags,
                 vasFlags);
+
+    k_assert (vmm != NULL, "VMM not provided");
+    k_assert (szPages != 0, "Number pages is zero.");
 
     PTR next_va = find_next_va (vmm, szPages);
     if (next_va == 0) {
@@ -292,6 +301,9 @@ PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
 bool kvmm_free (VMemoryManager* vmm, PTR start_va)
 {
     FUNC_ENTRY ("vmm: %x, start va: %x", vmm, start_va);
+
+    k_assert (vmm != NULL, "VMM not provided");
+    k_assert (start_va != 0, "Start address of zero is invalid.");
 
     VMemoryAddressSpace* vas = NULL;
 
@@ -366,6 +378,8 @@ void kvmm_printVASList (VMemoryManager* vmm)
 bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
 {
     FUNC_ENTRY ("vmm: %x, va: %px", vmm, va);
+
+    k_assert (vmm != NULL, "VMM not provided");
 
     VMemoryAddressSpace* vas = NULL;
     if ((vas = find_vas (vmm, va)) == NULL) {
