@@ -10,6 +10,8 @@
 #include <intrusive_queue.h>
 #include <vmm.h>
 
+#define PROCESS_ID_KERNEL 0x0
+
 typedef enum ProcessStates {
     PROCESS_STATE_INVALID = 0,
     PROCESS_STATE_RUNNING = 1,

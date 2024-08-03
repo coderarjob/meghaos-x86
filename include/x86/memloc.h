@@ -51,21 +51,24 @@
         #define MEM_LEN_BYTES_KERNEL_LOW_REGION \
             MEM_LEN_BYTES (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_LOW_REGION)
 
-        #define MEM_START_KERNEL_HIGH_REGION   0xC0100000
+        #define MEM_START_KERNEL_HIGH_REGION    0xC0100000
 
-        #define X86_MEM_LEN_BYTES_KMALLOC      (128 * KB)
+        #define X86_MEM_LEN_BYTES_KMALLOC       (128 * KB)
 
-        #define MEM_END_HIGHER_HALF_MAP        0xC0200000
+        #define MEM_END_HIGHER_HALF_MAP         0xC0200000
 
-        #define PROCESS_ADDR_SPACE_START       0x00010000
-        #define PROCESS_TEXT_VA_START          0x00010000
-        #define PROCESS_STACK_VA_START         0x00030000
+        #define X86_MEM_START_PROCESS_MEMORY    (4 * KB)  // 0000h -> 1000h being NULL page
+        #define X86_MEM_START_PROCESS_TEXT      (64 * KB) // Not sure why I choose 64 KB here!
+        #define X86_MEM_START_PROCESS_DATA      (2 * MB)
+        #define X86_MEM_LEN_BYTES_PROCESS_STACK (256 * KB)
+        #define X86_MEM_LEN_BYTES_PROCESS_DATA  (256 * KB)
+        #define X86_MEM_END_PROCESS_MEMORY      (3 * GB - 1)
 
-        #define MEM_START_PAGING_EXT_TEMP_MAP  0xC03FE000U // Temporary map for external modules
-        #define MEM_START_PAGING_INT_TEMP_MAP  0xC03FF000U // Temporary map for Paging module
-        #define MEM_START_PAGING_RECURSIVE_MAP 0xFFC00000U // Recursive map of PDs
+        #define MEM_START_PAGING_EXT_TEMP_MAP   0xC03FE000U // Temporary map for external modules
+        #define MEM_START_PAGING_INT_TEMP_MAP   0xC03FF000U // Temporary map for Paging module
+        #define MEM_START_PAGING_RECURSIVE_MAP  0xFFC00000U // Recursive map of PDs
 
-        #define MEM_END_KERNEL_HIGH_REGION     (MEM_START_PAGING_RECURSIVE_MAP - 1)
+        #define MEM_END_KERNEL_HIGH_REGION      (MEM_START_PAGING_RECURSIVE_MAP - 1)
         #define MEM_LEN_BYTES_KERNEL_HIGH_REGION \
             MEM_LEN_BYTES (MEM_START_KERNEL_HIGH_REGION, MEM_END_KERNEL_HIGH_REGION)
     #endif // UNITTEST

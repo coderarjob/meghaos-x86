@@ -42,6 +42,7 @@
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
 static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end);
+//static void vmm_basic_testing();
 //static void s_dumpPab ();
 //static void paging_test_map_unmap();
 //static void paging_test_temp_map_unmap();
@@ -123,16 +124,6 @@ void kernel_main ()
     kearly_println ("Kernel initialization finished..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,LIGHT_GRAY,0));
 
-    int* addr = (int*)kvmm_alloc (g_kstate.kernelVMM, 1, PG_MAP_FLAG_KERNEL_DEFAULT);
-    INFO ("Allocated address: %px", addr);
-
-    kvmm_printVASList (g_kstate.kernelVMM);
-
-    *addr = 10;
-    kdebug_println("Value is %u", *addr);
-
-    k_halt();
-
     // Display available memory
     //s_dumpPab();
     // Paging information
@@ -171,6 +162,56 @@ void kernel_main ()
     k_halt();
 }
 
+//static void vmm_basic_testing()
+//{
+//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//
+//    VMemoryManager* vmm = kvmm_new (0xC03E8000, 0xC03EA000, &g_kstate.kernelPageDirectory);
+//
+//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//
+//    int* addr = (int*)kvmm_alloc (vmm, 1, PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_NONE);
+//    INFO ("Allocated address: %px", addr);
+//
+//    // Commit page here only
+//    PageDirectory pd = kpg_getcurrentpd();
+//    Physical pa;
+//
+//    kpmm_alloc (&pa, 1, PMM_REGION_ANY);
+//
+//    PTR va        = 0xC03E8000;
+//    PTR pageStart = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
+//    kpg_map (pd, pageStart, pa, PG_MAP_FLAG_KERNEL_DEFAULT);
+//    INFO ("Commit successful for VA: %px", va);
+//
+//    // Test allocation
+//    kvmm_printVASList (vmm);
+//
+//    *addr = 10;
+//    kdebug_println ("Value is %u", *addr);
+//
+//    // Now delete allocated vm address space
+//    // kvmm_free(vmm, va);
+//
+//    //// Test Deallocation
+//    // kvmm_printVASList (vmm);
+//
+//    // kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    // kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    // kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//
+//    // Now delete complete VMM
+//    kvmm_delete (&vmm);
+//
+//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//}
+
 //static void multiprocess_demo()
 //{
 //    FUNC_ENTRY();
@@ -187,7 +228,7 @@ void kernel_main ()
 //    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
 //    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
 //
-//    void* startAddress_va = CAST_PA_TO_VA (startAddress);
+//    void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
 //    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
 //    if (processID < 0) {
 //        k_panicOnError();

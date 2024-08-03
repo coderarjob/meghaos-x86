@@ -6,6 +6,7 @@
 
 #include <kassert.h>
 #include <kdebug.h>
+#include <stdbool.h>
 #include <types.h>
 #include <pmm.h>
 #include <kerror.h>
@@ -16,12 +17,12 @@
 #include <x86/process.h>
 #include <x86/gdt.h>
 #include <memmanage.h>
-#include <x86/memloc.h>
 #include <utils.h>
 #include <x86/cpu.h>
 #include <intrusive_list.h>
 #include <intrusive_queue.h>
 #include <vmm.h>
+#include <memloc.h>
 
 #define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
@@ -41,9 +42,10 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
 static ProcessInfo* s_processInfo_malloc();
 static ProcessInfo* s_dequeue();
 static bool s_enqueue (ProcessInfo* p);
-static bool s_setupProcessAddressSpace (ProcessInfo* pinfo);
-static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
-                                             ProcessFlags flags, ProcessInfo* pinfo);
+static bool s_createProcessPageDirectory (ProcessInfo* pinfo);
+static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
+                                        ProcessInfo* pinfo);
+static bool s_setupProcessStackMemory (ProcessInfo* pinfo);
 static bool kprocess_exit_internal();
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward);
@@ -126,11 +128,8 @@ static ProcessInfo* s_processInfo_malloc()
     }
 
     pInfo->state     = PROCESS_STATE_INVALID;
-    pInfo->processID = processCount++;
+    pInfo->processID = ++processCount; // First process have process ID = 1. 0 is invalid.
     list_init (&pInfo->schedulerQueueNode);
-    if ((pInfo->processVMM = kvmm_create (PROCESS_STACK_VA_START, 3 * GB)) == NULL) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
-    }
 
     return pInfo;
 }
@@ -183,99 +182,123 @@ static bool s_enqueue (ProcessInfo* p)
     return true;
 }
 
-static bool s_setupProcessAddressSpace (ProcessInfo* pinfo)
+static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
 {
-    k_assert (pinfo != NULL && pinfo->state == PROCESS_STATE_INVALID, "Invalid state of process");
-    k_assert (pinfo != NULL && pinfo->virt.Entry != 0, "Invalid address space requested");
-    k_assert (pinfo != NULL && pinfo->virt.StackStart != 0, "Invalid address space requested");
-    //  TODO: At this time stack of more than 1 page is not implemented.
-    k_assert (pinfo != NULL && pinfo->physical.StackSizePages == 1, "Invalid stack size");
-
-    PageDirectory pd = kpg_temporaryMap (pinfo->physical.PageDirectory);
-
-    // Map process binary location into the process's address space
     if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
-        //  TODO: At this time program of more than 1 page is not implemented.
-        k_assert (pinfo != NULL && pinfo->physical.BinarySizePages == 1, "Invalid program size");
-
-        if (!kpg_map (pd, (PTR)pinfo->virt.Entry, pinfo->physical.Binary,
-                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
-        }
-    }
-
-    // Find virtual address for process stack
-    // A thread runs in the same address space of its parent, this means that the
-    // PROCESS_TEXT_VA_START will already be mapped and used by the root process. So it is
-    // required that we find the next available address for the stack this this new thread
-    // process.
-
-    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
-        // TODO: Think if the Region abstraction can solve cases like this.
-        // TODO: The 'region_end' value is arbitrary and requires a proper solution.
-        PTR stack_va_start = kpg_findVirtualAddressSpace (pd, pinfo->physical.StackSizePages,
-                                                          PROCESS_STACK_VA_START,
-                                                          PROCESS_STACK_VA_START + 0x5000);
-        if (!stack_va_start) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Could not find a address.
-        }
-
-        pinfo->virt.StackStart = stack_va_start;
-    }
-
-    // Map process stack location into the process's address space
-    U32 map_flags = PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED;
-    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-        map_flags |= PG_MAP_FLAG_KERNEL;
-    }
-
-    if (!kpg_map (pd, (PTR)pinfo->virt.StackStart, pinfo->physical.Stack, map_flags)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed;
-    }
-
-    kpg_temporaryUnmap();
-    return true;
-}
-
-static bool s_setupPhysicalMemoryForProcess (void* processStartAddress, SIZE binLengthBytes,
-                                             ProcessFlags flags, ProcessInfo* pinfo)
-{
-    k_assert (pinfo != NULL && pinfo->state == PROCESS_STATE_INVALID, "Invalid state of process");
-    k_assert (pinfo != NULL && pinfo->physical.StackSizePages > 0, "Invalid stack size");
-
-    // Allocate physical storage for process stack
-    if (!kpmm_alloc (&pinfo->physical.Stack, pinfo->physical.StackSizePages, PMM_REGION_ANY)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
-    }
-
-    // Create Physical memory for process/threads and copy the process binary into the space.
-    if (BIT_ISUNSET (flags, PROCESS_FLAGS_THREAD)) {
-        // Allocate physical memory for new Page Directory
+        // Create physical memory for Page directory of the new non-thread process
         if (!kpg_createNewPageDirectory (&pinfo->physical.PageDirectory,
                                          PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
                                              PG_NEWPD_FLAG_RECURSIVE_MAP)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, false); // Cannot create new process.
         }
 
-        // Allocate physical memory for the program binary.
-        k_assert (pinfo != NULL && pinfo->physical.BinarySizePages > 0, "Invalid program size");
-
-        if (kpmm_alloc (&pinfo->physical.Binary, pinfo->physical.BinarySizePages, PMM_REGION_ANY) ==
-            false) {
-            // Physical memory allocation failed.
-            RETURN_ERROR (ERROR_PASSTHROUGH, false);
+        INFO ("New VMManager is being created");
+        if ((pinfo->processVMM = kvmm_new (ARCH_MEM_START_PROCESS_MEMORY,
+                                           ARCH_MEM_END_PROCESS_MEMORY,
+                                           &pinfo->physical.PageDirectory)) == NULL) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
-
-        // Copy the program to a page aligned physical address
-        void* bin_va = kpg_temporaryMap (pinfo->physical.Binary);
-        k_memcpy (bin_va, processStartAddress, binLengthBytes);
-        kpg_temporaryUnmap();
     } else {
+        // For thread type processes, we use the PD of its parent
+        // TODO: PageDirectory and processVMM can be put together in a struct called ProcessContext.
+        // Then it will enough to assign the parents ProcessContext to the child threads.
         x86_CR3 cr3 = { 0 };
         x86_READ_REG (CR3, cr3);
+        pinfo->processVMM                 = kprocess_getCurrentVMManager();
         pinfo->physical.PageDirectory.val = PAGEFRAME_TO_PHYSICAL (cr3.physical);
     }
 
+    return true;
+}
+
+static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
+                                        ProcessInfo* pinfo)
+{
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        // For Threads there is nothing to be setup for program text. The entry point of threads is
+        // part of its parent text wihch is already loaded (otherwise who is creating threads on its
+        // behalf!).
+        return true;
+    }
+
+    // Allocate physical memory for the program binary.
+    k_assert (pinfo != NULL && pinfo->physical.BinarySizePages > 0, "Invalid program size");
+
+    if (kpmm_alloc (&pinfo->physical.Binary, pinfo->physical.BinarySizePages, PMM_REGION_ANY) ==
+        false) {
+        // Physical memory allocation failed.
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    // Copy the program to a page aligned physical address
+    void* bin_va = kpg_temporaryMap (pinfo->physical.Binary);
+    k_memcpy (bin_va, processStartAddress, binLengthBytes);
+    kpg_temporaryUnmap();
+
+    // Virtual memory for process binary start at a fixed location and need to premapped - otherwise
+    // how would the virtual address space map to the physical memory where the binary was loaded.
+    if (kvmm_allocAt (pinfo->processVMM, pinfo->virt.Entry, pinfo->physical.BinarySizePages,
+                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED,
+                      VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
+    }
+
+    PageDirectory pd = kpg_temporaryMap (pinfo->physical.PageDirectory);
+
+    if (kpg_mapContinous (pd, pinfo->virt.Entry, pinfo->physical.Binary,
+                          pinfo->physical.BinarySizePages,
+                          PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED) == false) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+    }
+
+    kpg_temporaryUnmap();
+    return true;
+}
+
+static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
+{
+    // Process stacks are always allocated dynamically. Their sizes are fixed for now though
+
+    PagingMapFlags pgFlags            = PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED;
+    VMemoryAddressSpaceFlags vasFlags = VMM_ADDR_SPACE_FLAG_NONE;
+
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+        pgFlags |= PG_MAP_FLAG_KERNEL;
+        vasFlags |= VMM_ADDR_SPACE_FLAG_PREMAP; // Stack of Kernel processes are premapped. See
+                                                // below.
+    }
+
+    // Find virtual address for process stack
+    if ((pinfo->virt.StackStart = kvmm_alloc (pinfo->processVMM, pinfo->physical.StackSizePages,
+                                              pgFlags, vasFlags)) == 0) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+    }
+
+    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
+        // We need to pre-allocate & map physical memory for Kernel threads/processes. The reason is
+        // this: Normally Physical pages are allocated in the page fault handler after a page fault.
+        // After a page fault, control is passed to the Kernel (Ring 0 stack and privilage level
+        // switch) and the page fault handler is called. It is here a physical page is allocated,
+        // mapped to the faulting virtual address and control is passed back to the faulting
+        // instruction. This however does not work for Kernel stack memory, and we get a tripple
+        // fault. This is because the control is already in Ring 0 and when CPU calls interrupt
+        // handler which pushes registers values causing another page fault.
+        //
+        // So I think we have to premap stack memory for Kernel threads and processes.
+
+        // Allocate physical storage for process stack
+        if (!kpmm_alloc (&pinfo->physical.Stack, pinfo->physical.StackSizePages, PMM_REGION_ANY)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
+        }
+
+        // Map complete address space for the stack
+        PageDirectory pd = kpg_temporaryMap (pinfo->physical.PageDirectory);
+        if (kpg_mapContinous (pd, pinfo->virt.StackStart, pinfo->physical.Stack,
+                              pinfo->physical.StackSizePages, pgFlags) == false) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+        }
+        kpg_temporaryUnmap();
+    }
     return true;
 }
 
@@ -352,12 +375,7 @@ static bool kprocess_exit_internal()
 
     // Delete complete context only for non-thread processes
     if (BIT_ISUNSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
-        INFO ("Removing complete process  context");
-
-        if (!kpmm_free (currentProcess->physical.Binary,
-                        currentProcess->physical.BinarySizePages)) {
-            k_panicOnError();
-        }
+        INFO ("Removing complete process context");
 
         // In order to destroy the context of the current process, it is required to switch to the
         // Kernel context, otherwise we would be killing the context while using it.
@@ -368,6 +386,10 @@ static bool kprocess_exit_internal()
 
         x86_LOAD_REG (CR3, cr3);
 
+        if (!kvmm_delete (&currentProcess->processVMM)) {
+            k_panicOnError();
+        }
+
         // Iterate through each of the PDEs and free physical memory for page tables as well.
         if (!kpg_deletePageDirectory (currentProcess->physical.PageDirectory,
                                       PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
@@ -375,14 +397,9 @@ static bool kprocess_exit_internal()
         }
     } else {
         INFO ("Removing thread context");
-        if (!kpg_unmap (kpg_getcurrentpd(), currentProcess->virt.StackStart)) {
+        if (!kvmm_free (currentProcess->processVMM, currentProcess->virt.StackStart)) {
             k_panicOnError();
         }
-    }
-
-    // Physical memory need to be freed explicitly
-    if (!kpmm_free (currentProcess->physical.Stack, currentProcess->physical.StackSizePages)) {
-        k_panicOnError();
     }
 
     queue_remove (&currentProcess->schedulerQueueNode);
@@ -414,33 +431,40 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     INFO ("Creating new process: ID = %u", pinfo->processID);
 
     pinfo->flags           = flags;
-    pinfo->virt.Entry      = PROCESS_TEXT_VA_START;
-    pinfo->virt.StackStart = PROCESS_STACK_VA_START;
+    pinfo->virt.Entry      = ARCH_MEM_START_PROCESS_TEXT;
     if (BIT_ISSET (flags, PROCESS_FLAGS_THREAD)) {
         pinfo->virt.Entry = (PTR)processStartAddress;
     }
-    pinfo->physical.StackSizePages  = PROCESS_STACK_SIZE_PAGES;
+    pinfo->physical.StackSizePages  = BYTES_TO_PAGEFRAMES_CEILING(ARCH_MEM_LEN_BYTES_PROCESS_STACK);
     pinfo->physical.BinarySizePages = BYTES_TO_PAGEFRAMES_CEILING (binLengthBytes);
 
-    if (!s_setupPhysicalMemoryForProcess (processStartAddress, binLengthBytes, flags, pinfo)) {
+    if (!s_createProcessPageDirectory (pinfo)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
     }
 
-    if (!s_setupProcessAddressSpace (pinfo)) {
+    if (!s_setupProcessBinaryMemory (processStartAddress, binLengthBytes, pinfo)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
     }
+
+    if (!s_setupProcessStackMemory (pinfo)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+    }
+
+    INFO ("New process: ID = %u", pinfo->processID);
+    kvmm_printVASList(pinfo->processVMM);
+    INFO ("------------------------");
 
     //  Setup register states
     ProcessRegisterState* regs = pinfo->registerStates;
     regs->ebx                  = 0;
     regs->esi                  = 0;
     regs->edi                  = 0;
+    regs->eflags               = 0;
+    regs->cs                   = GDT_SELECTOR_UCODE;
+    regs->ds                   = GDT_SELECTOR_UDATA;
+    regs->ebp                  = 0; // This is required for stack trace to end.
     regs->esp = PROCESS_STACK_VA_TOP ((U32)pinfo->virt.StackStart, pinfo->physical.StackSizePages);
-    regs->ebp = 0; // This is required for stack trace to end.
     regs->eip = (U32)pinfo->virt.Entry;
-    regs->eflags = 0;
-    regs->cs     = GDT_SELECTOR_UCODE;
-    regs->ds     = GDT_SELECTOR_UDATA;
 
     if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
         regs->ds = GDT_SELECTOR_KDATA;
