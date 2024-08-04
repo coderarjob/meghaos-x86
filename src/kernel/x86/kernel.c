@@ -78,7 +78,7 @@ void kernel_main ()
 
     // Initialize VMM
     g_kstate.context.vmm = kvmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION,
-                                   &g_kstate.context.PageDirectory);
+                                   &g_kstate.context.PageDirectory, PMM_REGION_ANY);
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_VMM_READY);
 
     // Mark memory already occupied by the modules and unmap unused Virutal pages.

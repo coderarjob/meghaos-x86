@@ -9,6 +9,7 @@
 #include <intrusive_list.h>
 #include <types.h>
 #include <vmm.h>
+#include <pmm.h>
 
 typedef struct VMemoryShare {
     Physical* pages;
@@ -31,6 +32,7 @@ struct VMemoryManager {
     PTR end;
     VMemoryManagerFlags flags;
     const Physical *parentProcessPD;
+    KernelPhysicalMemoryRegions physicalRegion;
     ListNode head;
 };
 

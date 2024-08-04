@@ -50,8 +50,9 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
     return new;
 }
 
-static bool addNewVirtualAddressSpace (VMemoryManager* vmm, PTR start_va, SIZE szPages,
-                                       PagingMapFlags pgFlags, VMemoryAddressSpaceFlags vasFlags)
+static VMemoryAddressSpace* addNewVirtualAddressSpace (VMemoryManager* vmm, PTR start_va,
+                                                       SIZE szPages, PagingMapFlags pgFlags,
+                                                       VMemoryAddressSpaceFlags vasFlags)
 {
     SIZE szBytes = PAGEFRAMES_TO_BYTES (szPages);
 
@@ -60,24 +61,24 @@ static bool addNewVirtualAddressSpace (VMemoryManager* vmm, PTR start_va, SIZE s
 
     // Start virtual address must be page aligned
     if (!IS_ALIGNED (start_va, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
-        RETURN_ERROR (ERR_WRONG_ALIGNMENT, false);
+        RETURN_ERROR (ERR_WRONG_ALIGNMENT, NULL);
     }
 
     // Check is input start_va is within VMM managed address space
     if (start_va < vmm->start || (start_va + szBytes) > vmm->end) {
-        RETURN_ERROR (ERR_INVALID_RANGE, false);
+        RETURN_ERROR (ERR_INVALID_RANGE, NULL);
     }
 
     VMemoryAddressSpace* newVas = createNewVirtAddrSpace (start_va, szBytes, pgFlags, vasFlags);
     if (newVas == NULL) {
         // TODO: May be we should panic.
-        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+        RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
     }
 
     // If virtual address space list is empty, just add a new address space at the head
     if (list_is_empty (&vmm->head)) {
         list_add_after (&vmm->head, &newVas->adjMappingNode);
-        return true;
+        return newVas;
     }
 
     // If there are already some items in the list, we find a suitable spot such that the list
@@ -101,20 +102,20 @@ static bool addNewVirtualAddressSpace (VMemoryManager* vmm, PTR start_va, SIZE s
             // Cannot add, new VAS is overlapping existing VAS.
             INFO ("Overlap detected.new vas (%x, %x), vas (%x, %x)", newvas_startvm, newvas_endvm,
                   vas_startvm, vas_endvm);
-            RETURN_ERROR (ERR_VMM_OVERLAPING_VAS, false);
+            RETURN_ERROR (ERR_VMM_OVERLAPING_VAS, NULL);
         }
 
         if (vas->start_vm > newVas->start_vm) {
             // Add before the found VAS if there is gap
             list_add_before (&vas->adjMappingNode, &newVas->adjMappingNode);
-            return true;
+            return newVas;
         }
     }
 
     // The new VAS has the largest VA, so add it at the end, which is before head.
     list_add_before (&vmm->head, &newVas->adjMappingNode);
 
-    return true;
+    return newVas;
 }
 
 static PTR find_next_va (VMemoryManager* vmm, SIZE szPages)
@@ -186,6 +187,28 @@ static VMemoryAddressSpace* find_vas (VMemoryManager const* const vmm, PTR start
     return NULL;
 }
 
+static bool commitVirtualPages (VMemoryManager const* const vmm, PTR start, SIZE numPages,
+                                const VMemoryAddressSpace* const vas)
+{
+    FUNC_ENTRY("start: %px, num pages: %x", start, numPages);
+
+    //  Allocate physical pagees
+    Physical paStart;
+    if (!kpmm_alloc (&paStart, numPages, vmm->physicalRegion)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    // Map all the physical pages with the virtual ones
+    PageDirectory pd = kpg_temporaryMap (*vmm->parentProcessPD);
+    if (!kpg_mapContinous (pd, start, paStart, numPages, vas->pgFlags)) {
+        kpg_temporaryUnmap();
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    kpg_temporaryUnmap();
+    return true;
+}
+
 bool kvmm_delete (VMemoryManager** vmm)
 {
     FUNC_ENTRY ("vmm: %px", *vmm);
@@ -223,9 +246,10 @@ bool kvmm_delete (VMemoryManager** vmm)
     return true;
 }
 
-VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd)
+VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd,
+                          KernelPhysicalMemoryRegions physicalRegion)
 {
-    FUNC_ENTRY ("start: %x, end: %x", start, end);
+    FUNC_ENTRY ("start: %x, end: %x, PD: %px, physical region: %x", start, end, pd, physicalRegion);
 
     if (start >= end) {
         RETURN_ERROR (ERR_INVALID_ARGUMENT, NULL);
@@ -256,6 +280,7 @@ VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd)
     new_vmm->end             = end;
     new_vmm->flags           = flags;
     new_vmm->parentProcessPD = pd;
+    new_vmm->physicalRegion  = physicalRegion;
     list_init (&new_vmm->head);
 
     return new_vmm;
@@ -269,8 +294,21 @@ PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFl
 
     k_assert (vmm != NULL, "VMM not provided");
 
-    if (addNewVirtualAddressSpace (vmm, va, szPages, pgFlags, vasFlags) == false) {
-        k_panicOnError();
+    if (BIT_ISSET (vasFlags, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+        k_assert ((BIT_ISUNSET (vasFlags, VMM_ADDR_SPACE_FLAG_PRECOMMIT) &&
+                   BIT_ISUNSET (vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP)),
+                  "Invalid option for precommit");
+    }
+
+    const VMemoryAddressSpace* newVas = NULL;
+    if ((newVas = addNewVirtualAddressSpace (vmm, va, szPages, pgFlags, vasFlags)) == NULL) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, (PTR)NULL);
+    }
+
+    if (BIT_ISSET (vasFlags, VMM_ADDR_SPACE_FLAG_PRECOMMIT)) {
+        if (!commitVirtualPages (vmm, va, szPages, newVas)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, (PTR)NULL);
+        }
     }
 
     return va;
@@ -279,11 +317,17 @@ PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFl
 PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
                 VMemoryAddressSpaceFlags vasFlags)
 {
-    FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x, Vas flags:", vmm, szPages, pgFlags,
+    FUNC_ENTRY ("vmm: %x, szPages: %x, paging flags: %x, Vas flags: %x", vmm, szPages, pgFlags,
                 vasFlags);
 
     k_assert (vmm != NULL, "VMM not provided");
     k_assert (szPages != 0, "Number pages is zero.");
+
+    if (BIT_ISSET (vasFlags, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+        k_assert ((BIT_ISUNSET (vasFlags, VMM_ADDR_SPACE_FLAG_PRECOMMIT) &&
+                   BIT_ISUNSET (vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP)),
+                  "Invalid option for precommit");
+    }
 
     PTR next_va = find_next_va (vmm, szPages);
     if (next_va == 0) {
@@ -291,8 +335,15 @@ PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
         RETURN_ERROR (ERR_OUT_OF_MEM, 0);
     }
 
-    if (addNewVirtualAddressSpace (vmm, next_va, szPages, pgFlags, vasFlags) == false) {
-        k_panicOnError();
+    const VMemoryAddressSpace* newVas = NULL;
+    if ((newVas = addNewVirtualAddressSpace (vmm, next_va, szPages, pgFlags, vasFlags)) == NULL) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, (PTR)NULL);
+    }
+
+    if (BIT_ISSET (vasFlags, VMM_ADDR_SPACE_FLAG_PRECOMMIT)) {
+        if (!commitVirtualPages (vmm, next_va, szPages, newVas)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, (PTR)NULL);
+        }
     }
 
     return next_va;
@@ -386,7 +437,8 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
         RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
     }
 
-    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP)) {
+    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP) ||
+        BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_PRECOMMIT)) {
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 
@@ -394,17 +446,10 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
         RETURN_ERROR (ERR_VMM_NULL_PAGE_ACCESS, false);
     }
 
-    Physical pa;
-    if (kpmm_alloc (&pa, 1, PMM_REGION_ANY) == false) {
+    PTR pageStart = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    if (!commitVirtualPages (vmm, pageStart, 1, vas)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
-
-    PageDirectory pd = kpg_temporaryMap (*vmm->parentProcessPD);
-    PTR pageStart    = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
-    if (kpg_map (pd, pageStart, pa, vas->pgFlags) == false) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, false);
-    }
-    kpg_temporaryUnmap();
 
     INFO ("Commit successful for VA: %px", va);
     return true;

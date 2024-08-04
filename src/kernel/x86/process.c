@@ -196,9 +196,9 @@ static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
         }
 
         INFO ("New VMManager is being created");
-        if ((pinfo->context.vmm = kvmm_new (ARCH_MEM_START_PROCESS_MEMORY,
-                                            ARCH_MEM_END_PROCESS_MEMORY,
-                                            &pinfo->context.PageDirectory)) == NULL) {
+        if (!(pinfo->context.vmm = kvmm_new (ARCH_MEM_START_PROCESS_MEMORY,
+                                             ARCH_MEM_END_PROCESS_MEMORY,
+                                             &pinfo->context.PageDirectory, PMM_REGION_ANY))) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
     } else {
@@ -222,37 +222,27 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
         return true;
     }
 
+    k_assert (pinfo != NULL && binLengthBytes > 0, "Invalid program size");
+
     pinfo->binary.virtualMemoryStart = ARCH_MEM_START_PROCESS_TEXT;
     pinfo->binary.sizePages          = BYTES_TO_PAGEFRAMES_CEILING (binLengthBytes);
 
-    // Allocate physical memory for the program binary.
-    k_assert (pinfo != NULL && pinfo->binary.sizePages > 0, "Invalid program size");
-
-    Physical binaryPhysicalMemoryStart;
-    if (!kpmm_alloc (&binaryPhysicalMemoryStart, pinfo->binary.sizePages, PMM_REGION_ANY)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, false);    // Physical memory allocation failed.
-    }
-
-    // Copy the program to a page aligned physical address
-    k_memcpyToPhyMem (binaryPhysicalMemoryStart, (PTR)processStartAddress, binLengthBytes);
-
-    // Virtual memory for process binary start at a fixed location and need to premapped - otherwise
-    // how would the virtual address space map to the physical memory where the binary was loaded.
-    if (kvmm_allocAt (pinfo->context.vmm, pinfo->binary.virtualMemoryStart, pinfo->binary.sizePages,
-                      PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED,
-                      VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
+    // Allocate virtual and physical memory for the program binary.
+    if (!(kvmm_allocAt (pinfo->context.vmm, pinfo->binary.virtualMemoryStart,
+                        pinfo->binary.sizePages, PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED,
+                        VMM_ADDR_SPACE_FLAG_PRECOMMIT))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
     }
 
+    // Copy the binary data to the allocated location
     PageDirectory pd = kpg_temporaryMap (pinfo->context.PageDirectory);
-
-    if (kpg_mapContinous (pd, pinfo->binary.virtualMemoryStart, binaryPhysicalMemoryStart,
-                          pinfo->binary.sizePages,
-                          PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED) == false) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+    Physical pa;
+    if (!kpg_doesMappingExists (pd, pinfo->binary.virtualMemoryStart, &pa)) {
+        k_assert (false, "BUG: Should not be here");
     }
-
     kpg_temporaryUnmap();
+
+    k_memcpyToPhyMem (pa, (PTR)processStartAddress, binLengthBytes);
     return true;
 }
 
