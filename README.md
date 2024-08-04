@@ -35,12 +35,12 @@ The end product will be ready for a programmer but not for general use.
 - [X] Basic Kernel mode C functions for printing on screen etc.
 - [X] Unittesting framework to test parts of the OS on host computer.
 - [X] Memory management: Physical page allocation.
-- [ ] Memory management: Virtual page allocation. [*Partial*]
+- [ ] Memory management: Virtual page allocation. [*90% complete*]
 - [X] Memory management: Basic paging operations (map/unmap etc)
 - [X] Memory management: Kernel allocators (Static and Heap allocators)
 - [X] Processes and threads capable of doing system calls.
 - [X] Cooperative multitasking scheduling and basic process management.
-- [ ] Enhancements to the process management.
+- [X] Enhancements to the process management.
 - [ ] VESA VGA driver.
 - [ ] Keyboard driver.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
