@@ -71,7 +71,7 @@ void k_memcpyToPhyMem (Physical dest, PTR src, SIZE n)
     SIZE remBytes   = n;
 
     // Copy whole pages worth of bytes
-    while (remBytes > CONFIG_PAGE_FRAME_SIZE_BYTES) {
+    while (remBytes >= CONFIG_PAGE_FRAME_SIZE_BYTES) {
         k_memcpy (kpg_temporaryMap (l_dest), (void*)l_src, CONFIG_PAGE_FRAME_SIZE_BYTES);
         kpg_temporaryUnmap();
         remBytes -= CONFIG_PAGE_FRAME_SIZE_BYTES;
@@ -81,6 +81,6 @@ void k_memcpyToPhyMem (Physical dest, PTR src, SIZE n)
 
     // Copy remaining bytes
     void* bin_va = kpg_temporaryMap (l_dest);
-    k_memcpy (bin_va, (void*)l_src, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    k_memcpy (bin_va, (void*)l_src, remBytes);
     kpg_temporaryUnmap();
 }
