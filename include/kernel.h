@@ -9,6 +9,11 @@
 #include <kassert.h>
 #include <vmm.h>
 
+typedef struct RuntimeContext {
+    Physical PageDirectory;
+    VMemoryManager* vmm;
+} RuntimeContext;
+
 typedef struct KernelStateInfo {
     enum {
         KERNEL_PHASE_STATE_BOOT_COMPLETE = 0,
@@ -18,11 +23,9 @@ typedef struct KernelStateInfo {
         KERNEL_PHASE_STATE_VMM_READY,
         KERNEL_PHASE_STATE_KMALLOC_READY,
         KERNEL_PHASE_STATE_KERNEL_READY
-    } phase;                       // Phase in which the Kernel is in currently.
-    UINT errorNumber;              // Code for last error.
-    Physical kernelPageDirectory;  // Physical location of Kernel Page Directory.
-    // Kernel address spaces are managed through this VMM.
-    VMemoryManager* kernelVMM;
+    } phase;                // Phase in which the Kernel is in currently.
+    UINT errorNumber;       // Code for last error.
+    RuntimeContext context; // Kernel page directory and VMM
 } KernelStateInfo;
 
 extern KernelStateInfo g_kstate;
