@@ -286,6 +286,17 @@ VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd,
     return new_vmm;
 }
 
+PTR kvmm_findFree (VMemoryManager* vmm, SIZE szPages)
+{
+    FUNC_ENTRY ("vmm: %x, szPages: %x", vmm, szPages);
+
+    k_assert (vmm != NULL, "VMM not provided");
+    k_assert (szPages != 0, "Number pages is zero.");
+
+    PTR next_va = find_next_va (vmm, szPages);
+    return next_va;
+}
+
 PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
                   VMemoryAddressSpaceFlags vasFlags)
 {

@@ -139,8 +139,6 @@ static inline void s_internal_temporaryUnmap()
  **************************************************************************************************/
 static void* s_temporaryMap (Physical pa, U32 pte_index)
 {
-    FUNC_ENTRY ("Physical address: %px, PTE Index: %u", pa.val, pte_index);
-
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.
     if (!IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
@@ -168,8 +166,6 @@ static void* s_temporaryMap (Physical pa, U32 pte_index)
  **************************************************************************************************/
 static void s_temporaryUnmap (U32 pte_index)
 {
-    FUNC_ENTRY();
-
     // TODO: As KERNEL_PDE will always be present and same across every process, recursive mapping
     // is not really required. That is to say the address of the PTE used for temporary mapping is
     // constant.

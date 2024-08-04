@@ -257,17 +257,6 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
 
     if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
         pgFlags |= PG_MAP_FLAG_KERNEL;
-        vasFlags |= VMM_ADDR_SPACE_FLAG_PREMAP; // Stack of Kernel processes are premapped. See
-                                                // below.
-    }
-
-    // Find virtual address for process stack
-    if ((pinfo->stack.virtualMemoryStart = kvmm_alloc (pinfo->context.vmm, pinfo->stack.sizePages,
-                                                       pgFlags, vasFlags)) == 0) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
-    }
-
-    if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
         // We need to pre-allocate & map physical memory for Kernel threads/processes. The reason is
         // this: Normally Physical pages are allocated in the page fault handler after a page fault.
         // After a page fault, control is passed to the Kernel (Ring 0 stack and privilage level
@@ -278,20 +267,32 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
         // handler which pushes registers values causing another page fault.
         //
         // So I think we have to premap stack memory for Kernel threads and processes.
+        vasFlags |= VMM_ADDR_SPACE_FLAG_PRECOMMIT;
+    }
 
-        // Allocate physical storage for process stack
-        Physical stackPhysicalMemoryStart;
-        if (!kpmm_alloc (&stackPhysicalMemoryStart, pinfo->stack.sizePages, PMM_REGION_ANY)) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
-        }
+    // Find virtual address for process stack
+    PTR stackVA = kvmm_findFree (pinfo->context.vmm, pinfo->stack.sizePages + 2);
+    if (stackVA == 0) {
+        RETURN_ERROR (ERR_OUT_OF_MEM, false);
+    }
 
-        // Map complete address space for the stack
-        PageDirectory pd = kpg_temporaryMap (pinfo->context.PageDirectory);
-        if (kpg_mapContinous (pd, pinfo->stack.virtualMemoryStart, stackPhysicalMemoryStart,
-                              pinfo->stack.sizePages, pgFlags) == false) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
-        }
-        kpg_temporaryUnmap();
+    // NULL page at the bottom of the stack
+    if (!kvmm_allocAt (pinfo->context.vmm, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    // Stack itself
+    stackVA += CONFIG_PAGE_FRAME_SIZE_BYTES;
+    pinfo->stack.virtualMemoryStart = stackVA;
+    if (!kvmm_allocAt (pinfo->context.vmm, pinfo->stack.virtualMemoryStart, pinfo->stack.sizePages,
+                       pgFlags, vasFlags)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    // NULL page at the top of the stack
+    stackVA += (pinfo->stack.sizePages * CONFIG_PAGE_FRAME_SIZE_BYTES);
+    if (!kvmm_allocAt (pinfo->context.vmm, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
     return true;
 }
