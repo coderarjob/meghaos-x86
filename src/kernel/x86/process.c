@@ -189,21 +189,20 @@ static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
 
     if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
         // Create physical memory for Page directory of the new non-thread process
-        if (!kpg_createNewPageDirectory (&pinfo->context.PageDirectory,
-                                         PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
-                                             PG_NEWPD_FLAG_RECURSIVE_MAP)) {
+        Physical newPD;
+        if (!kpg_createNewPageDirectory (&newPD, PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
+                                                     PG_NEWPD_FLAG_RECURSIVE_MAP)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, false); // Cannot create new process.
         }
 
         INFO ("New VMManager is being created");
-        if (!(pinfo->context.vmm = kvmm_new (ARCH_MEM_START_PROCESS_MEMORY,
-                                             ARCH_MEM_END_PROCESS_MEMORY,
-                                             &pinfo->context.PageDirectory, PMM_REGION_ANY))) {
+        if (!(pinfo->context = kvmm_new (ARCH_MEM_START_PROCESS_MEMORY, ARCH_MEM_END_PROCESS_MEMORY,
+                                         newPD, PMM_REGION_ANY))) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
     } else {
         // For thread type processes, we use the PD & VMM of its parent
-        pinfo->context = kprocess_getCurrentRuntimeContext();
+        pinfo->context = kprocess_getCurrentContext();
     }
 
     return true;
@@ -228,14 +227,14 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     pinfo->binary.sizePages          = BYTES_TO_PAGEFRAMES_CEILING (binLengthBytes);
 
     // Allocate virtual and physical memory for the program binary.
-    if (!(kvmm_allocAt (pinfo->context.vmm, pinfo->binary.virtualMemoryStart,
-                        pinfo->binary.sizePages, PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED,
+    if (!(kvmm_allocAt (pinfo->context, pinfo->binary.virtualMemoryStart, pinfo->binary.sizePages,
+                        PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED,
                         VMM_ADDR_SPACE_FLAG_PRECOMMIT))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
     }
 
     // Copy the binary data to the allocated location
-    PageDirectory pd = kpg_temporaryMap (pinfo->context.PageDirectory);
+    PageDirectory pd = kpg_temporaryMap (kvmm_getPageDirectory (pinfo->context));
     Physical pa;
     if (!kpg_doesMappingExists (pd, pinfo->binary.virtualMemoryStart, &pa)) {
         k_assert (false, "BUG: Should not be here");
@@ -271,27 +270,27 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
     }
 
     // Find virtual address for process stack
-    PTR stackVA = kvmm_findFree (pinfo->context.vmm, pinfo->stack.sizePages + 2);
+    PTR stackVA = kvmm_findFree (pinfo->context, pinfo->stack.sizePages + 2);
     if (stackVA == 0) {
         RETURN_ERROR (ERR_OUT_OF_MEM, false);
     }
 
     // NULL page at the bottom of the stack
-    if (!kvmm_allocAt (pinfo->context.vmm, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+    if (!kvmm_allocAt (pinfo->context, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Stack itself
     stackVA += CONFIG_PAGE_FRAME_SIZE_BYTES;
     pinfo->stack.virtualMemoryStart = stackVA;
-    if (!kvmm_allocAt (pinfo->context.vmm, pinfo->stack.virtualMemoryStart, pinfo->stack.sizePages,
+    if (!kvmm_allocAt (pinfo->context, pinfo->stack.virtualMemoryStart, pinfo->stack.sizePages,
                        pgFlags, vasFlags)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // NULL page at the top of the stack
     stackVA += (pinfo->stack.sizePages * CONFIG_PAGE_FRAME_SIZE_BYTES);
-    if (!kvmm_allocAt (pinfo->context.vmm, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+    if (!kvmm_allocAt (pinfo->context, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
     return true;
@@ -324,10 +323,10 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
     register x86_CR3 cr3 = { 0 };
     cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
     cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-    cr3.physical         = PHYSICAL_TO_PAGEFRAME (nextProcess->context.PageDirectory.val);
+    cr3.physical         = PHYSICAL_TO_PAGEFRAME (kvmm_getPageDirectory (nextProcess->context).val);
 
     // Physical memory for the Page Directory must be allocated.
-    k_assert (kpmm_getPageStatus (nextProcess->context.PageDirectory) == PMM_STATE_USED,
+    k_assert (kpmm_getPageStatus (kvmm_getPageDirectory (nextProcess->context)) == PMM_STATE_USED,
               "Process context invalid");
 
     ProcessRegisterState* reg = nextProcess->registerStates;
@@ -377,22 +376,22 @@ static bool kprocess_exit_internal()
         register x86_CR3 cr3 = { 0 };
         cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
         cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-        cr3.physical         = PHYSICAL_TO_PAGEFRAME (g_kstate.context.PageDirectory.val);
+        cr3.physical         = PHYSICAL_TO_PAGEFRAME (kvmm_getPageDirectory (g_kstate.context).val);
 
         x86_LOAD_REG (CR3, cr3);
 
-        if (!kvmm_delete (&currentProcess->context.vmm)) {
+        if (!kvmm_delete (&currentProcess->context)) {
             k_panicOnError();
         }
 
         // Iterate through each of the PDEs and free physical memory for page tables as well.
-        if (!kpg_deletePageDirectory (currentProcess->context.PageDirectory,
+        if (!kpg_deletePageDirectory (kvmm_getPageDirectory (currentProcess->context),
                                       PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
             k_panicOnError();
         }
     } else {
         INFO ("Removing thread context");
-        if (!kvmm_free (currentProcess->context.vmm, currentProcess->stack.virtualMemoryStart)) {
+        if (!kvmm_free (currentProcess->context, currentProcess->stack.virtualMemoryStart)) {
             k_panicOnError();
         }
     }
@@ -437,7 +436,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     }
 
     INFO ("New process: ID = %u", pinfo->processID);
-    kvmm_printVASList (pinfo->context.vmm);
+    kvmm_printVASList (pinfo->context);
     INFO ("------------------------");
 
     //  Setup register states
@@ -505,6 +504,7 @@ bool kprocess_exit()
     UINT ret;
     UINT flags = (currentProcess != NULL) ? currentProcess->flags : 0;
 
+    // clang-format off
     // In a Kernel process, no stack switch happens in a system call and the same process stack is
     // used when within kernel as well. So before performing the following actions the stack needs
     // to not use the process stack.
@@ -538,11 +538,12 @@ bool kprocess_exit()
                      : "r"(flags)
                      : // No clobber
     );
+    // clang-format on
 
     return (ret == true);
 }
 
-RuntimeContext kprocess_getCurrentRuntimeContext()
+VMemoryManager* kprocess_getCurrentContext()
 {
     return (currentProcess == NULL) ? g_kstate.context : currentProcess->context;
 }

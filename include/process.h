@@ -9,7 +9,6 @@
 #include <types.h>
 #include <intrusive_queue.h>
 #include <vmm.h>
-#include <kernel.h>
 
 #define PROCESS_ID_KERNEL 0x0
 
@@ -42,7 +41,7 @@ typedef struct ProcessInfo {
     ProcessSections binary;
     ProcessSections stack;
     ProcessSections data;
-    RuntimeContext context;
+    VMemoryManager* context;
     // ProcessInfos' are part of the scheduler process table through this node.
     ListNode schedulerQueueNode;
     UINT processID;
@@ -58,4 +57,4 @@ void kprocess_init();
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
 bool kprocess_exit();
-RuntimeContext kprocess_getCurrentRuntimeContext();
+VMemoryManager* kprocess_getCurrentContext();

@@ -55,7 +55,7 @@ void kmalloc_init()
 
     KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_VMM_READY);
 
-    s_buffer = (void*)kvmm_alloc (g_kstate.context.vmm,
+    s_buffer = (void*)kvmm_alloc (g_kstate.context,
                                   BYTES_TO_PAGEFRAMES_CEILING (ARCH_MEM_LEN_BYTES_KMALLOC),
                                   PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_NONE);
     if (s_buffer == NULL) {

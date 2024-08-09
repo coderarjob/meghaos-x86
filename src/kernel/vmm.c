@@ -190,7 +190,7 @@ static VMemoryAddressSpace* find_vas (VMemoryManager const* const vmm, PTR start
 static bool commitVirtualPages (VMemoryManager const* const vmm, PTR start, SIZE numPages,
                                 const VMemoryAddressSpace* const vas)
 {
-    FUNC_ENTRY("start: %px, num pages: %x", start, numPages);
+    FUNC_ENTRY ("start: %px, num pages: %x", start, numPages);
 
     //  Allocate physical pagees
     Physical paStart;
@@ -199,7 +199,7 @@ static bool commitVirtualPages (VMemoryManager const* const vmm, PTR start, SIZE
     }
 
     // Map all the physical pages with the virtual ones
-    PageDirectory pd = kpg_temporaryMap (*vmm->parentProcessPD);
+    PageDirectory pd = kpg_temporaryMap (vmm->parentProcessPD);
     if (!kpg_mapContinous (pd, start, paStart, numPages, vas->pgFlags)) {
         kpg_temporaryUnmap();
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
@@ -246,7 +246,7 @@ bool kvmm_delete (VMemoryManager** vmm)
     return true;
 }
 
-VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd,
+VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
                           KernelPhysicalMemoryRegions physicalRegion)
 {
     FUNC_ENTRY ("start: %x, end: %x, PD: %px, physical region: %x", start, end, pd, physicalRegion);
@@ -255,7 +255,7 @@ VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd,
         RETURN_ERROR (ERR_INVALID_ARGUMENT, NULL);
     }
 
-    k_assert (pd != 0, "PageDirectory address is NULL");
+    k_assert (pd.val != 0, "PageDirectory address is NULL");
 
     VMemoryManager* new_vmm   = NULL;
     VMemoryManagerFlags flags = VMM_FLAG_NONE;
@@ -391,7 +391,7 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
 
     // TODO: Since we are operating on a VMM, and a VMM is linked to a process, we store PD of the
     // process in the VMManager struct and use that whereever PD is required in VMM.
-    PageDirectory pd = kpg_temporaryMap (*vmm->parentProcessPD);
+    PageDirectory pd = kpg_temporaryMap (vmm->parentProcessPD);
     for (SIZE pgIndex = 0; pgIndex < szPages; pgIndex++, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
         Physical pa;
         if (kpg_doesMappingExists (pd, va, &pa)) {
@@ -464,4 +464,13 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
 
     INFO ("Commit successful for VA: %px", va);
     return true;
+}
+
+Physical kvmm_getPageDirectory (const VMemoryManager* vmm)
+{
+    FUNC_ENTRY ("vmm: %x", vmm);
+
+    k_assert (vmm != NULL, "VMM not provided");
+
+    return vmm->parentProcessPD;
 }

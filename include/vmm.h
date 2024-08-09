@@ -25,8 +25,9 @@ typedef enum VMemoryAddressSpaceFlags {
 
 typedef struct VMemoryManager VMemoryManager;
 
-VMemoryManager* kvmm_new (PTR start, PTR end, const Physical* pd,
+VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
                           KernelPhysicalMemoryRegions physicalRegion);
+Physical kvmm_getPageDirectory (const VMemoryManager* vmm);
 bool kvmm_delete (VMemoryManager** vmm);
 PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
                 VMemoryAddressSpaceFlags vasFlags);

@@ -62,8 +62,6 @@ void kernel_main ()
     FUNC_ENTRY();
 
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
-    g_kstate.context.PageDirectory = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
-
     // Initialize Text display
     kdisp_init ();
 
@@ -77,8 +75,9 @@ void kernel_main ()
     ksalloc_init();
 
     // Initialize VMM
-    g_kstate.context.vmm = kvmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION,
-                                   &g_kstate.context.PageDirectory, PMM_REGION_ANY);
+    Physical kernelPD = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
+    g_kstate.context = kvmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION,
+                                   kernelPD, PMM_REGION_ANY);
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_VMM_READY);
 
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
@@ -554,7 +553,7 @@ static void s_initializeMemoryManagers()
             pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
         } else if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
             const SIZE szPages = s_getPhysicalBlockPageCount (pa, paRegionEnd);
-            if (kvmm_allocAt (g_kstate.context.vmm, va, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
+            if (kvmm_allocAt (g_kstate.context, va, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
                               VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
                 k_panicOnError(); // must not fail.
             }
@@ -565,12 +564,12 @@ static void s_initializeMemoryManagers()
     // ---------------------------------------------------------------------------------------------
     // There are certain virutal addresses that are reserved for Kernel use. These are reserved
     // here.
-    if (kvmm_allocAt (g_kstate.context.vmm, MEM_START_PAGING_EXT_TEMP_MAP, 1,
+    if (kvmm_allocAt (g_kstate.context, MEM_START_PAGING_EXT_TEMP_MAP, 1,
                       PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
         k_panicOnError();
     }
 
-    if (kvmm_allocAt (g_kstate.context.vmm, MEM_START_PAGING_INT_TEMP_MAP, 1,
+    if (kvmm_allocAt (g_kstate.context, MEM_START_PAGING_INT_TEMP_MAP, 1,
                       PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
         k_panicOnError();
     }

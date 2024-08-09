@@ -31,7 +31,7 @@ struct VMemoryManager {
     PTR start;
     PTR end;
     VMemoryManagerFlags flags;
-    const Physical *parentProcessPD;
+    Physical parentProcessPD;
     KernelPhysicalMemoryRegions physicalRegion;
     ListNode head;
 };
