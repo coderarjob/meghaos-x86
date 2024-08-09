@@ -380,13 +380,18 @@ static bool kprocess_exit_internal()
 
         x86_LOAD_REG (CR3, cr3);
 
+        // VMM delete will free all the page tables and the VMemoryManager itself. Page Directory is
+        // not deleted, which need to be done following VMM delete. Since we cannot acceess the PD
+        // once vmm is deleted, we store it in a variable for later use.
+        Physical pd = kvmm_getPageDirectory (currentProcess->context);
+
+        // Delete the VMM and deallocate physical memory used by page tables
         if (!kvmm_delete (&currentProcess->context)) {
             k_panicOnError();
         }
 
         // Iterate through each of the PDEs and free physical memory for page tables as well.
-        if (!kpg_deletePageDirectory (kvmm_getPageDirectory (currentProcess->context),
-                                      PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
+        if (!kpg_deletePageDirectory (pd, PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
             k_panicOnError();
         }
     } else {
