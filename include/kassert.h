@@ -19,11 +19,10 @@
     /* If assertion `t' is false, call k_panic () and halts.
      * Displays message `e' in the panic message.
      */
-    #define k_assert(t, e)                                                                 \
-        do                                                                                 \
-        {                                                                                  \
-            if (!(t))                                                                      \
-                k_panic ("Assertion failed:%s.\n%s\nAt %s:%u", #t, e, __FILE__, __LINE__); \
+    #define k_assert(t, e)                                                         \
+        do {                                                                       \
+            if (!(t))                                                              \
+                k_panic ("Assertion failed: %s\nAt %s:%u", e, __FILE__, __LINE__); \
         } while (0)
 
     /* If expression `t' is false, compiler will generate an error
