@@ -323,6 +323,7 @@ static void process_poc()
     INFO ("Process ID: %u", processID);
 
     kprocess_yield (NULL);
+    UNREACHABLE();
 }
 
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)

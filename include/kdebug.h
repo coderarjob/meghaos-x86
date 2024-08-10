@@ -68,7 +68,16 @@ void kdebug_dump_call_trace (PTR* raddrs, INT count);
     #define FUNC_ENTRY(...) (void)0
 #endif // DEBUG_LEVEL & 1
 
-#define WARN_ON(t, ...) \
-    ((!(t)) ? kdisp_importantPrint ("\n\nWARN ON: (" #t ") failed\n" __VA_ARGS__) : (void)0)
+#define WARN_ON(t, ...)                                                          \
+    do {                                                                         \
+        if (!(t)) {                                                              \
+            kdisp_importantPrint ("\n\nWARN ON: (" #t ") failed\n" __VA_ARGS__); \
+        }                                                                        \
+    } while (0)
+
+// TODO: Should all bugs be fatal?
+#define BUG()       kdisp_importantPrint ("\n\nBUG: %s:%u", __FILE__, __LINE__);
+
+#define FATAL_BUG() k_panic ("\n\nBUG: %s:%u", __FILE__, __LINE__);
 
 #endif // KDEBUG_H

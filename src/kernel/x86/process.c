@@ -201,7 +201,7 @@ static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
             // Since the PD created before is yet not part of the 'context' we have to delete it
             // here as no one knows about it.
             if (!kpg_deletePageDirectory (newPD, PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
-                k_panicOnError(); // Under normal operation, this should never fail.
+                BUG(); // Cannot fail under normal operation. It was allocated just above.
             }
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
@@ -242,7 +242,7 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     PageDirectory pd = kpg_temporaryMap (kvmm_getPageDirectory (pinfo->context));
     Physical pa;
     if (!kpg_doesMappingExists (pd, pinfo->binary.virtualMemoryStart, &pa)) {
-        k_assert (false, "BUG: Should not be here"); // Cannot fail because we just mapped it above.
+        BUG(); // Cannot fail under normal operation. It was just mapped above.
     }
     kpg_temporaryUnmap();
 
@@ -374,7 +374,7 @@ static bool kprocess_kill_process (ProcessInfo** process)
     INFO ("Is thread: %s", BIT_ISSET (l_process->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
 
     if (!kfree (l_process->registerStates)) {
-        k_panicOnError();
+        BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
     }
 
     // Delete complete context only for non-thread processes
@@ -401,17 +401,17 @@ static bool kprocess_kill_process (ProcessInfo** process)
 
         // Delete the VMM and deallocate physical memory used by page tables
         if (!kvmm_delete (&l_process->context)) {
-            k_panicOnError();
+            BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
         }
 
         // Iterate through each of the PDEs and free physical memory for page tables as well.
         if (!kpg_deletePageDirectory (pd, PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
-            k_panicOnError();
+            BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
         }
     } else {
         INFO ("Removing thread context");
         if (!kvmm_free (l_process->context, currentProcess->stack.virtualMemoryStart)) {
-            k_panicOnError();
+            BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
         }
     }
 

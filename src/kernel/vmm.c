@@ -228,16 +228,10 @@ bool kvmm_delete (VMemoryManager** vmm)
         node                     = the_vmm->head.next;
         VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
         if (!kvmm_free (the_vmm, vas->start_vm)) {
-            // TODO: There should be a clear understanding when to Panic. I do not think panic is
-            // the right response here.
             // Should we panic here?
-            // Panic when the error could causes system to be unstable. In this case when we cannot
-            // free the data structures for a Address space, it would cause memory leak but would
-            // not cause any other problem.
-            // Should we assert/BugOn?
-            // I think this is something that is plausable. kvmm_free should not fail in the first
-            // place.
-            k_panicOnError();
+            // Do not think we should be panicking here. Sure it is sign of a bug that this free
+            // failed, but do not think that its so fatal that system need to be halted right now.
+            BUG();
         }
     }
 
