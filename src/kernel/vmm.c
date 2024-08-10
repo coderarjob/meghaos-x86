@@ -262,16 +262,15 @@ VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
 
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
         if ((new_vmm = kmalloc (sizeof (VMemoryManager))) == NULL) {
-            k_panicOnError();
+            RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
     } else {
         // NOTE: Creation of VMManager using salloc only happens for Kernel for it tries to capture
-        // the Virtual memory reserved and used regions before kmalloc initialization (this is so
-        // because kmalloc memory is dynamically allocated).
-        // NOTE: It can happen memory for Addresses spaces in it is allocated using kmalloc. That is
-        // not a problem and is expected.
+        // the reserved and used memory regions before kmalloc initialization.
+        // NOTE: It is possible that the 'VMemoryAddressSpace's are allocated using kmalloc. This is
+        // not a problem and is expected to happen.
         if ((new_vmm = ksalloc (sizeof (VMemoryManager))) == NULL) {
-            k_panicOnError();
+            RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
         flags |= VMM_FLAG_STATIC_ALLOC;
     }

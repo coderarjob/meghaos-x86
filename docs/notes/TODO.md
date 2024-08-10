@@ -113,7 +113,6 @@
 | ::: need to be done.                                                    |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
-| ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
 | ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
 | Possible solution.                                                      |           |            |
 | When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
@@ -123,6 +122,7 @@
 | ::: PD of the Kernel. At the start we copy the Kernel PDEs but are not  |           |            |
 | ::: copying it back. The Kernel memory mapping might have changed by    |           |            |
 | ::: now, so this copying is needed.                                     |           |            |
+| ::: [X] Free up process memory when creation or switching fails         | 15 Apr 24 | 10 Aug 24  |
 | ::: [-] Ability to select and extend stack memory as required.          | 12 Apr 24 | 03 Aug 24  |
 | With VMM the stack can be allocated dynamically but is of fixed size,   |           |            |
 | but since we now have lazy on-demand page allocation, the fixed size    |           |            |

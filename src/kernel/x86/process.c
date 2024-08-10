@@ -46,7 +46,7 @@ static bool s_createProcessPageDirectory (ProcessInfo* pinfo);
 static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
                                         ProcessInfo* pinfo);
 static bool s_setupProcessStackMemory (ProcessInfo* pinfo);
-static bool kprocess_exit_internal();
+static bool kprocess_kill_process (ProcessInfo** process);
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward);
 #endif // DEBUG
@@ -198,6 +198,11 @@ static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
         INFO ("New VMManager is being created");
         if (!(pinfo->context = kvmm_new (ARCH_MEM_START_PROCESS_MEMORY, ARCH_MEM_END_PROCESS_MEMORY,
                                          newPD, PMM_REGION_ANY))) {
+            // Since the PD created before is yet not part of the 'context' we have to delete it
+            // here as no one knows about it.
+            if (!kpg_deletePageDirectory (newPD, PG_DELPD_FLAG_KEEP_KERNEL_PAGES)) {
+                k_panicOnError(); // Under normal operation, this should never fail.
+            }
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
     } else {
@@ -237,7 +242,7 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     PageDirectory pd = kpg_temporaryMap (kvmm_getPageDirectory (pinfo->context));
     Physical pa;
     if (!kpg_doesMappingExists (pd, pinfo->binary.virtualMemoryStart, &pa)) {
-        k_assert (false, "BUG: Should not be here");
+        k_assert (false, "BUG: Should not be here"); // Cannot fail because we just mapped it above.
     }
     kpg_temporaryUnmap();
 
@@ -293,6 +298,7 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
     if (!kvmm_allocAt (pinfo->context, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
+
     return true;
 }
 
@@ -302,9 +308,10 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
                 currentProcessState);
 
     if (currentProcess != NULL) {
+        INFO ("Current PID: %u, Next PID: %u", currentProcess->processID, nextProcess->processID);
+
         k_assert (currentProcessState != NULL,
                   "Current process state is invalid for current process");
-        INFO ("Current PID: %u, Next PID: %u", currentProcess->processID, nextProcess->processID);
 
         if (currentProcess->processID == nextProcess->processID) {
             // If we are switching to the same process then no need to do any context switch, we
@@ -350,43 +357,50 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
 // TODO: Ending a process should also end threads of the process.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
-static bool kprocess_exit_internal()
+static bool kprocess_kill_process (ProcessInfo** process)
 {
     FUNC_ENTRY();
 
-    if (processCount < 2) {
-        return false; // Cannot exit when there is zero/single process running.
+    if (processCount <= 1) {
+        // Cannot exit when there is zero/single process running.
+        RETURN_ERROR (ERR_PROC_EXIT_NOT_ALLOWED, false);
     }
 
-    k_assert (currentProcess != NULL, "There are no process to exit");
+    ProcessInfo* l_process = *process;
 
-    INFO ("Killing process: %u", currentProcess->processID);
-    INFO ("Is thread: %s", BIT_ISSET (currentProcess->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
+    k_assert (process != NULL, "There are no process to exit");
 
-    if (!kfree (currentProcess->registerStates)) {
+    INFO ("Killing process: %u", l_process->processID);
+    INFO ("Is thread: %s", BIT_ISSET (l_process->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
+
+    if (!kfree (l_process->registerStates)) {
         k_panicOnError();
     }
 
     // Delete complete context only for non-thread processes
-    if (BIT_ISUNSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
+    if (BIT_ISUNSET (l_process->flags, PROCESS_FLAGS_THREAD)) {
         INFO ("Removing complete process context");
 
-        // In order to destroy the context of the current process, it is required to switch to the
-        // Kernel context, otherwise we would be killing the context while using it.
-        register x86_CR3 cr3 = { 0 };
-        cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
-        cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
-        cr3.physical         = PHYSICAL_TO_PAGEFRAME (kvmm_getPageDirectory (g_kstate.context).val);
+        // If there is no current process or current process is not the process being killed, there
+        // is no need to change CR3.
+        if (currentProcess != NULL && currentProcess->processID == l_process->processID) {
+            // In order to destroy the context of the current process, it is required to switch to
+            // the Kernel context, otherwise we would be killing the context while using it.
+            register x86_CR3 cr3 = { 0 };
+            cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
+            cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
+            cr3.physical = PHYSICAL_TO_PAGEFRAME (kvmm_getPageDirectory (g_kstate.context).val);
 
-        x86_LOAD_REG (CR3, cr3);
+            x86_LOAD_REG (CR3, cr3);
+        }
 
         // VMM delete will free all the page tables and the VMemoryManager itself. Page Directory is
         // not deleted, which need to be done following VMM delete. Since we cannot acceess the PD
         // once vmm is deleted, we store it in a variable for later use.
-        Physical pd = kvmm_getPageDirectory (currentProcess->context);
+        Physical pd = kvmm_getPageDirectory (l_process->context);
 
         // Delete the VMM and deallocate physical memory used by page tables
-        if (!kvmm_delete (&currentProcess->context)) {
+        if (!kvmm_delete (&l_process->context)) {
             k_panicOnError();
         }
 
@@ -396,18 +410,17 @@ static bool kprocess_exit_internal()
         }
     } else {
         INFO ("Removing thread context");
-        if (!kvmm_free (currentProcess->context, currentProcess->stack.virtualMemoryStart)) {
+        if (!kvmm_free (l_process->context, currentProcess->stack.virtualMemoryStart)) {
             k_panicOnError();
         }
     }
 
-    queue_remove (&currentProcess->schedulerQueueNode);
-    kfree (currentProcess);
-    currentProcess = NULL;
+    queue_remove (&l_process->schedulerQueueNode);
+    kfree (l_process);
+    *process = NULL;
     processCount--;
 
-    // Now switch to the next process
-    return kprocess_yield (NULL);
+    return true;
 }
 #pragma GCC diagnostic pop
 
@@ -429,15 +442,17 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     INFO ("Creating new process: ID = %u", pinfo->processID);
 
     if (!s_createProcessPageDirectory (pinfo)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+        // On failure the process page directory is deleted by s_createProcessPageDirectory itself
+        // and so there is nothing to be done here but to exit.
+        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
     }
 
     if (!s_setupProcessBinaryMemory (processStartAddress, binLengthBytes, pinfo)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+        goto failure;
     }
 
     if (!s_setupProcessStackMemory (pinfo)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE); // Cannot create new process.
+        goto failure;
     }
 
     INFO ("New process: ID = %u", pinfo->processID);
@@ -464,11 +479,15 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     pinfo->state = PROCESS_STATE_IDLE;
 
     if (!s_enqueue (pinfo)) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
+        goto failure;
     }
 
     INFO ("Process with ID %u created.", pinfo->processID);
     return (INT)pinfo->processID;
+
+failure:
+    kprocess_kill_process (&pinfo);
+    RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
 }
 
 bool kprocess_yield (ProcessRegisterState* currentState)
@@ -515,33 +534,52 @@ bool kprocess_exit()
     // to not use the process stack.
     // 1. When killing kernel thread, the stack of the thread needs to be deallocated.
     // 2. When killing kernel process, the whole address space is deallocated.
-    __asm__ volatile("push ebp;"
-                     "   mov ebp, esp;"
-                     "   test %1, PROCESS_FLAGS_KERNEL_PROCESS;"
-                     "   jz .cont;"
-                     // We temporarily change to use the Kernel stack before starting the actual
-                     // exit process. Two things can happen if the kprocess_exit succeeds then the
-                     // current process will be killed and this stack state will end after yielding
-                     // to the next process. If kprocess_exit fails, it will return to this routine
-                     // and the original stack pointer will be restored. NOTE:Using of Kernel stack
-                     // in another process works because whole of the Kernel address space is mapped
-                     // to each process. NOTE: As we have switched stack, local variables/function
-                     // arguments of this function which were on the stack cannot be accesssed from
-                     // here on.
-                     "   mov esp, " STR (MEM_KSTACK_TOP) ";"
+    __asm__ volatile(
+                    "   push ebp;"
+                    "   mov ebp, esp;"
+                    "   test %1, PROCESS_FLAGS_KERNEL_PROCESS;"
+                    "   jz .cont;"
+                    //////////////////////////////////////////////////////////////////////////////
+                    // We temporarily change to use the Kernel stack before starting the actual
+                    // exit process. Two things can happen if the kprocess_exit succeeds then the
+                    // current process will be killed and this stack state will end after yielding
+                    // to the next process. If kprocess_exit fails, it will return to this routine
+                    // and the original stack pointer will be restored. NOTE:Using of Kernel stack
+                    // in another process works because whole of the Kernel address space is mapped
+                    // to each process. NOTE: As we have switched stack, local variables/function
+                    // arguments of this function which were on the stack cannot be accesssed from
+                    // here on.
+                    "   mov esp, " STR (MEM_KSTACK_TOP) ";"
+                    //////////////////////////////////////////////////////////////////////////////
                     ".cont:;"
-                    // Call to kprocess_exit will not
-                    // return if it succeeds.
-                    "   call kprocess_exit_internal;"
+                     //////////////////////////////////////////////////////////////////////////////
+                    // Call to kprocess_kill_process to kill 'currentProcess'.
+                    "   lea eax, [currentProcess];"
+                    "   push eax;"
+                    "   call kprocess_kill_process;"
+                    "   add esp, 4;"
+                     //////////////////////////////////////////////////////////////////////////////
+                    // In case kprocess_kill_process fails, there is nothing to do but exit.
+                    "   cmp eax, 0;"
+                    "   jz .fin;"
+                     //////////////////////////////////////////////////////////////////////////////
+                    // Call to kprocess_yield to go to the next process now that the current one is
+                    // destoryed.
+                    "   xor eax, eax;"      //  NULL is passed in the first argument of yeld.
+                    "   push eax;"
+                    "   call kprocess_yield;"
+                    "   add esp, 4;"
+                     //////////////////////////////////////////////////////////////////////////////
+                    // On success yield either returns either true or jumps to the next process,
+                    // false otherwise. But here we simply return anything it is returning.
                     "   mov %0, eax;"
-                    // kprocess_exit returned which means
-                    // it did not succeed. Restore the
-                    // stack.
+                    ".fin:;"
                     "   mov esp, ebp;"
                     "   pop ebp;"
-                     : "=r"(ret)
-                     : "r"(flags)
-                     : // No clobber
+                    //////////////////////////////////////////////////////////////////////////////
+                    : "=r"(ret)
+                    : "r"(flags)
+                    : // No clobber
     );
     // clang-format on
 
