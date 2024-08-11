@@ -78,13 +78,6 @@
         .Length        : resw 1
 	endstruc
 
-	struc boot_info_t
-        .file_count    : resw 1
-        .file_dec_items: resb file_des_t_size * MAX_FILES_COUNT
-        .mem_des_count : resw 1
-        .mem_des_items : resb mem_des_t_size
-	endstruc
-
     struc vbe_modequery_t
         ; Inputs
         .Xresolution      : resw 1
@@ -98,4 +91,11 @@
         .BytesPerScanLine : resw 1
     endstruc
 
+	struc boot_info_t
+        .graphis_info  : resb vbe_modequery_t_size
+        .file_count    : resw 1
+        .file_dec_items: resb file_des_t_size * MAX_FILES_COUNT
+        .mem_des_count : resw 1
+        .mem_des_items : resb mem_des_t_size
+	endstruc
 %endif

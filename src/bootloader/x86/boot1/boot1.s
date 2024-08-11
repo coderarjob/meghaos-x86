@@ -148,6 +148,16 @@ _start:
     jc .gx_failed
 
     ; Graphics mode was set successfully
+
+    ; ----  Copy the graphics mode info into Boot info
+    mov cx, vbe_modequery_t_size ; Number of bytes to copy
+    mov bx, BOOT_INFO_SEG
+    mov es, bx                   ; Destination (ES:DI)
+    mov di, BOOT_INFO_OFF
+    mov si, vbemode              ; Source (DS:SI)
+    rep movsb
+
+    ; Copy complete, continue loading kernel
     jmp .goto_kernel
 
 .gx_failed:
