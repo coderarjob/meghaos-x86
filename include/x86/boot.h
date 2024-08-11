@@ -39,4 +39,6 @@
     U64 kBootMemoryMapItem_getBaseAddress (BootMemoryMapItem const* bmmi);
 
     ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli);
+
+    Physical kboot_checkGraphicsModeInfo(BootLoaderInfo const *bli);
 #endif //BOOT_H_X86

@@ -7,6 +7,7 @@
 #include <x86/boot.h>
 #include <x86/memloc.h>
 #include <x86/boot_struct.h>
+#include <kdebug.h>
 
 BootLoaderInfo* kboot_getCurrentBootLoaderInfo ()
 {
@@ -86,4 +87,18 @@ ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli)
         length_bytes += bli->items[i].length;
 
     return length_bytes;
+}
+
+Physical kboot_checkGraphicsModeInfo(BootLoaderInfo const *bli) {
+    k_assert (bli, "BootLoaderInfo is NULL");
+
+    INFO ("Resolution: %ux%u %ubpp", bli->gxInfo.xResolution, bli->gxInfo.yResolution,
+          bli->gxInfo.bitsPerPixel);
+    INFO("Mode: %x", bli->gxInfo.graphicsMode);
+    INFO ("VBE Version: %x", bli->gxInfo.vbeVersion);
+    INFO ("FrameBuffer: %x", bli->gxInfo.framebufferPhysicalPtr);
+    INFO ("BytesPerScanLine: %x", bli->gxInfo.bytesPerScanLine);
+
+    Physical pa = PHYSICAL(bli->gxInfo.framebufferPhysicalPtr);
+    return pa;
 }

@@ -154,6 +154,20 @@ void kernel_main ()
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
     //---------------
+    BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
+    Physical pa         = kboot_checkGraphicsModeInfo (bli);
+    if (pa.val != 0) {
+        PTR va = kvmm_alloc (g_kstate.context, 352, PG_MAP_FLAG_KERNEL_DEFAULT,
+                             VMM_ADDR_SPACE_FLAG_PREMAP);
+
+        kpg_mapContinous (kpg_getcurrentpd(), va, pa, 352, PG_MAP_FLAG_KERNEL_DEFAULT);
+
+        // Fill FB with a grey color
+        k_memset ((void*)va, 0xAA, 800 * 600 * 3);
+    } else {
+        kdebug_println ("Graphics mode not supported");
+    }
+    k_halt();
     process_poc();
     //new_process();
     //new_process_2();
