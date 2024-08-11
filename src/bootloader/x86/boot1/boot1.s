@@ -27,6 +27,7 @@
 ; ******************************************************
 %include "a20gate.s"
 %include "gdt.s"
+%include "vbe2.s"
 %include "mos.inc"
 
 ; ******************************************************
@@ -51,6 +52,20 @@ msg_AVLMEM : db 13,10,"[  ]    Available memory. ",0
 
 msg_success: db 13,"[OK]",0
 msg_failed : db 13,"[ER]",0
+
+vbemode:
+    istruc vbe_modequery_t
+        ; Inputs
+        at .Xresolution       , dw 800
+        at .Yresolution       , dw 600
+        at .BitsPerPixel      , db 024
+
+        ; Outputs
+        at .Mode              , dw 0
+        at .VbeVersion        , dw 0
+        at .FrameBuffer       , dd 0
+        at .BytesPerScanLine  , dw 0
+    iend
 
 ; ******************************************************
 ; CODE
@@ -122,6 +137,26 @@ _start:
     printString msg_success
 
     call copy_gdt_to_global
+
+    ; -------- [ Switch to graphics Mode ] -----------
+    mov edi, vbemode
+    call vbe2_find_mode
+    jc .gx_failed
+
+    mov edi, vbemode
+    call vbe2_switch_mode
+    jc .gx_failed
+
+    ; Graphics mode was set successfully
+    jmp .goto_kernel
+
+.gx_failed:
+    ; Clear Mode to indicate failure. This  also means that OS is operating in
+    ; text mode
+    mov [vbemode + vbe_modequery_t.Mode], word 0
+
+    ; -------- [ All set, now jump to kernel ] -----------
+.goto_kernel:
     EnterProtectedMode32 gdt32_meta_global
     [BITS 32]
     jmp KERNEL_IMG_MEM

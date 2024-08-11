@@ -84,4 +84,18 @@
         .mem_des_count : resw 1
         .mem_des_items : resb mem_des_t_size
 	endstruc
+
+    struc vbe_modequery_t
+        ; Inputs
+        .Xresolution      : resw 1
+        .Yresolution      : resw 1
+        .BitsPerPixel     : resb 1
+
+        ; Outputs
+        .Mode             : resw 1
+        .VbeVersion       : resw 1
+        .FrameBuffer      : resd 1
+        .BytesPerScanLine : resw 1
+    endstruc
+
 %endif
