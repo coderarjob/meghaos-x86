@@ -15,3 +15,7 @@ set(kmalloc_mock_sources
 set(salloc_mock_sources
     ${PROJECT_SOURCE_DIR}/src/mock/kernel/kstdlib.c
     )
+
+set(kstdlib_mock_sources
+    ${PROJECT_SOURCE_DIR}/src/mock/kernel/paging.c
+    )
