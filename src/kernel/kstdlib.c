@@ -84,3 +84,45 @@ void k_memcpyToPhyMem (Physical dest, PTR src, SIZE n)
     k_memcpy (bin_va, (void*)l_src, remBytes);
     kpg_temporaryUnmap();
 }
+
+/***************************************************************************************************
+ * Fills memory with multi-byte (maximum of 4 bytes) pattern
+ * Insparation from BSD/MAC OS function `memset_pattern4`.
+ *
+ * @Input s     Pointer to the destination. Should not be NULL.
+ * @Input p     U32 value containing the pattern to fill the destination with.
+ * @Input szp   Number of bytes in the pattern to use
+ * @Input n     Number of bytes to set in the destination. Must be multiple of 'szp'.
+ * @return      Pointer to the start of the destination.
+***************************************************************************************************/
+void* k_memset_pat4 (void* s, U32 p, SIZE szp, SIZE n)
+{
+    FUNC_ENTRY ("Dest: %px, Pat: %x, PatLen: %x, Count: %x", (PTR)s, p, szp, n);
+
+    k_assert(IS_ALIGNED(n, szp), "Desination end not aligned to pattern size");
+
+    if (szp == 1) {
+        return k_memset (s, (U8)p, n);
+    }
+
+    U8* pbytes = (U8*)&p;
+    U8* dest   = (U8*)s;
+
+    for (; n > 0; n -= szp, dest += szp) {
+        switch (szp) {
+        case 4:
+            *(dest + 3) = pbytes[3];
+            // fall through
+        case 3:
+            *(dest + 2) = pbytes[2];
+            // fall through
+        case 2:
+            *(dest + 1) = pbytes[1];
+            *(dest + 0) = pbytes[0];
+            break;
+        default:
+            UNREACHABLE();
+        }
+    }
+    return s;
+}

@@ -19,4 +19,7 @@ void *k_memset (void *s, U8 c, size_t n);
 
 /* Copies n bytes from src to physical dest memory.*/
 void k_memcpyToPhyMem (Physical dest, PTR src, SIZE n);
-#endif //MEM_H
+
+/* Fills memory with a multi byte pattern*/
+void* k_memset_pat4 (void* s, U32 p, SIZE szp, SIZE n);
+#endif // MEM_H

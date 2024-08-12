@@ -2,12 +2,54 @@
 #include <kstdlib.h>
 #include <utils.h>
 #include <unittest/unittest.h>
+#include <mock/kernel/paging.h>
+
+extern bool panic_invoked;
 
 TEST(MEM, memset_one_byte)
 {
     U8 dest;
     EQ_SCALAR((PTR)k_memset (&dest, 0x1A, 1), (PTR)&dest);
     EQ_SCALAR(dest, 0x1A);
+    END();
+}
+
+TEST (MEMSET_PAT4, memset_pat4_2_bytes_pat)
+{
+    U32 pattern       = 0x10FF;
+    SIZE patBytes     = 2;
+    U8 memory[10]     = { 0 };
+    U8 memory_exp[10] = { 0xFF, 0x10, 0xFF, 0x10, 0xFF, 0x10, 0xFF, 0x10, 0xFF, 0x10 };
+
+    k_memset_pat4 (memory, pattern, patBytes, ARRAY_LENGTH (memory));
+    EQ_MEM (memory, memory_exp, ARRAY_LENGTH (memory));
+
+    END();
+}
+
+TEST (MEMSET_PAT4, memset_pat4_3_bytes_pat)
+{
+    U32 pattern      = 0x1020FF;
+    SIZE patBytes    = 3;
+    U8 memory[9]     = { 0 };
+    U8 memory_exp[9] = { 0xFF, 0x20, 0x10, 0xFF, 0x20, 0x10, 0xFF, 0x20, 0x10 };
+
+    k_memset_pat4 (memory, pattern, patBytes, ARRAY_LENGTH (memory));
+    EQ_MEM (memory, memory_exp, ARRAY_LENGTH (memory));
+
+    END();
+}
+
+TEST (MEMSET_PAT4, memset_pat4_4_bytes_pat)
+{
+    U32 pattern      = 0x102030FF;
+    SIZE patBytes    = 4;
+    U8 memory[8]     = { 0 };
+    U8 memory_exp[8] = { 0xFF, 0x30, 0x20, 0x10, 0xFF, 0x30, 0x20, 0x10 };
+
+    k_memset_pat4 (memory, pattern, patBytes, ARRAY_LENGTH (memory));
+    EQ_MEM (memory, memory_exp, ARRAY_LENGTH (memory));
+
     END();
 }
 
@@ -65,6 +107,7 @@ TEST(MEM, memset_normal)
 
 void reset()
 {
+    resetPagingFake();
 }
 
 int main()
@@ -73,4 +116,7 @@ int main()
     memset_normal();
     memcpy_normal();
     memcpy_overlap();
+    memset_pat4_2_bytes_pat();
+    memset_pat4_3_bytes_pat();
+    memset_pat4_4_bytes_pat();
 }
