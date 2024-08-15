@@ -156,14 +156,16 @@ void kernel_main ()
     //---------------
     BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
     Physical pa         = kboot_checkGraphicsModeInfo (bli);
+    SIZE szBytes        = 800 * 600 * 1;
+    SIZE szPages        = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
     if (pa.val != 0) {
-        PTR va = kvmm_alloc (g_kstate.context, 352, PG_MAP_FLAG_KERNEL_DEFAULT,
+        PTR va = kvmm_alloc (g_kstate.context, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
                              VMM_ADDR_SPACE_FLAG_PREMAP);
 
-        kpg_mapContinous (kpg_getcurrentpd(), va, pa, 352, PG_MAP_FLAG_KERNEL_DEFAULT);
+        kpg_mapContinous (kpg_getcurrentpd(), va, pa, szPages, PG_MAP_FLAG_KERNEL_DEFAULT);
 
-        // Fill FB with a grey color
-        k_memset ((void*)va, 0xAA, 800 * 600 * 3);
+        // Fill FB with a red color
+        k_memset_pat4 ((void*)va, 0x4, 1, szBytes);
     } else {
         kdebug_println ("Graphics mode not supported");
     }

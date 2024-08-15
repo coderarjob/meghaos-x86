@@ -55,12 +55,13 @@ msg_failed : db 13,"[ER]",0
 
 vbemode:
     istruc vbe_modequery_t
-        ; Inputs
+        ; Input to vbe2_find_mode, vbe2_switch_mode
         at .Xresolution       , dw 800
         at .Yresolution       , dw 600
-        at .BitsPerPixel      , db 024
+        at .BitsPerPixel      , db 8
 
-        ; Outputs
+        ; Output from vbe2_find_mode
+        ; Input for vbe2_switch_mode
         at .Mode              , dw 0
         at .VbeVersion        , dw 0
         at .FrameBuffer       , dd 0
