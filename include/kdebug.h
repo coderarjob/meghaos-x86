@@ -37,7 +37,7 @@ typedef enum KernelDebugLogType
     void kdebug_printf_ndu (const CHAR *fmt, ...);
     #define kdebug_printf(...) kdebug_printf_ndu (__VA_ARGS__)
 #else
-    #define kdebug_printf(fmt,...) (void)0
+    #define kdebug_printf(...) (void)0
 #endif
 
 /***************************************************************************************************
