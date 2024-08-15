@@ -79,6 +79,9 @@ _start:
     ; -------- [ Welcome message ] -----------
     printString msg_welcome
 
+    ; -------- [ DEBUG: Print VBE Information] -----------
+    call vbe2_dump_modes
+
     ; -------- [ Clean Boot info memory ] -----------
     mov al, 0
     mov bx, BOOT_INFO_SEG

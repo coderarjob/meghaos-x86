@@ -67,12 +67,158 @@ endstruc
 
     ; printString expects short pointer with segment in DS register
     push ds
-    mov ds, ax
-    printString bx
+        mov ds, ax
+        printString bx
+    pop ds
     pop ebx
     pop eax
-    popad
 %endmacro
+
+; ---------------------------------------------------------------------------
+; Searches for the VBE modes and dumps the mode number and other information.
+; Input:
+;   None
+; Output (Success):
+;   None
+; Output (Failue):
+;   None
+; ---------------------------------------------------------------------------
+vbe2_dump_modes:
+    pushad
+    push es
+    push gs
+
+    push ds     ; Mov es, ds
+    pop es
+
+    ; Query the video modes
+    push edi
+        mov ax, 0x4F00
+        mov di, vbeblock ; Location is ES:DI
+        int 0x10
+    pop edi
+
+    ; AL != 0x4F means command is not supported
+    cmp al, 0x4F
+    jnz .query_failure
+
+    ; Non-zeo AH means there is an error
+    cmp ah, 00
+    jnz .query_failure
+
+    ; Print some information from the vbe block
+    printString .msg_newline
+
+    xor  eax, eax
+    mov ax, [vbeblock + vbe2_infoblock_t.VbeVersion]
+    call __printhex
+    printString .msg_newline
+
+    mov eax, [vbeblock + vbe2_infoblock_t.OemStringPtr]
+    printVbeStrings eax
+    printString .msg_newline
+
+    xor  eax, eax
+    mov eax, [vbeblock + vbe2_infoblock_t.Capabilities]
+    call __printhex
+    printString .msg_space
+
+    xor  eax, eax
+    mov ax, [vbeblock + vbe2_infoblock_t.TotalMemory]
+    call __printhex
+    printString .msg_space
+
+    ; Iterate each mode and check its attributes
+    mov ecx, 15 ; Get the first 15
+    mov eax, [vbeblock + vbe2_infoblock_t.VideoModePtr]
+
+    call __printhex
+    printString .msg_newline
+
+    xor esi, esi
+    mov si, ax ; si now has the offset
+    shr eax, 16; ax now has the segment
+    mov gs, ax
+
+.iter_modes:
+    xor eax, eax
+    mov ax, [gs:si]
+
+    call __printhex
+    printString .msg_space
+
+    cmp ax, 0xFFFF
+    je .fin
+
+    ; Get Mode information
+    push edi
+    push ecx
+        mov cx, ax; Mode
+        mov ax, 0x4F01
+        mov di, modeInfo ; Location is ES:DI
+        int 0x10
+    pop ecx
+    pop edi
+
+    ; AL != 0x4F means command is not supported
+    cmp al, 0x4F
+    jnz .get_modeinfo_failure
+
+    ; Non-zeo AH means there is an error
+    cmp ah, 00
+    jnz .get_modeinfo_failure
+
+    xor eax, eax
+    mov ax, [modeInfo + vbe2_modeinfoblock_t.ModeAttributes]
+    call __printhex
+    printString .msg_space
+
+    mov eax, [modeInfo + vbe2_modeinfoblock_t.PhysBasePtr]
+    call __printhex
+    printString .msg_space
+
+    xor eax, eax
+    mov ax, [modeInfo + vbe2_modeinfoblock_t.Xresolution]
+    call __printhex
+    printString .msg_space
+
+    xor eax, eax
+    mov ax, [modeInfo + vbe2_modeinfoblock_t.Yresolution]
+    call __printhex
+    printString .msg_space
+
+    xor eax, eax
+    mov al, [modeInfo + vbe2_modeinfoblock_t.BitsPerPixel]
+    call __printhex
+    printString .msg_space
+
+    xor eax, eax
+    mov al, [modeInfo + vbe2_modeinfoblock_t.MemoryModel]
+    call __printhex
+    printString .msg_space
+
+.next_iter_modes:
+    add si, 2
+    printString .msg_newline
+    dec ecx
+    jcxz .fin ; Exit loop if asked number items are already printed
+    jmp .iter_modes
+
+.get_modeinfo_failure:
+    printString .msg_modeget_failed
+    jmp .fin
+.query_failure:
+    printString .msg_modequery_failed
+.fin:
+    pop gs
+    pop es
+    popad
+    ret
+
+.msg_modequery_failed:  db "0x4F00 failed", 13, 10, 0
+.msg_modeget_failed:    db "0x4F01 failed", 13, 10, 0
+.msg_newline:           db 13, 10, 0
+.msg_space:             db " ", 0
 
 ; ---------------------------------------------------------------------------
 ; Searches for the VBE mode which matches the criterias
@@ -89,14 +235,14 @@ vbe2_find_mode:
     pushad
     push es
     push gs
-    
+
     push ds     ; Mov es, ds
     pop es
 
     ; Query the video modes
     push edi
         mov ax, 0x4F00
-        mov di, .vbeblock
+        mov di, vbeblock
         int 0x10
     pop edi
 
@@ -109,11 +255,11 @@ vbe2_find_mode:
     jnz .failure
 
     ; Store VBE version
-    mov ax, [.vbeblock + vbe2_infoblock_t.VbeVersion]
+    mov ax, [vbeblock + vbe2_infoblock_t.VbeVersion]
     mov [edi + vbe_modequery_t.VbeVersion], ax
 
     ; Iterate each mode and check its attributes
-    mov eax, [.vbeblock + vbe2_infoblock_t.VideoModePtr]
+    mov eax, [vbeblock + vbe2_infoblock_t.VideoModePtr]
 
     mov si, ax ; si now has the offset
     shr eax, 16; ax now has the segment
@@ -131,7 +277,7 @@ vbe2_find_mode:
     push edi
         mov cx, ax; Mode
         mov ax, 0x4F01
-        mov di, .modeInfo
+        mov di, modeInfo
         int 0x10
     pop edi
 
@@ -143,7 +289,7 @@ vbe2_find_mode:
     cmp ah, 00
     jnz .failure
 
-    mov eax, [.modeInfo + vbe2_modeinfoblock_t.PhysBasePtr]
+    mov eax, [modeInfo + vbe2_modeinfoblock_t.PhysBasePtr]
     cmp eax, 0x0000      ; Mode is not supported
     je .next_iter_modes
 
@@ -152,41 +298,41 @@ vbe2_find_mode:
 
     ; Store BytesPerScanLine
     xor eax, eax
-    mov ax, [.modeInfo + vbe2_modeinfoblock_t.BytesPerScanLine]
+    mov ax, [modeInfo + vbe2_modeinfoblock_t.BytesPerScanLine]
     mov [edi + vbe_modequery_t.BytesPerScanLine], ax
 
     xor eax, eax
     ; Match XResolution
-    mov ax, [.modeInfo + vbe2_modeinfoblock_t.Xresolution]
+    mov ax, [modeInfo + vbe2_modeinfoblock_t.Xresolution]
     cmp ax, [edi + vbe_modequery_t.Xresolution]
     jne .next_iter_modes
 
     ; Match YResolution
-    mov ax, [.modeInfo + vbe2_modeinfoblock_t.Yresolution]
+    mov ax, [modeInfo + vbe2_modeinfoblock_t.Yresolution]
     cmp ax, [edi + vbe_modequery_t.Yresolution]
     jne .next_iter_modes
 
     ; Match BitsPerPixel
     xor eax, eax
-    mov al, [.modeInfo + vbe2_modeinfoblock_t.BitsPerPixel]
+    mov al, [modeInfo + vbe2_modeinfoblock_t.BitsPerPixel]
     cmp al, [edi + vbe_modequery_t.BitsPerPixel]
     jne .next_iter_modes
 
     ; Must support graphics mode & Linear frame buffer
     xor eax, eax
-    mov ax, [.modeInfo + vbe2_modeinfoblock_t.ModeAttributes]
+    mov ax, [modeInfo + vbe2_modeinfoblock_t.ModeAttributes]
     and ax, (1 << 3) | (1 << 7)
     jz .next_iter_modes
 
     ; Must be Packed pixel Memory model
     xor eax, eax
-    mov al, [.modeInfo + vbe2_modeinfoblock_t.MemoryModel]
+    mov al, [modeInfo + vbe2_modeinfoblock_t.MemoryModel]
     cmp al, 0x4
     jne .next_iter_modes
 
     ; All the criterias match. So we exit
     jmp .found
-.next_iter_modes:    
+.next_iter_modes:
     add si, 2
     jmp .iter_modes
 
@@ -201,17 +347,7 @@ vbe2_find_mode:
     pop es
     popad
     ret
-; ---------------------------------------------------------------------------
-.vbeblock:
-    db "VBE2"
-    times 512-4 db 0
 
-.modeInfo:
-    times vbe2_modeinfoblock_t_size db 0
-
-.blank: db " ", 0
-; ---------------------------------------------------------------------------
- 
 ; ---------------------------------------------------------------------------
 ; Switches to a VBE mode
 ; Input:
@@ -237,7 +373,7 @@ vbe2_switch_mode:
     ; Non-zeo AH means there is an error
     cmp ah, 00
     jnz .failure
-    
+
     ; Success
     clc
     jmp .end
@@ -246,4 +382,13 @@ vbe2_switch_mode:
 .end:
     popad
     ret
+; ---------------------------------------------------------------------------
+; Global Data
+; ---------------------------------------------------------------------------
+vbeblock:
+                db "VBE2"
+    times 512-4 db 0
+
+modeInfo:
+    times vbe2_modeinfoblock_t_size db 0
 ; ---------------------------------------------------------------------------
