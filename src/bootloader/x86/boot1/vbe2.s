@@ -5,7 +5,7 @@ struc vbe2_infoblock_t
     .VbeSignature      : resb 4   ; Vesa Signature
     .VbeVersion        : resw 1   ; VBE Version in BCD
     .OemStringPtr      : resd 1   ; Far pointer to OEM String
-    .Capabilities      : resd 1   ; VGA capabilities supported.
+    .Capabilities      : resb 4   ; VGA capabilities supported.
     .VideoModePtr      : resd 1   ; Pointer to list of video modes.
     .TotalMemory       : resw 1   ; Number of 64KB memory blocks
     .OemSoftwareRev    : resw 1   ; VBE implementation Software revision
@@ -170,6 +170,18 @@ vbe2_find_mode:
     xor eax, eax
     mov al, [.modeInfo + vbe2_modeinfoblock_t.BitsPerPixel]
     cmp al, [edi + vbe_modequery_t.BitsPerPixel]
+    jne .next_iter_modes
+
+    ; Must support graphics mode & Linear frame buffer
+    xor eax, eax
+    mov ax, [.modeInfo + vbe2_modeinfoblock_t.ModeAttributes]
+    and ax, (1 << 3) | (1 << 7)
+    jz .next_iter_modes
+
+    ; Must be Packed pixel Memory model
+    xor eax, eax
+    mov al, [.modeInfo + vbe2_modeinfoblock_t.MemoryModel]
+    cmp al, 0x4
     jne .next_iter_modes
 
     ; All the criterias match. So we exit
