@@ -24,6 +24,16 @@
     typedef struct BootFileItem BootFileItem;
     typedef struct BootLoaderInfo BootLoaderInfo;
 
+    typedef struct GraphisModeInfo {
+        U16 xResolution;
+        U16 yResolution;
+        U8 bitsPerPixel;
+        U16 graphicsMode;
+        U16 vbeVersion;
+        Physical framebufferPhysicalPtr;
+        U16 bytesPerScanLine;
+    } __attribute__ ((packed)) GraphisModeInfo;
+
     BootLoaderInfo* kboot_getCurrentBootLoaderInfo ();
 
     U16 kBootLoaderInfo_getFilesCount (BootLoaderInfo const* bli);
@@ -40,5 +50,5 @@
 
     ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli);
 
-    Physical kboot_checkGraphicsModeInfo(BootLoaderInfo const *bli);
+    GraphisModeInfo kboot_getGraphicsModeInfo(BootLoaderInfo const *bli);
 #endif //BOOT_H_X86

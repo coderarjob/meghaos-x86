@@ -89,16 +89,8 @@ ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli)
     return length_bytes;
 }
 
-Physical kboot_checkGraphicsModeInfo(BootLoaderInfo const *bli) {
+GraphisModeInfo kboot_getGraphicsModeInfo (BootLoaderInfo const* bli)
+{
     k_assert (bli, "BootLoaderInfo is NULL");
-
-    INFO ("Resolution: %ux%u %ubpp", bli->gxInfo.xResolution, bli->gxInfo.yResolution,
-          bli->gxInfo.bitsPerPixel);
-    INFO("Mode: %x", bli->gxInfo.graphicsMode);
-    INFO ("VBE Version: %x", bli->gxInfo.vbeVersion);
-    INFO ("FrameBuffer: %x", bli->gxInfo.framebufferPhysicalPtr);
-    INFO ("BytesPerScanLine: %x", bli->gxInfo.bytesPerScanLine);
-
-    Physical pa = PHYSICAL(bli->gxInfo.framebufferPhysicalPtr);
-    return pa;
+    return bli->gxInfo;
 }

@@ -14,6 +14,7 @@
 
     #include <types.h>
     #include <buildcheck.h>
+    #include  <x86/boot.h>
 
     struct BootMemoryMapItem
     {
@@ -27,16 +28,6 @@
         U32 startLocation;
         U16 length;
     }__attribute__ ((packed));
-
-    struct GraphisModeInfo {
-        U16 xResolution;
-        U16 yResolution;
-        U8 bitsPerPixel;
-        U16 graphicsMode;
-        U16 vbeVersion;
-        U32 framebufferPhysicalPtr;
-        U16 bytesPerScanLine;
-    } __attribute__ ((packed));
 
     struct BootLoaderInfo
     {

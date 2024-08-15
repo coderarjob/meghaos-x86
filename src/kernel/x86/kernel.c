@@ -155,14 +155,22 @@ void kernel_main ()
 
     //---------------
     BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
-    Physical pa         = kboot_checkGraphicsModeInfo (bli);
-    SIZE szBytes        = 800 * 600 * 1;
-    SIZE szPages        = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
-    if (pa.val != 0) {
+    GraphisModeInfo gmi = kboot_getGraphicsModeInfo (bli);
+
+    INFO ("Mode: %x", gmi.graphicsMode);
+    INFO ("VBE Version: %x", gmi.vbeVersion);
+    INFO ("FrameBuffer: %x", gmi.framebufferPhysicalPtr);
+    INFO ("Resolution: %u x %u, %ubpp", gmi.xResolution, gmi.yResolution, gmi.bitsPerPixel);
+    INFO ("BytesPerScanLine: %x", gmi.bytesPerScanLine);
+
+    SIZE szBytes  = (SIZE)gmi.bytesPerScanLine * gmi.yResolution * gmi.bitsPerPixel/8;
+    SIZE szPages  = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
+    Physical fbpa = gmi.framebufferPhysicalPtr;
+    if (fbpa.val != 0) {
         PTR va = kvmm_alloc (g_kstate.context, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
                              VMM_ADDR_SPACE_FLAG_PREMAP);
 
-        kpg_mapContinous (kpg_getcurrentpd(), va, pa, szPages, PG_MAP_FLAG_KERNEL_DEFAULT);
+        kpg_mapContinous (kpg_getcurrentpd(), va, fbpa, szPages, PG_MAP_FLAG_KERNEL_DEFAULT);
 
         // Fill FB with a red color
         k_memset_pat4 ((void*)va, 0x4, 1, szBytes);
