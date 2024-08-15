@@ -88,6 +88,7 @@ endstruc
 vbe2_find_mode:
     pushad
     push es
+    push gs
     
     push ds     ; Mov es, ds
     pop es
@@ -116,10 +117,10 @@ vbe2_find_mode:
 
     mov si, ax ; si now has the offset
     shr eax, 16; ax now has the segment
-    mov es, ax
+    mov gs, ax
 
 .iter_modes:
-    mov ax, [es:si]
+    mov ax, [gs:si]
     cmp ax, 0xFFFF
     je .not_found
 
@@ -184,6 +185,7 @@ vbe2_find_mode:
 .failure:
     stc
 .end:
+    pop gs
     pop es
     popad
     ret
