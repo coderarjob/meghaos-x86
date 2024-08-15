@@ -16,26 +16,13 @@
     #include <buildcheck.h>
     #include  <x86/boot.h>
 
-    struct BootMemoryMapItem
-    {
-        U64 baseAddr;
-        U64 length;
-        U32 type;
-    }__attribute__ ((packed));
-
-    struct BootFileItem
-    {
-        U32 startLocation;
-        U16 length;
-    }__attribute__ ((packed));
-
     struct BootLoaderInfo
     {
-        struct GraphisModeInfo gxInfo;
-        U16 filecount;
-        struct BootFileItem files[11];
-        U16 count;
-        struct BootMemoryMapItem items[];
+        const struct GraphisModeInfo gxInfo;
+        const U16 filecount;
+        const struct BootFileItem files[11];
+        const U16 count;
+        const struct BootMemoryMapItem items[];
     }__attribute__ ((packed));
 
 #endif //BOOT_STRUCT_H_X86

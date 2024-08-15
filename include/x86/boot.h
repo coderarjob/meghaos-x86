@@ -1,54 +1,51 @@
 /*
-* --------------------------------------------------------------------------------------------------
-* Megha Operating System V2 - x86 Bootloader 
-*
-* Contains abstract structure declarations and methods that is used to get information from the
-* bootloader.
-* --------------------------------------------------------------------------------------------------
-*/
+ * --------------------------------------------------------------------------------------------------
+ * Megha Operating System V2 - x86 Bootloader
+ *
+ * Contains abstract structure declarations and methods that is used to get information from the
+ * bootloader.
+ * --------------------------------------------------------------------------------------------------
+ */
 
-#ifndef BOOT_H_X86
-#define BOOT_H_X86
+#pragma once
 
-    #include <types.h>
-    #include <buildcheck.h>
+#include <types.h>
+#include <buildcheck.h>
 
-    typedef enum BootMemoryMapTypes
-    {
-        MMTYPE_FREE = 1,
-        MMTYPE_RESERVED = 2,
-        MMTYPE_ACPI_RECLAIM = 3,
-    } BootMemoryMapTypes;
+enum BootMemoryMapTypes {
+    MMTYPE_FREE         = 1,
+    MMTYPE_RESERVED     = 2,
+    MMTYPE_ACPI_RECLAIM = 3,
+};
 
-    typedef struct BootMemoryMapItem BootMemoryMapItem;
-    typedef struct BootFileItem BootFileItem;
-    typedef struct BootLoaderInfo BootLoaderInfo;
+typedef U32 BootMemoryMapTypes;
+typedef struct BootLoaderInfo BootLoaderInfo;
 
-    typedef struct GraphisModeInfo {
-        U16 xResolution;
-        U16 yResolution;
-        U8 bitsPerPixel;
-        U16 graphicsMode;
-        U16 vbeVersion;
-        Physical framebufferPhysicalPtr;
-        U16 bytesPerScanLine;
-    } __attribute__ ((packed)) GraphisModeInfo;
+typedef struct BootMemoryMapItem {
+    const U64 baseAddr;
+    const U64 length;
+    const BootMemoryMapTypes type;
+} __attribute__ ((packed)) BootMemoryMapItem;
 
-    BootLoaderInfo* kboot_getCurrentBootLoaderInfo ();
+typedef struct BootFileItem {
+    const U32 startLocation;
+    const U16 length;
+} __attribute__ ((packed)) BootFileItem;
 
-    U16 kBootLoaderInfo_getFilesCount (BootLoaderInfo const* bli);
-    BootFileItem* kBootLoaderInfo_getFileItem (BootLoaderInfo const* bli, INT index);
-    BootMemoryMapItem* kBootLoaderInfo_getMemoryMapItem (BootLoaderInfo const* bli, INT index);
-    U16 kBootLoaderInfo_getMemoryMapItemCount (BootLoaderInfo const* bli);
+typedef struct GraphisModeInfo {
+    const U16 xResolution;
+    const U16 yResolution;
+    const U8 bitsPerPixel;
+    const U16 graphicsMode;
+    const U16 vbeVersion;
+    const Physical framebufferPhysicalPtr;
+    const U16 bytesPerScanLine;
+} __attribute__ ((packed)) GraphisModeInfo;
 
-    U16 kBootFileItem_getLength (BootFileItem const* bfi);
-    U32 kBootFileItem_getStartLocation (BootFileItem const* bfi);
+U16 kboot_getBootFileItemCount();
+BootFileItem kboot_getBootFileItem (INT index);
+BootMemoryMapItem kboot_getBootMemoryMapItem (INT index);
+U16 kboot_getBootMemoryMapItemCount();
+ULLONG kboot_calculateInstalledMemory();
 
-    BootMemoryMapTypes kBootMemoryMapItem_getType (BootMemoryMapItem const* bmmi);
-    U64 kBootMemoryMapItem_getLength (BootMemoryMapItem const* bmmi);
-    U64 kBootMemoryMapItem_getBaseAddress (BootMemoryMapItem const* bmmi);
-
-    ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli);
-
-    GraphisModeInfo kboot_getGraphicsModeInfo(BootLoaderInfo const *bli);
-#endif //BOOT_H_X86
+GraphisModeInfo kboot_getGraphicsModeInfo();

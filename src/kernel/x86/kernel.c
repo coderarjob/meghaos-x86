@@ -154,8 +154,7 @@ void kernel_main ()
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
     //---------------
-    BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
-    GraphisModeInfo gmi = kboot_getGraphicsModeInfo (bli);
+    GraphisModeInfo gmi = kboot_getGraphicsModeInfo ();
 
     INFO ("Mode: %x", gmi.graphicsMode);
     INFO ("VBE Version: %x", gmi.vbeVersion);
@@ -283,10 +282,9 @@ static void multithread_demo_kernel_thread()
 {
     FUNC_ENTRY();
 
-    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 2);
-    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+    BootFileItem fileinfo = kboot_getBootFileItem (2);
+    Physical startAddress = PHYSICAL (fileinfo.startLocation);
+    SIZE lengthBytes      = (SIZE)fileinfo.length;
 
     kearly_println ("\n------ [ Cooperative Multithreading Demo ] ------\n");
 
@@ -449,28 +447,25 @@ void display_system_info()
     FUNC_ENTRY();
 
 #if DEBUG_LEVEL & 0x1
-    BootLoaderInfo* mi               = kboot_getCurrentBootLoaderInfo();
-    INT             loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
+    INT loadedFilesCount = kboot_getBootFileItemCount();
 
     INFO ("Loaded kernel files:");
-    for (INT i = 0; i < loadedFilesCount; i++)
-    {
-        BootFileItem* file          = kBootLoaderInfo_getFileItem (mi, i);
-        UINT          startLocation = (UINT)kBootFileItem_getStartLocation (file);
-        UINT          length_bytes  = (UINT)kBootFileItem_getLength (file);
+    for (INT i = 0; i < loadedFilesCount; i++) {
+        BootFileItem file  = kboot_getBootFileItem (i);
+        UINT startLocation = (UINT)file.startLocation;
+        UINT length_bytes  = (UINT)file.length;
 
         INFO ("* file: Start = %x, Length = %u bytes", startLocation, length_bytes);
     }
 
-    INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
+    INT memoryMapItemCount = kboot_getBootMemoryMapItemCount();
     INFO ("BIOS Memory map:");
     U64 installed_memory = 0;
-    for (INT i = 0; i < memoryMapItemCount; i++)
-    {
-        BootMemoryMapItem* item         = kBootLoaderInfo_getMemoryMapItem (mi, i);
-        U64                baseAddress  = kBootMemoryMapItem_getBaseAddress (item);
-        U64                length_bytes = kBootMemoryMapItem_getLength (item);
-        BootMemoryMapTypes type         = kBootMemoryMapItem_getType (item);
+    for (INT i = 0; i < memoryMapItemCount; i++) {
+        BootMemoryMapItem item  = kboot_getBootMemoryMapItem (i);
+        U64 baseAddress         = item.baseAddr;
+        U64 length_bytes        = item.length;
+        BootMemoryMapTypes type = item.type;
 
         installed_memory += length_bytes;
         INFO ("* map: Start = %llx, Length = %llx, Type = %u", baseAddress, length_bytes, type);
@@ -539,15 +534,14 @@ static void s_initializeMemoryManagers()
     // ---------------------------------------------------------------------------------------------
     // Then another reserved/used region is where the module files are loaded. PMM is made 'aware'
     // of that here.
-    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    INT filesCount                 = kBootLoaderInfo_getFilesCount (bootloaderinfo);
+    INT filesCount = kboot_getBootFileItemCount();
 
-    BootFileItem* fileinfo      = kBootLoaderInfo_getFileItem (bootloaderinfo, 0);
-    Physical first_startAddress = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
+    BootFileItem firstFile      = kboot_getBootFileItem (0);
+    BootFileItem lastFile       = kboot_getBootFileItem (filesCount - 1);
+    Physical first_startAddress = PHYSICAL (firstFile.startLocation);
 
-    fileinfo                     = kBootLoaderInfo_getFileItem (bootloaderinfo, filesCount - 1);
-    Physical last_startAddress   = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-    SIZE last_lengthBytes        = (USYSINT)kBootFileItem_getLength (fileinfo);
+    Physical last_startAddress   = PHYSICAL (lastFile.startLocation);
+    SIZE last_lengthBytes        = (USYSINT)lastFile.length;
     SIZE totalModulesLengthBytes = (last_startAddress.val - first_startAddress.val) +
                                    last_lengthBytes;
 

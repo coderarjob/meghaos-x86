@@ -1,86 +1,55 @@
 /*
-* --------------------------------------------------------------------------------------------------
-* Megha Operating System V2 - x86 Kernel - Methods to access structures passed by the bootloader.
-* --------------------------------------------------------------------------------------------------
-*/
+ * --------------------------------------------------------------------------------------------------
+ * Megha Operating System V2 - x86 Kernel - Methods to access structures passed by the bootloader.
+ * --------------------------------------------------------------------------------------------------
+ */
 #include <kassert.h>
 #include <x86/boot.h>
 #include <x86/memloc.h>
 #include <x86/boot_struct.h>
 #include <kdebug.h>
 
-BootLoaderInfo* kboot_getCurrentBootLoaderInfo ()
+static BootLoaderInfo* kboot_getCurrentBootLoaderInfo()
 {
     k_assert (MEM_START_BOOT_INFO, "BOOT INFO LOCATION is invalid");
     BootLoaderInfo* mi = (BootLoaderInfo*)MEM_START_BOOT_INFO;
     return mi;
 }
 
-U16 kBootLoaderInfo_getFilesCount (BootLoaderInfo const* bli)
+U16 kboot_getBootFileItemCount()
 {
-    k_assert (bli, "BootLoaderInfo is NULL");
-    return bli->filecount;
+    return kboot_getCurrentBootLoaderInfo()->filecount;
 }
 
-BootFileItem* kBootLoaderInfo_getFileItem (BootLoaderInfo const* bli, INT index)
+BootFileItem kboot_getBootFileItem (INT index)
 {
-    k_assert (bli, "BootLoaderInfo is NULL");
+    BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
     k_assert (index >= 0, "Index Invalid");
     k_assert (index < bli->filecount, "Index invalid");
 
-    return (BootFileItem *)&bli->files[index];
+    return bli->files[index];
 }
 
-U16 kBootLoaderInfo_getMemoryMapItemCount (BootLoaderInfo const* bli)
+U16 kboot_getBootMemoryMapItemCount()
 {
-    k_assert (bli, "BootLoaderInfo is NULL");
-    return bli->count;
+    return kboot_getCurrentBootLoaderInfo()->count;
 }
 
-BootMemoryMapItem* kBootLoaderInfo_getMemoryMapItem (BootLoaderInfo const* bli, INT index)
+BootMemoryMapItem kboot_getBootMemoryMapItem (INT index)
 {
-    k_assert (bli, "BootLoaderInfo is NULL");
+    BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
+
     k_assert (index >= 0, "Index Invalid");
     k_assert (index < bli->count, "Index invalid");
 
-    return (BootMemoryMapItem *)&bli->items[index];
+    return bli->items[index];
 }
 
-U32 kBootFileItem_getStartLocation (BootFileItem const* bfi)
+ULLONG kboot_calculateInstalledMemory()
 {
-    k_assert (bfi, "BootFileItem is NULL");
-    return bfi->startLocation;
-}
+    BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
 
-U16 kBootFileItem_getLength (BootFileItem const* bfi)
-{
-    k_assert (bfi, "BootFileItem is NULL");
-    return bfi->length;
-}
-
-U64 kBootMemoryMapItem_getBaseAddress (BootMemoryMapItem const* bmmi)
-{
-    k_assert (bmmi, "BootMemoryMapItem is NULL");
-    return bmmi->baseAddr;
-}
-
-U64 kBootMemoryMapItem_getLength (BootMemoryMapItem const* bmmi)
-{
-    k_assert (bmmi, "BootMemoryMapItem is NULL");
-    return bmmi->length;
-}
-
-BootMemoryMapTypes kBootMemoryMapItem_getType (BootMemoryMapItem const* bmmi)
-{
-    k_assert (bmmi, "BootMemoryMapItem is NULL");
-    return (BootMemoryMapTypes)bmmi->type;
-}
-
-ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli)
-{
-    k_assert (bli, "BootLoaderInfo is NULL");
-
-    INT mapCount = bli->count;
+    INT mapCount     = bli->count;
     U64 length_bytes = 0;
 
     for (INT i = 0; i < mapCount; i++)
@@ -89,8 +58,7 @@ ULLONG kboot_calculateAvailableMemory (BootLoaderInfo const* bli)
     return length_bytes;
 }
 
-GraphisModeInfo kboot_getGraphicsModeInfo (BootLoaderInfo const* bli)
+GraphisModeInfo kboot_getGraphicsModeInfo()
 {
-    k_assert (bli, "BootLoaderInfo is NULL");
-    return bli->gxInfo;
+    return kboot_getCurrentBootLoaderInfo()->gxInfo;
 }
