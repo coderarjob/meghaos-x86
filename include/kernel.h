@@ -21,6 +21,7 @@ typedef struct KernelStateInfo {
     } phase;                // Phase in which the Kernel is in currently.
     UINT errorNumber;       // Code for last error.
     VMemoryManager *context;
+    PTR framebuffer;
 } KernelStateInfo;
 
 extern KernelStateInfo g_kstate;

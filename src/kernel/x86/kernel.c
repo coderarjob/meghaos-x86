@@ -52,6 +52,9 @@ static void process_poc();
 //static void multiprocess_demo();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
+static void graphics_init();
+static void graphics_rect(UINT x, UINT y, UINT h, UINT w, U32 color);
+static void graphics_image(UINT x, UINT y, UINT w, UINT h, U8* bytes);
 
 /* Kernel state global variable */
 KernelStateInfo g_kstate;
@@ -154,7 +157,58 @@ void kernel_main ()
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
     //---------------
+    graphics_init();
+    graphics_rect(0, 0, 800, 600, 221);
+    graphics_rect(100, 100, 200, 200, 0x4);
+    graphics_rect(10, 10, 20, 20, 0x2);
+
+    U8 *image = kmalloc(400);
+    k_memset(image, 118, 400);
+    graphics_image(300, 300, 20, 20, image);
+
+    k_halt();
+    process_poc();
+    //new_process();
+    //new_process_2();
+
+    k_halt();
+}
+
+static void graphics_image(UINT x, UINT y, UINT w, UINT h, U8* bytes)
+{
     GraphisModeInfo gmi = kboot_getGraphicsModeInfo ();
+    SIZE  bytesPerPixel = gmi.bitsPerPixel/8U;
+    PTR start = g_kstate.framebuffer + (y * gmi.bytesPerScanLine) + (x * bytesPerPixel);
+
+    for (; h > 0; h--) {
+        PTR row = start;
+        for (UINT lw = w; lw > 0; lw--, bytes++) {
+            *(U8*)row = *bytes;
+            row += bytesPerPixel;
+        }
+        start += gmi.bytesPerScanLine;
+    }
+}
+
+static void graphics_rect(UINT x, UINT y, UINT w, UINT h, U32 color)
+{
+    GraphisModeInfo gmi = kboot_getGraphicsModeInfo ();
+    SIZE  bytesPerPixel = gmi.bitsPerPixel/8U;
+    PTR start = g_kstate.framebuffer + (y * gmi.bytesPerScanLine) + (x * bytesPerPixel);
+
+    for (; h > 0; h--) {
+        PTR row = start;
+        for (UINT lw = w; lw > 0; lw--) {
+            *(U8*)row = (U8)color;
+            row += bytesPerPixel;
+        }
+        start += gmi.bytesPerScanLine;
+    }
+}
+
+static void graphics_init()
+{
+    GraphisModeInfo gmi = kboot_getGraphicsModeInfo();
 
     INFO ("Mode: %x", gmi.graphicsMode);
     INFO ("VBE Version: %x", gmi.vbeVersion);
@@ -162,26 +216,16 @@ void kernel_main ()
     INFO ("Resolution: %u x %u, %ubpp", gmi.xResolution, gmi.yResolution, gmi.bitsPerPixel);
     INFO ("BytesPerScanLine: %x", gmi.bytesPerScanLine);
 
-    SIZE szBytes  = (SIZE)gmi.bytesPerScanLine * gmi.yResolution * gmi.bitsPerPixel/8;
+    SIZE szBytes  = (SIZE)gmi.bytesPerScanLine * gmi.yResolution * gmi.bitsPerPixel / 8;
     SIZE szPages  = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
     Physical fbpa = gmi.framebufferPhysicalPtr;
     if (fbpa.val != 0) {
-        PTR va = kvmm_alloc (g_kstate.context, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
-                             VMM_ADDR_SPACE_FLAG_PREMAP);
+        g_kstate.framebuffer = kvmm_alloc (g_kstate.context, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
+                                           VMM_ADDR_SPACE_FLAG_PREMAP);
 
-        kpg_mapContinous (kpg_getcurrentpd(), va, fbpa, szPages, PG_MAP_FLAG_KERNEL_DEFAULT);
-
-        // Fill FB with a red color
-        k_memset_pat4 ((void*)va, 0x4, 1, szBytes);
-    } else {
-        kdebug_println ("Graphics mode not supported");
+        kpg_mapContinous (kpg_getcurrentpd(), g_kstate.framebuffer, fbpa, szPages,
+                          PG_MAP_FLAG_KERNEL_DEFAULT);
     }
-    k_halt();
-    process_poc();
-    //new_process();
-    //new_process_2();
-
-    k_halt();
 }
 
 //static void vmm_basic_testing()
