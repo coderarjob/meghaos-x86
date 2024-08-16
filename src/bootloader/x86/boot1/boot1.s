@@ -245,7 +245,12 @@ __load_kernel_and_ramdisks:
         printString msg_success
 
     ; ---- Next file name after
-        add [.copy_dest_location], ax
+        ; Increment Destination location by the value in EAX. The high bits of
+        ; EAX can be garbage so we clear it before adding.
+        push ax
+            xor eax, eax
+        pop ax
+        add [.copy_dest_location], eax
         add di, file_des_t_size
         inc cx
 
