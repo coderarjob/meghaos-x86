@@ -79,12 +79,16 @@ void reset();          // MUST BE DEFINED BY THE USER OF fake.h
            : FK_STRUCT_VAR(f).ret
 
 #define FK_FUNC_PARAMS_X(n,...) FK_FUNC_PARAMS_ ## n(__VA_ARGS__)
+#define FK_FUNC_PARAMS_6(t,...) t f, FK_FUNC_PARAMS_5(__VA_ARGS__)
+#define FK_FUNC_PARAMS_5(t,...) t e, FK_FUNC_PARAMS_4(__VA_ARGS__)
 #define FK_FUNC_PARAMS_4(t,...) t d, FK_FUNC_PARAMS_3(__VA_ARGS__)
 #define FK_FUNC_PARAMS_3(t,...) t c, FK_FUNC_PARAMS_2(__VA_ARGS__)
 #define FK_FUNC_PARAMS_2(t,...) t b, FK_FUNC_PARAMS_1(__VA_ARGS__)
 #define FK_FUNC_PARAMS_1(t,...) t a
 #define FK_FUNC_PARAMS_0(...)
 
+#define FK_FUNC_ARG_6() f, FK_FUNC_PARAMS_5()
+#define FK_FUNC_ARG_5() e, FK_FUNC_PARAMS_4()
 #define FK_FUNC_ARG_4() d, FK_FUNC_PARAMS_3()
 #define FK_FUNC_ARG_3() c, FK_FUNC_PARAMS_2()
 #define FK_FUNC_ARG_2() b, FK_FUNC_PARAMS_1()

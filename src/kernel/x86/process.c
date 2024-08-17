@@ -232,19 +232,11 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     pinfo->binary.sizePages          = BYTES_TO_PAGEFRAMES_CEILING (binLengthBytes);
 
     // Allocate virtual and physical memory for the program binary.
-    if (!(kvmm_allocAt (pinfo->context, pinfo->binary.virtualMemoryStart, pinfo->binary.sizePages,
-                        PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED,
-                        VMM_ADDR_SPACE_FLAG_PRECOMMIT))) {
+    Physical pa;
+    if (!(kvmm_memmap (pinfo->context, pinfo->binary.virtualMemoryStart, NULL,
+                       pinfo->binary.sizePages, VMM_MEMMAP_FLAG_IMMCOMMIT, &pa))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
     }
-
-    // Copy the binary data to the allocated location
-    PageDirectory pd = kpg_temporaryMap (kvmm_getPageDirectory (pinfo->context));
-    Physical pa;
-    if (!kpg_doesMappingExists (pd, pinfo->binary.virtualMemoryStart, &pa)) {
-        BUG(); // Cannot fail under normal operation. It was just mapped above.
-    }
-    kpg_temporaryUnmap();
 
     k_memcpyToPhyMem (pa, (PTR)processStartAddress, binLengthBytes);
     return true;
@@ -255,12 +247,11 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
     FUNC_ENTRY ("Pinfo: %px", pinfo);
 
     // Process stacks are always allocated dynamically. Their sizes are fixed for now though
-    PagingMapFlags pgFlags            = PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED;
-    VMemoryAddressSpaceFlags vasFlags = VMM_ADDR_SPACE_FLAG_NONE;
-    pinfo->stack.sizePages = BYTES_TO_PAGEFRAMES_CEILING (ARCH_MEM_LEN_BYTES_PROCESS_STACK);
+    VMemoryMemMapFlags flags = VMM_MEMMAP_FLAG_NONE;
+    pinfo->stack.sizePages   = BYTES_TO_PAGEFRAMES_CEILING (ARCH_MEM_LEN_BYTES_PROCESS_STACK);
 
     if (BIT_ISSET (pinfo->flags, PROCESS_FLAGS_KERNEL_PROCESS)) {
-        pgFlags |= PG_MAP_FLAG_KERNEL;
+        flags |= VMM_MEMMAP_FLAG_KERNEL_PAGE;
         // We need to pre-allocate & map physical memory for Kernel threads/processes. The reason is
         // this: Normally Physical pages are allocated in the page fault handler after a page fault.
         // After a page fault, control is passed to the Kernel (Ring 0 stack and privilage level
@@ -271,7 +262,7 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
         // handler which pushes registers values causing another page fault.
         //
         // So I think we have to premap stack memory for Kernel threads and processes.
-        vasFlags |= VMM_ADDR_SPACE_FLAG_PRECOMMIT;
+        flags |= VMM_MEMMAP_FLAG_IMMCOMMIT;
     }
 
     // Find virtual address for process stack
@@ -281,21 +272,21 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
     }
 
     // NULL page at the bottom of the stack
-    if (!kvmm_allocAt (pinfo->context, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+    if (!kvmm_memmap (pinfo->context, stackVA, NULL, 1, VMM_MEMMAP_FLAG_NULLPAGE, NULL)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Stack itself
     stackVA += CONFIG_PAGE_FRAME_SIZE_BYTES;
     pinfo->stack.virtualMemoryStart = stackVA;
-    if (!kvmm_allocAt (pinfo->context, pinfo->stack.virtualMemoryStart, pinfo->stack.sizePages,
-                       pgFlags, vasFlags)) {
+    if (!kvmm_memmap (pinfo->context, pinfo->stack.virtualMemoryStart, NULL, pinfo->stack.sizePages,
+                      flags, NULL)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // NULL page at the top of the stack
     stackVA += (pinfo->stack.sizePages * CONFIG_PAGE_FRAME_SIZE_BYTES);
-    if (!kvmm_allocAt (pinfo->context, stackVA, 1, 0, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+    if (!kvmm_memmap (pinfo->context, stackVA, NULL, 1, VMM_MEMMAP_FLAG_NULLPAGE, NULL)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 

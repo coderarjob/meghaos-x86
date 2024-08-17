@@ -138,6 +138,8 @@ void kernel_main ()
     //find_virtual_address();
     //display_system_info ();
     //s_dumpPab();
+    //vmm_basic_testing();
+    //k_halt();
     
     //---------------
     int cpuflags_present = 0;
@@ -230,52 +232,69 @@ static void graphics_init()
 
 //static void vmm_basic_testing()
 //{
-//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//    FUNC_ENTRY();
 //
-//    VMemoryManager* vmm = kvmm_new (0xC03E8000, 0xC03EA000, &g_kstate.kernelPageDirectory);
+//    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 //
-//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//    // Physical kernelPD = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
+//    // VMemoryManager* vmm = kvmm_new (0xC03E8000, 0xC03EA000, kernelPD, PMM_REGION_ANY);
+//    VMemoryManager* vmm = g_kstate.context;
 //
-//    int* addr = (int*)kvmm_alloc (vmm, 1, PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_NONE);
-//    INFO ("Allocated address: %px", addr);
+//    Physical newPA;
+//    kpmm_alloc(&newPA, 2, PMM_REGION_ANY);
 //
-//    // Commit page here only
-//    PageDirectory pd = kpg_getcurrentpd();
-//    Physical pa;
+//    int* addr = (int*)kvmm_memmap (vmm, (PTR)NULL, &newPA, 2,
+//                                   VMM_MEMMAP_FLAG_IMMCOMMIT | VMM_MEMMAP_FLAG_KERNEL_PAGE, &newPA);
 //
-//    kpmm_alloc (&pa, 1, PMM_REGION_ANY);
+//    INFO ("Allocated Physical page: %px", newPA.val);
 //
-//    PTR va        = 0xC03E8000;
-//    PTR pageStart = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
-//    kpg_map (pd, pageStart, pa, PG_MAP_FLAG_KERNEL_DEFAULT);
-//    INFO ("Commit successful for VA: %px", va);
-//
-//    // Test allocation
 //    kvmm_printVASList (vmm);
 //
 //    *addr = 10;
-//    kdebug_println ("Value is %u", *addr);
+//    INFO ("Reading from %px. Value is: %u", addr, *addr);
 //
 //    // Now delete allocated vm address space
-//    // kvmm_free(vmm, va);
+//    kvmm_free(vmm, (PTR)addr);
 //
-//    //// Test Deallocation
-//    // kvmm_printVASList (vmm);
-//
-//    // kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    // kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    // kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
-//
-//    // Now delete complete VMM
-//    kvmm_delete (&vmm);
-//
-//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//    //
+//    //    int* addr = (int*)kvmm_alloc (vmm, 1, PG_MAP_FLAG_KERNEL_DEFAULT,
+//    //    VMM_ADDR_SPACE_FLAG_NONE); INFO ("Allocated address: %px", addr);
+//    //
+//    //    // Commit page here only
+//    //    PageDirectory pd = kpg_getcurrentpd();
+//    //    Physical pa;
+//    //
+//    //    kpmm_alloc (&pa, 1, PMM_REGION_ANY);
+//    //
+//    //    PTR va        = 0xC03E8000;
+//    //    PTR pageStart = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
+//    //    kpg_map (pd, pageStart, pa, PG_MAP_FLAG_KERNEL_DEFAULT);
+//    //    INFO ("Commit successful for VA: %px", va);
+//    //
+//    //    // Test allocation
+//    //    kvmm_printVASList (vmm);
+//    //
+//    //    *addr = 10;
+//    //    kdebug_println ("Value is %u", *addr);
+//    //
+//    //    // Now delete allocated vm address space
+//    //    // kvmm_free(vmm, va);
+//    //
+//    //    //// Test Deallocation
+//    //    // kvmm_printVASList (vmm);
+//    //
+//    //    // kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    //    // kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    //    // kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//    //
+//    //    // Now delete complete VMM
+//    //    kvmm_delete (&vmm);
+//    //
+//    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 //}
 
 //static void multiprocess_demo()
@@ -616,9 +635,9 @@ static void s_initializeMemoryManagers()
             pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
         } else if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
             const SIZE szPages = s_getPhysicalBlockPageCount (pa, paRegionEnd);
-            if (kvmm_allocAt (g_kstate.context, va, szPages, PG_MAP_FLAG_KERNEL_DEFAULT,
-                              VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
-                k_panicOnError(); // must not fail.
+            if (!kvmm_memmap (g_kstate.context, va, NULL, szPages,
+                              VMM_MEMMAP_FLAG_KERNEL_PAGE | VMM_MEMMAP_FLAG_COMMITTED, NULL)) {
+                FATAL_BUG(); // Should not fail.
             }
             pa.val += PAGEFRAMES_TO_BYTES (szPages);
         }
@@ -627,13 +646,13 @@ static void s_initializeMemoryManagers()
     // ---------------------------------------------------------------------------------------------
     // There are certain virutal addresses that are reserved for Kernel use. These are reserved
     // here.
-    if (kvmm_allocAt (g_kstate.context, MEM_START_PAGING_EXT_TEMP_MAP, 1,
-                      PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
-        k_panicOnError();
+    if (!kvmm_memmap (g_kstate.context, MEM_START_PAGING_EXT_TEMP_MAP, NULL, 1,
+                      VMM_MEMMAP_FLAG_KERNEL_PAGE | VMM_MEMMAP_FLAG_COMMITTED, NULL)) {
+        FATAL_BUG(); // Should not fail.
     }
 
-    if (kvmm_allocAt (g_kstate.context, MEM_START_PAGING_INT_TEMP_MAP, 1,
-                      PG_MAP_FLAG_KERNEL_DEFAULT, VMM_ADDR_SPACE_FLAG_PREMAP) == 0) {
-        k_panicOnError();
+    if (!kvmm_memmap (g_kstate.context, MEM_START_PAGING_INT_TEMP_MAP, NULL, 1,
+                      VMM_MEMMAP_FLAG_KERNEL_PAGE | VMM_MEMMAP_FLAG_COMMITTED, NULL)) {
+        FATAL_BUG(); // Should not fail.
     }
 }

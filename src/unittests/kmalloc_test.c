@@ -293,7 +293,7 @@ static size_t getCapacity (MallocLists list)
 void reset()
 {
     resetVMMFake();
-    kvmm_alloc_fake.ret               = (PTR)kmalloc_buffer;
+    kvmm_memmap_fake.ret              = (PTR)kmalloc_buffer;
     g_utmm.arch_mem_len_bytes_kmalloc = UT_KMALLOC_SIZE_BYTES;
 
     kmalloc_init();

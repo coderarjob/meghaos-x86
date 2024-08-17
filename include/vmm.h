@@ -23,19 +23,26 @@ typedef enum VMemoryAddressSpaceFlags {
                                               // address space.
 } VMemoryAddressSpaceFlags;
 
+typedef enum VMemoryMemMapFlags {
+    VMM_MEMMAP_FLAG_NONE        = 0,
+    VMM_MEMMAP_FLAG_KERNEL_PAGE = (1 << 0),
+    VMM_MEMMAP_FLAG_READONLY    = (1 << 1),
+    VMM_MEMMAP_FLAG_NULLPAGE    = (1 << 2), // Never backed, page fault on access.
+    VMM_MEMMAP_FLAG_IMMCOMMIT   = (1 << 3), // Commit physical pages (use provided input) now.
+    VMM_MEMMAP_FLAG_COMMITTED   = (1 << 4), // VAs are already mapped outside VMM.
+} VMemoryMemMapFlags;
+
 typedef struct VMemoryManager VMemoryManager;
 
 VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
                           KernelPhysicalMemoryRegions physicalRegion);
 Physical kvmm_getPageDirectory (const VMemoryManager* vmm);
 bool kvmm_delete (VMemoryManager** vmm);
-PTR kvmm_alloc (VMemoryManager* vmm, SIZE szPages, PagingMapFlags pgFlags,
-                VMemoryAddressSpaceFlags vasFlags);
-PTR kvmm_allocAt (VMemoryManager* vmm, PTR va, SIZE szPages, PagingMapFlags pgFlags,
-                  VMemoryAddressSpaceFlags vasFlags);
 bool kvmm_free (VMemoryManager* vmm, PTR start_va);
 bool kvmm_commitPage (VMemoryManager* vmm, PTR va);
 PTR kvmm_findFree (VMemoryManager* vmm, SIZE szPages);
+PTR kvmm_memmap (VMemoryManager* vmm, PTR va, Physical const* const pa, SIZE szPages,
+                 VMemoryMemMapFlags flags, Physical* const outPA);
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 void kvmm_printVASList (VMemoryManager* vmm);
