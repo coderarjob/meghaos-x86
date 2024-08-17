@@ -53,6 +53,7 @@ msg_AVLMEM : db 13,10,"[  ]    Available memory. ",0
 msg_success: db 13,"[OK]",0
 msg_failed : db 13,"[ER]",0
 
+%ifdef GRAPHICS_MODE_ENABLED
 vbemode:
     istruc vbe_modequery_t
         ; Input to vbe2_find_mode, vbe2_switch_mode
@@ -67,6 +68,7 @@ vbemode:
         at .FrameBuffer       , dd 0
         at .BytesPerScanLine  , dw 0
     iend
+%endif
 
 ; ******************************************************
 ; CODE
@@ -81,7 +83,9 @@ _start:
     printString msg_welcome
 
     ; -------- [ DEBUG: Print VBE Information] -----------
+%ifdef GRAPHICS_MODE_ENABLED
     call vbe2_dump_modes
+%endif
 
     ; -------- [ Clean Boot info memory ] -----------
     mov al, 0
@@ -143,6 +147,7 @@ _start:
     call copy_gdt_to_global
 
     ; -------- [ Switch to graphics Mode ] -----------
+%ifdef GRAPHICS_MODE_ENABLED
     mov edi, vbemode
     call vbe2_find_mode
     jc .gx_failed
@@ -168,6 +173,7 @@ _start:
     ; Clear Mode to indicate failure. This  also means that OS is operating in
     ; text mode
     mov [vbemode + vbe_modequery_t.Mode], word 0
+%endif
 
     ; -------- [ All set, now jump to kernel ] -----------
 .goto_kernel:

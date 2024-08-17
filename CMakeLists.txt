@@ -13,6 +13,7 @@ project(MeghaOS-V2 C ASM_NASM)
 
 set(MOS_DEBUG_LEVEL "1" CACHE STRING "Sets DEBUG_LEVEL option to this value")
 set(MOS_BUILD_MODE "DEBUG" CACHE STRING "Debug mode")
+set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
 
 set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
 set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
@@ -55,6 +56,7 @@ add_custom_target(show-info ALL
     COMMAND ${CMAKE_COMMAND} -E echo "- C COMPILER      : ${CMAKE_C_COMPILER}"
     COMMAND ${CMAKE_COMMAND} -E echo "- BUILD MODE      : ${MOS_BUILD_MODE}"
     COMMAND ${CMAKE_COMMAND} -E echo "- DEBUG LEVEL     : ${MOS_DEBUG_LEVEL}"
+    COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS MODE   : ${MOS_GRAPHICS_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"
     )
 #---------------------------------------------------------------------------

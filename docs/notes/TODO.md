@@ -96,6 +96,18 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Determine CPU/machine capabilites and take steps if they are less   | 17 Aug 24 |            |
+| than the minimum required. Here are some of the items we requrire:      |           |            |
+| * P6 processor                                                          |           |            |
+| * Protected mode                                                        |           |            |
+| * Paging support                                                        |           |            |
+| * FPU installed                                                         |           |            |
+| * 800x600, 8bpp VESA mode                                               |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] How to determine if an FPU is installed and how to enable it if     | 17 Aug 24 |            |
+| it is.                                                                  |           |            |
+| ::: [ ] Print floating point (double & float) using kprintf             | 17 Aug 24 |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Are assertOnError and panicOnError requried? They check if errno    | 16 Apr 24 |            |
 | is set then one asserts and other panics. However as errno is never     |           |            |
 | reset, these macros can only be used when a function fails, so the      |           |            |
@@ -187,6 +199,7 @@
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
 | ::: [ ] May be kpg_temporaryMap/Unmap can call kpg_map.                 | 14 Jul 24 |            |
+| ::: [ ] kvmm_memmap API may simplify the VMM API.                       | 17 Aug 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] DEBUG_LEVEL determines where debug messages are printed. Does it    | 27 May 24 |            |
 | makes sense to print debug messages in NDEBUG build mode?               |           |            |
