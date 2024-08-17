@@ -6,6 +6,10 @@ environment to do experiments with the computer and to play around.
 
 It runs of a 1.44 MiB floppy and can be configured to use minimal physical memory.
 
+| ![MeghaOS Screenshot](/docs/images/meghaos_vesafb.png) |
+|---|
+| `Drawing to VESA frame buffer - Demonstrating drawing rectangle and images` |
+
 | ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
 |---|
 | `Cooperative multitasking demo - Processes running 'simultaneously'` |
@@ -41,7 +45,8 @@ The end product will be ready for a programmer but not for general use.
 - [X] Processes and threads capable of doing system calls.
 - [X] Cooperative multitasking scheduling and basic process management.
 - [X] Enhancements to the process management.
-- [ ] VESA VGA driver.
+- [X] VESA VGA frame buffer.
+- [ ] Basic graphics & fonts library
 - [ ] Keyboard driver.
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] Rudimentary shell.
