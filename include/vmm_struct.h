@@ -17,32 +17,21 @@ typedef struct VMemoryShare {
     SIZE refcount; // Number of VirtualAddressSpace objects that share this Memory
 } VMemoryShare;
 
-typedef enum VMemoryManagerFlags {
-    VMM_FLAG_NONE         = 0,
-    VMM_FLAG_STATIC_ALLOC = (1 << 1), // Allocated using salloc not kmalloc
-} VMemoryManagerFlags;
-
-typedef enum VMemoryAddressSpaceIntFlags {
-    VMM_INTERNAL_ADDR_SPACE_FLAG_NONE         = 0,
-    VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC = (1 << 1), // Allocated using salloc not kmalloc
-} VMemoryAddressSpaceIntFlags;
-
 struct VMemoryManager {
     PTR start;
     PTR end;
-    VMemoryManagerFlags flags;
+    bool isStaticAllocated;
     Physical parentProcessPD;
     KernelPhysicalMemoryRegions physicalRegion;
     ListNode head;
 };
 
 typedef struct VMemoryAddressSpace {
-    VMemoryAddressSpaceFlags vasFlags;            // Arch independent VMM flags
-    VMemoryAddressSpaceIntFlags vasInternalFlags; // Internal VMM flags
-    PagingMapFlags pgFlags;                       // Arch independent Paging flags
-    PTR start_vm;                                 // Address space starts from this Virtual address
-    SIZE allocationSzBytes; // Number of virtual pages reserved by this Address space
-    S32 processID;          // 0 - Not associated with any process, otherwise this is the process ID
-    VMemoryShare* share;    // MemoryShare associated with this mapping.
+    bool isStaticAllocated;
+    VMemoryMemMapFlags flags;
+    PTR start_vm;            // Address space starts from this Virtual address
+    SIZE allocationSzBytes;  // Number of virtual pages reserved by this Address space
+    S32 processID;           // 0 - Associated with kernel, otherwise this is the process ID
+    VMemoryShare* share;     // MemoryShare associated with this mapping.
     ListNode adjMappingNode; // Adds to Virtual Address space list through this node.
 } VMemoryAddressSpace;

@@ -19,11 +19,10 @@
 #include <kernel.h>
 
 static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocatedBytes,
-                                                    PagingMapFlags pgFlags,
-                                                    VMemoryAddressSpaceFlags vasFlags)
+                                                    VMemoryMemMapFlags flags)
 {
-    VMemoryAddressSpace* new                     = NULL;
-    VMemoryAddressSpaceIntFlags vasInternalFlags = VMM_INTERNAL_ADDR_SPACE_FLAG_NONE;
+    VMemoryAddressSpace* new = NULL;
+    bool isStaticAllocated   = false;
 
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
         if ((new = kmalloc (sizeof (VMemoryAddressSpace))) == NULL) {
@@ -33,7 +32,7 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
         if ((new = ksalloc (sizeof (VMemoryAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
-        vasInternalFlags |= VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC;
+        isStaticAllocated = true;
     }
 
     k_assert (IS_ALIGNED (allocatedBytes, CONFIG_PAGE_FRAME_SIZE_BYTES),
@@ -41,9 +40,8 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
 
     new->start_vm          = start_vm;
     new->allocationSzBytes = allocatedBytes;
-    new->pgFlags           = pgFlags;
-    new->vasFlags          = vasFlags;
-    new->vasInternalFlags  = vasInternalFlags;
+    new->flags             = flags;
+    new->isStaticAllocated = isStaticAllocated;
     new->processID         = 0;
     new->share             = NULL;
     list_init (&new->adjMappingNode);
@@ -51,13 +49,11 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
 }
 
 static VMemoryAddressSpace* addNewVirtualAddressSpace (VMemoryManager* vmm, PTR start_va,
-                                                       SIZE szPages, PagingMapFlags pgFlags,
-                                                       VMemoryAddressSpaceFlags vasFlags)
+                                                       SIZE szPages, VMemoryMemMapFlags flags)
 {
     SIZE szBytes = PAGEFRAMES_TO_BYTES (szPages);
 
-    INFO ("Adding address space: %x -> %x, pgFlags: %x, vas flags: %x", start_va,
-          (start_va + szBytes - 1), pgFlags, vasFlags);
+    INFO ("Adding address space: %x -> %x, flags: %x", start_va, (start_va + szBytes - 1), flags);
 
     // Start virtual address must be page aligned
     if (!IS_ALIGNED (start_va, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
@@ -69,7 +65,7 @@ static VMemoryAddressSpace* addNewVirtualAddressSpace (VMemoryManager* vmm, PTR 
         RETURN_ERROR (ERR_INVALID_RANGE, NULL);
     }
 
-    VMemoryAddressSpace* newVas = createNewVirtAddrSpace (start_va, szBytes, pgFlags, vasFlags);
+    VMemoryAddressSpace* newVas = createNewVirtAddrSpace (start_va, szBytes, flags);
     if (newVas == NULL) {
         // TODO: May be we should panic.
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
@@ -211,8 +207,12 @@ static bool commitVirtualPages (VMemoryManager const* const vmm, PTR vaStart,
     }
 
     // Map all the physical pages with the virtual ones
+    PagingMapFlags pgFlags = PG_MAP_FLAG_DEFAULT;
+    pgFlags |= BIT_ISSET (vas->flags, VMM_MEMMAP_FLAG_KERNEL_PAGE) ? PG_MAP_FLAG_KERNEL : 0;
+    pgFlags |= BIT_ISSET (vas->flags, VMM_MEMMAP_FLAG_READONLY) ? 0 : PG_MAP_FLAG_WRITABLE;
+
     PageDirectory pd = kpg_temporaryMap (vmm->parentProcessPD);
-    if (!kpg_mapContinous (pd, vaStart, l_paStart, numPages, vas->pgFlags)) {
+    if (!kpg_mapContinous (pd, vaStart, l_paStart, numPages, pgFlags)) {
         kpg_temporaryUnmap();
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
@@ -229,7 +229,7 @@ bool kvmm_delete (VMemoryManager** vmm)
 
     VMemoryManager* the_vmm = *vmm;
 
-    if (BIT_ISSET (the_vmm->flags, VMM_FLAG_STATIC_ALLOC)) {
+    if (the_vmm->isStaticAllocated) {
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
     }
 
@@ -263,8 +263,8 @@ VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
 
     k_assert (pd.val != 0, "PageDirectory address is NULL");
 
-    VMemoryManager* new_vmm   = NULL;
-    VMemoryManagerFlags flags = VMM_FLAG_NONE;
+    VMemoryManager* new_vmm = NULL;
+    bool isStaticAllocated  = false;
 
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
         if ((new_vmm = kmalloc (sizeof (VMemoryManager))) == NULL) {
@@ -278,14 +278,14 @@ VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
         if ((new_vmm = ksalloc (sizeof (VMemoryManager))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
-        flags |= VMM_FLAG_STATIC_ALLOC;
+        isStaticAllocated = true;
     }
 
-    new_vmm->start           = start;
-    new_vmm->end             = end;
-    new_vmm->flags           = flags;
-    new_vmm->parentProcessPD = pd;
-    new_vmm->physicalRegion  = physicalRegion;
+    new_vmm->start             = start;
+    new_vmm->end               = end;
+    new_vmm->isStaticAllocated = isStaticAllocated;
+    new_vmm->parentProcessPD   = pd;
+    new_vmm->physicalRegion    = physicalRegion;
     list_init (&new_vmm->head);
 
     return new_vmm;
@@ -337,17 +337,8 @@ PTR kvmm_memmap (VMemoryManager* vmm, PTR va, Physical const* const pa, SIZE szP
     }
 
     // Create a new Virtual Address Space object starting at 'va'
-    PagingMapFlags pgFlags = PG_MAP_FLAG_DEFAULT;
-    pgFlags |= BIT_ISSET (flags, VMM_MEMMAP_FLAG_KERNEL_PAGE) ? PG_MAP_FLAG_KERNEL : 0;
-    pgFlags |= BIT_ISSET (flags, VMM_MEMMAP_FLAG_READONLY) ? 0 : PG_MAP_FLAG_WRITABLE;
-
-    VMemoryAddressSpaceFlags vasFlags = VMM_ADDR_SPACE_FLAG_NONE;
-    vasFlags |= BIT_ISSET (flags, VMM_MEMMAP_FLAG_IMMCOMMIT) ? VMM_ADDR_SPACE_FLAG_PRECOMMIT : 0;
-    vasFlags |= BIT_ISSET (flags, VMM_MEMMAP_FLAG_NULLPAGE) ? VMM_ADDR_SPACE_FLAG_NULLPAGE : 0;
-    vasFlags |= BIT_ISSET (flags, VMM_MEMMAP_FLAG_COMMITTED) ? VMM_ADDR_SPACE_FLAG_PREMAP : 0;
-
     const VMemoryAddressSpace* newVas = NULL;
-    if ((newVas = addNewVirtualAddressSpace (vmm, va, szPages, pgFlags, vasFlags)) == NULL) {
+    if ((newVas = addNewVirtualAddressSpace (vmm, va, szPages, flags)) == NULL) {
         RETURN_ERROR (ERROR_PASSTHROUGH, (PTR)NULL);
     }
 
@@ -382,7 +373,7 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
     }
 
     // Address spaces that are allocated using salloc cannot be unreserved.
-    if (BIT_ISSET (vas->vasInternalFlags, VMM_INTERNAL_ADDR_SPACE_FLAG_STATIC_ALLOC)) {
+    if (vas->isStaticAllocated) {
         RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
     }
 
@@ -437,10 +428,9 @@ void kvmm_printVASList (VMemoryManager* vmm)
     {
         VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
 
-        INFO ("* %x -> %x. allocated size: %x, vasflags: %x, pgFlags: %x, "
-              "processID: %u.",
-              vas->start_vm, vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes,
-              vas->vasFlags, vas->pgFlags, vas->processID);
+        INFO ("* %x -> %x. allocated size: %x, flags: %x, processID: %u.", vas->start_vm,
+              vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes, vas->flags,
+              vas->processID);
     }
 }
 #endif
@@ -456,12 +446,12 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
         RETURN_ERROR (ERR_VMM_NOT_ALLOCATED, false);
     }
 
-    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_PREMAP) ||
-        BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_PRECOMMIT)) {
+    if (BIT_ISSET (vas->flags, VMM_MEMMAP_FLAG_IMMCOMMIT) ||
+        BIT_ISSET (vas->flags, VMM_MEMMAP_FLAG_COMMITTED)) {
         RETURN_ERROR (ERR_DOUBLE_ALLOC, false);
     }
 
-    if (BIT_ISSET (vas->vasFlags, VMM_ADDR_SPACE_FLAG_NULLPAGE)) {
+    if (BIT_ISSET (vas->flags, VMM_MEMMAP_FLAG_NULLPAGE)) {
         RETURN_ERROR (ERR_VMM_NULL_PAGE_ACCESS, false);
     }
 
