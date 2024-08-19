@@ -40,6 +40,7 @@ endfunction()
 # ==================================================================================================
 # link (NAME name
 #       DEPENDS <target> [<target> ...]
+#       [RESOURCES <path to resources to add>]
 #       [FLAGS <linker flags>]
 #       [LINKER_FILE <path to link script>]
 #       [LINK_LIBRARIES <libraries to link>]
@@ -63,6 +64,9 @@ endfunction()
 # DEPENDS
 # Names from `compile_lib` which this depends on.
 #
+# RESOURCES
+# These files will be copied to the MOS_BIN_DIR directory.
+#
 # FLAGS
 # Linker flags
 #
@@ -81,7 +85,7 @@ endfunction()
 # ==================================================================================================
 function(link)
     set(oneValueArgs NAME)
-    set(multiValueArgs DEPENDS FLAGS LINKER_FILE LINK_LIBRARIES)
+    set(multiValueArgs DEPENDS RESOURCES FLAGS LINKER_FILE LINK_LIBRARIES)
     set(options FLATTEN NO_LIST)
     cmake_parse_arguments(PARSE_ARGV 0 LINK "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -163,6 +167,21 @@ function(link)
             COMMENT "Building listing file for ${LINK_NAME}"
             )
     endif()
+    # -------------------------------------------------------------------------------------------
+    # Copy files in RESOURCES list to MOS_BIN_DIR
+    # -------------------------------------------------------------------------------------------
+    foreach(resource IN LISTS LINK_RESOURCES)
+        get_filename_component(FILE_TITLE ${resource} NAME)
+        set(OUTPUT_RES_FILE "${MOS_BIN_DIR}/${FILE_TITLE}")
+        add_custom_target(${FILE_TITLE} DEPENDS ${OUTPUT_RES_FILE})
+        add_custom_command(
+            OUTPUT ${OUTPUT_RES_FILE}
+            DEPENDS ${resource}
+            COMMAND ${CMAKE_COMMAND} -E copy ${resource} ${OUTPUT_RES_FILE}
+        )
+        add_dependencies(${EXE_NAME} ${FILE_TITLE})
+    endforeach()
+
 endfunction()
     
 # ==================================================================================================
@@ -277,16 +296,16 @@ function(assemble_and_copy_bin)
     # -------------------------------------------------------------------------------------------
     # Compile and copy binary files to destinations
     # -------------------------------------------------------------------------------------------
-    set(INTERMEDIATE_BIN_NANME ${ASSEMBLE_NAME}-lib)
+    set(INTERMEDIATE_BIN_NAME ${ASSEMBLE_NAME}-lib)
     compile_lib(
-        NAME ${INTERMEDIATE_BIN_NANME}
+        NAME ${INTERMEDIATE_BIN_NAME}
         SOURCES ${ASSEMBLE_SOURCES}
         FLAGS ${ASSEMBLE_FLAGS}
         INCLUDE_DIRECTORIES ${ASSEMBLE_INCLUDE_DIRECTORIES}
         )
     copy_object_file(
         NAME ${ASSEMBLE_NAME}
-        DEPENDS ${INTERMEDIATE_BIN_NANME}
+        DEPENDS ${INTERMEDIATE_BIN_NAME}
         OUTPUT_DIRECTORY ${MOS_BIN_DIR}
         )
 endfunction()
