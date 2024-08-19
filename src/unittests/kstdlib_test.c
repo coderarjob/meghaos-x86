@@ -14,6 +14,41 @@ TEST(MEM, memset_one_byte)
     END();
 }
 
+TEST(STRING, string_length)
+{
+    EQ_SCALAR(k_strlen(""), 0);
+    EQ_SCALAR(k_strlen("ABCD"), 4);
+    EQ_SCALAR(k_strlen("A\n\tB"), 4);
+    END();
+}
+
+TEST(STRING, string_copy)
+{
+    char destination[10];
+    char *source = NULL;
+
+    // Copy empty string
+    source = "";
+    EQ_SCALAR((PTR)k_strncpy(destination,source,ARRAY_LENGTH(destination)), (PTR)destination);
+    EQ_STRING(source, destination);
+
+    // Copy < size of destination
+    source = "ABC";
+    EQ_SCALAR((PTR)k_strncpy(destination,source,ARRAY_LENGTH(destination)), (PTR)destination);
+    EQ_STRING(source, destination);
+
+    //// Copy = size of destination
+    source = "123456789";
+    EQ_SCALAR((PTR)k_strncpy(destination,source,ARRAY_LENGTH(destination)), (PTR)destination);
+    EQ_STRING(source, destination);
+
+    //// Copy > size of destination
+    //source = "123456789ABCD";
+    EQ_SCALAR((PTR)k_strncpy(destination,source,ARRAY_LENGTH(destination)), (PTR)destination);
+    EQ_STRING("123456789", destination); // Not more than size of destination is copied.
+    END();
+}
+
 TEST (MEMSET_PAT4, memset_pat4_2_bytes_pat)
 {
     U32 pattern       = 0x10FF;
@@ -119,4 +154,6 @@ int main()
     memset_pat4_2_bytes_pat();
     memset_pat4_3_bytes_pat();
     memset_pat4_4_bytes_pat();
+    string_length();
+    string_copy();
 }
