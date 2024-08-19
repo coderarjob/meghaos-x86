@@ -143,11 +143,12 @@ function(link)
         # The final binary should be in the ${MOS_BIN_DIR} directory. In case of flat binaries the
         # output from objdump should go to ${MOS_BIN_DIR} directory.
         set(OUT_FLAT_FILE ${MOS_BIN_DIR}/${LINK_NAME})
-        add_custom_target(
-            ${LINK_NAME}
-            BYPRODUCTS ${OUT_FLAT_FILE}
+        add_custom_target(${LINK_NAME} DEPENDS ${OUT_FLAT_FILE})
+        add_custom_command(
+            OUTPUT ${OUT_FLAT_FILE}
+            DEPENDS ${EXE_NAME}
             COMMAND ${CROSS_OBJCOPY} -O binary $<TARGET_FILE:${EXE_NAME}> ${OUT_FLAT_FILE}
-            )
+        )
     endif()
     # -------------------------------------------------------------------------------------------
     # Generate listing files
@@ -192,12 +193,15 @@ function(copy_object_file)
     # Copy the object file produced by the 'Dependency' to the 'output directory'
     # -------------------------------------------------------------------------------------------
     set(OUT_FLAT_FILE ${CPOBJ_OUTPUT_DIRECTORY}/${CPOBJ_NAME})
-    add_custom_target(
-        ${CPOBJ_NAME}
-        BYPRODUCTS ${OUT_FLAT_FILE}
-        DEPENDS ${CPOBJ_DEPENDS}
+    add_custom_target(${CPOBJ_NAME} DEPENDS ${OUT_FLAT_FILE})
+    # NOTE: DEPENDS includes both the target name (${CPOBJ_NAME} as well as the corresponding object
+    # file ($<TARGET_OBJECTS:${CPOBJ_DEPENDS}>). I am not sure why both is required, but I think its
+    # because the target is a OBJECT library type, otherwise it would not have been required.
+    add_custom_command(
+        OUTPUT ${OUT_FLAT_FILE}
+        DEPENDS ${CPOBJ_DEPENDS} $<TARGET_OBJECTS:${CPOBJ_DEPENDS}>
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${CPOBJ_DEPENDS}> ${OUT_FLAT_FILE}
-        )
+    )
 endfunction()
 
 # ==================================================================================================
