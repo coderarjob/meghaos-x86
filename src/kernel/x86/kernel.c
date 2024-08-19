@@ -87,6 +87,7 @@ void kernel_main ()
 
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
     s_initializeMemoryManagers();
+    kvmm_printVASList(g_kstate.context);
 
     kearly_printf ("\r[OK]");
 
@@ -170,6 +171,10 @@ void kernel_main ()
         U8* image = kmalloc (400);
         k_memset (image, 0x1, 400);
         graphics_image (10, 31, 20, 20, image);
+
+        Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
+        image              = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
+        graphics_image (690, 10, 100, 100, image);
     } else {
         ERROR("Graphics mode could not be enabled");
     }

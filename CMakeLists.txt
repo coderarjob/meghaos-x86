@@ -98,6 +98,8 @@ if(CMAKE_CROSSCOMPILING)
             kernel
             kernel_entry
             kernel_X86
+        RESOURCES
+            ${CMAKE_SOURCE_DIR}/docs/images/mos.rbm
         FLAGS ${MOS_KERNEL_LINKER_OPTIONS}
         LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
         LINK_LIBRARIES gcc

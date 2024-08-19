@@ -35,7 +35,7 @@
 	; Version informations
     ; ------------------------------------------------------------------------
 	%define     BOOT0_BUILD 	"20211224"
-	%define     BOOT1_BUILD 	"20220710"
+	%define     BOOT1_BUILD 	"20240816"
 	%define 	OS_NAME 	    "MEGHA OPERATING SYSTEM V2 - x86"
 
 	; MOS Fixed Memory Locations
@@ -62,6 +62,7 @@
     %define KERNEL_FILE     "KERNEL  FLT"
     %define PROC1_FILE      "PROC1   FLT"
     %define MPDEMO_FILE     "MPDEMO  FLT"
+    %define MOS_IMAGE_FILE  "MOS     RBM"
 
 	; Structures
     ; ------------------------------------------------------------------------
