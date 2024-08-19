@@ -37,3 +37,10 @@ void kvmm_printVASList (VMemoryManager* vmm);
 #else
     #define kvmm_printVASList(a) (void)0
 #endif
+
+#ifdef DEBUG
+void kvmm_setAddressSpaceMetadata (VMemoryManager const* const vmm, PTR addr,
+                                   CHAR const* const purpose, UINT const* const pid);
+#else
+    #define kvmm_setAddressSpaceMetadata(a, b, c, d) (void)0
+#endif // DEBUG

@@ -31,7 +31,12 @@ typedef struct VMemoryAddressSpace {
     VMemoryMemMapFlags flags;
     PTR start_vm;            // Address space starts from this Virtual address
     SIZE allocationSzBytes;  // Number of virtual pages reserved by this Address space
-    S32 processID;           // 0 - Associated with kernel, otherwise this is the process ID
     VMemoryShare* share;     // MemoryShare associated with this mapping.
     ListNode adjMappingNode; // Adds to Virtual Address space list through this node.
+    // These are debug specific properties/metadata and no operation in VMM depend on them.
+#ifdef DEBUG
+    U32 processID;    // 0 - Associated with kernel, otherwise this is the process ID
+    char purpose[10]; // The purpose of this address space.
+
+#endif // DEBUG
 } VMemoryAddressSpace;

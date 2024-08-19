@@ -17,6 +17,9 @@
 #include <kstdlib.h>
 #include <kerror.h>
 #include <kernel.h>
+#ifdef DEBUG
+    #include <process.h>
+#endif // DEBUG
 
 static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocatedBytes,
                                                     VMemoryMemMapFlags flags)
@@ -42,8 +45,10 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
     new->allocationSzBytes = allocatedBytes;
     new->flags             = flags;
     new->isStaticAllocated = isStaticAllocated;
-    new->processID         = 0;
     new->share             = NULL;
+#ifdef DEBUG
+    new->processID = kprocess_getCurrentPID();
+#endif // DEBUG
     list_init (&new->adjMappingNode);
     return new;
 }
@@ -359,6 +364,26 @@ PTR kvmm_memmap (VMemoryManager* vmm, PTR va, Physical const* const pa, SIZE szP
     return va;
 }
 
+#ifdef DEBUG
+void kvmm_setAddressSpaceMetadata (VMemoryManager const* const vmm, PTR addr,
+                                   CHAR const* const purpose, UINT const* const pid)
+{
+    FUNC_ENTRY ("vmm: %px, addr: %px, purpose: %s, pid: %px", vmm, addr,
+                (purpose != NULL) ? purpose : "(null)", pid);
+
+    k_assert (vmm != NULL, "VMM not provided");
+
+    VMemoryAddressSpace* vas = find_vas (vmm, addr);
+    if (pid != NULL) {
+        vas->processID = *pid;
+    }
+
+    if (purpose != NULL) {
+        k_strncpy (vas->purpose, purpose, ARRAY_LENGTH (vas->purpose));
+    }
+}
+#endif // DEBUG
+
 bool kvmm_free (VMemoryManager* vmm, PTR start_va)
 {
     FUNC_ENTRY ("vmm: %x, start va: %x", vmm, start_va);
@@ -428,9 +453,14 @@ void kvmm_printVASList (VMemoryManager* vmm)
     {
         VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
 
-        INFO ("* %x -> %x. allocated size: %x, flags: %x, processID: %u.", vas->start_vm,
+    #ifdef DEBUG
+        INFO ("* %x -> %x. size (pages): %x, flags: %x, pid: %u, purpose: %s", vas->start_vm,
               vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes, vas->flags,
-              vas->processID);
+              vas->processID, vas->purpose);
+    #else
+        INFO ("* %x -> %x. size (pages): %x, flags: %x", vas->start_vm,
+              vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes, vas->flags);
+    #endif // DEBUG
     }
 }
 #endif

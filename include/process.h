@@ -10,7 +10,8 @@
 #include <intrusive_queue.h>
 #include <vmm.h>
 
-#define PROCESS_ID_KERNEL 0x0
+#define PROCESS_ID_KERNEL  0x0
+#define PROCESS_ID_INVALID -1
 
 typedef enum ProcessStates {
     PROCESS_STATE_INVALID = 0,
@@ -58,3 +59,4 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
 bool kprocess_yield (ProcessRegisterState* currentState);
 bool kprocess_exit();
 VMemoryManager* kprocess_getCurrentContext();
+UINT kprocess_getCurrentPID();
