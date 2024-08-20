@@ -12,6 +12,9 @@
 #include <types.h>
 #include <buildcheck.h>
 
+#define BOOT_FONTS_GLYPH_COUNT 128U
+#define BOOT_FONTS_GLYPH_BYTES ((CONFIG_GXMODE_FONT_WIDTH * CONFIG_GXMODE_FONT_HEIGHT) / 8U)
+
 enum BootMemoryMapTypes {
     MMTYPE_FREE         = 1,
     MMTYPE_RESERVED     = 2,
@@ -49,3 +52,4 @@ U16 kboot_getBootMemoryMapItemCount();
 ULLONG kboot_calculateInstalledMemory();
 
 GraphisModeInfo kboot_getGraphicsModeInfo();
+const U8* kboot_getFontData();

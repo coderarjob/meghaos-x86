@@ -64,6 +64,12 @@
     %define MPDEMO_FILE     "MPDEMO  FLT"
     %define MOS_IMAGE_FILE  "MOS     RBM"
 
+    %define GXMODE_GLYPH_COUNT 128
+    %define GXMODE_FONT_WIDTH  8
+    %define GXMODE_FONT_HEIGHT 16
+    %define GXMODE_FONTS_DATA_BYTES \
+            (GXMODE_GLYPH_COUNT * GXMODE_FONT_WIDTH * GXMODE_FONT_HEIGHT)/8
+
 	; Structures
     ; ------------------------------------------------------------------------
 	struc mem_des_t
@@ -93,6 +99,7 @@
     endstruc
 
 	struc boot_info_t
+	    .fonts_data    : resb GXMODE_FONTS_DATA_BYTES
         .graphis_info  : resb vbe_modequery_t_size
         .file_count    : resw 1
         .file_dec_items: resb file_des_t_size * MAX_FILES_COUNT

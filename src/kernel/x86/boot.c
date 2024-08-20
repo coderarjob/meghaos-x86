@@ -62,3 +62,7 @@ GraphisModeInfo kboot_getGraphicsModeInfo()
 {
     return kboot_getCurrentBootLoaderInfo()->gxInfo;
 }
+
+const U8* kboot_getFontData() {
+    return kboot_getCurrentBootLoaderInfo()->font_data;
+}

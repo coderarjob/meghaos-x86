@@ -20,9 +20,14 @@
     #define CONFIG_PAGE_SIZE_BITS           (12U)
     #define CONFIG_PAGE_FRAME_SIZE_BYTES    (4U * KB)
     #define CONFIG_MIN_RAM_BYTES            (2U * MB)
-    #define CONFIG_VGA_DISPLAY              "80x50"
+    #define CONFIG_TXMODE_COLUMNS           80 // TODO: Replace MAX_VGA_ROWS, COLUMNS with these.
+    #define CONFIG_TXMODE_ROWS              50
     #define CONFIG_MAX_CALL_TRACE_DEPTH     10
     #define CONFIG_PAB_NUMBER_OF_PAGES      1 /* Must be 1. Limitations of current Physical Map */
+    #define CONFIG_GXMODE_FONT_WIDTH        8
+    #define CONFIG_GXMODE_FONT_HEIGHT       16
+    #define CONFIG_GXMODE_XRESOLUTION       800
+    #define CONFIG_GXMODE_YRESOLUTION       600
 
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */

@@ -56,6 +56,7 @@ static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 static bool graphics_init();
 static void graphics_rect (UINT x, UINT y, UINT h, UINT w, U32 color);
 static void graphics_image (UINT x, UINT y, UINT w, UINT h, U8* bytes);
+static void graphics_drawfont (UINT x, UINT y, UCHAR a, U8 fgColor, U8 bgColor);
 #endif // GRAPHICS_MODE_ENABLED
 
 /* Kernel state global variable */
@@ -164,17 +165,39 @@ void kernel_main ()
     //---------------
 #ifdef GRAPHICS_MODE_ENABLED
     if (graphics_init()) {
-        graphics_rect (0, 0, 800, 600, 221);
-        graphics_rect (100, 100, 200, 200, 0x4);
-        graphics_rect (10, 10, 20, 20, 0x2);
-
-        U8* image = kmalloc (400);
-        k_memset (image, 0x1, 400);
-        graphics_image (10, 31, 20, 20, image);
+        graphics_rect (0, 0, CONFIG_GXMODE_XRESOLUTION, CONFIG_GXMODE_YRESOLUTION, 0x1A);
 
         Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
-        image              = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
+        U8* image              = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
         graphics_image (690, 10, 100, 100, image);
+
+        for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
+            UINT row = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
+            UINT col = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
+            graphics_drawfont (col + 10, row + 10, (UCHAR)c, 0xF, 0x4);
+        }
+
+        for (UINT c = 0; c < 256; c++) {
+            UINT y = (c / 16) * 20;
+            UINT x = (c % 16) * 20;
+            graphics_rect (x + 300, y + 10, 20,20,c);
+        }
+
+        CHAR *name = "the quick brown fox jumps over the lazy dog.";
+        UINT row = 400;
+        UINT col = 10;
+        for(;*name != '\0'; name++) {
+            graphics_drawfont (col, row, (UCHAR)*name, 0xF, 0x4);
+            col+=CONFIG_GXMODE_FONT_WIDTH;
+        }
+
+        name = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
+        row = 420;
+        col = 10;
+        for(;*name != '\0'; name++) {
+            graphics_drawfont (col, row, (UCHAR)*name, 0xF, 0x4);
+            col+=CONFIG_GXMODE_FONT_WIDTH;
+        }
     } else {
         ERROR("Graphics mode could not be enabled");
     }
@@ -188,6 +211,22 @@ void kernel_main ()
 }
 
 #ifdef GRAPHICS_MODE_ENABLED
+static void graphics_drawfont (UINT x, UINT y, UCHAR a, U8 fgColor, U8 bgColor)
+{
+    GraphisModeInfo gmi = kboot_getGraphicsModeInfo();
+    const U8* glyph     = kboot_getFontData() + (a * BOOT_FONTS_GLYPH_BYTES);
+    SIZE bytesPerPixel  = gmi.bitsPerPixel / 8U;
+    PTR start           = g_kstate.framebuffer + (y * gmi.bytesPerScanLine) + (x * bytesPerPixel);
+
+    for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
+        PTR row = start;
+        for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row += bytesPerPixel) {
+            *(U8*)row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? fgColor : bgColor;
+        }
+        start += gmi.bytesPerScanLine;
+    }
+}
+
 static void graphics_image(UINT x, UINT y, UINT w, UINT h, U8* bytes)
 {
     GraphisModeInfo gmi = kboot_getGraphicsModeInfo ();

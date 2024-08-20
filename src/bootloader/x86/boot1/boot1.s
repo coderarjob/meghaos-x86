@@ -163,9 +163,26 @@ _start:
     mov cx, vbe_modequery_t_size ; Number of bytes to copy
     mov bx, BOOT_INFO_SEG
     mov es, bx                   ; Destination (ES:DI)
-    mov di, BOOT_INFO_OFF
+    lea di, [BOOT_INFO_OFF + boot_info_t.graphis_info]
     mov si, vbemode              ; Source (DS:SI)
     rep movsb
+
+    ; ----  Copy fonts data from BIOS memory to BOOT_INFO
+    mov ax, 0x1130
+    mov bh, 6 ; 8 x 16 font (May be only for VGA)
+    int 0x10 ; Returns font data in ES:BP
+
+    push ds
+        push es ; Move ES to DS
+        pop ds
+        mov si, bp ; Source (DS:SI)
+
+        mov cx, GXMODE_FONTS_DATA_BYTES ; Number of bytes to copy
+        lea di, [BOOT_INFO_OFF + boot_info_t.fonts_data]
+        mov bx, BOOT_INFO_SEG
+        mov es, bx           ; Destination (ES:DI)
+        rep movsb
+    pop ds
 
     ; Copy complete, continue loading kernel
     jmp .goto_kernel
