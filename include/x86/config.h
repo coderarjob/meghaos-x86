@@ -28,7 +28,7 @@
     #define CONFIG_GXMODE_FONT_HEIGHT       16
     #define CONFIG_GXMODE_XRESOLUTION       800
     #define CONFIG_GXMODE_YRESOLUTION       600
-    #define CONFIG_GXMODE_BITSPERPIXEL      24
+    #define CONFIG_GXMODE_BITSPERPIXEL      32
 
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */

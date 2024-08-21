@@ -161,13 +161,15 @@ void kernel_main ()
 #ifdef GRAPHICS_MODE_ENABLED
 
     #if CONFIG_GXMODE_BITSPERPIXEL == 8
-        #define BG_COLOR      220
-        #define FONT_FG_COLOR 0xF
-        #define FONT_BG_COLOR 0x4
-    #elif CONFIG_GXMODE_BITSPERPIXEL == 24
-        #define BG_COLOR      0x204141
-        #define FONT_FG_COLOR 0xFFFFFF
-        #define FONT_BG_COLOR 0xAA0000
+        #define BG_COLOR             220
+        #define FONT_FG_COLOR        0xF
+        #define FONT_BG_COLOR        0x4
+        #define IMAGE_BITS_PER_PIXEL 1
+    #elif CONFIG_GXMODE_BITSPERPIXEL == 32
+        #define BG_COLOR             0x204141
+        #define FONT_FG_COLOR        0xFFFFFF
+        #define FONT_BG_COLOR        0xAA0000
+        #define IMAGE_BITS_PER_PIXEL 3
     #endif
 
     if (graphics_init()) {
@@ -175,7 +177,7 @@ void kernel_main ()
 
         Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
         U8* image              = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
-        graphics_image (690, 10, 100, 100, image);
+        graphics_image_raw (690, 10, 100, 100, IMAGE_BITS_PER_PIXEL, image);
 
         for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
             UINT row = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;

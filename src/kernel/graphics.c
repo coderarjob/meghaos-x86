@@ -51,16 +51,17 @@ void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor
     }
 }
 
-void graphics_image (UINT x, UINT y, UINT w, UINT h, U8* bytes)
+void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes)
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
 
-    SIZE bytesPerPixel = gxi.bytesPerPixel;
-    PTR start          = g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+    k_assert (bytesPerPixel == 1, "Only 8 bit color image is supported");
+
+    PTR start = g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     for (; h > 0; h--) {
         PTR row = start;
-        for (UINT lw = w; lw > 0; lw--, bytes++) {
+        for (UINT lw = w; lw > 0; lw--, bytes+=bytesPerPixel {
             *(U8*)row = *bytes;
             row += bytesPerPixel;
         }
@@ -88,7 +89,7 @@ void graphics_rect (UINT x, UINT y, UINT w, UINT h, U32 color)
 }
 #endif // CONFIG_GXMODE_BITSPERPIXEL == 8
 
-#if CONFIG_GXMODE_BITSPERPIXEL == 24
+#if CONFIG_GXMODE_BITSPERPIXEL == 32
 void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor bg)
 {
     FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
@@ -97,37 +98,28 @@ void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor
     SIZE bytesPerPixel = gxi.bytesPerPixel;
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
-    RGBColor* fgColor = (RGBColor*)&fg;
-    RGBColor* bgColor = (RGBColor*)&bg;
-
     for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
-        RGBColor* row = (RGBColor*)start;
+        U32* row = (U32*)start;
         for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row++) {
-            RGBColor* col = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? fgColor
-                                                                                 : bgColor;
-            row->red      = col->red;
-            row->green    = col->green;
-            row->blue     = col->blue;
+            *row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? fg : bg;
         }
         start += gxi.bytesPerScanLine;
     }
 }
 
-void graphics_image (UINT x, UINT y, UINT w, UINT h, U8* bytes)
+void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes)
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
 
-    SIZE bytesPerPixel = gxi.bytesPerPixel;
-    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
-
-    RGBColor* pixels = (RGBColor*)bytes;
+    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     for (; h > 0; h--) {
-        RGBColor* row = (RGBColor*)start;
-        for (UINT lw = w; lw > 0; lw--, row++, pixels++) {
-            row->red   = pixels->blue;
-            row->green = pixels->green;
-            row->blue  = pixels->red;
+        Vec4* row = (Vec4*)start;
+        for (UINT lw = w; lw > 0; lw--, row++, bytes += bytesPerPixel) {
+            row->d = 0;            // Image does not have alpha value.
+            row->c = *bytes;       // Red
+            row->b = *(bytes + 1); // Green
+            row->a = *(bytes + 2); // Blue
         }
         start += gxi.bytesPerScanLine;
     }
@@ -140,14 +132,10 @@ void graphics_rect (UINT x, UINT y, UINT w, UINT h, KernelGxColor color)
     SIZE bytesPerPixel = gxi.bytesPerPixel;
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
-    RGBColor* col = (RGBColor*)&color;
-
     for (; h > 0; h--) {
-        RGBColor* row = (RGBColor*)start;
+        KernelGxColor* row = (KernelGxColor*)start;
         for (UINT lw = w; lw > 0; lw--, row++) {
-            row->red   = col->red;
-            row->blue  = col->blue;
-            row->green = col->green;
+            *row = color;
         }
         start += gxi.bytesPerScanLine;
     }
@@ -183,7 +171,7 @@ bool graphics_init()
     FUNC_ENTRY();
 
     gxi           = arch_getGraphicsModeInfo();
-    SIZE szBytes  = (SIZE)gxi.bytesPerScanLine * gxi.yResolution * gxi.bytesPerPixel;
+    SIZE szBytes  = (SIZE)gxi.bytesPerScanLine * gxi.yResolution;
     SIZE szPages  = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
     Physical fbpa = gxi.framebufferPhysicalPtr;
     if (fbpa.val) {
