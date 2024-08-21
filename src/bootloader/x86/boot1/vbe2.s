@@ -289,6 +289,8 @@ vbe2_find_mode:
     cmp ah, 00
     jnz .failure
 
+    ;-----------------------------------------------------------------
+    ; Physical address of frame buffer
     mov eax, [modeInfo + vbe2_modeinfoblock_t.PhysBasePtr]
     cmp eax, 0x0000      ; Mode is not supported
     je .next_iter_modes
@@ -296,39 +298,51 @@ vbe2_find_mode:
     ; Store Physical frame buffer address
     mov [edi + vbe_modequery_t.FrameBuffer], eax
 
+    ;-----------------------------------------------------------------
     ; Store BytesPerScanLine
     xor eax, eax
     mov ax, [modeInfo + vbe2_modeinfoblock_t.BytesPerScanLine]
     mov [edi + vbe_modequery_t.BytesPerScanLine], ax
 
-    xor eax, eax
+    ;-----------------------------------------------------------------
     ; Match XResolution
+    xor eax, eax
     mov ax, [modeInfo + vbe2_modeinfoblock_t.Xresolution]
     cmp ax, [edi + vbe_modequery_t.Xresolution]
     jne .next_iter_modes
 
+    ;-----------------------------------------------------------------
     ; Match YResolution
     mov ax, [modeInfo + vbe2_modeinfoblock_t.Yresolution]
     cmp ax, [edi + vbe_modequery_t.Yresolution]
     jne .next_iter_modes
 
+    ;-----------------------------------------------------------------
     ; Match BitsPerPixel
     xor eax, eax
     mov al, [modeInfo + vbe2_modeinfoblock_t.BitsPerPixel]
     cmp al, [edi + vbe_modequery_t.BitsPerPixel]
     jne .next_iter_modes
 
+    ;-----------------------------------------------------------------
     ; Must support graphics mode & Linear frame buffer
     xor eax, eax
     mov ax, [modeInfo + vbe2_modeinfoblock_t.ModeAttributes]
     and ax, (1 << 3) | (1 << 7)
     jz .next_iter_modes
 
+    ;-----------------------------------------------------------------
     ; Must be Packed pixel Memory model
     xor eax, eax
     mov al, [modeInfo + vbe2_modeinfoblock_t.MemoryModel]
-    cmp al, 0x4
-    jne .next_iter_modes
+    cmp al, 0x4    ; Packed Memory model
+    je .memorymodel_match_done ; Memory model matched. Match next criteria.
+
+    ; Memory model is not Packed. See if its DirectColor
+    cmp al, 0x6    ; DirectColor Memory model
+    jne .next_iter_modes ; Did not match
+.memorymodel_match_done:
+    ;-----------------------------------------------------------------
 
     ; All the criterias match. So we exit
     jmp .found
