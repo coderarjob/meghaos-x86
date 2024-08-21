@@ -159,8 +159,19 @@ void kernel_main ()
 
     //---------------
 #ifdef GRAPHICS_MODE_ENABLED
+
+    #if CONFIG_GXMODE_BITSPERPIXEL == 8
+        #define BG_COLOR      220
+        #define FONT_FG_COLOR 0xF
+        #define FONT_BG_COLOR 0x4
+    #elif CONFIG_GXMODE_BITSPERPIXEL == 24
+        #define BG_COLOR      0x204141
+        #define FONT_FG_COLOR 0xFFFFFF
+        #define FONT_BG_COLOR 0xAA0000
+    #endif
+
     if (graphics_init()) {
-        graphics_rect (0, 0, CONFIG_GXMODE_XRESOLUTION, CONFIG_GXMODE_YRESOLUTION, 0x1A);
+        graphics_rect (0, 0, CONFIG_GXMODE_XRESOLUTION, CONFIG_GXMODE_YRESOLUTION, BG_COLOR);
 
         Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
         U8* image              = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
@@ -169,20 +180,22 @@ void kernel_main ()
         for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
             UINT row = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
             UINT col = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
-            graphics_drawfont (col + 10, row + 10, (UCHAR)c, 0xF, 0x4);
+            graphics_drawfont (col + 10, row + 10, (UCHAR)c, FONT_FG_COLOR, FONT_BG_COLOR);
         }
 
+    #if CONFIG_GXMODE_BITSPERPIXEL == 8
         for (UINT c = 0; c < 256; c++) {
             UINT y = (c / 16) * 20;
             UINT x = (c % 16) * 20;
-            graphics_rect (x + 300, y + 10, 20,20,c);
+            graphics_rect (x + 300, y + 10, 20, 20, c);
         }
+    #endif
 
         CHAR *name = "the quick brown fox jumps over the lazy dog.";
         UINT row = 400;
         UINT col = 10;
         for(;*name != '\0'; name++) {
-            graphics_drawfont (col, row, (UCHAR)*name, 0xF, 0x4);
+            graphics_drawfont (col, row, (UCHAR)*name, FONT_FG_COLOR, FONT_BG_COLOR);
             col+=CONFIG_GXMODE_FONT_WIDTH;
         }
 
@@ -190,7 +203,7 @@ void kernel_main ()
         row = 420;
         col = 10;
         for(;*name != '\0'; name++) {
-            graphics_drawfont (col, row, (UCHAR)*name, 0xF, 0x4);
+            graphics_drawfont (col, row, (UCHAR)*name, FONT_FG_COLOR, FONT_BG_COLOR);
             col+=CONFIG_GXMODE_FONT_WIDTH;
         }
     } else {

@@ -21,7 +21,7 @@
 typedef struct GraphicsInfo {
     U16 xResolution;
     U16 yResolution;
-    U8 bitsPerPixel;
+    U8 bytesPerPixel;
     Physical framebufferPhysicalPtr;
     U16 bytesPerScanLine;
     U8* fontsData;
@@ -36,7 +36,7 @@ void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor
     FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
 
     const U8* glyph    = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
-    SIZE bytesPerPixel = gxi.bitsPerPixel / 8U;
+    SIZE bytesPerPixel = gxi.bytesPerPixel;
     PTR start          = g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
     IndexColor8Bit fgColor = (IndexColor8Bit)fg;
@@ -55,7 +55,7 @@ void graphics_image (UINT x, UINT y, UINT w, UINT h, U8* bytes)
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
 
-    SIZE bytesPerPixel = gxi.bitsPerPixel / 8U;
+    SIZE bytesPerPixel = gxi.bytesPerPixel;
     PTR start          = g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
     for (; h > 0; h--) {
@@ -72,7 +72,7 @@ void graphics_rect (UINT x, UINT y, UINT w, UINT h, U32 color)
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, color: %x", x, y, w, h, color);
 
-    SIZE bytesPerPixel = gxi.bitsPerPixel / 8U;
+    SIZE bytesPerPixel = gxi.bytesPerPixel;
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
     IndexColor8Bit col = (IndexColor8Bit)color;
@@ -88,6 +88,72 @@ void graphics_rect (UINT x, UINT y, UINT w, UINT h, U32 color)
 }
 #endif // CONFIG_GXMODE_BITSPERPIXEL == 8
 
+#if CONFIG_GXMODE_BITSPERPIXEL == 24
+void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor bg)
+{
+    FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
+
+    const U8* glyph    = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
+    SIZE bytesPerPixel = gxi.bytesPerPixel;
+    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+
+    RGBColor* fgColor = (RGBColor*)&fg;
+    RGBColor* bgColor = (RGBColor*)&bg;
+
+    for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
+        RGBColor* row = (RGBColor*)start;
+        for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row++) {
+            RGBColor* col = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? fgColor
+                                                                                 : bgColor;
+            row->red      = col->red;
+            row->green    = col->green;
+            row->blue     = col->blue;
+        }
+        start += gxi.bytesPerScanLine;
+    }
+}
+
+void graphics_image (UINT x, UINT y, UINT w, UINT h, U8* bytes)
+{
+    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
+
+    SIZE bytesPerPixel = gxi.bytesPerPixel;
+    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+
+    RGBColor* pixels = (RGBColor*)bytes;
+
+    for (; h > 0; h--) {
+        RGBColor* row = (RGBColor*)start;
+        for (UINT lw = w; lw > 0; lw--, row++, pixels++) {
+            row->red   = pixels->blue;
+            row->green = pixels->green;
+            row->blue  = pixels->red;
+        }
+        start += gxi.bytesPerScanLine;
+    }
+}
+
+void graphics_rect (UINT x, UINT y, UINT w, UINT h, KernelGxColor color)
+{
+    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, color: %x", x, y, w, h, color);
+
+    SIZE bytesPerPixel = gxi.bytesPerPixel;
+    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+
+    RGBColor* col = (RGBColor*)&color;
+
+    for (; h > 0; h--) {
+        RGBColor* row = (RGBColor*)start;
+        for (UINT lw = w; lw > 0; lw--, row++) {
+            row->red   = col->red;
+            row->blue  = col->blue;
+            row->green = col->green;
+        }
+        start += gxi.bytesPerScanLine;
+    }
+}
+#endif
+
 #if ARCH == x86
 static GraphicsInfo arch_getGraphicsModeInfo()
 {
@@ -101,7 +167,7 @@ static GraphicsInfo arch_getGraphicsModeInfo()
     INFO ("BytesPerScanLine: %x", gmi.bytesPerScanLine);
 
     //  Store required infromation in arch independent structure.
-    GraphicsInfo gxi = { .bitsPerPixel           = gmi.bitsPerPixel,
+    GraphicsInfo gxi = { .bytesPerPixel          = gmi.bitsPerPixel / 8,
                          .bytesPerScanLine       = gmi.bytesPerScanLine,
                          .framebufferPhysicalPtr = gmi.framebufferPhysicalPtr,
                          .xResolution            = gmi.xResolution,
@@ -117,7 +183,7 @@ bool graphics_init()
     FUNC_ENTRY();
 
     gxi           = arch_getGraphicsModeInfo();
-    SIZE szBytes  = (SIZE)gxi.bytesPerScanLine * gxi.yResolution * gxi.bitsPerPixel / 8;
+    SIZE szBytes  = (SIZE)gxi.bytesPerScanLine * gxi.yResolution * gxi.bytesPerPixel;
     SIZE szPages  = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
     Physical fbpa = gxi.framebufferPhysicalPtr;
     if (fbpa.val) {
