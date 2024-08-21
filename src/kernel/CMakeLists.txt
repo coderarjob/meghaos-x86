@@ -8,6 +8,10 @@ set(KERNEL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/vmm.c
     )
 
+    if (MOS_GRAPHICS_ENABLED)
+        set(KERNEL_SOURCES ${KERNEL_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/graphics.c)
+    endif()
+
 compile_lib(
     NAME kernel
     SOURCES ${KERNEL_SOURCES}

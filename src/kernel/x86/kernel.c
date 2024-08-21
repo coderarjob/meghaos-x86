@@ -38,6 +38,7 @@
 #include <x86/cpu.h>
 #include <kernel.h>
 #include <vmm.h>
+#include <graphics.h>
 
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
@@ -52,12 +53,6 @@ static void process_poc();
 //static void multiprocess_demo();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
-#ifdef GRAPHICS_MODE_ENABLED
-static bool graphics_init();
-static void graphics_rect (UINT x, UINT y, UINT h, UINT w, U32 color);
-static void graphics_image (UINT x, UINT y, UINT w, UINT h, U8* bytes);
-static void graphics_drawfont (UINT x, UINT y, UCHAR a, U8 fgColor, U8 bgColor);
-#endif // GRAPHICS_MODE_ENABLED
 
 /* Kernel state global variable */
 KernelStateInfo g_kstate;
@@ -209,79 +204,6 @@ void kernel_main ()
 
     k_halt();
 }
-
-#ifdef GRAPHICS_MODE_ENABLED
-static void graphics_drawfont (UINT x, UINT y, UCHAR a, U8 fgColor, U8 bgColor)
-{
-    GraphisModeInfo gmi = kboot_getGraphicsModeInfo();
-    const U8* glyph     = kboot_getFontData() + (a * BOOT_FONTS_GLYPH_BYTES);
-    SIZE bytesPerPixel  = gmi.bitsPerPixel / 8U;
-    PTR start           = g_kstate.framebuffer + (y * gmi.bytesPerScanLine) + (x * bytesPerPixel);
-
-    for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
-        PTR row = start;
-        for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row += bytesPerPixel) {
-            *(U8*)row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? fgColor : bgColor;
-        }
-        start += gmi.bytesPerScanLine;
-    }
-}
-
-static void graphics_image(UINT x, UINT y, UINT w, UINT h, U8* bytes)
-{
-    GraphisModeInfo gmi = kboot_getGraphicsModeInfo ();
-    SIZE  bytesPerPixel = gmi.bitsPerPixel/8U;
-    PTR start = g_kstate.framebuffer + (y * gmi.bytesPerScanLine) + (x * bytesPerPixel);
-
-    for (; h > 0; h--) {
-        PTR row = start;
-        for (UINT lw = w; lw > 0; lw--, bytes++) {
-            *(U8*)row = *bytes;
-            row += bytesPerPixel;
-        }
-        start += gmi.bytesPerScanLine;
-    }
-}
-
-static void graphics_rect(UINT x, UINT y, UINT w, UINT h, U32 color)
-{
-    GraphisModeInfo gmi = kboot_getGraphicsModeInfo ();
-    SIZE  bytesPerPixel = gmi.bitsPerPixel/8U;
-    PTR start = g_kstate.framebuffer + (y * gmi.bytesPerScanLine) + (x * bytesPerPixel);
-
-    for (; h > 0; h--) {
-        PTR row = start;
-        for (UINT lw = w; lw > 0; lw--) {
-            *(U8*)row = (U8)color;
-            row += bytesPerPixel;
-        }
-        start += gmi.bytesPerScanLine;
-    }
-}
-
-static bool graphics_init()
-{
-    GraphisModeInfo gmi = kboot_getGraphicsModeInfo();
-
-    INFO ("Mode: %x", gmi.graphicsMode);
-    INFO ("VBE Version: %x", gmi.vbeVersion);
-    INFO ("FrameBuffer: %x", gmi.framebufferPhysicalPtr);
-    INFO ("Resolution: %u x %u, %ubpp", gmi.xResolution, gmi.yResolution, gmi.bitsPerPixel);
-    INFO ("BytesPerScanLine: %x", gmi.bytesPerScanLine);
-
-    SIZE szBytes  = (SIZE)gmi.bytesPerScanLine * gmi.yResolution * gmi.bitsPerPixel / 8;
-    SIZE szPages  = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
-    Physical fbpa = gmi.framebufferPhysicalPtr;
-    if (fbpa.val) {
-        if (!(g_kstate.framebuffer = kvmm_memmap (g_kstate.context, (PTR)NULL, &fbpa, szPages,
-                                                  VMM_MEMMAP_FLAG_IMMCOMMIT, NULL))) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, false);
-        }
-        return true;
-    }
-    return false;
-}
-#endif // GRAPHICS_MODE_ENABLED
 
 //static void vmm_basic_testing()
 //{
