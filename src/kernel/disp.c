@@ -13,9 +13,6 @@
 #include <kdebug.h>
 #include <disp.h>
 #include <stdarg.h>
-#if ARCH == x86
-#include <x86/vgatext.h>
-#endif // x86
 
 /* Message are printed on screen and if configured also on the debug console. */
 void kdisp_importantPrint(char *fmt, ...)
