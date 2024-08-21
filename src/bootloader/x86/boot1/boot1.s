@@ -58,9 +58,9 @@ msg_failed : db 13,"[ER]",0
 vbemode:
     istruc vbe_modequery_t
         ; Input to vbe2_find_mode, vbe2_switch_mode
-        at .Xresolution       , dw 800
-        at .Yresolution       , dw 600
-        at .BitsPerPixel      , db 8
+        at .Xresolution       , dw GXMODE_XRESOLUTION
+        at .Yresolution       , dw GXMODE_YRESOLUTION
+        at .BitsPerPixel      , db GXMODE_BITSPERPIXEL
 
         ; Output from vbe2_find_mode
         ; Input for vbe2_switch_mode
@@ -169,7 +169,11 @@ _start:
 
     ; ----  Copy fonts data from BIOS memory to BOOT_INFO
     mov ax, 0x1130
+%if GXMODE_FONT_WIDTH == 8 && GXMODE_FONT_HEIGHT == 16
     mov bh, 6 ; 8 x 16 font (May be only for VGA)
+%else
+    %error "Invalid glyph size"
+%endif
     int 0x10 ; Returns font data in ES:BP
 
     push ds

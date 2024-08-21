@@ -64,11 +64,16 @@
     %define MPDEMO_FILE     "MPDEMO  FLT"
     %define MOS_IMAGE_FILE  "MOS     RBM"
 
-    %define GXMODE_GLYPH_COUNT 128
+    %define GXMODE_XRESOLUTION 800
+    %define GXMODE_YRESOLUTION 600
+    %define GXMODE_BITSPERPIXEL 8
+
+    %define GXMODE_FONT_GLYPH_COUNT 128
+    %define GXMODE_FONT_HEIGHT 16
     %define GXMODE_FONT_WIDTH  8
     %define GXMODE_FONT_HEIGHT 16
     %define GXMODE_FONTS_DATA_BYTES \
-            (GXMODE_GLYPH_COUNT * GXMODE_FONT_WIDTH * GXMODE_FONT_HEIGHT)/8
+        (GXMODE_FONT_GLYPH_COUNT * GXMODE_FONT_WIDTH * GXMODE_FONT_HEIGHT)/8
 
 	; Structures
     ; ------------------------------------------------------------------------
