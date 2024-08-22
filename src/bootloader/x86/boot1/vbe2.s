@@ -197,6 +197,11 @@ vbe2_dump_modes:
     call __printhex
     printString .msg_space
 
+    xor eax, eax
+    mov al, [modeInfo + vbe2_modeinfoblock_t.RedFieldPosition]
+    call __printhex
+    printString .msg_space
+
 .next_iter_modes:
     add si, 2
     printString .msg_newline
@@ -341,6 +346,37 @@ vbe2_find_mode:
     ; Memory model is not Packed. See if its DirectColor
     cmp al, 0x6    ; DirectColor Memory model
     jne .next_iter_modes ; Did not match
+
+    ; For DirectColor check Red,Green,Blue Mask and FieldPositions
+%ifdef GXMODE_BITSPERPIXEL == 32
+    xor eax, eax
+    ; -- Red
+    mov al, [modeInfo + vbe2_modeinfoblock_t.RedMaskSize]
+    cmp al, 0x8    ; 8 bits per pixel for 32 bit color mode
+    jne .next_iter_modes ; Did not match
+
+    mov al, [modeInfo + vbe2_modeinfoblock_t.RedFieldPosition]
+    cmp al, 0x10    ; Of the 4 bytes, Red is byte 3
+    jne .next_iter_modes ; Did not match
+
+    ; -- Green
+    mov al, [modeInfo + vbe2_modeinfoblock_t.GreenMaskSize]
+    cmp al, 0x8    ; 8 bits per pixel for 32 bit color mode
+    jne .next_iter_modes ; Did not match
+
+    mov al, [modeInfo + vbe2_modeinfoblock_t.GreenFieldPosition]
+    cmp al, 0x8    ; Of the 4 bytes, Green is byte 2
+    jne .next_iter_modes ; Did not match
+
+    ; -- Blue
+    mov al, [modeInfo + vbe2_modeinfoblock_t.BlueMaskSize]
+    cmp al, 0x8    ; 8 bits per pixel for 32 bit color mode
+    jne .next_iter_modes ; Did not match
+
+    mov al, [modeInfo + vbe2_modeinfoblock_t.BlueFieldPosition]
+    cmp al, 0x0    ; Of the 4 bytes, Blue is byte 1
+    jne .next_iter_modes ; Did not match
+%endif
 .memorymodel_match_done:
     ;-----------------------------------------------------------------
 
