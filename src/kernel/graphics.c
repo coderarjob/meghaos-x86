@@ -30,78 +30,20 @@ typedef struct GraphicsInfo {
 static GraphicsInfo gxi;
 static GraphicsInfo arch_getGraphicsModeInfo();
 
-#if CONFIG_GXMODE_BITSPERPIXEL == 8
 void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor bg)
 {
     FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
 
-    const U8* glyph    = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
-    SIZE bytesPerPixel = gxi.bytesPerPixel;
-    PTR start          = g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+    const U8* glyph = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
+    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
-    IndexColor8Bit fgColor = (IndexColor8Bit)fg;
-    IndexColor8Bit bgColor = (IndexColor8Bit)bg;
-
-    for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
-        PTR row = start;
-        for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row += bytesPerPixel) {
-            *(U8*)row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? fgColor : bgColor;
-        }
-        start += gxi.bytesPerScanLine;
-    }
-}
-
-void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes)
-{
-    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
-
-    k_assert (bytesPerPixel == 1, "Only 8 bit color image is supported");
-
-    PTR start = g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
-
-    for (; h > 0; h--) {
-        PTR row = start;
-        for (UINT lw = w; lw > 0; lw--, bytes+=bytesPerPixel {
-            *(U8*)row = *bytes;
-            row += bytesPerPixel;
-        }
-        start += gxi.bytesPerScanLine;
-    }
-}
-
-void graphics_rect (UINT x, UINT y, UINT w, UINT h, U32 color)
-{
-    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, color: %x", x, y, w, h, color);
-
-    SIZE bytesPerPixel = gxi.bytesPerPixel;
-    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
-
-    IndexColor8Bit col = (IndexColor8Bit)color;
-
-    for (; h > 0; h--) {
-        U8* row = start;
-        for (UINT lw = w; lw > 0; lw--) {
-            *row = col;
-            row += bytesPerPixel;
-        }
-        start += gxi.bytesPerScanLine;
-    }
-}
-#endif // CONFIG_GXMODE_BITSPERPIXEL == 8
-
-#if CONFIG_GXMODE_BITSPERPIXEL == 32
-void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor bg)
-{
-    FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
-
-    const U8* glyph    = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
-    SIZE bytesPerPixel = gxi.bytesPerPixel;
-    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+    Color* fgColor = (Color*)&fg;
+    Color* bgColor = (Color*)&bg;
 
     for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
-        U32* row = (U32*)start;
+        Color* row = (Color*)start;
         for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row++) {
-            *row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? fg : bg;
+            *row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? *fgColor : *bgColor;
         }
         start += gxi.bytesPerScanLine;
     }
@@ -114,12 +56,18 @@ void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8*
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     for (; h > 0; h--) {
-        Vec4* row = (Vec4*)start;
+        Color* row = (Color*)start;
         for (UINT lw = w; lw > 0; lw--, row++, bytes += bytesPerPixel) {
-            row->d = 0;            // Image does not have alpha value.
-            row->c = *bytes;       // Red
-            row->b = *(bytes + 1); // Green
-            row->a = *(bytes + 2); // Blue
+#if CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
+    #if CONFIG_GXMODE_BITSPERPIXEL == 32
+            row->alpha = 0;
+    #endif
+            row->red   = *bytes;
+            row->green = *(bytes + 1);
+            row->blue  = *(bytes + 2);
+#elif CONFIG_GXMODE_BITSPERPIXEL == 8
+            *row = *bytes;
+#endif
         }
         start += gxi.bytesPerScanLine;
     }
@@ -132,15 +80,16 @@ void graphics_rect (UINT x, UINT y, UINT w, UINT h, KernelGxColor color)
     SIZE bytesPerPixel = gxi.bytesPerPixel;
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
+    Color* col = (Color*)&color;
+
     for (; h > 0; h--) {
-        KernelGxColor* row = (KernelGxColor*)start;
+        Color* row = (Color*)start;
         for (UINT lw = w; lw > 0; lw--, row++) {
-            *row = color;
+            *row = *col;
         }
         start += gxi.bytesPerScanLine;
     }
 }
-#endif
 
 #if ARCH == x86
 static GraphicsInfo arch_getGraphicsModeInfo()

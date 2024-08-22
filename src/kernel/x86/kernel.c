@@ -165,7 +165,7 @@ void kernel_main ()
         #define FONT_FG_COLOR        0xF
         #define FONT_BG_COLOR        0x4
         #define IMAGE_BITS_PER_PIXEL 1
-    #elif CONFIG_GXMODE_BITSPERPIXEL == 32
+    #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
         #define BG_COLOR             0x204141
         #define FONT_FG_COLOR        0xFFFFFF
         #define FONT_BG_COLOR        0xAA0000
