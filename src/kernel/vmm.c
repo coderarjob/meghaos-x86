@@ -28,11 +28,11 @@ static VMemoryAddressSpace* createNewVirtAddrSpace (PTR start_vm, SIZE allocated
     bool isStaticAllocated   = false;
 
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KMALLOC_READY)) {
-        if ((new = kmalloc (sizeof (VMemoryAddressSpace))) == NULL) {
+        if ((new = kmallocz (sizeof (VMemoryAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
     } else {
-        if ((new = ksalloc (sizeof (VMemoryAddressSpace))) == NULL) {
+        if ((new = kscalloc (sizeof (VMemoryAddressSpace))) == NULL) {
             RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
         }
         isStaticAllocated = true;
