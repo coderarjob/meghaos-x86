@@ -672,7 +672,7 @@ static void s_initializeMemoryManagers()
 
     UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
     if (kpmm_allocAt (first_startAddress, pageFrameCount, PMM_REGION_ANY) == false) {
-        k_panicOnError(); // Physical memory allocation must pass.
+        FATAL_BUG(); // Should not fail.
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -690,7 +690,7 @@ static void s_initializeMemoryManagers()
 
         if (state == PMM_STATE_FREE) {
             if (kpg_unmap (pd, va) == false) {
-                k_panicOnError(); // Unmap must not fail.
+                FATAL_BUG(); // Should not fail.
             }
             pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
         } else if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
@@ -700,6 +700,8 @@ static void s_initializeMemoryManagers()
                 FATAL_BUG(); // Should not fail.
             }
             pa.val += PAGEFRAMES_TO_BYTES (szPages);
+        } else {
+            UNREACHABLE();
         }
     }
 
