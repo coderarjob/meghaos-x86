@@ -30,6 +30,11 @@ typedef struct GraphicsInfo {
 static GraphicsInfo gxi;
 static GraphicsInfo arch_getGraphicsModeInfo();
 
+#if CONFIG_GXMODE_FONT_WIDTH == 8
+// RIGHT most bit in glyph is the value for LEFT most pixel of the glyph
+U32 glyph_mask[] = { 1 << 7, 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 2, 1 << 1, 1 << 0 };
+#endif
+
 void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg)
 {
     FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
@@ -43,7 +48,7 @@ void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg)
     for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
         GxColor* row = (GxColor*)start;
         for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row++) {
-            *row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? *fgColor : *bgColor;
+            *row = (*glyph & glyph_mask[x]) ? *fgColor : *bgColor;
         }
         start += gxi.bytesPerScanLine;
     }
