@@ -30,18 +30,18 @@ typedef struct GraphicsInfo {
 static GraphicsInfo gxi;
 static GraphicsInfo arch_getGraphicsModeInfo();
 
-void graphics_drawfont (UINT x, UINT y, UCHAR a, KernelGxColor fg, KernelGxColor bg)
+void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg)
 {
     FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
 
     const U8* glyph = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
-    Color* fgColor = (Color*)&fg;
-    Color* bgColor = (Color*)&bg;
+    GxColor* fgColor = (GxColor*)&fg;
+    GxColor* bgColor = (GxColor*)&bg;
 
     for (UINT y = 0; y < CONFIG_GXMODE_FONT_HEIGHT; y++, glyph++) {
-        Color* row = (Color*)start;
+        GxColor* row = (GxColor*)start;
         for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row++) {
             *row = (*glyph & (1 << (CONFIG_GXMODE_FONT_WIDTH - 1 - x))) ? *fgColor : *bgColor;
         }
@@ -56,7 +56,7 @@ void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8*
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     for (; h > 0; h--) {
-        Color* row = (Color*)start;
+        GxColor* row = (GxColor*)start;
         for (UINT lw = w; lw > 0; lw--, row++, bytes += bytesPerPixel) {
 #if CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
     #if CONFIG_GXMODE_BITSPERPIXEL == 32
@@ -73,17 +73,17 @@ void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8*
     }
 }
 
-void graphics_rect (UINT x, UINT y, UINT w, UINT h, KernelGxColor color)
+void graphics_rect (UINT x, UINT y, UINT w, UINT h, Color color)
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, color: %x", x, y, w, h, color);
 
     SIZE bytesPerPixel = gxi.bytesPerPixel;
     U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
-    Color* col = (Color*)&color;
+    GxColor* col = (GxColor*)&color;
 
     for (; h > 0; h--) {
-        Color* row = (Color*)start;
+        GxColor* row = (GxColor*)start;
         for (UINT lw = w; lw > 0; lw--, row++) {
             *row = *col;
         }
