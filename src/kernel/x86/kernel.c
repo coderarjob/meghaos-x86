@@ -53,6 +53,7 @@ static void process_poc();
 //static void multiprocess_demo();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
+static void graphics_demo_basic();
 
 /* Kernel state global variable */
 KernelStateInfo g_kstate;
@@ -157,68 +158,137 @@ void kernel_main ()
     __asm__ volatile ("cpuid;":"+eax"(eax):"eax"(0));
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
-    //---------------
 #ifdef GRAPHICS_MODE_ENABLED
-
-    #if CONFIG_GXMODE_BITSPERPIXEL == 8
-        #define BG_COLOR             220
-        #define FONT_FG_COLOR        0xF
-        #define FONT_BG_COLOR        0x4
-        #define IMAGE_BITS_PER_PIXEL 1
-    #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
-        #define BG_COLOR             0x204141
-        #define FONT_FG_COLOR        0xFFFFFF
-        #define FONT_BG_COLOR        0xAA0000
-        #define IMAGE_BITS_PER_PIXEL 3
-    #endif
-
-    if (graphics_init()) {
-        graphics_rect (0, 0, CONFIG_GXMODE_XRESOLUTION, CONFIG_GXMODE_YRESOLUTION, BG_COLOR);
-
-        Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
-        U8* image              = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
-        graphics_image_raw (690, 10, 100, 100, IMAGE_BITS_PER_PIXEL, image);
-
-        for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
-            UINT row = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
-            UINT col = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
-            graphics_drawfont (col + 10, row + 10, (UCHAR)c, FONT_FG_COLOR, FONT_BG_COLOR);
-        }
-
-    #if CONFIG_GXMODE_BITSPERPIXEL == 8
-        for (UINT c = 0; c < 256; c++) {
-            UINT y = (c / 16) * 20;
-            UINT x = (c % 16) * 20;
-            graphics_rect (x + 300, y + 10, 20, 20, c);
-        }
-    #endif
-
-        CHAR *name = "the quick brown fox jumps over the lazy dog.";
-        UINT row = 400;
-        UINT col = 10;
-        for(;*name != '\0'; name++) {
-            graphics_drawfont (col, row, (UCHAR)*name, FONT_FG_COLOR, FONT_BG_COLOR);
-            col+=CONFIG_GXMODE_FONT_WIDTH;
-        }
-
-        name = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
-        row = 420;
-        col = 10;
-        for(;*name != '\0'; name++) {
-            graphics_drawfont (col, row, (UCHAR)*name, FONT_FG_COLOR, FONT_BG_COLOR);
-            col+=CONFIG_GXMODE_FONT_WIDTH;
-        }
-    } else {
-        ERROR("Graphics mode could not be enabled");
+    if (!graphics_init()) {
+        ERROR ("Graphics mode could not be enabled");
     }
+
+    graphics_demo_basic();
     k_halt();
-#endif // GRAPHICS_MODE_ENABLED
+#endif
     process_poc();
     //new_process();
     //new_process_2();
 
     k_halt();
 }
+
+#ifdef GRAPHICS_MODE_ENABLED
+static void graphics_drawstring (UINT x, UINT y, char* text, Color fg, Color bg)
+{
+    for (char* ch = text; *ch != '\0'; ch++) {
+        graphics_drawfont (x, y, (UCHAR)*ch, fg, bg);
+        x += CONFIG_GXMODE_FONT_WIDTH;
+    }
+}
+
+static void graphics_demo_basic()
+{
+    #if CONFIG_GXMODE_BITSPERPIXEL == 8
+        #define BG_COLOR             26
+        #define FONT_FG_COLOR        29
+        #define FONT_BG_COLOR        19
+        #define IMAGE_BITS_PER_PIXEL 1
+
+        #define WINDOW_BG_COLOR      169
+        #define WINDOW_SHADOW_COLOR  23
+
+        #define TITLE_BAR_BG_COLOR   125
+        #define TITLE_BAR_FG_COLOR   15
+
+        #define COLORMAP_SIZE        20 // 20x20 square
+        #define COLORMAP_X           WINDOW_X + WINDOW_WIDTH - (COLORMAP_SIZE * 16) - 20
+        #define COLORMAP_Y           WINDOW_Y + 20
+    #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
+        #define BG_COLOR             0xAFAFAF
+        #define FONT_FG_COLOR        0xDFDFDF
+        #define FONT_BG_COLOR        0x2D2D2D
+        #define IMAGE_BITS_PER_PIXEL 3
+
+        #define WINDOW_BG_COLOR      0x53745F
+        #define WINDOW_SHADOW_COLOR  0x7D7D7D
+
+        #define TITLE_BAR_BG_COLOR   0x145371
+        #define TITLE_BAR_FG_COLOR   0xFFFFFF
+
+        #define MOS_LOGO_WIDTH       (130)
+        #define MOS_LOGO_HEIGHT      (150)
+        #define MOS_LOGO_Y           (WINDOW_Y + 10)
+        #define MOS_LOGO_X           (WINDOW_X + WINDOW_WIDTH - MOS_LOGO_WIDTH - 10)
+    #endif
+
+    #define WINDOW_Y         40
+    #define WINDOW_X         20
+    #define WINDOW_WIDTH     CONFIG_GXMODE_XRESOLUTION - WINDOW_X - 20
+    #define WINDOW_HEIGHT    CONFIG_GXMODE_YRESOLUTION - WINDOW_Y - 20
+
+    #define TITLE_BAR_HEIGHT (CONFIG_GXMODE_FONT_HEIGHT + 6)
+    #define TITLE_BAR_WIDTH  (WINDOW_WIDTH)
+    #define TITLE_BAR_X      (WINDOW_X)
+    #define TITLE_BAR_Y      (WINDOW_Y - TITLE_BAR_HEIGHT)
+
+    #define CHARDUMP_Y       (WINDOW_Y + 20)
+    #define CHARDUMP_X       (WINDOW_X + 20)
+
+    if (!g_kstate.framebuffer) {
+        FATAL_BUG();
+    }
+
+    // ------------------------------------
+    // Draw Window and title bar
+    // ------------------------------------
+    graphics_rect (0, 0, CONFIG_GXMODE_XRESOLUTION, CONFIG_GXMODE_YRESOLUTION, BG_COLOR);
+    graphics_rect (WINDOW_X - 6, WINDOW_Y + 6, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SHADOW_COLOR);
+    graphics_rect (WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_BG_COLOR);
+    graphics_rect (TITLE_BAR_X, TITLE_BAR_Y, TITLE_BAR_WIDTH, TITLE_BAR_HEIGHT, TITLE_BAR_BG_COLOR);
+
+    char* wintitle = "MeghaOS V2 : Graphics & Fonts Demo";
+    graphics_drawstring (TITLE_BAR_X + 10, TITLE_BAR_Y + 3, wintitle, TITLE_BAR_FG_COLOR,
+                         TITLE_BAR_BG_COLOR);
+
+    // ------------------------------------
+    // Draw Logo image
+    // ------------------------------------
+    #if CONFIG_GXMODE_BITSPERPIXEL != 8
+    Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
+    U8* image          = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
+    graphics_image_raw (MOS_LOGO_X, MOS_LOGO_Y, MOS_LOGO_WIDTH, MOS_LOGO_HEIGHT,
+                        IMAGE_BITS_PER_PIXEL, image);
+    #endif
+
+    // ------------------------------------
+    // Character Map dump
+    // ------------------------------------
+    for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
+        UINT y = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
+        UINT x = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
+        graphics_drawfont (x + CHARDUMP_X, y + CHARDUMP_Y, (UCHAR)c, FONT_FG_COLOR,
+                           WINDOW_BG_COLOR);
+    }
+
+    // ------------------------------------
+    // Color Map dump
+    // ------------------------------------
+    #if CONFIG_GXMODE_BITSPERPIXEL == 8
+    for (UINT c = 0; c < 256; c++) {
+        UINT y = (c / 16) * 20;
+        UINT x = (c % 16) * 20;
+        graphics_rect (x + COLORMAP_X, y + COLORMAP_Y, COLORMAP_SIZE, COLORMAP_SIZE, c);
+    }
+    #endif
+
+    // ------------------------------------
+    // Printing string
+    // ------------------------------------
+    char* text = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
+    UINT y     = WINDOW_Y + WINDOW_HEIGHT - CONFIG_GXMODE_FONT_HEIGHT - 10;
+    graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
+
+    text = "the quick brown fox jumps over the lazy dog.";
+    y -= CONFIG_GXMODE_FONT_HEIGHT + 5;
+    graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
+}
+#endif // GRAPHICS_MODE_ENABLED
 
 //static void vmm_basic_testing()
 //{
