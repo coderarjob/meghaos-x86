@@ -13,9 +13,6 @@
 #include <kdebug.h>
 #include <disp.h>
 #include <stdarg.h>
-#if ARCH == x86
-#include <x86/vgatext.h>
-#endif // x86
 
 /* Message are printed on screen and if configured also on the debug console. */
 void kdisp_importantPrint(char *fmt, ...)
@@ -40,7 +37,7 @@ void kdisp_show_call_trace()
     PTR raddrs[CONFIG_MAX_CALL_TRACE_DEPTH] = {0};
     kdebug_dump_call_trace(raddrs, ARRAY_LENGTH(raddrs));
 
-    kdisp_importantPrint("\n%s", "Call stack:");
+    kdisp_importantPrint ("\n%s", "Call stack:\n- ");
     for (int i = 0; i < CONFIG_MAX_CALL_TRACE_DEPTH && raddrs[i] > 0; i++)
-        kdisp_importantPrint("\n- %x", raddrs[i]);
+        kdisp_importantPrint ("%x ", raddrs[i]);
 }

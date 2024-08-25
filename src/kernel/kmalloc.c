@@ -12,7 +12,10 @@
 #include <memmanage.h>
 #include <types.h>
 #include <utils.h>
-#include <x86/kernel.h>
+#include <kernel.h>
+#include <memloc.h>
+#include <vmm.h>
+#include <kstdlib.h>
 
 typedef enum FindCriteria
 {
@@ -50,9 +53,15 @@ void kmalloc_init()
     list_init (&s_allocHead);
     list_init (&s_adjHead);
 
-    s_buffer = kmalloc_arch_preAllocateMemory();
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_VMM_READY);
 
-    MallocHeader* newH = s_createNewNode (s_buffer, KMALLOC_SIZE_BYTES);
+    if (!(s_buffer = (void*)kvmm_memmap (g_kstate.context, (PTR)NULL, NULL,
+                                         BYTES_TO_PAGEFRAMES_CEILING (ARCH_MEM_LEN_BYTES_KMALLOC),
+                                         VMM_MEMMAP_FLAG_KERNEL_PAGE, NULL))) {
+        FATAL_BUG(); // Should not fail.
+    }
+
+    MallocHeader* newH = s_createNewNode (s_buffer, ARCH_MEM_LEN_BYTES_KMALLOC);
     list_add_before (&s_freeHead, &newH->freenode);
     list_add_before (&s_adjHead, &newH->adjnode);
 
@@ -60,6 +69,25 @@ void kmalloc_init()
 
     INFO ("Size of MallocHeader: %lu bytes", sizeof (MallocHeader));
     INFO ("Malloc buffer is at: %px", s_buffer);
+}
+
+
+/***************************************************************************************************
+ * Allocates at least 'bytes' number of bytes from the kmalloc memory. If successful then zeros the
+ * memory before returning.
+ *
+ * @Input   bytes   Number of bytes to allocate.
+ * @return          Poiter to the start of the allocated memory. Or NULL on failure.
+ **************************************************************************************************/
+void* kmallocz (size_t bytes)
+{
+    FUNC_ENTRY ("Bytes: %x", bytes);
+
+    void* addr = kmalloc (bytes);
+    if (addr != NULL) {
+        k_memset (addr, 0, bytes);
+    }
+    return addr;
 }
 
 /***************************************************************************************************
@@ -74,6 +102,8 @@ void kmalloc_init()
 void* kmalloc (size_t bytes)
 {
     FUNC_ENTRY ("Bytes: %x", bytes);
+
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_KMALLOC_READY);
 
     INFO ("Requested net size of %lu bytes", NET_ALLOCATION_SIZE (bytes));
 
@@ -104,6 +134,8 @@ bool kfree (void* addr)
 {
     FUNC_ENTRY ("Address: %px", addr);
 
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_KMALLOC_READY);
+
     void* headerAddress    = (void*)((PTR)addr - sizeof (MallocHeader));
     MallocHeader* allocHdr = s_findFirst (&s_allocHead, FIND_CRIT_NODE_ADDRESS, (PTR)headerAddress);
     if (allocHdr != NULL)
@@ -130,16 +162,18 @@ SIZE kmalloc_getUsedMemory()
 {
     FUNC_ENTRY();
 
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_KMALLOC_READY);
+
     SIZE usedSz = 0U;
     ListNode* node;
 
-    INFO ("Kmalloc buffer size: %u bytes", KMALLOC_SIZE_BYTES);
+    INFO ("Kmalloc buffer size: %u bytes", ARCH_MEM_LEN_BYTES_KMALLOC);
 
     list_for_each (&s_allocHead, node)
     {
         MallocHeader* header = LIST_ITEM (node, MallocHeader, allocnode);
         INFO ("Node size: %u bytes", header->netNodeSize);
-        k_assert (header && (header->netNodeSize < KMALLOC_SIZE_BYTES),
+        k_assert (header && (header->netNodeSize < ARCH_MEM_LEN_BYTES_KMALLOC),
                   "Invalid state of kmalloc data");
         usedSz += header->netNodeSize;
     }
@@ -188,7 +222,7 @@ static void s_combineAdjFreeNodes (MallocHeader* currentNode)
 
 static MallocHeader* s_createNewNode (void* at, size_t netSize)
 {
-    k_assert (((PTR)at + netSize - 1) < ((PTR)s_buffer + KMALLOC_SIZE_BYTES),
+    k_assert (((PTR)at + netSize - 1) < ((PTR)s_buffer + ARCH_MEM_LEN_BYTES_KMALLOC),
               "Node netSize too large");
 
     MallocHeader* newH = at;

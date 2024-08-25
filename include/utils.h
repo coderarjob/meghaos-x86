@@ -40,15 +40,15 @@
 
 /** Bit mask
  * Example: BIT_MASK(19, 1) = 0xFFFFE */
-#define BIT_MASK(r, l) (((1 << ((r) - (l) + 1)) - 1) << l)
+#define BIT_MASK(l, r) (((1U << ((l) - (r) + 1U)) - 1U) << r)
 
 /**Bit test
  * Checks is bit s (represented by the shifted value) is set in w.
  * NOTE: `& 0x1` makes the GCC happy when assigning to bit field.*/
 #define BIT_ISSET(w, s)             \
     (__extension__({                \
-         INT w_ = (w);      \
-         INT s_ = (s);      \
+         UINT w_ = (w);             \
+         UINT s_ = (s);             \
          (w_ & s_) == s_ ? 1U : 0U; \
      }) & 0x1)
 
@@ -77,5 +77,8 @@
 
 #define NORETURN() __builtin_unreachable()
 #define UNREACHABLE() k_assert(false, "Unreachable code")
+
+// Calculate number of bytes between the start and end of a memory region
+#define MEM_LEN_BYTES(start, end)       (end - start + 1U)
 
 #endif // UTILS_H

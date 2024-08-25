@@ -9,6 +9,7 @@
 #include <kstdlib.h>
 #include <pmm.h>
 #include <kerror.h>
+#include <stdbool.h>
 #include <x86/paging.h>
 #include <paging.h>
 #include <config.h>
@@ -138,8 +139,6 @@ static inline void s_internal_temporaryUnmap()
  **************************************************************************************************/
 static void* s_temporaryMap (Physical pa, U32 pte_index)
 {
-    FUNC_ENTRY ("Physical address: %px, PTE Index: %u", pa.val, pte_index);
-
     // TODO: As KERNEL_PDE will always be present, recursive mapping is not really required. That is
     // to say the address of the PTE used for temporary mapping is constant.
     if (!IS_ALIGNED (pa.val, CONFIG_PAGE_FRAME_SIZE_BYTES)) {
@@ -167,8 +166,6 @@ static void* s_temporaryMap (Physical pa, U32 pte_index)
  **************************************************************************************************/
 static void s_temporaryUnmap (U32 pte_index)
 {
-    FUNC_ENTRY();
-
     // TODO: As KERNEL_PDE will always be present and same across every process, recursive mapping
     // is not really required. That is to say the address of the PTE used for temporary mapping is
     // constant.
@@ -225,6 +222,33 @@ PageDirectory kpg_getcurrentpd()
 }
 
 /***************************************************************************************************
+ * Disassociates multiple mappings of physical pages with virtual ones. It does not deallocate
+ * paging structures that created when mapping.
+ *
+ * @Input   pd        Page directory which will contain this virtual address.
+ * @Input   va        Virtual address which will be unmapped. Must be page aligned.
+ * @Input   numPages  Number of pages to map. Must be more than 0.
+ * @return            True if unmapping was successful, false otherwise. Error number is set.
+ * @error             ERR_INVALID_ARGUMENT - Number of pages is zero which is invalid.
+ **************************************************************************************************/
+bool kpg_unmapContinous (PageDirectory pd, PTR vaStart, SIZE numPages)
+{
+    FUNC_ENTRY ("PD: %px, VA Start: %px, %px, num Pages: %x", pd, vaStart, numPages);
+
+    if (numPages == 0) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    }
+
+    PTR va = vaStart;
+    for (SIZE pgIndex = 0; pgIndex < numPages; pgIndex++, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        if (!kpg_unmap (pd, va)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+        }
+    }
+    return true;
+}
+
+/***************************************************************************************************
  * Disassociates mapping between a physical page and virtual page. It does not deallocate paging
  * structures that were allocated for this mapping to work.
  *
@@ -266,6 +290,39 @@ bool kpg_unmap (PageDirectory pd, PTR va)
 
     s_internal_temporaryUnmap();
 
+    return true;
+}
+
+/***************************************************************************************************
+ * Associates multiple physical pages with virtual ones. It will create necessary paging structures
+ * if it does not exist for the mapping to work.
+ *
+ * @Input   pd        Page directory which will contain this virtual address.
+ * @Input   vaStart   Virtual address which will map to the physical address. Must be page aligned.
+ * @Input   paStart   Physical address. Must be page aligned.
+ * @Input   numPages  Number of pages to map. Must be more than 0.
+ * @Input   flags     PDE/PTE flags to be used for the mapping. PG_MAP_FLAG_* items.
+ * @return            True if mapping was successful, false otherwise. Error number is set.
+ * @error             ERR_INVALID_ARGUMENT - Number of pages is zero which is invalid.
+ **************************************************************************************************/
+bool kpg_mapContinous (PageDirectory pd, PTR vaStart, Physical paStart, SIZE numPages,
+                       PagingMapFlags flags)
+{
+    FUNC_ENTRY ("PD: %px, VA Start: %px, PA Start: %px, num Pages: %x, flags: %x", pd, vaStart,
+                paStart.val, numPages, flags);
+
+    if (numPages == 0) {
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
+    }
+
+    Physical pa = paStart;
+    PTR va      = vaStart;
+    for (SIZE pgIndex = 0; pgIndex < numPages;
+         pgIndex++, pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES, va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
+        if (!kpg_map (pd, va, pa, flags)) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // Map failed
+        }
+    }
     return true;
 }
 
@@ -334,132 +391,32 @@ bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags)
  * @Input    pd      Page directory which will contain this virtual address.
  * @Input    va      Virtual address which will map to the physical address.
  * @Output   pa      Pointer where the Physical address will be stored.
- * @return           True if mapping exists, false otherwise. Error number is set.
- * @error            ERR_INVALID_ARGUMENT - Pointer to page directory is null.
+ * @return           True if mapping exists, false otherwise.
  **************************************************************************************************/
-bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa)
+bool kpg_doesMappingExists (PageDirectory pd, PTR va, Physical* pa)
 {
     FUNC_ENTRY ("Page Directory: %px, VA: %px, Page Attributes: %px", pd, va, pa);
 
-    if (pd == NULL) {
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, false);
-    }
+    k_assert (pd != NULL, "PD cannot be null");
 
     IndexInfo info              = s_getTableIndices (va);
     ArchPageDirectoryEntry* pde = &pd[info.pdeIndex];
+    bool isMapped               = false;
 
-    if (!pde->present) {
-        RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
-    }
-
-    Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-    void* pt_vaddr          = s_internal_temporaryMap (pt_phyaddr);
-    ArchPageTableEntry* pte = &((ArchPageTableEntry*)pt_vaddr)[info.pteIndex];
-
-    if (!pte->present) {
-        s_internal_temporaryUnmap();
-        RETURN_ERROR (ERR_PAGE_WRONG_STATE, false);
-    }
-
-    Physical phy_addr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pte->pageFrame) | info.offset);
-    *pa               = phy_addr;
-
-    s_internal_temporaryUnmap();
-
-    return true;
-}
-
-/***************************************************************************************************
- * Searches virtual address space corresponding to the provided page directory, for numPages number
- * of continuous free virtual pages. No allocation/mapping are done.
- *
- * @Input   pd              Page directory wherein the search takes place.
- * @Input   numPages        This many continuous pages are searched for.
- * @Input   region_start    Start the search at this virtual address. Must be page aligned.
- * @Input   region_end      Find within this virtual address. Must be page aligned.
- * @return                  Virtual address found, NULL otherwise.
- **************************************************************************************************/
-PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_start, PTR region_end)
-{
-    FUNC_ENTRY ("Page Directory: %px, num Pages: %px, Region start: %px Region end: %px",
-                pd, numPages, region_start, region_end);
-
-    if (pd == NULL) {
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, (PTR)NULL);
-    }
-
-    IndexInfo startIndexInfo = s_getTableIndices (region_start);
-    IndexInfo endIndexInfo   = s_getTableIndices (region_end);
-
-    SIZE foundPageCount       = 0;
-    bool startAnew            = true;
-    bool found                = false;
-    UINT found_start_pdeIndex = 0, found_start_pteIndex = 0;
-
-    ArchPageDirectoryEntry* pde = &pd[startIndexInfo.pdeIndex];
-
-    for (UINT pdeIndex = startIndexInfo.pdeIndex; pdeIndex <= endIndexInfo.pdeIndex;
-         pde++, pdeIndex++) {
-        SIZE pteStartIndex = (pdeIndex == startIndexInfo.pdeIndex) ? startIndexInfo.pteIndex : 0;
-        SIZE pteEndIndex   = (pdeIndex == endIndexInfo.pdeIndex) ? endIndexInfo.pteIndex : 1023;
-
-        if (startAnew) {
-            startAnew            = false;
-            foundPageCount       = 0;
-            found_start_pdeIndex = pdeIndex;
-            found_start_pteIndex = pteStartIndex;
-        }
-
-        if (pde->present == false) {
-            foundPageCount += 1024; // Whole page table is empty.
-            if (foundPageCount >= numPages) {
-                INFO ("Found at least %u pages empty from [%x:%x] to [%x:%x]", numPages,
-                      found_start_pdeIndex, found_start_pteIndex, pdeIndex, 1023);
-                found = true;
-                break; // We have found enough pages. Now stop.
-            }
-            continue; // Require more pages, so continue with the next PDE.
-        }
-
+    if (pde->present) {
         Physical pt_phyaddr     = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pde->pageTableFrame));
-        ArchPageTableEntry* pte = (ArchPageTableEntry*)s_internal_temporaryMap (pt_phyaddr);
-        pte                     = &pte[pteStartIndex];
-
-        for (UINT pteIndex = pteStartIndex; pteIndex <= pteEndIndex; pte++, pteIndex++) {
-            if (startAnew) {
-                startAnew            = false;
-                foundPageCount       = 0;
-                found_start_pdeIndex = pdeIndex;
-                found_start_pteIndex = pteIndex;
-            }
-
-            if (pte->present == false) {
-                foundPageCount += 1;
-                if (foundPageCount >= numPages) {
-                    INFO ("Found at least %u pages empty from [%x:%x] to [%x:%x]", numPages,
-                          found_start_pdeIndex, found_start_pteIndex, pdeIndex, pteIndex);
-                    found = true;
-                    break; // We have found enough pages. Now stop.
-                }
-            } else {
-                // Abandon the currently searched entires as not enough free pages were found in
-                // them.
-                startAnew = true;
-            }
+        void* pt_vaddr          = s_internal_temporaryMap (pt_phyaddr);
+        ArchPageTableEntry* pte = &((ArchPageTableEntry*)pt_vaddr)[info.pteIndex];
+        if (pte->present) {
+            Physical phy_addr = PHYSICAL (PAGEFRAME_TO_PHYSICAL (pte->pageFrame) | info.offset);
+            *pa               = phy_addr;
+            isMapped          = true;
         }
-
         s_internal_temporaryUnmap();
-
-        if (found) {
-            break; // We have found enough pages. Now stop.
-        }
     }
 
-    if (found) {
-        return (PTR)s_getLinearAddress (found_start_pdeIndex, found_start_pteIndex, 0);
-    }
-
-    return (PTR)NULL;
+    INFO("Is mapped: %x", isMapped);
+    return isMapped;
 }
 
 /***************************************************************************************************
@@ -498,6 +455,13 @@ bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags)
     return true; // Success
 }
 
+/***************************************************************************************************
+ * Deletes a Page Directory and its Page tables.
+ *
+ * @Output  pd       Location where physical address of the new Page directory will be stored.
+ * @Input   flags    Flags that determine the setup of the Page directory.
+ * @return           True if success, false otherwise.
+ **************************************************************************************************/
 bool kpg_deletePageDirectory (Physical pd, PagingOperationFlags flags)
 {
     FUNC_ENTRY ("PD addr: %px, Flags: %x", pd, flags);

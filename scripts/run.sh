@@ -116,7 +116,7 @@ case $RUNMODE in
             # Run emulator and add the output to a reports file
             qemu-system-i386 $OPTS -fda ${DISKIMAGE_PATH}             \
                                    -boot a                            \
-                                   -cpu 486                           \
+                                   -cpu pentium2                      \
                                    -debugcon stdio                    \
                                    -no-reboot                         \
                                    -no-shutdown                       \

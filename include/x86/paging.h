@@ -15,6 +15,7 @@
 
 #include <types.h>
 #include <buildcheck.h>
+#include <x86/memloc.h>
 
 #define PDE_SHIFT    22U
 #define PTE_SHIFT    12U
@@ -24,10 +25,18 @@
 #define PTE_MASK    0x003FF000U
 #define OFFSET_MASK 0x00000FFFU
 
-#define RECURSIVE_PDE_INDEX          1023U
-#define KERNEL_PDE_INDEX             768U
-#define TEMPORARY_PTE_INDEX_EXTERN   1022U
-#define TEMPORARY_PTE_INDEX_INTERNAL 1023U
+#if !defined(UNITTEST)
+    #define RECURSIVE_PDE_INDEX          ((MEM_START_PAGING_RECURSIVE_MAP & PDE_MASK) >> PDE_SHIFT)
+    #define KERNEL_PDE_INDEX             ((MEM_START_KERNEL_LOW_REGION & PDE_MASK) >> PDE_SHIFT)
+    #define TEMPORARY_PTE_INDEX_EXTERN   ((MEM_START_PAGING_EXT_TEMP_MAP & PTE_MASK) >> PTE_SHIFT)
+    #define TEMPORARY_PTE_INDEX_INTERNAL ((MEM_START_PAGING_INT_TEMP_MAP & PTE_MASK) >> PTE_SHIFT)
+#else
+    #include <mosunittest.h>
+    #define RECURSIVE_PDE_INDEX          MOCK_THIS_MACRO_USING (recursive_pde_index)
+    #define KERNEL_PDE_INDEX             MOCK_THIS_MACRO_USING (kernel_pde_index)
+    #define TEMPORARY_PTE_INDEX_EXTERN   MOCK_THIS_MACRO_USING (temporary_pte_index_extern)
+    #define TEMPORARY_PTE_INDEX_INTERNAL MOCK_THIS_MACRO_USING (temporary_pte_index_internal)
+#endif
 
 #define x86_PG_DEFAULT_IS_CACHING_DISABLED 0 // 0 - Enabled cache, 1 - Disables cache
 #define x86_PG_DEFAULT_IS_WRITE_THROUGH    0 // 0 - Write back, 1 - Write through
@@ -62,18 +71,16 @@
     #define X86_TLB_INVAL_COMPLETE()   (void)0
 #endif
 
-/* Casts a linear mapped physical address to virtual address */
-static inline void* CAST_PA_TO_VA (Physical a)
+static inline void* HIGHER_HALF_KERNEL_TO_VA (Physical a)
 {
-#if !defined(UNITTEST)
     return (void *)(0xC0000000 + a.val);
-#else
-    return (void *)a.val;
-#endif
 }
 
-extern Physical g_page_dir,     /* Address of the initial page dir */
-                g_page_table;   /* Address of the initial page table*/
+static inline Physical HIGHER_HALF_KERNEL_TO_PA (PTR va)
+{
+    Physical ret = PHYSICAL(va - 0xC0000000);
+    return ret;
+}
 
 /* 4 KByte Page table entry */
 struct ArchPageTableEntry

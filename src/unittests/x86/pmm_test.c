@@ -8,11 +8,11 @@ void kdebug_printf_ndu (const CHAR *fmt, ...) { }
 
 TEST(PMM, actual_accessable_ram)
 {
-    kboot_calculateAvailableMemory_fake.ret = 5 * MB;
+    kboot_calculateInstalledMemory_fake.ret = 5 * MB;
     size_t available_ram = kpmm_arch_getInstalledMemoryByteCount();
     EQ_SCALAR (available_ram, 5 * MB);
 
-    kboot_calculateAvailableMemory_fake.ret = 16 * GB;
+    kboot_calculateInstalledMemory_fake.ret = 16 * GB;
     available_ram = kpmm_arch_getInstalledMemoryByteCount();
     EQ_SCALAR (available_ram, 16 * GB);
 

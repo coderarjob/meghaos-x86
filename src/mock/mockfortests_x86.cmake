@@ -8,10 +8,14 @@ set(pmm_mock_sources
     )
 
 set(kmalloc_mock_sources
-    ${PROJECT_SOURCE_DIR}/src/mock/kernel/x86/memmanage.c
+    ${PROJECT_SOURCE_DIR}/src/mock/kernel/vmm.c
+    ${PROJECT_SOURCE_DIR}/src/mock/kernel/kstdlib.c
     )
 
 set(salloc_mock_sources
-    ${PROJECT_SOURCE_DIR}/src/mock/kernel/x86/memmanage.c
     ${PROJECT_SOURCE_DIR}/src/mock/kernel/kstdlib.c
+    )
+
+set(kstdlib_mock_sources
+    ${PROJECT_SOURCE_DIR}/src/mock/kernel/paging.c
     )

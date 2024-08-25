@@ -40,6 +40,7 @@ endfunction()
 # ==================================================================================================
 # link (NAME name
 #       DEPENDS <target> [<target> ...]
+#       [RESOURCES <path to resources to add>]
 #       [FLAGS <linker flags>]
 #       [LINKER_FILE <path to link script>]
 #       [LINK_LIBRARIES <libraries to link>]
@@ -63,6 +64,9 @@ endfunction()
 # DEPENDS
 # Names from `compile_lib` which this depends on.
 #
+# RESOURCES
+# These files will be copied to the MOS_BIN_DIR directory.
+#
 # FLAGS
 # Linker flags
 #
@@ -81,7 +85,7 @@ endfunction()
 # ==================================================================================================
 function(link)
     set(oneValueArgs NAME)
-    set(multiValueArgs DEPENDS FLAGS LINKER_FILE LINK_LIBRARIES)
+    set(multiValueArgs DEPENDS RESOURCES FLAGS LINKER_FILE LINK_LIBRARIES)
     set(options FLATTEN NO_LIST)
     cmake_parse_arguments(PARSE_ARGV 0 LINK "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -143,11 +147,12 @@ function(link)
         # The final binary should be in the ${MOS_BIN_DIR} directory. In case of flat binaries the
         # output from objdump should go to ${MOS_BIN_DIR} directory.
         set(OUT_FLAT_FILE ${MOS_BIN_DIR}/${LINK_NAME})
-        add_custom_target(
-            ${LINK_NAME}
-            BYPRODUCTS ${OUT_FLAT_FILE}
+        add_custom_target(${LINK_NAME} DEPENDS ${OUT_FLAT_FILE})
+        add_custom_command(
+            OUTPUT ${OUT_FLAT_FILE}
+            DEPENDS ${EXE_NAME}
             COMMAND ${CROSS_OBJCOPY} -O binary $<TARGET_FILE:${EXE_NAME}> ${OUT_FLAT_FILE}
-            )
+        )
     endif()
     # -------------------------------------------------------------------------------------------
     # Generate listing files
@@ -162,6 +167,21 @@ function(link)
             COMMENT "Building listing file for ${LINK_NAME}"
             )
     endif()
+    # -------------------------------------------------------------------------------------------
+    # Copy files in RESOURCES list to MOS_BIN_DIR
+    # -------------------------------------------------------------------------------------------
+    foreach(resource IN LISTS LINK_RESOURCES)
+        get_filename_component(FILE_TITLE ${resource} NAME)
+        set(OUTPUT_RES_FILE "${MOS_BIN_DIR}/${FILE_TITLE}")
+        add_custom_target(${FILE_TITLE} DEPENDS ${OUTPUT_RES_FILE})
+        add_custom_command(
+            OUTPUT ${OUTPUT_RES_FILE}
+            DEPENDS ${resource}
+            COMMAND ${CMAKE_COMMAND} -E copy ${resource} ${OUTPUT_RES_FILE}
+        )
+        add_dependencies(${EXE_NAME} ${FILE_TITLE})
+    endforeach()
+
 endfunction()
     
 # ==================================================================================================
@@ -192,12 +212,15 @@ function(copy_object_file)
     # Copy the object file produced by the 'Dependency' to the 'output directory'
     # -------------------------------------------------------------------------------------------
     set(OUT_FLAT_FILE ${CPOBJ_OUTPUT_DIRECTORY}/${CPOBJ_NAME})
-    add_custom_target(
-        ${CPOBJ_NAME}
-        BYPRODUCTS ${OUT_FLAT_FILE}
-        DEPENDS ${CPOBJ_DEPENDS}
+    add_custom_target(${CPOBJ_NAME} DEPENDS ${OUT_FLAT_FILE})
+    # NOTE: DEPENDS includes both the target name (${CPOBJ_NAME} as well as the corresponding object
+    # file ($<TARGET_OBJECTS:${CPOBJ_DEPENDS}>). I am not sure why both is required, but I think its
+    # because the target is a OBJECT library type, otherwise it would not have been required.
+    add_custom_command(
+        OUTPUT ${OUT_FLAT_FILE}
+        DEPENDS ${CPOBJ_DEPENDS} $<TARGET_OBJECTS:${CPOBJ_DEPENDS}>
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${CPOBJ_DEPENDS}> ${OUT_FLAT_FILE}
-        )
+    )
 endfunction()
 
 # ==================================================================================================
@@ -273,16 +296,16 @@ function(assemble_and_copy_bin)
     # -------------------------------------------------------------------------------------------
     # Compile and copy binary files to destinations
     # -------------------------------------------------------------------------------------------
-    set(INTERMEDIATE_BIN_NANME ${ASSEMBLE_NAME}-lib)
+    set(INTERMEDIATE_BIN_NAME ${ASSEMBLE_NAME}-lib)
     compile_lib(
-        NAME ${INTERMEDIATE_BIN_NANME}
+        NAME ${INTERMEDIATE_BIN_NAME}
         SOURCES ${ASSEMBLE_SOURCES}
         FLAGS ${ASSEMBLE_FLAGS}
         INCLUDE_DIRECTORIES ${ASSEMBLE_INCLUDE_DIRECTORIES}
         )
     copy_object_file(
         NAME ${ASSEMBLE_NAME}
-        DEPENDS ${INTERMEDIATE_BIN_NANME}
+        DEPENDS ${INTERMEDIATE_BIN_NAME}
         OUTPUT_DIRECTORY ${MOS_BIN_DIR}
         )
 endfunction()

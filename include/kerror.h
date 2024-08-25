@@ -14,7 +14,7 @@
 #include <kassert.h>
 #include <kdebug.h>
 #include <panic.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 /* Error codes that can be set inside the kernel.*/
 typedef enum KernelErrorCodes {
@@ -22,7 +22,7 @@ typedef enum KernelErrorCodes {
     ERR_UNKNOWN                   = 1,  // Unknown error
     ERR_INVALID_RANGE             = 2,  // Outside of valid range
     ERR_OVERFLOW                  = 3,  // Overflow
-    ERR_OUT_OF_MEM                = 4,  // Out of physical pages
+    ERR_OUT_OF_MEM                = 4,  // Out of physical & virtual pages
     ERR_DOUBLE_FREE               = 5,  // Double free
     ERR_DOUBLE_ALLOC              = 6,  // Double allocation
     ERR_WRONG_ALIGNMENT           = 7,  // Byte alignment is wrong
@@ -31,6 +31,10 @@ typedef enum KernelErrorCodes {
     ERR_PAGE_WRONG_STATE          = 10, // Page table/directory is in wrong state
     ERR_SCHEDULER_QUEUE_FULL      = 11, // No space for new process in process table
     ERR_SCHEDULER_QUEUE_EMPTY     = 12, // No process in the process table to schedule next
+    ERR_VMM_NOT_ALLOCATED         = 13, // Virutal address space is not allocated
+    ERR_VMM_OVERLAPING_VAS        = 14, // New Virtual address space is overlaps another one
+    ERR_VMM_NULL_PAGE_ACCESS      = 15, // Trying to commit a NULL page.
+    ERR_PROC_EXIT_NOT_ALLOWED     = 16  // Process exit not allowed (its the only one left)
 } KernelErrorCodes;
 
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what

@@ -18,7 +18,7 @@
 #include <kerror.h>
 #include <x86/memloc.h>
 #include <x86/io.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 #define TABSTOP             4U
 #define VGA_COLUMNS         MAX_VGA_COLUMNS
@@ -106,7 +106,7 @@ error_invalid_range:
  **************************************************************************************************/
 void kdisp_init ()
 { 
-    vgab = (U16 *)VIDEO_RAM_LOCATION;
+    vgab = (U16 *)MEM_START_VGA_TEXT;
     // ------------------------------------------------------------
     // Scan the vga buffer to find where the next character should go.
     U16 s,          // Current Scan index.

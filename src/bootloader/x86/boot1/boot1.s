@@ -27,14 +27,16 @@
 ; ******************************************************
 %include "a20gate.s"
 %include "gdt.s"
+%include "vbe2.s"
 %include "mos.inc"
 
 ; ******************************************************
 ; DATA
 ; ******************************************************
-files:       db     KERNEL_FILE  , "KERNEL.FLT",0,0,0
-             db     PROC1_FILE   , "PROC1.FLT" ,0,0,0,0
-             db     MPDEMO_FILE  , "MPDEMO.FLT",0,0,0
+files:       db     KERNEL_FILE     , "KERNEL.FLT",0,0,0
+             db     PROC1_FILE      , "PROC1.FLT",0,0,0,0
+             db     MPDEMO_FILE     , "MPDEMO.FLT",0,0,0
+             db     MOS_IMAGE_FILE  , "MOS.RBM",0,0,0,0,0,0
              db     0
 
 msg_welcome: db     13,10,OS_NAME,13,10
@@ -52,6 +54,23 @@ msg_AVLMEM : db 13,10,"[  ]    Available memory. ",0
 msg_success: db 13,"[OK]",0
 msg_failed : db 13,"[ER]",0
 
+%ifdef GRAPHICS_MODE_ENABLED
+vbemode:
+    istruc vbe_modequery_t
+        ; Input to vbe2_find_mode, vbe2_switch_mode
+        at .Xresolution       , dw GXMODE_XRESOLUTION
+        at .Yresolution       , dw GXMODE_YRESOLUTION
+        at .BitsPerPixel      , db GXMODE_BITSPERPIXEL
+
+        ; Output from vbe2_find_mode
+        ; Input for vbe2_switch_mode
+        at .Mode              , dw 0
+        at .VbeVersion        , dw 0
+        at .FrameBuffer       , dd 0
+        at .BytesPerScanLine  , dw 0
+    iend
+%endif
+
 ; ******************************************************
 ; CODE
 ; ******************************************************
@@ -63,6 +82,11 @@ _start:
 
     ; -------- [ Welcome message ] -----------
     printString msg_welcome
+
+    ; -------- [ DEBUG: Print VBE Information] -----------
+%ifdef GRAPHICS_MODE_ENABLED
+    call vbe2_dump_modes
+%endif
 
     ; -------- [ Clean Boot info memory ] -----------
     mov al, 0
@@ -122,6 +146,59 @@ _start:
     printString msg_success
 
     call copy_gdt_to_global
+
+    ; -------- [ Switch to graphics Mode ] -----------
+%ifdef GRAPHICS_MODE_ENABLED
+    mov edi, vbemode
+    call vbe2_find_mode
+    jc .gx_failed
+
+    mov edi, vbemode
+    call vbe2_switch_mode
+    jc .gx_failed
+
+    ; Graphics mode was set successfully
+
+    ; ----  Copy the graphics mode info into Boot info
+    mov cx, vbe_modequery_t_size ; Number of bytes to copy
+    mov bx, BOOT_INFO_SEG
+    mov es, bx                   ; Destination (ES:DI)
+    lea di, [BOOT_INFO_OFF + boot_info_t.graphis_info]
+    mov si, vbemode              ; Source (DS:SI)
+    rep movsb
+
+    ; ----  Copy fonts data from BIOS memory to BOOT_INFO
+    mov ax, 0x1130
+%if GXMODE_FONT_WIDTH == 8 && GXMODE_FONT_HEIGHT == 16
+    mov bh, 6 ; 8 x 16 font (May be only for VGA)
+%else
+    %error "Invalid glyph size"
+%endif
+    int 0x10 ; Returns font data in ES:BP
+
+    push ds
+        push es ; Move ES to DS
+        pop ds
+        mov si, bp ; Source (DS:SI)
+
+        mov cx, GXMODE_FONTS_DATA_BYTES ; Number of bytes to copy
+        lea di, [BOOT_INFO_OFF + boot_info_t.fonts_data]
+        mov bx, BOOT_INFO_SEG
+        mov es, bx           ; Destination (ES:DI)
+        rep movsb
+    pop ds
+
+    ; Copy complete, continue loading kernel
+    jmp .goto_kernel
+
+.gx_failed:
+    ; Clear Mode to indicate failure. This  also means that OS is operating in
+    ; text mode
+    mov [vbemode + vbe_modequery_t.Mode], word 0
+%endif
+
+    ; -------- [ All set, now jump to kernel ] -----------
+.goto_kernel:
     EnterProtectedMode32 gdt32_meta_global
     [BITS 32]
     jmp KERNEL_IMG_MEM
@@ -196,7 +273,12 @@ __load_kernel_and_ramdisks:
         printString msg_success
 
     ; ---- Next file name after
-        add [.copy_dest_location], ax
+        ; Increment Destination location by the value in EAX. The high bits of
+        ; EAX can be garbage so we clear it before adding.
+        push ax
+            xor eax, eax
+        pop ax
+        add [.copy_dest_location], eax
         add di, file_des_t_size
         inc cx
 

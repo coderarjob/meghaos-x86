@@ -8,7 +8,11 @@
 #include <stdio.h>
 #include <types.h>
 #include <stdarg.h>
-#include <x86/kernel.h>
+#include <kernel.h>
+#include <mosunittest.h>
+
+/* MOS Unittest Macro mock global structure */
+MockedMacro g_utmm = { 0 };
 
 /* Panic handler */
 KernelStateInfo g_kstate;

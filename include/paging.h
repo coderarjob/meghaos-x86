@@ -31,10 +31,12 @@ typedef ArchPageDirectoryEntry* PageDirectory;
 typedef ArchPageTableEntry* PageTable;
 
 typedef enum PagingMapFlags {
-    PG_MAP_FLAG_KERNEL        = (1 << 0),
-    PG_MAP_FLAG_CACHE_ENABLED = (1 << 1),
-    PG_MAP_FLAG_WRITABLE      = (1 << 2),
-    PG_MAP_FLAG_NOT_PRESENT   = (1 << 3),
+    PG_MAP_FLAG_KERNEL         = (1 << 0),
+    PG_MAP_FLAG_CACHE_ENABLED  = (1 << 1),
+    PG_MAP_FLAG_WRITABLE       = (1 << 2),
+    PG_MAP_FLAG_NOT_PRESENT    = (1 << 3),
+    PG_MAP_FLAG_DEFAULT        = (PG_MAP_FLAG_CACHE_ENABLED),
+    PG_MAP_FLAG_KERNEL_DEFAULT = (PG_MAP_FLAG_DEFAULT | PG_MAP_FLAG_KERNEL),
 } PagingMapFlags;
 
 typedef enum PagingOperationFlags {
@@ -50,12 +52,14 @@ typedef enum PagingOperationFlags {
 #define PHYSICAL_TO_PAGEFRAME(addr) (BYTES_TO_PAGEFRAMES_FLOOR (addr))
 
 PageDirectory kpg_getcurrentpd();
+bool kpg_mapContinous (PageDirectory pd, PTR vaStart, Physical paStart, SIZE numPages,
+                       PagingMapFlags flags);
 bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags);
+bool kpg_unmapContinous (PageDirectory pd, PTR vaStart, SIZE numPages);
 bool kpg_unmap (PageDirectory pd, PTR va);
 void* kpg_temporaryMap (Physical pa);
 void kpg_temporaryUnmap();
-bool kpg_getPhysicalMapping (PageDirectory pd, PTR va, Physical* pa);
-PTR kpg_findVirtualAddressSpace (PageDirectory pd, SIZE numPages, PTR region_start, PTR region_end);
+bool kpg_doesMappingExists (PageDirectory pd, PTR va, Physical* pa);
 bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags);
 bool kpg_deletePageDirectory(Physical pd, PagingOperationFlags flags);
 

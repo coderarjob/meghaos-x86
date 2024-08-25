@@ -1,8 +1,52 @@
 # Megha Operating System V2 - x86
 ----------------------------------------------------------------------------------------------------
 
-## Virtual memory management - Concept of Regions
+## Virtual memory management - Regions and Mapping
 categories: note, x86
+_24 June 2024_
+
+The previous idea about storing state of individual virtual pages in a bitmap was a overkill. Rather
+than keeping track of individual pages we need to keep track of 'address spaces', which may
+constitute more than one page. These process address spaces will be tracked by what is called
+'Mapping' objects and underlying them are 'Region' objects which are analogue to Physical pages.
+These Regions can be shared among processes for memory mapping. After VMM, Region is a unit of
+physical memory (consisting of many pages). They contain a 'Size', 'Flags', a 'List of Physical
+pages', 'Mapping list head' and pointer to the next (& previous) Region in Regions list.
+
+The Mapping objects have 'VM start', 'Size', pointer to the associated Region, and pointer to the
+next (& previous) Mapping in Mappings list.
+
+* Mapping.Size <= Region.Size
+* Regions are of fixed sizes (say 10 pages).
+* One can shorten or lengthen Mapping size as long as the first criteria is met (akin to 'brk'
+syscall).
+
+Asking for memory a process/kernel will get an empty Region and a suitably created Mapping linked to
+the empty Region. On page fault the handler will search the Mapping linked list. If its found then
+will ask PMM for a new page, and paging to link the faulting virtual address with the physical
+address. The same physical address is also recored in the Region object of which the found Mapping
+belongs to.
+
+Region {
+    flags,              // Paging flags
+    size,               // in number of pages
+    pages[],            // physical pages array
+    RegionListNode,     // Node in the Regions linked list
+    MappingsNode,       // Associated Mappings
+}
+
+Mapping {
+    start_vm,           // Paging flags
+    size,               // in number of pages
+    Region,             // Parent Region
+    ProcessID,          // Process this mapping belongs to
+    MappingsNode,       // Node in the Mappings linked list
+}
+
+----------------------------------------------------------------------------------------------------
+
+## Virtual memory management - Concept of Regions
+categories: note, x86, obsolete
 _6 April 2024_
 
 Regions cover small (say 20 pages in size) continuous virtual addresses and keep track of virtual &

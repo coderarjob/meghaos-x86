@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ################################################################################
 replace_text_in_file()
@@ -53,7 +53,7 @@ cp "$TEMPLATE_FILE" "$temp_template_file"
 
 IFS='' # Loop should not split by space, which is the default value of IFS.
 for cate in ${doc_categories[@]}; do
-    list=$(bash ./titles.sh $cate)
+    list=$(./titles.sh $cate)
     form_pattern $cate
     pattern=$RETURN
     replace_text_in_file "$temp_template_file" "$INDEX_FILE" "$pattern" "$list"

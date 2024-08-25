@@ -35,7 +35,7 @@
 	; Version informations
     ; ------------------------------------------------------------------------
 	%define     BOOT0_BUILD 	"20211224"
-	%define     BOOT1_BUILD 	"20220710"
+	%define     BOOT1_BUILD 	"20240816"
 	%define 	OS_NAME 	    "MEGHA OPERATING SYSTEM V2 - x86"
 
 	; MOS Fixed Memory Locations
@@ -62,6 +62,18 @@
     %define KERNEL_FILE     "KERNEL  FLT"
     %define PROC1_FILE      "PROC1   FLT"
     %define MPDEMO_FILE     "MPDEMO  FLT"
+    %define MOS_IMAGE_FILE  "MOS     RBM"
+
+    %define GXMODE_XRESOLUTION 800
+    %define GXMODE_YRESOLUTION 600
+    %define GXMODE_BITSPERPIXEL 32
+
+    %define GXMODE_FONT_GLYPH_COUNT 128
+    %define GXMODE_FONT_HEIGHT 16
+    %define GXMODE_FONT_WIDTH  8
+    %define GXMODE_FONT_HEIGHT 16
+    %define GXMODE_FONTS_DATA_BYTES \
+        (GXMODE_FONT_GLYPH_COUNT * GXMODE_FONT_WIDTH * GXMODE_FONT_HEIGHT)/8
 
 	; Structures
     ; ------------------------------------------------------------------------
@@ -78,7 +90,22 @@
         .Length        : resw 1
 	endstruc
 
+    struc vbe_modequery_t
+        ; Inputs
+        .Xresolution      : resw 1
+        .Yresolution      : resw 1
+        .BitsPerPixel     : resb 1
+
+        ; Outputs
+        .Mode             : resw 1
+        .VbeVersion       : resw 1
+        .FrameBuffer      : resd 1
+        .BytesPerScanLine : resw 1
+    endstruc
+
 	struc boot_info_t
+	    .fonts_data    : resb GXMODE_FONTS_DATA_BYTES
+        .graphis_info  : resb vbe_modequery_t_size
         .file_count    : resw 1
         .file_dec_items: resb file_des_t_size * MAX_FILES_COUNT
         .mem_des_count : resw 1

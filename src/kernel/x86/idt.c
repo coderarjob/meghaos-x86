@@ -33,7 +33,9 @@ kidt_init ()
 {
     FUNC_ENTRY();
 
-    s_idt = (IdtDescriptor *)INTEL_32_IDT_LOCATION;
+    k_staticAssert(IDT_BYTES <= MEM_LEN_BYTES_IDT);
+
+    s_idt = (IdtDescriptor *)MEM_START_IDT;
     k_memset ((void *)s_idt, 0, IDT_BYTES);
     s_idt_write ();
 }

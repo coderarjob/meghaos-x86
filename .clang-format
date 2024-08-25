@@ -3,7 +3,7 @@ AlignArrayOfStructures: None
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: None
 AlignConsecutiveBitFields: Consecutive
-AlignConsecutiveMacros: Consecutive
+AlignConsecutiveMacros: AcrossEmptyLinesAndComments
 AlignTrailingComments: true
 AlignEscapedNewlines: Left
 AllowShortBlocksOnASingleLine: Never

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <utils.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 
 TEST(kearly_snprintf, no_vargs)

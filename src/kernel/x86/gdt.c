@@ -16,6 +16,7 @@
 #include <kdebug.h>
 #include <x86/memloc.h>
 #include <panic.h>
+#include <kassert.h>
 
 /* -------------------------------------------------------------------------*/
 /* Variables */
@@ -61,7 +62,9 @@ kgdt_edit (U16 gdt_index,
     FUNC_ENTRY ("index: %x, base: %x, limit: %x, access: %x, flags: %x", gdt_index, base,
                 limit, access, flags);
 
-    s_gdt = (GdtDescriptor *)INTEL_32_GDT_LOCATION;
+    k_staticAssert(sizeof(GdtDescriptor) * MAX_GDT_DESC_COUNT <= MEM_LEN_BYTES_GDT);
+
+    s_gdt = (GdtDescriptor *)MEM_START_GDT;
 
     // Valid range is MIN_INDEX < index < s_gdt_count < GDT_MAX_COUNT
     if (!(gdt_index >= MIN_GDT_INDEX &&

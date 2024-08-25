@@ -11,13 +11,12 @@
 #include <panic.h>
 #include <moslimits.h>
 #include <types.h>
-#include <x86/paging.h>
-#include <paging.h>
 #include <kdebug.h>
 #include <kerror.h>
 #include <common/bitmap.h>
 #include <utils.h>
-#include <x86/kernel.h>
+#include <kernel.h>
+#include <memloc.h>
 
 typedef struct PhysicalMemoryRegion
 {
@@ -59,7 +58,7 @@ static bool s_verifyChange(UINT pageFrame, BitmapState old, BitmapState new)
     if (old == PMM_STATE_FREE && new == PMM_STATE_FREE)
         k_panic ("Double free: Page %u", pageFrame);
 
-    if (g_kstate.phase >= KERNEL_PHASE_STATE_PMM_READY && old == PMM_STATE_RESERVED)
+    if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_PMM_READY) && old == PMM_STATE_RESERVED)
         k_panic ("Use of Reserved page: Page %u", pageFrame);
 
     if (old == PMM_STATE_INVALID)
@@ -92,7 +91,7 @@ void kpmm_init ()
 {
     FUNC_ENTRY();
 
-    s_pab = (U8 *)CAST_PA_TO_VA (g_pab);
+    s_pab = (U8 *)ARCH_MEM_START_KERNEL_PAB;
 
     s_pmm_completeRegion.bitmap.allow = s_verifyChange;
     s_pmm_completeRegion.bitmap.bitmap = s_pab;
@@ -262,9 +261,10 @@ size_t kpmm_getFreeMemorySize ()
     PhysicalMemoryRegion *region = s_getBitmapFromRegion(PMM_REGION_ANY);
 
     size_t freePages = 0;
-    for (UINT frame = 1; frame < usablePageCount; frame++)
-        if (bitmap_get(&region->bitmap, frame) == PMM_STATE_FREE)
-        freePages++;
+    for (UINT frame = 1; frame < usablePageCount; frame++) {
+        if (bitmap_get (&region->bitmap, frame) == PMM_STATE_FREE)
+            freePages++;
+    }
 
     k_assert(freePages <= kpmm_getUsableMemoryPagesCount(PMM_REGION_ANY), "Invalid frames");
     return PAGEFRAME_TO_PHYSICAL(freePages);

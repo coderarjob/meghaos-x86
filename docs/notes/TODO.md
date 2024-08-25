@@ -39,7 +39,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Separate warning flags for Release, and user processes              | 12 Apr 24 |            |
 | [ ] GCC-10.5 adds -Wenum-conversion, which will help typecheck enum     | 04 Feb 24 |            |
-| variants in C.                                                          |           |            |
+| variants in C. Does nothing if flags are OR'ed.                         |           |            |
 | [ ] Add -Wundedf compiler flags                                         |           |            |
 | [ ] Remove libgcc. Write two macros do_div() for div & mod opeartions   | 06 Mar 24 |            |
 | [ ] Configuration header files for C and assembly.                      |           |            |
@@ -48,6 +48,10 @@
 | C and assembly.                                                         |           |            |
 | NOTE: This can be done using CMake, so separate script is not required. |           |            |
 | [ ] Using Flawfinder to check for security flaws seem intersting.       |           |            |
+| [X] Switch to CMake from build.sh                                       |           | 25 May 24  |
+| ::: [ ] Its confusing to have targets like mpdemo, mpdemo.flt.in &      | 24 Jul 24 |            |
+| ::: ::: mpdemo.flt and also boot0.flt-lib & boot0.flt. Why '-lib' and   |           |            |
+| ::: ::: not '.in' for intermediate files?                               |           |            |
 | [X] x86 Cross compiler setup                                            |           |            |
 | [X] Create a tools folder, with scripts to build gcc cross-compiler.    |           |            |
 | [X] Idea of VERBOSE to print debug messages on screen is faulty.        |           | 07 SEP 21  |
@@ -92,6 +96,18 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Determine CPU/machine capabilites and take steps if they are less   | 17 Aug 24 |            |
+| than the minimum required. Here are some of the items we requrire:      |           |            |
+| * P6 processor                                                          |           |            |
+| * Protected mode                                                        |           |            |
+| * Paging support                                                        |           |            |
+| * FPU installed                                                         |           |            |
+| * 800x600, 8bpp VESA mode                                               |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] How to determine if an FPU is installed and how to enable it if     | 17 Aug 24 |            |
+| it is.                                                                  |           |            |
+| ::: [ ] Print floating point (double & float) using kprintf             | 17 Aug 24 |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Are assertOnError and panicOnError requried? They check if errno    | 16 Apr 24 |            |
 | is set then one asserts and other panics. However as errno is never     |           |            |
 | reset, these macros can only be used when a function fails, so the      |           |            |
@@ -103,20 +119,29 @@
 | Reason:                                                                 |           |            |
 | This happened because the CR0.WP (Write Protect) flag was unset.        |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [X] Since locations for PAB, initial PD and PT are fixed, the need for  | 17 Jul 24 | 19 Jul 14  |
+| ::: g_pab, g_page_dir, g_page_table are not required. Only issue is     |           |            |
+| ::: unittests how are we going to mock, so for unittests something else |           |            |
+| ::: need to be done.                                                    |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
-| ::: [ ] Ability to select and extend stack memory as required.          | 12 Apr 24 |            |
-| ::: [ ] Free up process memory when creation or switching fails         | 15 Apr 24 |            |
 | ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
 | Possible solution.                                                      |           |            |
 | When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
 | and the scheduler will make sure that the parent gets the message.      |           |            |
 | Need a way to avoid creation of ZOMBIE processes.                       |           |            |
-| ::: [ ] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 |            |
-| supported.                                                              |           |            |
 | ::: [ ] Process Exit: Copy the Kernel PDEs from PD of the process to    | 27 Apr 24 |            |
 | ::: PD of the Kernel. At the start we copy the Kernel PDEs but are not  |           |            |
 | ::: copying it back. The Kernel memory mapping might have changed by    |           |            |
 | ::: now, so this copying is needed.                                     |           |            |
+| ::: [X] Free up process memory when creation or switching fails         | 15 Apr 24 | 10 Aug 24  |
+| ::: [-] Ability to select and extend stack memory as required.          | 12 Apr 24 | 03 Aug 24  |
+| With VMM the stack can be allocated dynamically but is of fixed size,   |           |            |
+| but since we now have lazy on-demand page allocation, the fixed size    |           |            |
+| can be large and does not require explicit 'extention'.                 |           |            |
+| ::: [X] Process exit: Free both virtual physical memory at process exit | 18 Jul 24 | 03 Aug 24  |
+| ::: [X] Process creation/killing: Binary and stack size of only 4KB is  | 21 Apr 24 | 03 Aug 24  |
+| supported.                                                              |           |            |
 | ::: [X] Process Killing: Free Page tables along with page directory     | 21 Apr 24 | 21 Apr 24  |
 | ::: ::: [X] Cannot unmap stack for Kernel process/threads because the   | 22 Apr 24 | 23 Apr 24  |
 | ::: ::: stack is used in the Kernel mode. kpg_unmap will cause page     |           |            |
@@ -140,7 +165,7 @@
 | Moreover, kpg_map invalidates caches, which are privilaged instructions |           |            |
 | ::: [X] BUG: 86Box and Bochs resets when making syscall from process1   | 11 Apr 24 | 12 Apr 24  |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] Rename salloc to ksalloc.                                           | 16 Mar 24 |            |
+| [X] Rename salloc to ksalloc.                                           | 16 Mar 24 | 03 Aug 24  |
 |-------------------------------------------------------------------------|-----------|------------|
 | [X] Rename include/assert.h to kassert.h.                               | 16 Mar 24 | 17 Mar 24  |
 |-------------------------------------------------------------------------|-----------|------------|
@@ -166,14 +191,18 @@
 | global pointers state, etc required by the kernel.                      |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Virutal memory allocator                                            |           |            |
-| ::: [ ] How to do lazy allocation?                                      |           |            |
+| ::: [X] Lazy allocation                                                 |           | 22 Jul 24  |
 | ::: [X] Allocate a new virtual address                                  |           | 25 Mar 24  |
 | ::: [X] Map a virtual to physical address                               |           |            |
 | ::: [[X]] Higher half mapping maps first 2MiB physical memory           |           | 23 Mar 24  |
 | entirely to 0xC0000000. Initially only the physical memory where the    |           |            |
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
+| ::: [ ] May be kpg_temporaryMap/Unmap can call kpg_map.                 | 14 Jul 24 |            |
+| ::: [ ] kvmm_memmap API may simplify the VMM API.                       | 17 Aug 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] DEBUG_LEVEL determines where debug messages are printed. Does it    | 27 May 24 |            |
+| makes sense to print debug messages in NDEBUG build mode?               |           |            |
 | [X] Log and print to E9 port the following:                             |           | 06 Mar 24  |
 | ::: [X] Function name & location when entering and leaving functions    |           | 06 Mar 24  |
 | FUNC_ENTRY macro can be used for this. Not doing Logging when leaving.  |           |            |

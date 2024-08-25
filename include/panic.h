@@ -18,15 +18,12 @@
 
 #ifndef UNITTEST
     /* Displays an error message on the screen and Halts */
-    #define k_panic(...)                                                             \
-        do                                                                           \
-        {                                                                            \
-            kdisp_importantPrint ("\r\n\r\n---------- Kernel Panic ----------\r\n"); \
-            kdisp_importantPrint (__VA_ARGS__);                                      \
-            kdisp_importantPrint ("\r\n");                                           \
-            kdisp_show_call_trace();                                                 \
-            kdisp_importantPrint ("\r\n-----------------------------------");        \
-            k_halt();                                                                \
+    #define k_panic(...)                                  \
+        do {                                              \
+            kdisp_importantPrint ("\n\nKernel Panic:\n"); \
+            kdisp_importantPrint (__VA_ARGS__);           \
+            kdisp_show_call_trace();                      \
+            k_halt();                                     \
         } while (0)
 #else // UNITTEST
 void        unittest_panic_handler (const CHAR* s, ...);

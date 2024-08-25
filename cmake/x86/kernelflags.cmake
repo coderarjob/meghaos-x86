@@ -16,11 +16,12 @@ set(MOS_KERNEL_GCC_FLAGS
     -fno-stack-protector
     -fno-asynchronous-unwind-tables
     -m32
-    -march=i386
+    -march=i686
     -masm=intel
     -mno-red-zone
     -mno-sse
-    -O1
+    -malign-data=abi
+    -Os
     -fno-unit-at-a-time
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
@@ -41,6 +42,12 @@ set(MOS_KERNEL_NASM_ELF_MODE_FLAGS
 if (MOS_BUILD_MODE STREQUAL "DEBUG")
     set(MOS_KERNEL_GCC_FLAGS ${MOS_KERNEL_GCC_FLAGS} -g)
     set(MOS_KERNEL_NASM_ELF_MODE_FLAGS ${MOS_KERNEL_NASM_ELF_MODE_FLAGS} -g)
+endif()
+
+If (MOS_GRAPHICS_ENABLED)
+    set(MOS_KERNEL_GCC_FLAGS ${MOS_KERNEL_GCC_FLAGS} -DGRAPHICS_MODE_ENABLED)
+    set(MOS_KERNEL_NASM_ELF_MODE_FLAGS ${MOS_KERNEL_NASM_ELF_MODE_FLAGS} -DGRAPHICS_MODE_ENABLED)
+    set(MOS_KERNEL_NASM_BIN_MODE_FLAGS ${MOS_KERNEL_NASM_BIN_MODE_FLAGS} -DGRAPHICS_MODE_ENABLED)
 endif()
 
 set(MOS_KERNEL_LINKER_OPTIONS

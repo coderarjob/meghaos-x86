@@ -11,12 +11,7 @@
 #include <utils.h>
 #include <intrusive_list.h>
 
-#define SALLOC_MEM_SIZE_PAGES (5) // 5 pages to begin with. Virtual MemMap doc says 256 pages.
-#define SALLOC_SIZE_BYTES     (PAGEFRAMES_TO_BYTES (SALLOC_MEM_SIZE_PAGES))
-#define SALLOC_GRANUALITY     (8 * Byte)
-
-#define KMALLOC_SIZE_PAGES  (5) // 5 pages to begin with. Virtual MemMap doc says a lot more.
-#define KMALLOC_SIZE_BYTES  (PAGEFRAMES_TO_BYTES (KMALLOC_SIZE_PAGES))
+#define SALLOC_GRANUALITY   (8 * Byte)
 #define KMALLOC_GRANULARITY (16 * bytes)
 
 typedef struct MallocHeader
@@ -28,13 +23,14 @@ typedef struct MallocHeader
     ListNode allocnode; /// A node in the Allocation list
 } MallocHeader;
 
-void salloc_init();
-void* salloc (UINT bytes);
-void* scalloc (UINT bytes);
-void* salloc_arch_preAllocateMemory();
-SIZE salloc_getUsedMemory();
+void ksalloc_init();
+void* ksalloc (UINT bytes);
+void* kscalloc (UINT bytes);
+void* ksalloc_arch_preAllocateMemory();
+SIZE ksalloc_getUsedMemory();
 
 void* kmalloc (size_t bytes);
+void* kmallocz (size_t bytes);
 bool kfree (void* addr);
 void kmalloc_init();
 void* kmalloc_arch_preAllocateMemory();

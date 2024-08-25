@@ -44,19 +44,17 @@ void kpmm_arch_init (Bitmap *bitmap)
  **************************************************************************************************/
 static void s_markFreeMemory (Bitmap *bitmap)
 {
-    BootLoaderInfo *bootloaderinfo = kboot_getCurrentBootLoaderInfo ();
-    INT mmapCount = kBootLoaderInfo_getMemoryMapItemCount (bootloaderinfo);
+    INT mmapCount = kboot_getBootMemoryMapItemCount ();
     size_t actualAddressableMemorySize = kpmm_getUsableMemorySize (PMM_REGION_ANY);
 
     for (INT i = 0; i < mmapCount; i++)
     {
-        BootMemoryMapItem* memmap = kBootLoaderInfo_getMemoryMapItem (bootloaderinfo, i);
-        BootMemoryMapTypes type = kBootMemoryMapItem_getType (memmap);
+        BootMemoryMapItem memmap =  kboot_getBootMemoryMapItem(i);
+        BootMemoryMapTypes type = memmap.type;
+        U64 startAddress = memmap.baseAddr;
+        U64 lengthBytes = memmap.length;
 
         if (type != MMTYPE_FREE) continue;
-
-        U64 startAddress = kBootMemoryMapItem_getBaseAddress (memmap);
-        U64 lengthBytes = kBootMemoryMapItem_getLength (memmap);
 
         // Skip, if length is zero or start address of the section is beyond the addressable
         // range (systems can have more RAM installed than our PAB supports).
@@ -91,8 +89,7 @@ U64 kpmm_arch_getInstalledMemoryByteCount ()
 {
     FUNC_ENTRY();
 
-    BootLoaderInfo *bootLoaderInfo = kboot_getCurrentBootLoaderInfo ();
-    U64 RAMSizeBytes = kboot_calculateAvailableMemory (bootLoaderInfo);
+    U64 RAMSizeBytes = kboot_calculateInstalledMemory ();
     INFO ("RAMSizeBytes = %llx", RAMSizeBytes);
 
     return RAMSizeBytes;

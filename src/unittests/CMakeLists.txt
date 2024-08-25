@@ -16,6 +16,8 @@ test(
         ${PROJECT_SOURCE_DIR}/src/kernel/kstdlib.c
         ${CMAKE_CURRENT_SOURCE_DIR}/kstdlib_test.c
         ${CMAKE_CURRENT_SOURCE_DIR}/unittest.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/common.c
+        ${kstdlib_mock_sources}
     )
 
 test(

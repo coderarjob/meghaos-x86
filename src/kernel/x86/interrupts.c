@@ -12,6 +12,9 @@
 #include <kdebug.h>
 #include <kassert.h>
 #include <moslimits.h>
+#include <vmm.h>
+#include <kernel.h>
+#include <process.h>
 
 typedef struct GPFError
 {
@@ -58,13 +61,22 @@ void double_fault_handler (InterruptFrame *frame, UINT errorcode)
 }
 
 EXCEPTION_WITH_CODE_HANDLER(page_fault)
-__attribute__ ((noreturn))
 void page_fault_handler (InterruptFrame *frame, UINT errorcode)
 {
-    register INT fault_addr;
-    __asm__ volatile ("mov %0, cr2":"=r"(fault_addr));
+    FUNC_ENTRY("frame: %px, error code: %x", frame, errorcode);
 
     PageFaultError *err = (PageFaultError*) &errorcode;
+    register PTR fault_addr;
+    __asm__ volatile ("mov %0, cr2":"=r"(fault_addr));
+    INFO("Page fault: Address: %px", fault_addr);
+
+    // Page faults can occur for various reasons, it could be permissions or if page frame is not
+    // present. Commit a physical page only it there is not one already allocated.
+    VMemoryManager* context = kprocess_getCurrentContext();
+    if (err->Present == false && kvmm_commitPage (context, fault_addr)) {
+        return; // then retry
+    }
+
     s_callPanic(frame, "Page fault when accessing address %x (error: %x)"
                        "\n\n- P: %x\n- Write: %x\n- UserM: %x\n- ResV: %x"
                        "\n- InsF: %x\n- PKV: %x\n- SSA: %x\n- SGX: %x",
@@ -72,7 +84,7 @@ void page_fault_handler (InterruptFrame *frame, UINT errorcode)
                        err->Present, err->WriteFault, err->UserMode, err->ReserveViolation,
                        err->InstrucionFetchFault, err->ProtectionkeyViolation,
                        err->ShadowStackAccessFault, err->SGXViolation);
-    NORETURN();
+    //NORETURN();
 }
 
 EXCEPTION_WITH_CODE_HANDLER(general_protection_fault)

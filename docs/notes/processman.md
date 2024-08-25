@@ -6,9 +6,9 @@ categories: feature, independent
 
 ### Process modes
 
-A process is instance of runnable code in the context of an Operating System. It is not necessarily
-need to correlate one to one with executable files. A process run portions in "light-weight"
-processes called threads.
+A process is instance of runnable code in the context of an Operating System. They does not
+necessarily correlate one to one with executable files. A process can then run portions in
+"light-weight" processes called threads.
 
 Both these types of processes can be run in either Ring 3 or Ring 0, the later is called Kernel
 mode. The ability to run whole program or portions in either Ring 0 or 3 is important as no
@@ -31,7 +31,7 @@ commercial Operating System will allow this easily.
 1. Specific stack for each process. Threads and non-thread ones, whether in Kernel or not has
    separate stacks.
    Process stacks are mapped to a fixed virtual location in non-thread processes
-   (PROCESS_TEXT_VA_START), but in thread processes this is not possible as the fixed stack
+   (PROCESS_STACK_VA_START), but in thread processes this is not possible as the fixed stack
    location will already be mapped and used by its parent, so thread process stack are mapped
    dynamically.
 2. Kernel/non-kernel mode determines which ring the process will be run in.

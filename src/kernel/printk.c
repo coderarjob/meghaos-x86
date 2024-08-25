@@ -16,7 +16,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <utils.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 typedef enum IntTypes 
 {

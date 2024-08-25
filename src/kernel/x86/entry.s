@@ -5,19 +5,42 @@
 
 extern kernel_main
 global g_kernel_entry
-global g_page_dir
-global g_page_table
-global g_pab
 
 %include "mos.inc"
 ; ---------------------------------------------------------------------------
 ; Data Section
 ; ---------------------------------------------------------------------------
 section .bss nobits alloc
-g_page_dir:   resd 1
-g_page_table: resd 1
-g_pab:        resd 1
+page_dir:   resd 1
+page_table: resd 1
 
+; ---------------------------------------------------------------------------
+; Macros
+; ---------------------------------------------------------------------------
+
+; ---------------------------------------------------------------------------
+; memset - Fills a memory location with a byte
+; Input:
+;   %0 - Destination location
+;   %1 - Byte to fill with
+;   %2 - Count
+; Output:
+;   None
+; ---------------------------------------------------------------------------
+%macro memset 3
+    push eax
+    push ecx
+    push edi
+
+    mov edi, %1
+    mov eax, %2
+    mov ecx, %3
+    rep stosb
+
+    pop edi
+    pop ecx
+    pop eax
+%endmacro
 ; ---------------------------------------------------------------------------
 ; Text Section
 ; ---------------------------------------------------------------------------
@@ -26,16 +49,19 @@ section .prepage.text progbits alloc exec nowrite
 g_kernel_entry:
 
     ; Save the static addresses to global variables
-    mov [PHY(g_page_dir)], DWORD KERNEL_PAGE_DIR_MEM
-    mov [PHY(g_page_table)], DWORD KERNEL_PAGE_TABLE_MEM
-    mov [PHY(g_pab)], DWORD KERNEL_PAB_MEM
+    mov [PHY(page_dir)], DWORD KERNEL_PAGE_DIR_MEM
+    mov [PHY(page_table)], DWORD KERNEL_PAGE_TABLE_MEM
+
+    ; Initialise page directory and table memories
+    memset [PHY(page_dir)], 0, 4096
+    memset [PHY(page_table)], 0, 4096
 
     ; Initialise the PD and PT
     call s_fill_pd
     call s_fill_pt
 
     ; Caching is enabled, with write-back caching.
-    mov eax, [PHY(g_page_dir)]
+    mov eax, [PHY(page_dir)]
     and eax, 0b11111111_11111111_11110000_00000000
     mov cr3, eax
     
@@ -64,7 +90,7 @@ section .text progbits alloc exec nowrite
 
 .higher_mapped:
     ; Disable identity map
-       mov eax, [g_page_dir]
+       mov eax, [page_dir]
        mov [eax], dword 0
     ; --
 
@@ -72,7 +98,7 @@ section .text progbits alloc exec nowrite
     mov esp, HIGHV(KERNEL_STACK_TOP_MEM)
 
     ; Clear TLB
-        mov eax, [g_page_dir]
+        mov eax, [page_dir]
         mov cr3, eax
     ; --
 
@@ -96,8 +122,8 @@ section .prepage.text progbits alloc exec nowrite
 ; ---------------------------------------------------------------------
 s_fill_pd:
     pushad
-        mov edi, [PHY(g_page_dir)]
-        mov eax, [PHY(g_page_table)]
+        mov edi, [PHY(page_dir)]
+        mov eax, [PHY(page_table)]
         ; Caching is enabled, with write-back caching.
         and eax, 0b11111111_11111111_11110000_00000000
         or eax, 7
@@ -106,7 +132,7 @@ s_fill_pd:
 
         ; Recursive maping
         ; Caching is enabled, with write-back caching.
-        mov eax, [PHY(g_page_dir)]
+        mov eax, [PHY(page_dir)]
         and eax, 0b11111111_11111111_11110000_00000000
         or eax, 7
         mov [edi + 1023*4], eax
@@ -122,7 +148,7 @@ s_fill_pd:
 ; ---------------------------------------------------------------------
 s_fill_pt:
     pushad
-        mov edi, [PHY(g_page_table)]
+        mov edi, [PHY(page_table)]
         mov eax, 0
         mov ecx, MIN_MEM_REQ / 4096    ; Assuming the minimum ram available.
 .write_next_pte:

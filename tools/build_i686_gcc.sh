@@ -14,7 +14,7 @@ BINUTILS_VER='2.31.1'
 GCC_VER='8.3.0'
 
 wget https://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.xz \
-     https://ftp.gnu.org/gnu/gcc/gcc-8.3.0/gcc-$GCC_VER.tar.xz      || exit 1
+     https://ftp.gnu.org/gnu/gcc/gcc-$GCC_VER/gcc-$GCC_VER.tar.xz      || exit 1
 
 # :: Extract ::
 tar -xf ./binutils-$BINUTILS_VER.tar.xz  || exit 1

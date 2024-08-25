@@ -1,13 +1,15 @@
 #include <memmanage.h>
 #include <intrusive_list.h>
-#include <mock/kernel/x86/memmanage.h>
 #include <unittest/unittest.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <kerror.h>
 #include <utils.h>
 #include <assert.h>
-#include <x86/kernel.h>
+#include <kernel.h>
+#include <mosunittest.h>
+#include <mock/kernel/vmm.h>
+#include <mock/kernel/kstdlib.h>
 
 /* |Test case description                                       | Test function name             |
  * |------------------------------------------------------------|--------------------------------|
@@ -22,15 +24,13 @@
  * |------------------------------------------------------------|--------------------------------|
  */
 
-typedef enum MallocLists
-{
+typedef enum MallocLists {
     FREE_LIST,
     ALLOC_LIST,
     ADJ_LIST
 } MallocLists;
 
-typedef struct SectionAttributes
-{
+typedef struct SectionAttributes {
     size_t nodeSize;
     bool isAllocated;
 } SectionAttributes;
@@ -38,7 +38,9 @@ typedef struct SectionAttributes
 extern ListNode s_freeHead, s_allocHead, s_adjHead;
 ListNode s_freeHead, s_allocHead, s_adjHead;
 
-__attribute__ ((aligned (4096))) char kmalloc_buffer[KMALLOC_SIZE_BYTES];
+// The kmalloc buffer size must be large enough to meet the test expectations.
+#define UT_KMALLOC_SIZE_BYTES 400
+char kmalloc_buffer[UT_KMALLOC_SIZE_BYTES];
 
 static inline size_t getNodeSize (size_t usableSize)
 {
@@ -60,12 +62,33 @@ static bool isAddressFoundInList (void* addr, MallocLists list);
 static size_t getCapacity (MallocLists list);
 static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, size_t count);
 
+TEST (kmallocz, zero_fill_allocation)
+{
+    // Pre-Condition: Prefill the kmalloc array with non-zeros to check if kmallocz worked.
+    memset (kmalloc_buffer, 0xFF, UT_KMALLOC_SIZE_BYTES);
+
+    // Need to re-init kmalloc buffer since we have overriden initial headers with the previous
+    // memset.
+    kmalloc_init();
+
+    // Not an exact match, but will do for now. Ideally we could have used EXPECT_CALL macro to
+    // check if k_memset is called with the expected arguments.
+    k_memset_fake.handler = memset;
+    // ------------------------------------------------------------------------------------------
+    U8* addr1       = kmallocz (10);
+    U8 expected[10] = { 0 };
+
+    EQ_MEM (addr1, expected, 10);
+
+    END();
+}
+
 TEST (kmalloc, allocation_space_available)
 {
     // Pre-Condition: Nothing
     // ------------------------------------------------------------------------------------------
-    void* addr1 = kmalloc (KMALLOC_SIZE_BYTES / 3);
-    void* addr2 = kmalloc (KMALLOC_SIZE_BYTES / 4);
+    void* addr1 = kmalloc (UT_KMALLOC_SIZE_BYTES / 3);
+    void* addr2 = kmalloc (UT_KMALLOC_SIZE_BYTES / 4);
 
     // Two addresses must be different.
     NEQ_SCALAR (addr2, addr1);
@@ -89,7 +112,7 @@ TEST (kmalloc, allocation_space_uavailable)
     // ------------------------------------------------------------------------------------------
 
     // Allocation fails because there is not enough space.
-    EQ_SCALAR (kmalloc (KMALLOC_SIZE_BYTES), NULL);
+    EQ_SCALAR (kmalloc (UT_KMALLOC_SIZE_BYTES), NULL);
     EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
 
     // Alloc, Free list sizes must not change.
@@ -113,7 +136,7 @@ TEST (kfree, kfree_combining_next_adj_nodes)
     SectionAttributes expAttrs[] = {
         { getNodeSize (100) + getNodeSize (50), false },
         { getNodeSize (50), true },
-        { KMALLOC_SIZE_BYTES - (getNodeSize (100) + getNodeSize (50)) - getNodeSize (50), false }
+        { UT_KMALLOC_SIZE_BYTES - (getNodeSize (100) + getNodeSize (50)) - getNodeSize (50), false }
     };
 
     matchSectionPlacementAndAttributes (expAttrs, ARRAY_LENGTH (expAttrs));
@@ -136,7 +159,7 @@ TEST (kfree, kfree_combining_prev_adj_nodes)
     SectionAttributes expAttrs[] = {
         { getNodeSize (100) + getNodeSize (50), false },
         { getNodeSize (50), true },
-        { KMALLOC_SIZE_BYTES - (getNodeSize (100) + getNodeSize (50)) - getNodeSize (50), false }
+        { UT_KMALLOC_SIZE_BYTES - (getNodeSize (100) + getNodeSize (50)) - getNodeSize (50), false }
     };
 
     matchSectionPlacementAndAttributes (expAttrs, ARRAY_LENGTH (expAttrs));
@@ -148,9 +171,9 @@ TEST (kfree, kfree_success)
 {
     // Pre-condition: Allocations are successfull, such that there is little space left in free
     // list.
-    void* addr1 = kmalloc (KMALLOC_SIZE_BYTES / 5);
-    void* addr2 = kmalloc (KMALLOC_SIZE_BYTES / 4);
-    void* addr3 = kmalloc (KMALLOC_SIZE_BYTES / 7);
+    void* addr1 = kmalloc (UT_KMALLOC_SIZE_BYTES / 5);
+    void* addr2 = kmalloc (UT_KMALLOC_SIZE_BYTES / 4);
+    void* addr3 = kmalloc (UT_KMALLOC_SIZE_BYTES / 7);
 
     NEQ_SCALAR (addr1, NULL);
     NEQ_SCALAR (addr2, NULL);
@@ -190,10 +213,10 @@ TEST (kmalloc_getUsedMemory, used_memory_test)
     EQ_SCALAR (kmalloc_getUsedMemory(), 0U);
 
     // When some amount of memory is allocated.
-    NEQ_SCALAR (kmalloc (1000), NULL);
-    NEQ_SCALAR (kmalloc (500), NULL);
+    NEQ_SCALAR (kmalloc (100), NULL);
+    NEQ_SCALAR (kmalloc (50), NULL);
 
-    EQ_SCALAR (kmalloc_getUsedMemory(), getNodeSize (1000) + getNodeSize (500));
+    EQ_SCALAR (kmalloc_getUsedMemory(), getNodeSize (100) + getNodeSize (50));
     END();
 }
 
@@ -216,8 +239,7 @@ static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, siz
 
 static ListNode* getListHead (MallocLists list)
 {
-    switch (list)
-    {
+    switch (list) {
     case FREE_LIST:
         return &s_freeHead;
     case ALLOC_LIST:
@@ -229,8 +251,7 @@ static ListNode* getListHead (MallocLists list)
 
 static MallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node)
 {
-    switch (list)
-    {
+    switch (list) {
     case FREE_LIST:
         return LIST_ITEM (node, MallocHeader, freenode);
     case ALLOC_LIST:
@@ -271,8 +292,9 @@ static size_t getCapacity (MallocLists list)
 
 void reset()
 {
-    resetX86MemManageFake();
-    kmalloc_arch_preAllocateMemory_fake.ret = kmalloc_buffer;
+    resetVMMFake();
+    kvmm_memmap_fake.ret              = (PTR)kmalloc_buffer;
+    g_utmm.arch_mem_len_bytes_kmalloc = UT_KMALLOC_SIZE_BYTES;
 
     kmalloc_init();
 }
@@ -286,6 +308,7 @@ int main()
     kfree_combining_next_adj_nodes();
     kfree_wrong_input();
     used_memory_test();
+    zero_fill_allocation();
 
     return 0;
 }

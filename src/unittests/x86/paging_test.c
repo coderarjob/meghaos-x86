@@ -7,7 +7,7 @@
 #include <mock/kernel/pmm.h>
 #include <kerror.h>
 #include <panic.h>
-#include <x86/kernel.h>
+#include <kernel.h>
 
 #define UNITTEST_PG_MAP_DONT_CARE \
     PG_MAP_FLAG_KERNEL | PG_MAP_FLAG_WRITABLE | PG_MAP_FLAG_CACHE_ENABLED

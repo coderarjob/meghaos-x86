@@ -36,20 +36,24 @@
 #include <kstdlib.h>
 #include <process.h>
 #include <x86/cpu.h>
-#include <x86/kernel.h>
+#include <kernel.h>
+#include <vmm.h>
+#include <graphics.h>
 
 static void display_system_info ();
-static void s_markUsedMemory ();
+static void s_initializeMemoryManagers ();
+static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end);
+//static void vmm_basic_testing();
 //static void s_dumpPab ();
 //static void paging_test_map_unmap();
 //static void paging_test_temp_map_unmap();
 //static void kmalloc_test();
-static void s_unmapInitialUnusedAddressSpace(Physical start, Physical end);
 //static void find_virtual_address();
 static void process_poc();
-//static void new_thread_1();
+//static void multiprocess_demo();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
+static void graphics_demo_basic();
 
 /* Kernel state global variable */
 KernelStateInfo g_kstate;
@@ -57,22 +61,32 @@ KernelStateInfo g_kstate;
 __attribute__ ((noreturn))
 void kernel_main ()
 {
-    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
-    g_kstate.kernelPageDirectory = g_page_dir;
+    FUNC_ENTRY();
 
+    KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
     // Initialize Text display
     kdisp_init ();
 
     // Initilaize Physical Memory Manger
     kpmm_init ();
 
+    display_system_info ();
+
+    kearly_println ("[  ]\tVirtual memory management.");
+
+    ksalloc_init();
+
+    // Initialize VMM
+    Physical kernelPD = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
+    g_kstate.context = kvmm_new (MEM_START_KERNEL_LOW_REGION, MEM_END_KERNEL_HIGH_REGION,
+                                   kernelPD, PMM_REGION_ANY);
+    KERNEL_PHASE_SET (KERNEL_PHASE_STATE_VMM_READY);
+
     // Mark memory already occupied by the modules and unmap unused Virutal pages.
-    s_markUsedMemory();
+    s_initializeMemoryManagers();
+    kvmm_printVASList(g_kstate.context);
 
-    salloc_init();
-    kmalloc_init();
-
-    kearly_println ("[OK]\tPaging enabled.");
+    kearly_printf ("\r[OK]");
 
     // TSS setup
     kearly_println ("[  ]\tTSS setup.");
@@ -100,6 +114,10 @@ void kernel_main ()
 
     kearly_printf ("\r[OK]");
 
+    kearly_println ("[  ]\tKernel memory management.");
+    kmalloc_init();
+    kearly_printf ("\r[OK]");
+
     kprocess_init();
 
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_KERNEL_READY);
@@ -109,7 +127,6 @@ void kernel_main ()
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,LIGHT_GRAY,0));
 
     // Display available memory
-    display_system_info ();
     //s_dumpPab();
     // Paging information
     //extern void paging_print ();
@@ -121,7 +138,34 @@ void kernel_main ()
     //find_virtual_address();
     //display_system_info ();
     //s_dumpPab();
+    //vmm_basic_testing();
+    //k_halt();
     
+    //---------------
+    int cpuflags_present = 0;
+    __asm__ volatile("pushfd;"
+                     "pushfd;"
+                     "xor dword ptr [esp], (1 << 21);"
+                     "popfd;"
+                     "pushfd;"
+                     "pop eax;"
+                     "xor eax, [esp];"
+                     "popfd;"
+                     : "=a"(cpuflags_present));
+    kearly_println ("CPUID detected: %x", cpuflags_present);
+
+    int eax = 0;
+    __asm__ volatile ("cpuid;":"+eax"(eax):"eax"(0));
+    kearly_println ("CPUID [EAX=0]: %x", eax);
+
+#ifdef GRAPHICS_MODE_ENABLED
+    if (!graphics_init()) {
+        ERROR ("Graphics mode could not be enabled");
+    }
+
+    graphics_demo_basic();
+    k_halt();
+#endif
     process_poc();
     //new_process();
     //new_process_2();
@@ -129,7 +173,212 @@ void kernel_main ()
     k_halt();
 }
 
-//static void new_thread_1()
+#ifdef GRAPHICS_MODE_ENABLED
+static void graphics_drawstring (UINT x, UINT y, char* text, Color fg, Color bg)
+{
+    for (char* ch = text; *ch != '\0'; ch++) {
+        graphics_drawfont (x, y, (UCHAR)*ch, fg, bg);
+        x += CONFIG_GXMODE_FONT_WIDTH;
+    }
+}
+
+static void graphics_demo_basic()
+{
+    #if CONFIG_GXMODE_BITSPERPIXEL == 8
+        #define BG_COLOR             26
+        #define FONT_FG_COLOR        17
+        #define FONT_BG_COLOR        WINDOW_BG_COLOR
+        #define IMAGE_BITS_PER_PIXEL 1
+
+        #define WINDOW_BG_COLOR      29
+        #define WINDOW_SHADOW_COLOR  23
+
+        #define TITLE_BAR_BG_COLOR   126
+        #define TITLE_BAR_FG_COLOR   15
+
+        #define COLORMAP_SIZE        15 // square
+        #define COLORMAP_X           WINDOW_X + WINDOW_WIDTH - (COLORMAP_SIZE * 16) - 20
+        #define COLORMAP_Y           WINDOW_Y + 20
+
+        #define PAT_BG_COLOR         16
+        #define PAT_FG_COLOR         41
+    #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
+        #define BG_COLOR             0xAFAFAF
+        #define FONT_FG_COLOR        0x101010
+        #define FONT_BG_COLOR        WINDOW_BG_COLOR
+        #define IMAGE_BITS_PER_PIXEL 3
+
+        #define WINDOW_BG_COLOR      0xDFDFDF
+        #define WINDOW_SHADOW_COLOR  0x7D7D7D
+
+        #define TITLE_BAR_BG_COLOR   0x003971
+        #define TITLE_BAR_FG_COLOR   0xFFFFFF
+
+        #define MOS_LOGO_WIDTH       (200)
+        #define MOS_LOGO_HEIGHT      (80)
+        #define MOS_LOGO_Y           (WINDOW_Y + 10)
+        #define MOS_LOGO_X           (WINDOW_X + WINDOW_WIDTH - MOS_LOGO_WIDTH - 20)
+
+        #define PAT_BG_COLOR         0x101010
+        #define PAT_FG_COLOR         0xff4100
+    #endif
+
+    #define WINDOW_Y         40
+    #define WINDOW_X         20
+    #define WINDOW_WIDTH     CONFIG_GXMODE_XRESOLUTION - WINDOW_X - 20
+    #define WINDOW_HEIGHT    CONFIG_GXMODE_YRESOLUTION - WINDOW_Y - 20
+
+    #define TITLE_BAR_HEIGHT (CONFIG_GXMODE_FONT_HEIGHT + 6)
+    #define TITLE_BAR_WIDTH  (WINDOW_WIDTH)
+    #define TITLE_BAR_X      (WINDOW_X)
+    #define TITLE_BAR_Y      (WINDOW_Y - TITLE_BAR_HEIGHT)
+
+    #define CHARDUMP_Y       (WINDOW_Y + 20)
+    #define CHARDUMP_X       (WINDOW_X + 20)
+
+    #define PAT_SIZE         200
+    #define PAT_X            (WINDOW_X + WINDOW_WIDTH - PAT_SIZE - 20)
+    #define PAT_Y            (WINDOW_Y + WINDOW_HEIGHT - PAT_SIZE - 20)
+
+    if (!g_kstate.framebuffer) {
+        FATAL_BUG();
+    }
+
+    // ------------------------------------
+    // Draw Window and title bar
+    // ------------------------------------
+    graphics_rect (0, 0, CONFIG_GXMODE_XRESOLUTION, CONFIG_GXMODE_YRESOLUTION, BG_COLOR);
+    graphics_rect (WINDOW_X - 6, WINDOW_Y + 6, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SHADOW_COLOR);
+    graphics_rect (WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_BG_COLOR);
+    graphics_rect (TITLE_BAR_X, TITLE_BAR_Y, TITLE_BAR_WIDTH, TITLE_BAR_HEIGHT, TITLE_BAR_BG_COLOR);
+
+    char* wintitle = "MeghaOS V2 : Graphics & Fonts Demo";
+    graphics_drawstring (TITLE_BAR_X + 10, TITLE_BAR_Y + 3, wintitle, TITLE_BAR_FG_COLOR,
+                         TITLE_BAR_BG_COLOR);
+
+    // ------------------------------------
+    // Draw Logo image
+    // ------------------------------------
+    #if CONFIG_GXMODE_BITSPERPIXEL != 8
+    Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
+    U8* image          = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
+    graphics_image_raw (MOS_LOGO_X, MOS_LOGO_Y, MOS_LOGO_WIDTH, MOS_LOGO_HEIGHT,
+                        IMAGE_BITS_PER_PIXEL, image);
+    #endif
+
+    // ------------------------------------
+    // Character Map dump
+    // ------------------------------------
+    for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
+        UINT y = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
+        UINT x = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
+        graphics_drawfont (x + CHARDUMP_X, y + CHARDUMP_Y, (UCHAR)c, FONT_FG_COLOR, FONT_BG_COLOR);
+    }
+
+    // ------------------------------------
+    // Color Map dump
+    // ------------------------------------
+    #if CONFIG_GXMODE_BITSPERPIXEL == 8
+    for (UINT c = 0; c < 256; c++) {
+        UINT y = (c / 16) * COLORMAP_SIZE;
+        UINT x = (c % 16) * COLORMAP_SIZE;
+        graphics_rect (x + COLORMAP_X, y + COLORMAP_Y, COLORMAP_SIZE, COLORMAP_SIZE, c);
+    }
+    #endif
+
+    // ------------------------------------
+    // Printing string
+    // ------------------------------------
+    char* text = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
+    UINT y     = WINDOW_Y + WINDOW_HEIGHT - CONFIG_GXMODE_FONT_HEIGHT - 20;
+    graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
+
+    text = "the quick brown fox jumps over the lazy dog.";
+    y -= CONFIG_GXMODE_FONT_HEIGHT + 5;
+    graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
+
+    // ------------------------------------
+    // Drawing patterns
+    // ------------------------------------
+    UINT x = PAT_X;
+    for (; x < (PAT_X + PAT_SIZE); x++) {
+        UINT y = PAT_Y;
+        for (; y < (PAT_Y + PAT_SIZE); y++) {
+            bool condition = (((x - PAT_X) & (y - PAT_Y)) % 10 == 0);
+            graphics_putpixel (x, y, condition ? PAT_FG_COLOR : PAT_BG_COLOR);
+        }
+    }
+}
+#endif // GRAPHICS_MODE_ENABLED
+
+//static void vmm_basic_testing()
+//{
+//    FUNC_ENTRY();
+//
+//    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
+//
+//    // Physical kernelPD = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
+//    // VMemoryManager* vmm = kvmm_new (0xC03E8000, 0xC03EA000, kernelPD, PMM_REGION_ANY);
+//    VMemoryManager* vmm = g_kstate.context;
+//
+//    Physical newPA;
+//    kpmm_alloc(&newPA, 2, PMM_REGION_ANY);
+//
+//    int* addr = (int*)kvmm_memmap (vmm, (PTR)NULL, &newPA, 2,
+//                                   VMM_MEMMAP_FLAG_IMMCOMMIT | VMM_MEMMAP_FLAG_KERNEL_PAGE, &newPA);
+//
+//    INFO ("Allocated Physical page: %px", newPA.val);
+//
+//    kvmm_printVASList (vmm);
+//
+//    *addr = 10;
+//    INFO ("Reading from %px. Value is: %u", addr, *addr);
+//
+//    // Now delete allocated vm address space
+//    kvmm_free(vmm, (PTR)addr);
+//
+//    //
+//    //    int* addr = (int*)kvmm_alloc (vmm, 1, PG_MAP_FLAG_KERNEL_DEFAULT,
+//    //    VMM_ADDR_SPACE_FLAG_NONE); INFO ("Allocated address: %px", addr);
+//    //
+//    //    // Commit page here only
+//    //    PageDirectory pd = kpg_getcurrentpd();
+//    //    Physical pa;
+//    //
+//    //    kpmm_alloc (&pa, 1, PMM_REGION_ANY);
+//    //
+//    //    PTR va        = 0xC03E8000;
+//    //    PTR pageStart = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
+//    //    kpg_map (pd, pageStart, pa, PG_MAP_FLAG_KERNEL_DEFAULT);
+//    //    INFO ("Commit successful for VA: %px", va);
+//    //
+//    //    // Test allocation
+//    //    kvmm_printVASList (vmm);
+//    //
+//    //    *addr = 10;
+//    //    kdebug_println ("Value is %u", *addr);
+//    //
+//    //    // Now delete allocated vm address space
+//    //    // kvmm_free(vmm, va);
+//    //
+//    //    //// Test Deallocation
+//    //    // kvmm_printVASList (vmm);
+//    //
+//    //    // kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    //    // kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    //    // kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+//    //
+//    //    // Now delete complete VMM
+//    //    kvmm_delete (&vmm);
+//    //
+//    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+//    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+//    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
+//}
+
+//static void multiprocess_demo()
 //{
 //    FUNC_ENTRY();
 //
@@ -145,7 +394,7 @@ void kernel_main ()
 //    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
 //    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
 //
-//    void* startAddress_va = CAST_PA_TO_VA (startAddress);
+//    void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
 //    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
 //    if (processID < 0) {
 //        k_panicOnError();
@@ -155,7 +404,7 @@ void kernel_main ()
 //
 //    for (int i = 0; i < 8; i++)
 //    {
-//        kearly_println("Kernel thread - Running");
+//        kearly_println("Kernel thread - Yielding");
 //        syscall (2, 0, 0, 0, 0, 0);
 //    }
 //
@@ -177,19 +426,18 @@ static void multithread_demo_kernel_thread()
 {
     FUNC_ENTRY();
 
-    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 2);
-    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
+    BootFileItem fileinfo = kboot_getBootFileItem (2);
+    Physical startAddress = PHYSICAL (fileinfo.startLocation);
+    SIZE lengthBytes      = (SIZE)fileinfo.length;
 
     kearly_println ("\n------ [ Cooperative Multithreading Demo ] ------\n");
 
     INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+    kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 
-    void* startAddress_va = CAST_PA_TO_VA (startAddress);
+    void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
     INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
     if (processID < 0) {
         k_panicOnError();
@@ -198,24 +446,9 @@ static void multithread_demo_kernel_thread()
     INFO ("Process ID: %u", processID);
 
     // ----------------------
-    kdisp_ioctl (DISP_SETCOORDS, 27, 0);
-    kearly_printf ("Kernel thread:");
-
-    UINT column = 0;
-#if (DEBUG_LEVEL & 1)
-    UINT max    = 960;
-#else
-    UINT max    = 96000;
-#endif
-    UINT step   = max / MAX_VGA_COLUMNS;
+    UINT max = 12 * MAX_VGA_COLUMNS;
 
     for (UINT i = 0; i < max; i++) {
-        kdisp_ioctl (DISP_SETCOORDS, 28, column);
-        kdisp_ioctl (DISP_SETATTR, k_dispAttr (MAGENTA, WHITE, 0));
-        if (i % step == 0) {
-            column = (column + 1) % MAX_VGA_COLUMNS;
-        }
-        syscall (0, (PTR) " ", 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
     // ----------------------
@@ -230,7 +463,7 @@ static void multithread_demo_kernel_thread()
 
     kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
+    kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 
     kearly_println ("------ [ END ] ------");
 
@@ -244,7 +477,7 @@ static void process_poc()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
     void* startAddress_va = multithread_demo_kernel_thread;
-    //void* startAddress_va = new_thread_1;
+    //void* startAddress_va = multiprocess_demo;
 #pragma GCC diagnostic pop
 
     INT processID = kprocess_create (startAddress_va, 0,
@@ -256,6 +489,7 @@ static void process_poc()
     INFO ("Process ID: %u", processID);
 
     kprocess_yield (NULL);
+    UNREACHABLE();
 }
 
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
@@ -268,31 +502,6 @@ static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
                      :);
     return retval;
 }
-
-//static void find_virtual_address()
-//{
-//    FUNC_ENTRY();
-//
-//    SIZE numPages = 3000;
-//    // void* addr = kpg_findVirtualAddressSpace(kpg_getcurrentpd(), 2000, 0xC03FF000, 0xC0900000);
-//    PTR addr = kpg_findVirtualAddressSpace (kpg_getcurrentpd(), numPages, 0xC00A0000, 0xC0F00000);
-//    kearly_println ("Found address is %px", addr);
-//
-//    for (UINT i = 0; i < numPages; addr += CONFIG_PAGE_FRAME_SIZE_BYTES, i++)
-//    {
-//        Physical pa;
-//        if (!kpmm_alloc(&pa, 1, PMM_REGION_ANY)) {
-//            k_panicOnError();
-//        }
-//
-//        if (!kpg_map(kpg_getcurrentpd(), addr, pa, PG_MAP_FLAG_KERNEL|PG_MAP_FLAG_WRITABLE)) {
-//            k_panicOnError();
-//        }
-//    }
-//
-//    addr = (PTR)kpg_findVirtualAddressSpace (kpg_getcurrentpd(), 200, 0xC00A0000, 0xC0900000);
-//    kearly_println ("Found address is %px", addr);
-//}
 
 //static void kmalloc_test()
 //{
@@ -382,28 +591,25 @@ void display_system_info()
     FUNC_ENTRY();
 
 #if DEBUG_LEVEL & 0x1
-    BootLoaderInfo* mi               = kboot_getCurrentBootLoaderInfo();
-    INT             loadedFilesCount = kBootLoaderInfo_getFilesCount (mi);
+    INT loadedFilesCount = kboot_getBootFileItemCount();
 
     INFO ("Loaded kernel files:");
-    for (INT i = 0; i < loadedFilesCount; i++)
-    {
-        BootFileItem* file          = kBootLoaderInfo_getFileItem (mi, i);
-        UINT          startLocation = (UINT)kBootFileItem_getStartLocation (file);
-        UINT          length_bytes  = (UINT)kBootFileItem_getLength (file);
+    for (INT i = 0; i < loadedFilesCount; i++) {
+        BootFileItem file  = kboot_getBootFileItem (i);
+        UINT startLocation = (UINT)file.startLocation;
+        UINT length_bytes  = (UINT)file.length;
 
         INFO ("* file: Start = %x, Length = %u bytes", startLocation, length_bytes);
     }
 
-    INT memoryMapItemCount = kBootLoaderInfo_getMemoryMapItemCount (mi);
+    INT memoryMapItemCount = kboot_getBootMemoryMapItemCount();
     INFO ("BIOS Memory map:");
     U64 installed_memory = 0;
-    for (INT i = 0; i < memoryMapItemCount; i++)
-    {
-        BootMemoryMapItem* item         = kBootLoaderInfo_getMemoryMapItem (mi, i);
-        U64                baseAddress  = kBootMemoryMapItem_getBaseAddress (item);
-        U64                length_bytes = kBootMemoryMapItem_getLength (item);
-        BootMemoryMapTypes type         = kBootMemoryMapItem_getType (item);
+    for (INT i = 0; i < memoryMapItemCount; i++) {
+        BootMemoryMapItem item  = kboot_getBootMemoryMapItem (i);
+        U64 baseAddress         = item.baseAddr;
+        U64 length_bytes        = item.length;
+        BootMemoryMapTypes type = item.type;
 
         installed_memory += length_bytes;
         INFO ("* map: Start = %llx, Length = %llx, Type = %u", baseAddress, length_bytes, type);
@@ -414,89 +620,122 @@ void display_system_info()
     INFO ("Installed RAM bytes: %llx bytes", installed_memory);
     UINT installed_memory_pageCount = (UINT)BYTES_TO_PAGEFRAMES_CEILING (installed_memory);
     INFO ("Installed RAM Pages: %u", installed_memory_pageCount);
-    INFO ("Free RAM bytes: :%llx bytes", kpmm_getFreeMemorySize());
+    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
 #endif
 }
 
 /***************************************************************************************************
- * Unmaps higher-half virtual pages corresponding to the input physcial memory range.
+ * Returns the number of consecutive pages from 'pa' which have the same state in PAB as the state
+ * of 'pa'. The search ends when physical memory address reaches 'end'.
  *
- * @Input      Start physical address. Must by page aligned.
- * @Input      End physical address. Must by page aligned.
  * @return nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_unmapInitialUnusedAddressSpace (Physical start, Physical end)
+static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end)
 {
-    FUNC_ENTRY ("start: %px, end: %px", start.val, end.val);
+    KernelPhysicalMemoryStates initialState = kpmm_getPageStatus (pa);
+    KernelPhysicalMemoryStates state        = initialState;
+    SIZE szPages                            = 0;
 
-    PageDirectory pd = kpg_getcurrentpd();
-    PTR startva      = (PTR)CAST_PA_TO_VA (start);
-    PTR endva        = (PTR)CAST_PA_TO_VA (end);
-
-    k_assert (IS_ALIGNED (startva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
-    k_assert (IS_ALIGNED (endva, CONFIG_PAGE_FRAME_SIZE_BYTES), "Address not page aligned");
-
-    for (PTR va = startva; va < endva; va += CONFIG_PAGE_FRAME_SIZE_BYTES) {
-        if (!kpg_unmap (pd, va)) {
-            k_panicOnError(); // Unmap must not fail.
+    while (initialState == state && pa.val < end.val) {
+        pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
+        if ((state = kpmm_getPageStatus (pa)) == PMM_STATE_INVALID) {
+            k_panicOnError();
         }
+        szPages += 1;
     }
+
+    return szPages;
 }
 
 /***************************************************************************************************
- * Marks pages occupied by module files as occupied.
+ * Completing the initialization up of PMM, VMM and page mappings based on BIOS memory map and
+ * Module files information passed down from the Bootloader.
  *
- * It consults the bootloader structures and it marks memory occupied by module files.
- * If memory map length is not aligned, memory is marked allocated, till the next page boundary.
- * This means length is aligned to the next multiple of CONFIG_PAGE_FRAME_SIZE_BYTES.
+ * After the basic initialization of PMM, here we allocate those pages which are specific to the
+ * Kernel operation (Reserved memories of Kernel and area used by module files). After this is done,
+ * the PMM is in a state that is expected by both the system and the Kernel.
+ *
+ * Now since there is 1:1 relattion between Physical memory and Virtual memory due the Higher Half
+ * memory mapping, the VMM and page mappings need to be brought up to say the same thing as the PMM.
  *
  * @return nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_markUsedMemory()
+static void s_initializeMemoryManagers()
 {
     FUNC_ENTRY();
 
-    /* Kernel reserved (0 to 400KiB) */
-    Physical kernel_low_region_end_phy = { 0 };
-    if (!kpg_getPhysicalMapping (kpg_getcurrentpd(), KERNEL_LOW_REGION_END,
-                                 &kernel_low_region_end_phy)) {
-        k_panicOnError(); // KERNEL_LOW_REGION_END must have physical mapping.
-    }
+    // ---------------------------------------------------------------------------------------------
+    // Kernel reserves a region at the very beginning of the physical memory. This is called the Low
+    // Region.
+    UINT pageCount = BYTES_TO_PAGEFRAMES_CEILING (MEM_LEN_BYTES_KERNEL_LOW_REGION);
 
-    UINT pageCount = BYTES_TO_PAGEFRAMES_CEILING (kernel_low_region_end_phy.val);
     if (kpmm_allocAt (createPhysical (0), pageCount, PMM_REGION_ANY) == false) {
         k_panicOnError(); // Kernel low region of physical memory must be free.
     }
 
-    /* Remove unnecessary virtual page mappings (400KiB to 640 KiB)*/
-    s_unmapInitialUnusedAddressSpace (kernel_low_region_end_phy, createPhysical (640 * KB));
+    // ---------------------------------------------------------------------------------------------
+    // Then another reserved/used region is where the module files are loaded. PMM is made 'aware'
+    // of that here.
+    INT filesCount = kboot_getBootFileItemCount();
 
-    /* Accounting of physical memory used by module files */
-    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-    INT filesCount                 = kBootLoaderInfo_getFilesCount (bootloaderinfo);
+    BootFileItem firstFile      = kboot_getBootFileItem (0);
+    BootFileItem lastFile       = kboot_getBootFileItem (filesCount - 1);
+    Physical first_startAddress = PHYSICAL (firstFile.startLocation);
 
-    BootFileItem* fileinfo      = kBootLoaderInfo_getFileItem (bootloaderinfo, 0);
-    Physical first_startAddress = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-
-    fileinfo                     = kBootLoaderInfo_getFileItem (bootloaderinfo, filesCount - 1);
-    Physical last_startAddress   = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-    SIZE last_lengthBytes        = (USYSINT)kBootFileItem_getLength (fileinfo);
+    Physical last_startAddress   = PHYSICAL (lastFile.startLocation);
+    SIZE last_lengthBytes        = (USYSINT)lastFile.length;
     SIZE totalModulesLengthBytes = (last_startAddress.val - first_startAddress.val) +
                                    last_lengthBytes;
 
-    UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
-
     INFO ("Total size of module files: %x bytes", totalModulesLengthBytes);
 
+    UINT pageFrameCount = BYTES_TO_PAGEFRAMES_CEILING (totalModulesLengthBytes);
     if (kpmm_allocAt (first_startAddress, pageFrameCount, PMM_REGION_ANY) == false) {
-        k_panicOnError(); // Physical memory allocation must pass.
+        FATAL_BUG(); // Should not fail.
     }
 
-    /* Remove unnecessory vritual page mappings (ModuleFilesEnd to 2 MiB)*/
-    s_unmapInitialUnusedAddressSpace (createPhysical (ALIGN_UP (last_startAddress.val +
-                                                                    last_lengthBytes,
-                                                                CONFIG_PAGE_FRAME_SIZE_BYTES)),
-                                      createPhysical (2 * MB));
+    // ---------------------------------------------------------------------------------------------
+    // Now that the PMM holds the complete picture of all the physical memories used & reserved, we
+    // use that to initialize VMM and paging within the part which Higher Half mapped.
+    Physical pa                = PHYSICAL (0);
+    SIZE paRegionSizeBytes     = MIN (kpmm_getUsableMemorySize (PMM_REGION_ANY),
+                                      HIGHER_HALF_KERNEL_TO_PA (MEM_END_HIGHER_HALF_MAP).val);
+    const Physical paRegionEnd = PHYSICAL (pa.val + paRegionSizeBytes);
+    const PageDirectory pd     = kpg_getcurrentpd();
+
+    while (pa.val < paRegionEnd.val) {
+        const KernelPhysicalMemoryStates state = kpmm_getPageStatus (pa);
+        const PTR va                           = (PTR)HIGHER_HALF_KERNEL_TO_VA (pa);
+
+        if (state == PMM_STATE_FREE) {
+            if (kpg_unmap (pd, va) == false) {
+                FATAL_BUG(); // Should not fail.
+            }
+            pa.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
+        } else if (state == PMM_STATE_USED || state == PMM_STATE_RESERVED) {
+            const SIZE szPages = s_getPhysicalBlockPageCount (pa, paRegionEnd);
+            if (!kvmm_memmap (g_kstate.context, va, NULL, szPages,
+                              VMM_MEMMAP_FLAG_KERNEL_PAGE | VMM_MEMMAP_FLAG_COMMITTED, NULL)) {
+                FATAL_BUG(); // Should not fail.
+            }
+            pa.val += PAGEFRAMES_TO_BYTES (szPages);
+        } else {
+            UNREACHABLE();
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // There are certain virutal addresses that are reserved for Kernel use. These are reserved
+    // here.
+    if (!kvmm_memmap (g_kstate.context, MEM_START_PAGING_EXT_TEMP_MAP, NULL, 1,
+                      VMM_MEMMAP_FLAG_KERNEL_PAGE | VMM_MEMMAP_FLAG_COMMITTED, NULL)) {
+        FATAL_BUG(); // Should not fail.
+    }
+
+    if (!kvmm_memmap (g_kstate.context, MEM_START_PAGING_INT_TEMP_MAP, NULL, 1,
+                      VMM_MEMMAP_FLAG_KERNEL_PAGE | VMM_MEMMAP_FLAG_COMMITTED, NULL)) {
+        FATAL_BUG(); // Should not fail.
+    }
 }

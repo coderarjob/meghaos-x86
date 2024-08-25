@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.15)
 
 #---------------------------------------------------------------------------
 # Override few defaults for compiling with NASM
@@ -13,6 +13,7 @@ project(MeghaOS-V2 C ASM_NASM)
 
 set(MOS_DEBUG_LEVEL "1" CACHE STRING "Sets DEBUG_LEVEL option to this value")
 set(MOS_BUILD_MODE "DEBUG" CACHE STRING "Debug mode")
+set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
 
 set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
 set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
@@ -25,6 +26,10 @@ endif()
 
 if (CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "MOS_BUILD_MODE should be used to setup build mode.")
+endif()
+
+if (NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    message(FATAL_ERROR "Compiler type '${CMAKE_C_COMPILER_ID}' is not supported.")
 endif()
 #---------------------------------------------------------------------------
 
@@ -43,13 +48,16 @@ set(RUN_SCRIPT_PATH        scripts/run.sh)
 set(POST_BUILD_SCRIPT_PATH scripts/postbuild.sh)
 
 #---------------------------------------------------------------------------
-# Just for debugging. DELETE THIS WHEN FINAL
+# Shows some info about the build configuration
 #---------------------------------------------------------------------------
-add_custom_target(debug ALL
+add_custom_target(show-info ALL
+    COMMAND ${CMAKE_COMMAND} -E echo "--------- BUID INFO --------"
     COMMAND ${CMAKE_COMMAND} -E echo "- CROSS COMPILING : ${CMAKE_CROSSCOMPILING}"
     COMMAND ${CMAKE_COMMAND} -E echo "- C COMPILER      : ${CMAKE_C_COMPILER}"
     COMMAND ${CMAKE_COMMAND} -E echo "- BUILD MODE      : ${MOS_BUILD_MODE}"
     COMMAND ${CMAKE_COMMAND} -E echo "- DEBUG LEVEL     : ${MOS_DEBUG_LEVEL}"
+    COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS MODE   : ${MOS_GRAPHICS_ENABLED}"
+    COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"
     )
 #---------------------------------------------------------------------------
 
@@ -90,6 +98,8 @@ if(CMAKE_CROSSCOMPILING)
             kernel
             kernel_entry
             kernel_X86
+        RESOURCES
+            ${CMAKE_SOURCE_DIR}/docs/images/mos.rbm
         FLAGS ${MOS_KERNEL_LINKER_OPTIONS}
         LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
         LINK_LIBRARIES gcc
@@ -146,6 +156,19 @@ if(CMAKE_CROSSCOMPILING)
         )
 else()
     include(cmake/${ARCH}/unittestflags.cmake)
+
+    #---------------------------------------------------------------------------
+    # Validate compiler features required for compiling unittests
+    #---------------------------------------------------------------------------
+    if (NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86")
+        execute_process( COMMAND ${CMAKE_C_COMPILER} -v ERROR_VARIABLE COMPILER_FEATURES)
+
+        if (NOT COMPILER_FEATURES MATCHES "--enable-multilib")
+            message(FATAL_ERROR "Compiler multilib support : Absent/Undetermined")
+        endif()
+
+        message(STATUS "Compiler multilib support : Present")
+    endif()
 
     #---------------------------------------------------------------------------
     set(MOS_COV_DIR ${MOS_REPOSTS_DIR}/coverage)
