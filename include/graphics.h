@@ -43,5 +43,6 @@ typedef RGBColor32Bits GxColor;
 void graphics_rect (UINT x, UINT y, UINT h, UINT w, Color color);
 void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes);
 void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg);
+void graphics_putpixel (UINT x, UINT y, Color color);
 
 bool graphics_init();

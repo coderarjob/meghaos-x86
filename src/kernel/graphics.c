@@ -78,6 +78,16 @@ void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8*
     }
 }
 
+void graphics_putpixel (UINT x, UINT y, Color color)
+{
+    FUNC_ENTRY ("x: %u, y: %u, color: %x", x, y, color);
+
+    GxColor* start = (GxColor*)(g_kstate.framebuffer + (y * gxi.bytesPerScanLine) +
+                                (x * gxi.bytesPerPixel));
+    GxColor* col   = (GxColor*)&color;
+    *start         = *col;
+}
+
 void graphics_rect (UINT x, UINT y, UINT w, UINT h, Color color)
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, color: %x", x, y, w, h, color);
