@@ -1,32 +1,35 @@
 # MEGHA OPERATING SYSTEM V2 - x86
 
-A general purpose 32 bit Operating System for Intel i686 and later processors. It is written 
-completely from scratch and is primarily a learning project. The goal for MeghaOS is to provide an 
-environment to do experiments with the computer and to play around.
+32-bit, graphical, multitasking, operating system for Intel i686 (Pentium) and later processors.
 
-It runs of a 1.44 MiB floppy and can be configured to use minimal physical memory.
+## ABOUT
 
-| ![MeghaOS Screenshot](/docs/images/meghaos_vesafb.png) |
-|---|
-| `Drawing to VESA frame buffer - Demonstrating drawing rectangle and images` |
+MeghaOS is written completely from scratch and is primarily a educational project. It does not
+adhere to any particular operating system or philosophy, but includes ideas old and new from many
+sources.
 
-| ![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif) |
-|---|
-| `Cooperative multitasking demo - Processes running 'simultaneously'` |
+I want a system that is stable yet not totally locked down to the programmer. I want to give users
+the ability to play around and explore their computers.
 
-Think of MeghaOS as a bike with training wheels - there is protection, but they can be disabled or
-changed by the rider.
+## Screenshots
 
-| ![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png) |
-|---|
-| `Stack trace when fault occurs` |
+![MeghaOS Screenshot](/docs/images/meghaos_vesafb.png)
 
-I want the system to be stable but not totally locked down to the programmer. The OS will run in
-x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory used by
-another. The kernel will provide ways for the programmer to safely interact with the computer and 
-change parts of it easily.
+I am working to make MeghaOS a completely graphical operating system and text mode will only be for
+debugging and development. It can run variety of graphics modes and supports 8-bit, 24 & 32-bit
+color.
 
-The end product will be ready for a programmer but not for general use.
+![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif)
+
+Multitasking capabilities using Cooperative multitasking allows processes and threads to run
+simultaneously. The choice of Cooperative multitasking was intentional as it provides a good base
+for development of other multitasking features later and moreover its simple, requiring little to no
+synchronization between threads and processes.
+
+The OS runs in x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory
+used by another.
+
+![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
 
 ## Roadmap
 
@@ -46,10 +49,10 @@ The end product will be ready for a programmer but not for general use.
 - [X] Cooperative multitasking scheduling and basic process management.
 - [X] Enhancements to the process management.
 - [X] VESA VGA frame buffer.
-- [ ] Basic graphics & fonts library
-- [ ] Keyboard driver.
+- [X] Basic graphics & fonts library
+- [ ] Basic drivers (Keyboard, Mouse, RTC)
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
-- [ ] Rudimentary shell.
+- [ ] Graphical shell.
 
 ## Building and running MeghaOS
 
@@ -60,13 +63,13 @@ The end product will be ready for a programmer but not for general use.
    Use `tools/build_i686_gcc.sh` to configure and install gcc and binutils. Follow the following
    steps:
 
-   * Install build dependencies run:  `tools/build_i686_gcc.sh --install-dep`.
-   * Build and installGCC and binutils: `tools/build_i686_gcc.sh`.
+   * Install dependencies to build GCC and binutils:  `tools/build_i686_gcc.sh --install-dep`.
+   * Build and install GCC and binutils: `tools/build_i686_gcc.sh`.
 
    Then either add the installation path to the $PATH variable or pass the path in
    `CMAKE_PREFIX_PATH`.
 3. nasm assembler version 2.15.05 or higher.
-4. Cmake version >= 3.3
+4. Cmake version >= 3.15
 5. `dosfstools` for creation of disk image.
 
 ### Building
@@ -104,7 +107,6 @@ $ make
 # Compiles and bulids disk image.
 $ make mos.flp
 ```
-
 ### Running
 
 To run the disk image in Qemu use the following command:
@@ -123,8 +125,8 @@ $ make ARGS="<qemu arguments> run
 ### Prerequisites:
 
 1. gcc and binutils 8.3 or higher.
-2. gcc-multilib if host computer processor is anything other than x86.
-4. Cmake version >= 3.3
+2. `gcc-multilib` if host computer processor is anything other than x86.
+4. Cmake version >= 3.15
 
 ### Building
 
@@ -134,7 +136,6 @@ $ cmake -DMOS_DEBUG_LEVEL="3" -DARCH="x86" -B build-ut
 $ cd build-ut
 $ make
 ```
-
 ### Running
 
 To run every or any specific test use the following command:
@@ -151,8 +152,8 @@ $ make ARGS="--name <test name> run
 ```
 ### Prerequisites: Code coverage report
 
-1. gcov library 8.3 or higher.
-2. lcov and genhtml package.
+1. `gcov` library 8.3 or higher.
+2. `lcov` and `genhtml` package.
 
 To generate code coverage report run the following command:
 ```
@@ -164,52 +165,7 @@ $ make gen-cov
 
 You will find the report in `build-ut/reports/coverage/report/index.html`.
 
-## Development Specifics
+# Feedback
 
-Development of each part/feature is done in small increments. They are tested and refined overtime.
-
-Stages:
-1. Development starts with few ideas and a runnable prototype is made. This is a stage of heavy
-   development as the core ideas are tested and refined. Initial Unittests and documentation are
-   created at this stage.
-2. Refinement of the software. In some cases, parts of the software may have to be rewritten.
-   Further unittests and documentation are created or modified. The end product is a more stable
-   runnable software.
-3. Almost same as stage 2. But fewer major change is expected.
-
-```
-                   release 1    release 2    release 3
-                     /            /           /
-development >-------|------------|-----------|--->
-                1        2            3
-
-```
-
-### Git Branches
-
-The `master` branch have all the latest changes. Merges from `develop` branches go into the `master`
-branch. There could also be `feature` branches which originate and are merged into the `develop`
-branch.
-After a significant milestone, I will tag a commit, so you can check these if you do not want the
-very latest.
-
-* Master  - Branch where all the feature and fixes merge into. Must always build.
-* Develop - Majority of the development happens here. Features, bug fixing etc. May be unstable.
-* Feature - Branch where side developments (which are not related work in Develop branch) occur.
-
-```
-Master       Develop     Feature
-  |           |            |
-  |           |            |
-  |           |            |
-  |<--------->|<---------->|
-```
-
-### Versioning Scheme:
-
-1. Version will be structured: `build.releasetype.build_minor`
-2. `build` is in the format: `<year><month><day>`.
-3. `build_minor` starts with 0 and increments if same `build.releasetype` already exists.
-4. `releasetype` are : `dev`, `alpha`.
-5. Build string can be used to find the chronology of the releases.
-   * 20091103.dev.0 -> 20091103.dev.1 -> 20091103.alpha.0
+Open a GitHub issue or drop a email at arjobmukherjee@gmail.com. I would love to hear your
+suggestions and feedbacks.
