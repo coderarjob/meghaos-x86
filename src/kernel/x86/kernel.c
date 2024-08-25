@@ -186,35 +186,41 @@ static void graphics_demo_basic()
 {
     #if CONFIG_GXMODE_BITSPERPIXEL == 8
         #define BG_COLOR             26
-        #define FONT_FG_COLOR        29
-        #define FONT_BG_COLOR        19
+        #define FONT_FG_COLOR        17
+        #define FONT_BG_COLOR        WINDOW_BG_COLOR
         #define IMAGE_BITS_PER_PIXEL 1
 
-        #define WINDOW_BG_COLOR      169
+        #define WINDOW_BG_COLOR      29
         #define WINDOW_SHADOW_COLOR  23
 
-        #define TITLE_BAR_BG_COLOR   125
+        #define TITLE_BAR_BG_COLOR   126
         #define TITLE_BAR_FG_COLOR   15
 
-        #define COLORMAP_SIZE        20 // 20x20 square
+        #define COLORMAP_SIZE        15 // square
         #define COLORMAP_X           WINDOW_X + WINDOW_WIDTH - (COLORMAP_SIZE * 16) - 20
         #define COLORMAP_Y           WINDOW_Y + 20
+
+        #define PAT_BG_COLOR         16
+        #define PAT_FG_COLOR         41
     #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
         #define BG_COLOR             0xAFAFAF
-        #define FONT_FG_COLOR        0xDFDFDF
-        #define FONT_BG_COLOR        0x2D2D2D
+        #define FONT_FG_COLOR        0x101010
+        #define FONT_BG_COLOR        WINDOW_BG_COLOR
         #define IMAGE_BITS_PER_PIXEL 3
 
-        #define WINDOW_BG_COLOR      0x53745F
+        #define WINDOW_BG_COLOR      0xDFDFDF
         #define WINDOW_SHADOW_COLOR  0x7D7D7D
 
-        #define TITLE_BAR_BG_COLOR   0x145371
+        #define TITLE_BAR_BG_COLOR   0x003971
         #define TITLE_BAR_FG_COLOR   0xFFFFFF
 
-        #define MOS_LOGO_WIDTH       (130)
-        #define MOS_LOGO_HEIGHT      (150)
+        #define MOS_LOGO_WIDTH       (200)
+        #define MOS_LOGO_HEIGHT      (80)
         #define MOS_LOGO_Y           (WINDOW_Y + 10)
-        #define MOS_LOGO_X           (WINDOW_X + WINDOW_WIDTH - MOS_LOGO_WIDTH - 10)
+        #define MOS_LOGO_X           (WINDOW_X + WINDOW_WIDTH - MOS_LOGO_WIDTH - 20)
+
+        #define PAT_BG_COLOR         0x101010
+        #define PAT_FG_COLOR         0xff4100
     #endif
 
     #define WINDOW_Y         40
@@ -229,6 +235,10 @@ static void graphics_demo_basic()
 
     #define CHARDUMP_Y       (WINDOW_Y + 20)
     #define CHARDUMP_X       (WINDOW_X + 20)
+
+    #define PAT_SIZE         200
+    #define PAT_X            (WINDOW_X + WINDOW_WIDTH - PAT_SIZE - 20)
+    #define PAT_Y            (WINDOW_Y + WINDOW_HEIGHT - PAT_SIZE - 20)
 
     if (!g_kstate.framebuffer) {
         FATAL_BUG();
@@ -262,8 +272,7 @@ static void graphics_demo_basic()
     for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
         UINT y = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
         UINT x = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
-        graphics_drawfont (x + CHARDUMP_X, y + CHARDUMP_Y, (UCHAR)c, FONT_FG_COLOR,
-                           WINDOW_BG_COLOR);
+        graphics_drawfont (x + CHARDUMP_X, y + CHARDUMP_Y, (UCHAR)c, FONT_FG_COLOR, FONT_BG_COLOR);
     }
 
     // ------------------------------------
@@ -271,8 +280,8 @@ static void graphics_demo_basic()
     // ------------------------------------
     #if CONFIG_GXMODE_BITSPERPIXEL == 8
     for (UINT c = 0; c < 256; c++) {
-        UINT y = (c / 16) * 20;
-        UINT x = (c % 16) * 20;
+        UINT y = (c / 16) * COLORMAP_SIZE;
+        UINT x = (c % 16) * COLORMAP_SIZE;
         graphics_rect (x + COLORMAP_X, y + COLORMAP_Y, COLORMAP_SIZE, COLORMAP_SIZE, c);
     }
     #endif
@@ -281,12 +290,24 @@ static void graphics_demo_basic()
     // Printing string
     // ------------------------------------
     char* text = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
-    UINT y     = WINDOW_Y + WINDOW_HEIGHT - CONFIG_GXMODE_FONT_HEIGHT - 10;
+    UINT y     = WINDOW_Y + WINDOW_HEIGHT - CONFIG_GXMODE_FONT_HEIGHT - 20;
     graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
 
     text = "the quick brown fox jumps over the lazy dog.";
     y -= CONFIG_GXMODE_FONT_HEIGHT + 5;
     graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
+
+    // ------------------------------------
+    // Drawing patterns
+    // ------------------------------------
+    UINT x = PAT_X;
+    for (; x < (PAT_X + PAT_SIZE); x++) {
+        UINT y = PAT_Y;
+        for (; y < (PAT_Y + PAT_SIZE); y++) {
+            bool condition = (((x - PAT_X) & (y - PAT_Y)) % 10 == 0);
+            graphics_putpixel (x, y, condition ? PAT_FG_COLOR : PAT_BG_COLOR);
+        }
+    }
 }
 #endif // GRAPHICS_MODE_ENABLED
 
