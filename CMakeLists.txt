@@ -90,6 +90,11 @@ if(CMAKE_CROSSCOMPILING)
     add_subdirectory(src/kernel/${ARCH})
     add_subdirectory(src/userland)
 
+    set(KERNEL_RESOURCE_FILES)
+    if (MOS_GRAPHICS_ENABLED)
+        list (APPEND KERNEL_RESOURCE_FILES ${CMAKE_SOURCE_DIR}/docs/images/mos.rbm)
+    endif()
+
     link(
         FLATTEN
         NAME kernel.flt
@@ -98,8 +103,7 @@ if(CMAKE_CROSSCOMPILING)
             kernel
             kernel_entry
             kernel_X86
-        RESOURCES
-            ${CMAKE_SOURCE_DIR}/docs/images/mos.rbm
+        RESOURCES ${KERNEL_RESOURCE_FILES}
         FLAGS ${MOS_KERNEL_LINKER_OPTIONS}
         LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
         LINK_LIBRARIES gcc
