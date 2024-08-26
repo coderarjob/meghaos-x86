@@ -454,11 +454,11 @@ void kvmm_printVASList (VMemoryManager* vmm)
         VMemoryAddressSpace* vas = LIST_ITEM (node, VMemoryAddressSpace, adjMappingNode);
 
     #ifdef DEBUG
-        INFO ("* %x -> %x. size (pages): %x, flags: %x, pid: %u, purpose: %s", vas->start_vm,
+        INFO ("* %x -> %x. size (bytes): %x, flags: %x, pid: %u, purpose: %s", vas->start_vm,
               vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes, vas->flags,
               vas->processID, vas->purpose);
     #else
-        INFO ("* %x -> %x. size (pages): %x, flags: %x", vas->start_vm,
+        INFO ("* %x -> %x. size (bytes): %x, flags: %x", vas->start_vm,
               vas->start_vm + vas->allocationSzBytes - 1, vas->allocationSzBytes, vas->flags);
     #endif // DEBUG
     }
