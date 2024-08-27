@@ -126,7 +126,7 @@ s_fill_pd:
         mov eax, [PHY(page_table)]
         ; Caching is enabled, with write-back caching.
         and eax, 0b11111111_11111111_11110000_00000000
-        or eax, 7
+        or eax, 3
         mov [edi],eax           ; Identity map
         mov [edi + 768*4],eax   ; Higher-half map
 
@@ -134,7 +134,7 @@ s_fill_pd:
         ; Caching is enabled, with write-back caching.
         mov eax, [PHY(page_dir)]
         and eax, 0b11111111_11111111_11110000_00000000
-        or eax, 7
+        or eax, 3
         mov [edi + 1023*4], eax
     popad
     ret
@@ -155,7 +155,7 @@ s_fill_pt:
         push eax
             ; Caching is enabled, with write-back caching.
             and eax, 0b11111111_11111111_11110000_00000000
-            or eax, 7
+            or eax, 3
             mov [edi],eax
         pop eax
         add edi, 4

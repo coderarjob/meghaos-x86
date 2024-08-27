@@ -53,7 +53,10 @@ static void process_poc();
 //static void multiprocess_demo();
 static void multithread_demo_kernel_thread();
 static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
+
+#ifdef GRAPHICS_MODE_ENABLED
 static void graphics_demo_basic();
+#endif
 
 /* Kernel state global variable */
 KernelStateInfo g_kstate;
