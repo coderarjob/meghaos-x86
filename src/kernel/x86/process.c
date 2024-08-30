@@ -476,7 +476,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
     regs->ebx                  = 0;
     regs->esi                  = 0;
     regs->edi                  = 0;
-    regs->eflags               = 0;
+    regs->eflags               = X86_EFLAGS_INTERRUPT_ENABLE | X86_EFLAGS_BIT1_ALWAYS_ONE;
     regs->cs                   = GDT_SELECTOR_UCODE;
     regs->ds                   = GDT_SELECTOR_UDATA;
     regs->ebp                  = 0; // This is required for stack trace to end.
