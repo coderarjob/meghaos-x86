@@ -103,6 +103,8 @@ __asm__(".struct 0;"
         "test eax, PROCESS_FLAGS_KERNEL_PROCESS;"
         "jz .load_user_process;"
         /////// Load Kernel Process ////////
+        "push [edx + proc_eflags];" // Restore eflags for kernel process
+        "popfd;"
         "mov esp, [edx + proc_esp];" // Switch to process stack pointer
         "jmp [edx + proc_eip];"      // Kernel process entry/return address
         /////// Load User Process ////////
@@ -352,8 +354,8 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
 
     INFO ("Is context switch required: Yes");
     INFO ("Kernel process: %x", BIT_ISSET (nextProcess->flags, PROCESS_FLAGS_KERNEL_PROCESS));
-    INFO ("Process (PID: %u) starting. ss:esp =  %x:%x, cs:eip = %x:%x", nextProcess->processID,
-          reg->ds, reg->esp, reg->cs, reg->eip);
+    INFO ("Process (PID: %u) starting. ss:esp =  %x:%x, cs:eip = %x:%x, eflags: %x",
+          nextProcess->processID, reg->ds, reg->esp, reg->cs, reg->eip, reg->eflags);
 
     nextProcess->state = PROCESS_STATE_RUNNING;
     currentProcess     = nextProcess;

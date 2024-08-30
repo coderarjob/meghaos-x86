@@ -56,7 +56,7 @@ __attribute__ ((noreturn))
 void double_fault_handler (InterruptFrame *frame, UINT errorcode)
 {
     (void)frame;        // Frame is not guaranteed to be valid
-    k_panic("Double fault - Fatal error (Error code: %u)", errorcode);
+    k_panic("Double fault - Fatal error (Error code: %x)", errorcode);
     NORETURN();
 }
 
