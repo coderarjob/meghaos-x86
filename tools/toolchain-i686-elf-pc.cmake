@@ -2,6 +2,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR i686)
 
 set(ARCH x86)
+set(MARCH pc)
 
 set(CMAKE_C_COMPILER i686-elf-gcc)
 

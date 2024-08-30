@@ -17,5 +17,7 @@
 
 #define outb(p,v) __asm__ volatile ("out dx, al;" : :"a" (v), "d" (p))
 #define inb(p,v)  __asm__ volatile ("in al, dx" :"=a" (v) :"d" (p))
+// Reference: https://wiki.osdev.org/Inline_Assembly/Examples#IO_WAIT
+#define io_delay() outb(0x80, 0)
 
 #endif // IO_H_X86

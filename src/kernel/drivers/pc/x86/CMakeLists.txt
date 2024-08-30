@@ -1,0 +1,10 @@
+set(DRIVER_SOUCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/8259_pic.c
+    )
+
+compile_lib(
+    NAME kernel_drivers
+    SOURCES ${DRIVER_SOUCES}
+    FLAGS ${MOS_KERNEL_GCC_FLAGS}
+    INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
+    )

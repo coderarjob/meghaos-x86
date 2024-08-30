@@ -89,6 +89,7 @@ if(CMAKE_CROSSCOMPILING)
     add_subdirectory(src/kernel)
     add_subdirectory(src/kernel/${ARCH})
     add_subdirectory(src/userland)
+    add_subdirectory(src/kernel/drivers/${MARCH}/${ARCH})
 
     set(KERNEL_RESOURCE_FILES)
     if (MOS_GRAPHICS_ENABLED)
@@ -103,6 +104,7 @@ if(CMAKE_CROSSCOMPILING)
             kernel
             kernel_entry
             kernel_X86
+            kernel_drivers
         RESOURCES ${KERNEL_RESOURCE_FILES}
         FLAGS ${MOS_KERNEL_LINKER_OPTIONS}
         LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
