@@ -28,6 +28,7 @@ extern void *g_syscall_table[];
 #define INTERRUPT_HANDLER(fn)                                           \
     void fn ## _handler (InterruptFrame *);                             \
     __asm__ (                                                           \
+            ".section .text\n"                                          \
             ".globl " #fn "_asm_handler\n"                              \
             #fn "_asm_handler:\n"                                       \
             "push ebp\n"                                                \
