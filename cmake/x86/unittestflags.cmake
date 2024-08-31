@@ -13,6 +13,7 @@ set(MOS_UNITTESTS_GCC_FLAGS
     --coverage
     -DUNITTEST
     -DARCH=${ARCH}
+    -DMARCH=${MARCH}
     -DNDEBUG
     -DDEBUG_LEVEL=${MOS_DEBUG_LEVEL}
     )
@@ -27,7 +28,7 @@ set(MOS_UNITEST_LINKER_OPTIONS
 
 set(MOS_ASM_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include/asm
-    ${PROJECT_SOURCE_DIR}/include/x86/asm
+    ${PROJECT_SOURCE_DIR}/include/${ARCH}/asm
     )
 
 set(MOS_GCC_INCLUDE_DIRS

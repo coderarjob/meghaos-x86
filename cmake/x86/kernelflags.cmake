@@ -27,6 +27,8 @@ set(MOS_KERNEL_GCC_FLAGS
     -fno-inline-functions-called-once
     -DDEBUG_LEVEL=${MOS_DEBUG_LEVEL}
     -D${MOS_BUILD_MODE}
+    -DMARCH=${MARCH}
+    -DARCH=${ARCH}
     )
 
 set(MOS_KERNEL_NASM_BIN_MODE_FLAGS
