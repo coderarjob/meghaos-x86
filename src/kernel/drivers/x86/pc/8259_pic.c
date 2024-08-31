@@ -10,7 +10,7 @@
 #include <kassert.h>
 #include <utils.h>
 #include <kdebug.h>
-#include <drivers/pc/x86/8259_pic.h>
+#include <drivers/x86/pc/8259_pic.h>
 
 #define MASTER_CMD_PORT          0x20
 #define MASTER_DATA_PORT         0x21

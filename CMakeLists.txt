@@ -84,12 +84,12 @@ if(CMAKE_CROSSCOMPILING)
     #---------------------------------------------------------------------------
     # Build & link kernel and process binaries
     #---------------------------------------------------------------------------
-    add_subdirectory(src/bootloader/x86)
+    add_subdirectory(src/bootloader/${ARCH})
     add_subdirectory(src/common)
     add_subdirectory(src/kernel)
     add_subdirectory(src/kernel/${ARCH})
     add_subdirectory(src/userland)
-    add_subdirectory(src/kernel/drivers/${MARCH}/${ARCH})
+    add_subdirectory(src/kernel/drivers/${ARCH}/${MARCH})
 
     set(KERNEL_RESOURCE_FILES)
     if (MOS_GRAPHICS_ENABLED)
@@ -182,7 +182,7 @@ else()
 
     add_custom_target(build-all ALL)
     add_subdirectory(src/unittests)
-    add_subdirectory(src/unittests/x86)
+    add_subdirectory(src/unittests/${ARCH})
 
     #---------------------------------------------------------------------------
     # Generage unittest coverage report
