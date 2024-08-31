@@ -2,6 +2,8 @@
 
 32-bit, graphical, multitasking, operating system for Intel i686 (Pentium) and later processors.
 
+![Unittest build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/utbuild.yaml/badge.svg)
+
 ## ABOUT
 
 MeghaOS is written completely from scratch and is primarily a educational project. It does not
