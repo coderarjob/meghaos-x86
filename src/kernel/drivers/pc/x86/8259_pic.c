@@ -10,6 +10,7 @@
 #include <kassert.h>
 #include <utils.h>
 #include <kdebug.h>
+#include <drivers/pc/x86/8259_pic.h>
 
 #define MASTER_CMD_PORT          0x20
 #define MASTER_DATA_PORT         0x21
@@ -20,10 +21,10 @@
 #define ICW1_ALWAYS_ONE          (1 << 4)
 
 #define ICW3_IRQ_LINE_FOR_SLAVE  (2) // IRQ line 2 of the master is connected with the slave.
-
 #define ICW4_8086_MICROPROCESSOR (1 << 0)
-
 #define OCW2_EOI                 (1 << 5)
+#define OCW3_READ_IRR            (1 << 3 | 1 << 1)
+#define OCW3_READ_ISR            (1 << 3 | 1 << 1 | 1 << 0)
 
 void pic_init (U8 master_vector_start, U8 slave_vector_start)
 {
@@ -59,18 +60,51 @@ void pic_init (U8 master_vector_start, U8 slave_vector_start)
     io_delay();
 }
 
-void pic_set_irq (INT irq, bool enable)
+void pic_enable_disable_irq (X86_PC_IRQ irq, bool enable)
 {
     FUNC_ENTRY ("IRQ: %x, Enable: %u", irq, enable);
+
+    U8 port = MASTER_DATA_PORT;
+    if (irq >= 8) {
+        port = SLAVE_DATA_PORT;
+        irq -= 8; // IRQs start from 0 for both Master and Slave PIC.
+    }
+
+    k_assert (irq >= 0 && irq <= 8, "Invalid IRQ number");
+
+    INT value = 0;
+    inb (port, value); // Read Mask register of the selected PIC
+
+    if (enable) {
+        value &= ~(1 << irq); // Enable: Clear the mask for the IRQ.
+    } else {
+        value |= (1 << irq); // Disable: Set the mask for the IRQ.
+    }
+
+    // Write OCW1
+    outb (port, value);
 }
 
-void pic_get_irq (INT irq)
+UINT pic_read_IRR_ISR (bool readISR)
 {
-    FUNC_ENTRY ("IRQ: %x", irq);
+    FUNC_ENTRY();
+
+    U8 ocw3 = (readISR) ? OCW3_READ_ISR : OCW3_READ_IRR;
+
+    outb (MASTER_CMD_PORT, ocw3);
+    outb (SLAVE_CMD_PORT, ocw3);
+
+    UINT master, slave;
+    inb (MASTER_CMD_PORT, master);
+    inb (SLAVE_CMD_PORT, slave);
+
+    return (slave << 8U) | master;
 }
 
-void pic_send_eoi (U32 irq)
+void pic_send_eoi (X86_PC_IRQ irq)
 {
+    k_assert (irq >= 0 && irq <= 8, "Invalid IRQ number");
+
     if (irq >= 8) {
         outb (SLAVE_CMD_PORT, 0x20);
     }
