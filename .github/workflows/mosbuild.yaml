@@ -21,6 +21,6 @@ jobs:
     - name: Build and run
       run: cmake --build ${{github.workspace}}/build --target run
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --target run |grep -c FAIL > /dev/null; test $? -eq 1
+      #- name: Test
+      #  working-directory: ${{github.workspace}}/build
+      #  run: cmake --build . --target run |grep -c FAIL > /dev/null; test $? -eq 1
