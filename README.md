@@ -2,9 +2,7 @@
 
 32-bit, graphical, multitasking, operating system for Intel i686 (Pentium) and later processors.
 
-![Unittest build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/utbuild.yaml/badge.svg)
-
-![MOS build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/osbuild.yaml/badge.svg)
+![Unittest build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/utbuild.yaml/badge.svg)  ![MOS build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/osbuild.yaml/badge.svg)
 
 ## ABOUT
 
@@ -130,6 +128,7 @@ $ make ARGS="<qemu arguments> run
 
 1. gcc and binutils 8.3 or higher.
 2. `gcc-multilib` if host computer processor is anything other than x86.
+3. nasm assembler version 2.15.05 or higher.
 4. Cmake version >= 3.15
 
 ### Building
