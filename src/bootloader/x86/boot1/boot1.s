@@ -58,18 +58,23 @@ msg_failed : db 13,"[ER]",0
 
 %ifdef GRAPHICS_MODE_ENABLED
 vbemode:
+    ; Note: In NASM Version < 2.16, AT keyword requires complete field names.
+    ; Version 2.16 fixes this saying "Fixed the handling AT in istruc when the
+    ; structure contains local labels."
+    ; Since the minimum version we support is NASM 2.15.05, the struc field
+    ; names need to be complete.
     istruc vbe_modequery_t
         ; Input to vbe2_find_mode, vbe2_switch_mode
-        at .Xresolution       , dw GXMODE_XRESOLUTION
-        at .Yresolution       , dw GXMODE_YRESOLUTION
-        at .BitsPerPixel      , db GXMODE_BITSPERPIXEL
+        at vbe_modequery_t.Xresolution       , dw GXMODE_XRESOLUTION
+        at vbe_modequery_t.Yresolution       , dw GXMODE_YRESOLUTION
+        at vbe_modequery_t.BitsPerPixel      , db GXMODE_BITSPERPIXEL
 
         ; Output from vbe2_find_mode
         ; Input for vbe2_switch_mode
-        at .Mode              , dw 0
-        at .VbeVersion        , dw 0
-        at .FrameBuffer       , dd 0
-        at .BytesPerScanLine  , dw 0
+        at vbe_modequery_t.Mode              , dw 0
+        at vbe_modequery_t.VbeVersion        , dw 0
+        at vbe_modequery_t.FrameBuffer       , dd 0
+        at vbe_modequery_t.BytesPerScanLine  , dw 0
     iend
 %endif
 
