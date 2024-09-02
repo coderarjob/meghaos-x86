@@ -1,0 +1,87 @@
+name: OS build
+
+on: [push]
+
+env:
+  WS_DIR: ${{github.workspace}}
+  BUILD_DIR: 
+  CROSS_GCC_INSTALL_DIR: ${{github.workspace}}/tools/i686-cross
+  TOOLCHAIN_FILE: ${{github.workspace}}/tools/toolchain-i686-elf-pc.cmake 
+
+jobs:
+  builld:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # --------------------------------------------------------------------------
+    # Setup GitHub Actions Cache
+    # --------------------------------------------------------------------------
+    # Get Unique ID corresponding to the Cross compiler to build. This ID is
+    # used to cache the cross compiler bianries for future commits, which means
+    # until this ID changes, the cached cross compiler binaries will be used.
+    - name: Get Unique ID from script
+      id: unique_id
+      run: echo "UNIQUE_ID=$($WS_DIR/tools/build_i686_gcc.sh --gen-id)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Cross GCC
+      uses: actions/cache@v4
+      id: cache-cross-gcc
+      with:
+          path: ${{env.CROSS_GCC_INSTALL_DIR}}
+          key: ${{ steps.unique_id.outputs.UNIQUE_ID }}
+    # --------------------------------------------------------------------------
+    # Cross compile if required
+    # --------------------------------------------------------------------------
+    - name: Set environment variable
+      run: echo "PREFIX=$CROSS_GCC_INSTALL_DIR" >> $GITHUB_ENV
+
+    - name: Build Cross GCC
+      env:
+        CACHE_HIT: ${{steps.cache-cross-gcc.outputs.cache-hit}}
+      run: |
+          if [[ "$CACHE_HIT" == 'true' ]]; then
+            echo "No need to build cross compiler. Cache exists."
+          else
+            echo "Need to build cross compiler"
+            sudo $WS_DIR/tools/build_i686_gcc.sh --install-dep
+            $WS_DIR/tools/build_i686_gcc.sh
+          fi
+    # --------------------------------------------------------------------------
+
+    - name: Install dependencies for MOS build
+      run: sudo apt-get install nasm
+
+    # --------------------------------------------------------------------------
+    - name: Build (Debug, Non Graphics)
+      env: 
+        BUILD_DIR: ${{github.workspace}}/build-1
+      run: |
+        echo "BUILD_DIR: $BUILD_DIR"
+        cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_DEBUG_LEVEL="3" -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED=OFF
+        cmake --build $BUILD_DIR
+
+    # --------------------------------------------------------------------------
+    - name: Build (NDebug, Non Graphics)
+      env: 
+        BUILD_DIR: ${{github.workspace}}/build-2
+      run: |
+        cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_DEBUG_LEVEL="3" -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=NDEBUG -DMOS_GRAPHICS_ENABLED=OFF
+        cmake --build $BUILD_DIR
+
+    # --------------------------------------------------------------------------
+    - name: Build (Debug, Graphics)
+      env: 
+        BUILD_DIR: ${{github.workspace}}/build-3
+      run: |
+        cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_DEBUG_LEVEL="3" -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED=ON
+        cmake --build $BUILD_DIR
+
+    # --------------------------------------------------------------------------
+    - name: Build (NDebug, Graphics)
+      env: 
+        BUILD_DIR: ${{github.workspace}}/build-4
+      run: |
+        cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_DEBUG_LEVEL="3" -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=NDEBUG -DMOS_GRAPHICS_ENABLED=ON
+        cmake --build $BUILD_DIR

@@ -1,6 +1,20 @@
 #!/bin/bash
 
-if [ $1 == "--install-dep" ]; then
+# :: Constants ::
+BINUTILS_VER='2.31.1'
+GCC_VER='8.3.0'
+
+if [ "$1" == "--gen-id" ]; then
+    # :: Generate ID (a constant string) to be used in GitHub Actions ::
+    # This ID would change when we are targetting a different binutils or GCC
+    # version. 
+
+    # The UNIQUE_ID can be used to force change the ID when the rest remains the
+    # same.
+    UNIQUE_ID="1"
+    echo "binutils_${BINUTILS_VER}_gcc_${GCC_VER}-${UNIQUE_ID}"
+    exit
+elif [ "$1" == "--install-dep" ]; then
     # :: gcc and make and other dependencies ::
     apt-get install -y build-essential                       || exit 1
     apt-get install -y bison flex libgmp3-dev \
@@ -10,9 +24,6 @@ if [ $1 == "--install-dep" ]; then
 fi
 
 # :: Download binutils and gcc ::
-BINUTILS_VER='2.31.1'
-GCC_VER='8.3.0'
-
 wget https://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.xz \
      https://ftp.gnu.org/gnu/gcc/gcc-$GCC_VER/gcc-$GCC_VER.tar.xz      || exit 1
 
@@ -21,7 +32,9 @@ tar -xf ./binutils-$BINUTILS_VER.tar.xz  || exit 1
 tar -xf ./gcc-$GCC_VER.tar.xz            || exit 1
 
 # :: Building and Installation ::
-export PREFIX="$HOME/.local/opt/i686-cross"
+if [ -z "$PREFIX" ]; then
+    export PREFIX="$HOME/.local/opt/i686-cross"
+fi
 export TARGET=i686-elf
 export PATH="$PREFIX/bin:$PATH"
 

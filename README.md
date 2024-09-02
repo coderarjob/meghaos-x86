@@ -4,6 +4,8 @@
 
 ![Unittest build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/utbuild.yaml/badge.svg)
 
+![MOS build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/osbuild.yaml/badge.svg)
+
 ## ABOUT
 
 MeghaOS is written completely from scratch and is primarily a educational project. It does not
