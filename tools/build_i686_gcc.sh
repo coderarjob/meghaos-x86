@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # :: Constants ::
-BINUTILS_VER='2.31.1'
-GCC_VER='8.3.0'
+BINUTILS_VER='2.35.1'
+GCC_VER='10.2.0'
 
 if [ "$1" == "--gen-id" ]; then
     # :: Generate ID (a constant string) to be used in GitHub Actions ::
