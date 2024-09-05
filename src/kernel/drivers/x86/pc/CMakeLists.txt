@@ -1,6 +1,7 @@
 set(DRIVER_SOUCES
     ${CMAKE_CURRENT_SOURCE_DIR}/8259_pic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/8254_pit.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/8042_ps2.c
     )
 
 compile_lib(
