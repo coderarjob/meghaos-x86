@@ -103,7 +103,7 @@ UINT pic_read_IRR_ISR (bool readISR)
 
 void pic_send_eoi (X86_PC_IRQ irq)
 {
-    k_assert (irq >= 0 && irq <= 8, "Invalid IRQ number");
+    k_assert (irq >= 0 && irq <= 16, "Invalid IRQ number");
 
     if (irq >= 8) {
         outb (SLAVE_CMD_PORT, 0x20);
