@@ -76,6 +76,7 @@ if(CMAKE_CROSSCOMPILING)
 
     set(CREATE_FLOPPY_IMAGE_SCRIPT_PATH scripts/create-floppyimg.sh)
     set(LINTER_SCRIPT_PATH              scripts/lint.sh)
+    set(MOS_DISKIMAGE_PATH              ${MOS_DISKIMAGE_DIR}/mos.flp)
 
     #---------------------------------------------------------------------------
     add_custom_target(build-all ALL)
@@ -114,9 +115,9 @@ if(CMAKE_CROSSCOMPILING)
     #---------------------------------------------------------------------------
     # Create new floppy image and the copy flat binary files
     #---------------------------------------------------------------------------
-    add_custom_target(mos.flp
+    add_custom_target(image
         DEPENDS build-all
-        BYPRODUCTS ${MOS_DISKIMAGE_DIR}/mos.flp
+        BYPRODUCTS ${MOS_DISKIMAGE_PATH}
         COMMAND ${CREATE_FLOPPY_IMAGE_SCRIPT_PATH} ${MOS_BIN_DIR} ${MOS_DISKIMAGE_DIR}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         )
@@ -151,10 +152,10 @@ if(CMAKE_CROSSCOMPILING)
     #---------------------------------------------------------------------------
     set(EMU_REPORTS_FILE ${MOS_REPOSTS_DIR}/qemulog.txt)
     add_custom_target(run
-        DEPENDS mos.flp
+        DEPENDS image
         BYPRODUCTS ${EMU_REPORTS_FILE}
         COMMAND ${INVOKEPROG_SCRIPT_PATH} ${RUN_SCRIPT_PATH}
-                --img ${MOS_DISKIMAGE_DIR}/mos.flp
+                --img ${MOS_DISKIMAGE_PATH}
                 --report-out ${EMU_REPORTS_FILE}
                 --  # This -- makes ARGS assignments simpler. Otherwise `--` need to be in ARGS env
                     # variable. For example `make ARGS="-- -S -s" run`.
