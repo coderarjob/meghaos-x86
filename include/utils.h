@@ -52,6 +52,12 @@
          (w_ & s_) == s_ ? 1U : 0U; \
      }) & 0x1)
 
+/** Set and clear specific bit 'b' from 'w'.
+ * 'b' is bit number starting 0
+ * 'w' is the number whose 'b' bit is either set or cleared. */
+#define BIT_SET(w, b)   ((w) | (1U << (b)))
+#define BIT_CLEAR(w, b) ((w) & ~(1U << (b)))
+
 // Number of complete pages from at-most 'b' number of bytes.
 #define BYTES_TO_PAGEFRAMES_FLOOR(b) \
     ((b) / CONFIG_PAGE_FRAME_SIZE_BYTES & BIT_MASK (CONFIG_PAGE_FRAME_SIZE_BITS, 0))

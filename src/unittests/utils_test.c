@@ -4,6 +4,34 @@
 #include <unittest/unittest.h>
 #include <types.h>
 
+TEST (utils, bit_set)
+{
+    EQ_SCALAR (BIT_SET (0x10, 0), 0b00010001);
+    EQ_SCALAR (BIT_SET (0x10, 7), 0b10010000);
+    EQ_SCALAR (BIT_SET (0x10, 6) | BIT_SET (0x10, 3), 0b01011000);
+    EQ_SCALAR (BIT_SET (0x10, 4), 0x10);
+
+    size_t b = (sizeof (unsigned int) * 8) - 1;
+    EQ_SCALAR (BIT_SET (0x0, b), (1 << b));
+
+    END();
+}
+
+TEST (utils, bit_clear)
+{
+    EQ_SCALAR (BIT_CLEAR (0x10, 4), 0b00000000);
+    EQ_SCALAR (BIT_CLEAR (0x10, 0), 0x10);
+
+    EQ_SCALAR (BIT_CLEAR (0xFF, 7), 0b01111111);
+    EQ_SCALAR (BIT_CLEAR (0xFF, 0), 0b11111110);
+    EQ_SCALAR (BIT_CLEAR (0xFF, 6) & BIT_CLEAR (0xFF, 3), 0b10110111);
+
+    size_t b = (sizeof (unsigned int) * 8) - 1;
+    EQ_SCALAR (BIT_CLEAR (0xFFFFFFFF, b), 0x7FFFFFFF);
+
+    END();
+}
+
 TEST (utils, OffsetOf)
 {
     struct TestStruct
@@ -166,4 +194,6 @@ int main() {
     pageframes_to_bytes();
     bytes_to_pageframes_ceiling();
     bytes_to_pageframes_floor();
+    bit_set();
+    bit_clear();
 }
