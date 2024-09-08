@@ -34,7 +34,9 @@ typedef enum KernelErrorCodes {
     ERR_VMM_NOT_ALLOCATED         = 13, // Virutal address space is not allocated
     ERR_VMM_OVERLAPING_VAS        = 14, // New Virtual address space is overlaps another one
     ERR_VMM_NULL_PAGE_ACCESS      = 15, // Trying to commit a NULL page.
-    ERR_PROC_EXIT_NOT_ALLOWED     = 16  // Process exit not allowed (its the only one left)
+    ERR_PROC_EXIT_NOT_ALLOWED     = 16, // Process exit not allowed (its the only one left)
+    ERR_DEVICE_INIT_FAILED        = 17, // Device initialization failed
+    ERR_DEVICE_NOT_READY          = 18, // Device is not ready for access
 } KernelErrorCodes;
 
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what
