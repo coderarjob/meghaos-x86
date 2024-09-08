@@ -60,6 +60,6 @@ void mouse_interrupt_handler (InterruptFrame* frame)
     U8 data1, data2, data3 = 0;
     data1 = (U8)ps2_read_data_no_wait();
     data2 = (U8)ps2_read_data_no_wait();
-    kdebug_println ("Mouse handler: %x, %x, %x", data1, data2, data3);
+    kearly_println ("Mouse handler: %x, %x, %x", data1, data2, data3);
     pic_send_eoi (X86_PC_IRQ_PS2_MOUSE);
 }

@@ -77,7 +77,8 @@ UINT ps2_read_data()
     if (ps2_canRead()) {
         return ps2_read_data_no_wait();
     }
-    k_assert (false, "PS2: Long wait for read");
+    // TODO: Should not panic. It is very much possible for device to ready.
+    k_panic ("PS2: Long wait for read");
 }
 
 void ps2_write_data (UINT port, UINT data)
@@ -87,7 +88,8 @@ void ps2_write_data (UINT port, UINT data)
         outb (port, data);
         return;
     }
-    k_assert (false, "PS2: Long wait for write");
+    // TODO: Should not panic. It is very much possible for device to ready.
+    k_panic ("PS2: Long wait for write");
 }
 
 bool ps2_write_device_cmd (const PS2PortInfo* const port, bool checkAck, UINT data)
@@ -107,13 +109,6 @@ bool ps2_write_device_cmd (const PS2PortInfo* const port, bool checkAck, UINT da
         RETURN_ERROR (ERR_DEVICE_NOT_READY, false);
     }
     return true;
-}
-
-static void read_configuration_byte (char* s)
-{
-    ps2_write_controller_cmd (CMD_READ_CONFIGURATION_BYTE);
-    UINT config = ps2_read_data();
-    kdebug_println ("%s: %x", s, config);
 }
 
 PS2DeviceType ps2_identify_device (PS2PortInfo* const port)
@@ -159,14 +154,11 @@ bool ps2_init()
     k_memset (&port2, 0, sizeof (port2));
     port2.isSecondPort = true;
 
-    read_configuration_byte ("First");
-
     // Step 1: Disable both PS/2 ports
     // --------------------------------------------------------
     ps2_write_controller_cmd (CMD_DISABLE_FIRST_PORT);
     ps2_write_controller_cmd (CMD_DISABLE_SECOND_PORT);
 
-    read_configuration_byte ("second");
     // Step 2: Flush the output (from device perspective) buffer
     // --------------------------------------------------------
     U8 discard;
@@ -202,8 +194,6 @@ bool ps2_init()
     // --------------------------------------------------------
     ps2_write_controller_cmd (CMD_ENABLE_FIRST_PORT);  // This will turn on the clock for port 1
     ps2_write_controller_cmd (CMD_ENABLE_SECOND_PORT); // This will turn on the clock for port 2
-
-    read_configuration_byte ("final init");
 
     return true;
 }

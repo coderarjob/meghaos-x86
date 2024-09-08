@@ -58,6 +58,6 @@ void kb_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
     U8 scancode = (U8)ps2_read_data_no_wait();
-    kdebug_println ("Keyboard ISR: Scancode: %x", scancode);
+    kearly_println ("Keyboard ISR: Scancode: %x", scancode);
     pic_send_eoi (X86_PC_IRQ_KEYBOARD);
 }
