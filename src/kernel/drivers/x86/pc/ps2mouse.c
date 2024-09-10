@@ -22,7 +22,7 @@ bool ps2mouse_init()
     FUNC_ENTRY();
 
     // Disable Mouse IRQ before the initialization is complete
-    pic_enable_disable_irq (X86_PC_IRQ_PS2_MOUSE, false);
+    pic_enable_disable_irq (PIC_IRQ_PS2_MOUSE, false);
 
     // Check if PS2 port2 is Mouse
     PS2DeviceType dtype = ps2_identify_device (&port2);
@@ -48,7 +48,7 @@ bool ps2mouse_init()
                IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
 
     // Enable Mouse IRQ
-    pic_enable_disable_irq (X86_PC_IRQ_PS2_MOUSE, true);
+    pic_enable_disable_irq (PIC_IRQ_PS2_MOUSE, true);
 
     return true;
 }
@@ -61,5 +61,5 @@ void mouse_interrupt_handler (InterruptFrame* frame)
     data1 = (U8)ps2_read_data_no_wait();
     data2 = (U8)ps2_read_data_no_wait();
     kearly_println ("Mouse handler: %x, %x, %x", data1, data2, data3);
-    pic_send_eoi (X86_PC_IRQ_PS2_MOUSE);
+    pic_send_eoi (PIC_IRQ_PS2_MOUSE);
 }

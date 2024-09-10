@@ -22,7 +22,7 @@ bool ps2kb_init()
     FUNC_ENTRY();
 
     // Disable Keyboard IRQ before the initialization is complete
-    pic_enable_disable_irq (X86_PC_IRQ_KEYBOARD, false);
+    pic_enable_disable_irq (PIC_IRQ_KEYBOARD, false);
 
     // Check if PS2 port1 is Keyboard.
     PS2DeviceType dtype = ps2_identify_device (&port1);
@@ -48,7 +48,7 @@ bool ps2kb_init()
                0);
 
     // Enable Keyboard IRQ
-    pic_enable_disable_irq (X86_PC_IRQ_KEYBOARD, true);
+    pic_enable_disable_irq (PIC_IRQ_KEYBOARD, true);
 
     return true;
 }
@@ -59,5 +59,5 @@ void kb_interrupt_handler (InterruptFrame* frame)
     (void)frame;
     U8 scancode = (U8)ps2_read_data_no_wait();
     kearly_println ("Keyboard ISR: Scancode: %x", scancode);
-    pic_send_eoi (X86_PC_IRQ_KEYBOARD);
+    pic_send_eoi (PIC_IRQ_KEYBOARD);
 }

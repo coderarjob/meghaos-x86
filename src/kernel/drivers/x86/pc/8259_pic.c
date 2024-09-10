@@ -60,7 +60,7 @@ void pic_init (U8 master_vector_start, U8 slave_vector_start)
     io_delay();
 }
 
-void pic_enable_disable_irq (X86_PC_IRQ irq, bool enable)
+void pic_enable_disable_irq (PIC_IRQ irq, bool enable)
 {
     FUNC_ENTRY ("IRQ: %x, Enable: %u", irq, enable);
 
@@ -101,7 +101,7 @@ UINT pic_read_IRR_ISR (bool readISR)
     return (slave << 8U) | master;
 }
 
-void pic_send_eoi (X86_PC_IRQ irq)
+void pic_send_eoi (PIC_IRQ irq)
 {
     k_assert (irq >= 0 && irq <= 16, "Invalid IRQ number");
 
