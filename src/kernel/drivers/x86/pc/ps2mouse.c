@@ -58,8 +58,8 @@ void mouse_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
     U8 data1, data2, data3 = 0;
-    data1 = (U8)ps2_read_data_no_wait();
-    data2 = (U8)ps2_read_data_no_wait();
+    data1 = (U8)ps2_read_no_wait(PS2_DATA_PORT);
+    data2 = (U8)ps2_read_no_wait(PS2_DATA_PORT);
     kearly_println ("Mouse handler: %x, %x, %x", data1, data2, data3);
     pic_send_eoi (PIC_IRQ_PS2_MOUSE);
 }

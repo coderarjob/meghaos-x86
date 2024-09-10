@@ -75,7 +75,7 @@ UINT ps2_read_data()
 {
     // Wait for data to be in
     if (ps2_canRead()) {
-        return ps2_read_data_no_wait();
+        return ps2_read_no_wait (PS2_DATA_PORT);
     }
     // TODO: Should not panic. It is very much possible for device to ready.
     k_panic ("PS2: Long wait for read");

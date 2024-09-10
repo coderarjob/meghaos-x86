@@ -12,6 +12,7 @@
 
 #define PS2_DATA_PORT                (0x60)
 #define PS2_CMD_PORT                 (0x64)
+#define PS2_SPEAKER_PORT             (0x61)
 
 // Common PS2 device commands
 #define PS2_DEV_CMD_RESET            (0xFF)
@@ -44,10 +45,10 @@ PS2DeviceType ps2_identify_device (PS2PortInfo* const port);
 void ps2_setup_port_configuration (const PS2PortInfo* const port, bool interrupt,
                                    bool kbtranslation);
 
-static inline UINT ps2_read_data_no_wait()
+static inline UINT ps2_read_no_wait (UINT port)
 {
     U8 data;
-    inb (PS2_DATA_PORT, data);
+    inb (port, data);
     return data;
 }
 
