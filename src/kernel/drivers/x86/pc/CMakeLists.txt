@@ -4,6 +4,7 @@ set(DRIVER_SOUCES
     ${CMAKE_CURRENT_SOURCE_DIR}/8042_ps2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ps2kb.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ps2mouse.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pcspeaker.c
     )
 
 compile_lib(
