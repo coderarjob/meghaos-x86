@@ -27,17 +27,17 @@ bool ps2kb_init()
     // Check if PS2 port1 is Keyboard.
     PS2DeviceType dtype = ps2_identify_device (&port1);
     if (dtype != PS2_DEVICE_TYPE_KEYBOARD) {
-        RETURN_ERROR (ERR_DEVICE_INIT_FAILED, false);
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Set defaults
     if (!ps2_write_device_cmd (&port1, true, PS2_DEV_CMD_SET_TO_DEFAULT)) {
-        RETURN_ERROR (ERR_DEVICE_INIT_FAILED, false);
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Interrupt when keys are pressed
     if (!ps2_write_device_cmd (&port1, true, PS2_DEV_CMD_ENABLE_SCANNING)) {
-        RETURN_ERROR (ERR_DEVICE_INIT_FAILED, false);
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Setup PS2 configuration to enable interrupts from port 1 and disable translation
