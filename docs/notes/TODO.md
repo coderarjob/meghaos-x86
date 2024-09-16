@@ -94,6 +94,13 @@
 | May be `ControlStatementsExceptControlMacros` is better than            |           |            |
 | `NonEmptyParentheses`                                                   |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| DEVICE DRIVERS                                                          |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] PS2 interface is little bit noisy and needs cleanup. I think the    | 12 Sep 24 |            |
+| interface is illogical and needs some thought.                          |           |            |
+| [ ] Keyboard driver hangs soon after responding to one or two key       | 12 Sep 24 |            |
+| strokes. Works fine in VBox, 89Box, Qemu and Bochs.                     |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Determine CPU/machine capabilites and take steps if they are less   | 17 Aug 24 |            |
@@ -171,6 +178,11 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Few utils macros like MIN, MAX are unsafe. We could use GNU         | 04 Feb 24 |            |
 | `statement-expressions` to mitigate these.                              |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] BIT_SET, BIT_CLEAR macros are too limiting. They are too verbose    | 12 Sep 24 |            |
+| compared to how much they do. They could be benifitial if we could      |           |            |
+| pass a bit mask telling all the bits that need setting and clearing     |           |            |
+| in one go.                                                              |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] String functions like strcmp etc                                    | 06 Mar 24 |            |
 |-------------------------------------------------------------------------|-----------|------------|
