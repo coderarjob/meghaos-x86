@@ -8,7 +8,7 @@
 
 #include <types.h>
 
-#define PIT_BASE_CLOCK_FREQ_HZ 1.1932E6
+#define PIT_BASE_CLOCK_FREQ_HZ 1193182
 
 typedef enum PITCounterModes {
     PIT_COUNTER_MODE_2 = 2,
