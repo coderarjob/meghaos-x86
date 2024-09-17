@@ -17,6 +17,27 @@
 
 void kb_interrupt_asm_handler();
 
+static bool iskeyboard()
+{
+    INT type = 0;
+    if ((type = ps2_identify_device (PS2_FIRST_DEVICE)) < 0) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    switch (type) {
+    case 0x83AB:
+    case 0x41AB:
+    case 0xC1AB:
+    case 0x84AB:
+    case 0x54AB:
+        // Valid keyboard identity. Continue
+        break;
+    default:
+        RETURN_ERROR (ERR_DEVICE_INIT_FAILED, false);
+    }
+    return true;
+}
+
 bool ps2kb_init()
 {
     FUNC_ENTRY();
@@ -25,23 +46,24 @@ bool ps2kb_init()
     pic_enable_disable_irq (PIC_IRQ_KEYBOARD, false);
 
     // Check if PS2 port1 is Keyboard.
-    PS2DeviceType dtype = ps2_identify_device (&port1);
-    if (dtype != PS2_DEVICE_TYPE_KEYBOARD) {
+    if (!iskeyboard()) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Set defaults
-    if (!ps2_write_device_cmd (&port1, true, PS2_DEV_CMD_SET_TO_DEFAULT)) {
+    if (!ps2_write_device_cmd (PS2_FIRST_DEVICE, PS2_DEV_CMD_SET_TO_DEFAULT)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Interrupt when keys are pressed
-    if (!ps2_write_device_cmd (&port1, true, PS2_DEV_CMD_ENABLE_SCANNING)) {
+    if (!ps2_write_device_cmd (PS2_FIRST_DEVICE, PS2_DEV_CMD_ENABLE_SCANNING)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Setup PS2 configuration to enable interrupts from port 1 and disable translation
-    ps2_setup_port_configuration (&port1, true, false);
+    ps2_configuration (PS2_CONFIG_FIRST_PORT_INTERRUPT_ENABLE |
+                           PS2_CONFIG_FIRST_PORT_TRANSLATION_ENABLE,
+                       0, NULL);
 
     // Add handlers for keyboard interrupts
     kidt_edit (0x21, kb_interrupt_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE,
@@ -57,7 +79,7 @@ INTERRUPT_HANDLER (kb_interrupt)
 void kb_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
-    U8 scancode = (U8)ps2_read_no_wait(PS2_DATA_PORT);
+    U8 scancode = (U8)ps2_no_wait_read (PS2_DATA_PORT);
     kearly_println ("Keyboard ISR: Scancode: %x", scancode);
     pic_send_eoi (PIC_IRQ_KEYBOARD);
 }

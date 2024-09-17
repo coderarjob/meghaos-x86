@@ -22,15 +22,15 @@ void pcspeaker_turnon()
 {
     FUNC_ENTRY();
 
-    UINT data = ps2_read_no_wait (PS2_SPEAKER_PORT);
+    U8 data = ps2_no_wait_read (PS2_SPEAKER_PORT);
     data |= 3U;
-    ps2_write_data (PS2_SPEAKER_PORT, data);
+    ps2_wait_write (PS2_SPEAKER_PORT, data);
 }
 
 void pcspeaker_turnoff()
 {
     FUNC_ENTRY();
-    UINT data = ps2_read_no_wait (PS2_SPEAKER_PORT);
-    data &= ~3U;
-    ps2_write_data (PS2_SPEAKER_PORT, data);
+    U8 data = ps2_no_wait_read (PS2_SPEAKER_PORT);
+    data |= 3U;
+    ps2_wait_write (PS2_SPEAKER_PORT, data);
 }

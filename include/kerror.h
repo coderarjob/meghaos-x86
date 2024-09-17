@@ -37,6 +37,7 @@ typedef enum KernelErrorCodes {
     ERR_PROC_EXIT_NOT_ALLOWED     = 16, // Process exit not allowed (its the only one left)
     ERR_DEVICE_INIT_FAILED        = 17, // Device initialization failed
     ERR_DEVICE_NOT_READY          = 18, // Device is not ready for access
+    ERR_TIMEOUT                   = 19, // Operation timed out.
 } KernelErrorCodes;
 
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what
