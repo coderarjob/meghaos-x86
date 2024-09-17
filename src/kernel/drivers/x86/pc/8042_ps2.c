@@ -139,10 +139,6 @@ INT ps2_identify_device (UINT device_id)
 {
     k_assert (device_id < DEVICE_COUNT, "Device ID is invalid.");
 
-    const PS2Device* const device = &devices[device_id];
-
-    k_assert (device->port_available, "Device not ready");
-
     U8 config;
     ps2_configuration (0,
                        PS2_CONFIG_FIRST_PORT_INTERRUPT_ENABLE |
