@@ -21,3 +21,4 @@ typedef struct x86_CR3 {
 #define x86_LOAD_REG(reg, source) __asm__ volatile("mov " #reg ", %0;" ::"r"(source))
 #define x86_READ_REG(reg, dest) __asm__ volatile("mov %0, " #reg :"=r"(dest))
 #define x86_READ_EFLAGS(dest) __asm__ volatile("pushfd\n pop %0" :"=r"(dest))
+#define X86_PAUSE() __asm__ volatile("pause")
