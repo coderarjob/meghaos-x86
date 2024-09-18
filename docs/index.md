@@ -49,6 +49,7 @@
 - [Is it required for all the structures to be opaque?](notes/opaque_data_types.md#Is-it-required-for-all-the-structures-to-be-opaque)
 - [Why are opaque data types needed?](notes/opaque_data_types.md#Why-are-opaque-data-types-needed)
 - [Assert/Panic handling in unittests](notes/assert-panic-in-meghaos.md#Assert/Panic-handling-in-unittests)
+- [User events in GUI environment](notes/ui.md#User-events-in-GUI-environment)
 - [To POSIX or not to POSIX](notes/general.md#To-POSIX-or-not-to-POSIX)
 - [Study on executable binary file format for the Kernel and other module files.](notes/object_file_format.md#Study-on-executable-binary-file-format-for-the-Kernel-and-other-module-files.)
 - [Equivalence of ELF and flat binary files before and after CMake](notes/cmake-build.md#Equivalence-of-ELF-and-flat-binary-files-before-and-after-CMake)
