@@ -39,6 +39,7 @@
 #include <kernel.h>
 #include <vmm.h>
 #include <graphics.h>
+#include <drivers/x86/pc/8259_pic.h>
 
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
@@ -114,6 +115,15 @@ void kernel_main ()
     kidt_edit (13, general_protection_fault_asm_handler,GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
     kidt_edit (0x40, sys_dummy_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
     kidt_edit (0x50, syscall_asm_despatcher, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 3);
+
+#if MARCH == pc
+    // External Maskable Interrupts are from Vector 0x20 to 0x30
+    pic_init (0x20, 0x28);
+
+    // Add handlers for timer and keyboard interrupts
+    kidt_edit (0x20, timer_interrupt_asm_handler, GDT_SELECTOR_KCODE,
+               IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+#endif
 
     kearly_printf ("\r[OK]");
 

@@ -13,9 +13,9 @@
     #include <buildcheck.h>
 
     #define Byte (1U)
-    #define KB (1024U)
-    #define MB (1024U * KB)
-    #define GB (1024U * MB)
+    #define KB   (1024U)
+    #define MB   (1024U * KB)
+    #define GB   (1024U * MB)
 
     #define CONFIG_PAGE_SIZE_BITS           (12U)
     #define CONFIG_PAGE_FRAME_SIZE_BYTES    (4U * KB)
@@ -30,8 +30,12 @@
     #define CONFIG_GXMODE_YRESOLUTION       600
     #define CONFIG_GXMODE_BITSPERPIXEL      32
 
+    #define CONFIG_INTERRUPT_CLOCK_FREQ_HZ  (1000U)
+
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */
-    #define CONFIG_PAGE_FRAME_SIZE_BITS     (31U - CONFIG_PAGE_SIZE_BITS)
+    #define CONFIG_PAGE_FRAME_SIZE_BITS         (31U - CONFIG_PAGE_SIZE_BITS)
+    #define CONFIG_INTERRUPT_CLOCK_TP_MICROSEC  (1000000U/CONFIG_INTERRUPT_CLOCK_FREQ_HZ)
+    #define CONFIG_TICK_PERIOD_MICROSEC         (CONFIG_INTERRUPT_CLOCK_TP_MICROSEC)
 
 #endif // MOS_CONFIG_H_X86

@@ -15,6 +15,9 @@
 #include <vmm.h>
 #include <kernel.h>
 #include <process.h>
+#if MARCH == pc
+    #include <drivers/x86/pc/8259_pic.h>
+#endif
 
 typedef struct GPFError
 {
@@ -40,6 +43,20 @@ typedef struct PageFaultError
 
 static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size);
 static void s_callPanic(InterruptFrame *frame, char *fmt, ...);
+
+#if MARCH == pc
+INTERRUPT_HANDLER (timer_interrupt)
+void timer_interrupt_handler (InterruptFrame* frame)
+{
+    (void)frame;
+    k_assert (CONFIG_TICK_PERIOD_MICROSEC == CONFIG_INTERRUPT_CLOCK_TP_MICROSEC,
+              "Interrupt timer period != tick period");
+
+    g_kstate.tick_count++;
+
+    pic_send_eoi (PIC_IRQ_TIMER);
+}
+#endif
 
 INTERRUPT_HANDLER(sys_dummy)
 void sys_dummy_handler (InterruptFrame *frame)

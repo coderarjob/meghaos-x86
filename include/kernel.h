@@ -22,6 +22,7 @@ typedef struct KernelStateInfo {
     UINT errorNumber;       // Code for last error.
     VMemoryManager *context;
     PTR framebuffer;
+    U32 tick_count; // incremented every CONFIG_TICK_PERIOD_MICROSEC micro seconds.
 } KernelStateInfo;
 
 extern KernelStateInfo g_kstate;
