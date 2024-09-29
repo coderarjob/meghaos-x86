@@ -37,4 +37,7 @@
 // Interrupt/Exception frame size
 #define INTERRUPT_FRAME_SIZE_BYTES (4 * 12)
 
+// Interrupt clock
+#define MIN_INTERRUPT_CLOCK_FREQ_HZ (18U)
+
 #endif // MOS_LIMITS_H_X86

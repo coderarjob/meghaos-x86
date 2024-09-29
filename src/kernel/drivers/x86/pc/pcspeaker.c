@@ -13,9 +13,7 @@
 void pcspeaker_set_freq (UINT freq)
 {
     FUNC_ENTRY ("frequency Hz: %x", freq);
-
-    U16 value = (U16)(PIT_BASE_CLOCK_FREQ_HZ / freq);
-    pit_set_speaker_counter (value);
+    pit_set_speaker_counter (freq);
 }
 
 void pcspeaker_turnon()
