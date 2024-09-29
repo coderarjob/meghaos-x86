@@ -15,7 +15,7 @@
 MockedMacro g_utmm = { 0 };
 
 /* Panic handler */
-KernelStateInfo g_kstate;
+volatile KernelStateInfo g_kstate;
 bool panic_invoked;
 void unittest_panic_handler(const CHAR *s,...)
 {
