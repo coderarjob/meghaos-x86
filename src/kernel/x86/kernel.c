@@ -40,6 +40,7 @@
 #include <vmm.h>
 #include <graphics.h>
 #include <drivers/x86/pc/8259_pic.h>
+#include <drivers/x86/pc/8254_pit.h>
 
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
@@ -60,7 +61,7 @@ static void graphics_demo_basic();
 #endif
 
 /* Kernel state global variable */
-KernelStateInfo g_kstate;
+volatile KernelStateInfo g_kstate;
 
 __attribute__ ((noreturn))
 void kernel_main ()
@@ -120,6 +121,10 @@ void kernel_main ()
     // External Maskable Interrupts are from Vector 0x20 to 0x30
     pic_init (0x20, 0x28);
 
+    pic_enable_disable_irq(PIC_IRQ_KEYBOARD, false);
+    pic_enable_disable_irq(PIC_IRQ_PS2_MOUSE, false);
+    pic_enable_disable_irq(PIC_IRQ_TIMER, false);
+
     // Add handlers for timer and keyboard interrupts
     kidt_edit (0x20, timer_interrupt_asm_handler, GDT_SELECTOR_KCODE,
                IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
@@ -131,9 +136,16 @@ void kernel_main ()
     kmalloc_init();
     kearly_printf ("\r[OK]");
 
+    kearly_println ("[  ]\tProcess management & HW interrupts");
     kprocess_init();
 
+    // Start timer receiving interupts
+    pit_set_interrupt_counter(PIT_COUNTER_MODE_2,CONFIG_INTERRUPT_CLOCK_FREQ_HZ);
+    pic_enable_disable_irq(PIC_IRQ_TIMER, true);
+    __asm__ volatile ("sti;");
+
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_KERNEL_READY);
+    kearly_printf ("\r[OK]");
 
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,GREEN,0));
     kearly_println ("Kernel initialization finished..");
@@ -184,6 +196,17 @@ void kernel_main ()
     //new_process_2();
 
     k_halt();
+}
+
+void k_delay (UINT ms)
+{
+    UINT us = ms * 1000;
+    k_assert (us >= CONFIG_INTERRUPT_CLOCK_TP_MICROSEC, "Delay during too small");
+
+    U32 end_tick   = KERNEL_MICRODEC_TO_TICK_COUNT (us);
+    U32 start_tick = g_kstate.tick_count;
+    while ((g_kstate.tick_count - start_tick) < end_tick)
+        ;
 }
 
 #ifdef GRAPHICS_MODE_ENABLED

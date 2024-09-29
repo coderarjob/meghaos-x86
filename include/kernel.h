@@ -8,6 +8,7 @@
 #include <types.h>
 #include <kassert.h>
 #include <vmm.h>
+#include <config.h>
 
 typedef struct KernelStateInfo {
     enum {
@@ -25,7 +26,7 @@ typedef struct KernelStateInfo {
     U32 tick_count; // incremented every CONFIG_TICK_PERIOD_MICROSEC micro seconds.
 } KernelStateInfo;
 
-extern KernelStateInfo g_kstate;
+extern volatile KernelStateInfo g_kstate;
 
 #define KERNEL_PHASE_SET(p)                                                                    \
     do {                                                                                       \
@@ -36,3 +37,8 @@ extern KernelStateInfo g_kstate;
 #define KERNEL_PHASE_CHECK(p) (g_kstate.phase >= (p))
 
 #define KERNEL_PHASE_VALIDATE(p) k_assert (g_kstate.phase >= p, "Current state is not " #p);
+
+#define KERNEL_MICRODEC_TO_TICK_COUNT(us) ((us) / CONFIG_TICK_PERIOD_MICROSEC)
+#define KERNEL_TICK_COUNT_TO_MICROSEC(us) ((us)*CONFIG_TICK_PERIOD_MICROSEC)
+
+void k_delay (UINT ms);
