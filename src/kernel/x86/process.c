@@ -29,14 +29,9 @@
     ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
 #define MAX_PROCESS_COUNT 20
 
-typedef struct SchedulerQueue {
-    ListNode forward;
-    ListNode backward;
-} SchedulerQueue;
-
 static UINT processCount;
-static ProcessInfo* currentProcess   = NULL;
-static SchedulerQueue schedulerQueue = { 0 };
+static ProcessInfo* currentProcess = NULL;
+static ListNode schedulerQueueHead = { 0 };
 
 static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
 static ProcessInfo* s_processInfo_malloc();
@@ -48,7 +43,7 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
 static bool s_setupProcessStackMemory (ProcessInfo* pinfo);
 static bool kprocess_kill_process (ProcessInfo** process);
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
-static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward);
+static void s_showQueueItems (ListNode* forward, bool directionForward);
 #endif // DEBUG
 
 __attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
@@ -138,20 +133,20 @@ static ProcessInfo* s_processInfo_malloc (ProcessFlags flags)
 }
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
-static void s_showQueueItems (ListNode* forward, ListNode* backward, bool directionForward)
+static void s_showQueueItems (ListNode* forward, bool directionForward)
 {
     ListNode* node;
     INFO ("Going %s:",
           (directionForward) ? "from forward to backward" : "from backward to forward");
 
     if (directionForward == true) {
-        queue_for_each_forward (forward, backward, node)
+        queue_for_each (forward, node)
         {
             ProcessInfo* q = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
             INFO ("%u", q->processID);
         }
     } else {
-        queue_for_each_backward (forward, backward, node)
+        queue_for_each_backward (forward, node)
         {
             ProcessInfo* q = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
             INFO ("%u", q->processID);
@@ -163,10 +158,10 @@ static void s_showQueueItems (ListNode* forward, ListNode* backward, bool direct
 static ProcessInfo* s_dequeue()
 {
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
-    s_showQueueItems (&schedulerQueue.forward, &schedulerQueue.backward, false);
+    s_showQueueItems (&schedulerQueueHead, false);
 #endif // DEBUG
 
-    ListNode* node = dequeue_forward (&schedulerQueue.forward, &schedulerQueue.backward);
+    ListNode* node = dequeue (&schedulerQueueHead);
     if (node == NULL) {
         RETURN_ERROR (ERR_SCHEDULER_QUEUE_EMPTY, NULL);
     }
@@ -181,7 +176,7 @@ static bool s_enqueue (ProcessInfo* p)
         RETURN_ERROR (ERR_SCHEDULER_QUEUE_FULL, false);
     }
 
-    enqueue_back (&schedulerQueue.backward, &p->schedulerQueueNode);
+    enqueue (&schedulerQueueHead, &p->schedulerQueueNode);
     return true;
 }
 
@@ -440,7 +435,7 @@ static bool kprocess_kill_process (ProcessInfo** process)
 
 void kprocess_init()
 {
-    queue_init (&schedulerQueue.forward, &schedulerQueue.backward);
+    list_init (&schedulerQueueHead);
 }
 
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
