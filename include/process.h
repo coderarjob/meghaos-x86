@@ -8,6 +8,7 @@
 
 #include <types.h>
 #include <intrusive_queue.h>
+#include <intrusive_list.h>
 #include <vmm.h>
 
 #define PROCESS_ID_KERNEL  0x0
@@ -35,6 +36,12 @@ typedef struct ProcessSections {
     SIZE sizePages;
 } ProcessSections;
 
+typedef struct ProcessEvent {
+    UINT event;
+    UINT data;
+    ListNode eventQueueNode;
+} ProcessEvent;
+
 typedef struct ProcessInfo {
     // ----------------------
     // Initial states. These do not change throuout the lifetime of the process.
@@ -43,8 +50,8 @@ typedef struct ProcessInfo {
     ProcessSections stack;
     ProcessSections data;
     VMemoryManager* context;
-    // ProcessInfos' are part of the scheduler process table through this node.
-    ListNode schedulerQueueNode;
+    ListNode schedulerQueueNode; // Processes are part of scheduler queue through this node.
+    ListNode eventsQueueHead;    // Start of the process events queue.
     UINT processID;
     ProcessFlags flags;
     // ----------------------
@@ -60,3 +67,5 @@ bool kprocess_yield (ProcessRegisterState* currentState);
 bool kprocess_exit();
 VMemoryManager* kprocess_getCurrentContext();
 UINT kprocess_getCurrentPID();
+bool kprocess_popEvent (UINT pid, ProcessEvent* ev);
+bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData);

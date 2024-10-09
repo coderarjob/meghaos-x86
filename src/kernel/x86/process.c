@@ -128,6 +128,7 @@ static ProcessInfo* s_processInfo_malloc (ProcessFlags flags)
     pInfo->processID = ++processCount; // First process have process ID = 1. 0 is Kernel.
     pInfo->flags     = flags;
     list_init (&pInfo->schedulerQueueNode);
+    list_init(&pInfo->eventsQueueHead);
 
     return pInfo;
 }
@@ -163,7 +164,7 @@ static ProcessInfo* s_dequeue()
 
     ListNode* node = dequeue (&schedulerQueueHead);
     if (node == NULL) {
-        RETURN_ERROR (ERR_SCHEDULER_QUEUE_EMPTY, NULL);
+        RETURN_ERROR (ERR_QUEUE_EMPTY, NULL);
     }
 
     ProcessInfo* pinfo = (ProcessInfo*)LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
@@ -178,6 +179,20 @@ static bool s_enqueue (ProcessInfo* p)
 
     enqueue (&schedulerQueueHead, &p->schedulerQueueNode);
     return true;
+}
+
+static ProcessInfo* s_getProcessInfoFromID (UINT pid)
+{
+    ListNode* node = NULL;
+    ProcessInfo* p = NULL;
+    list_for_each (&schedulerQueueHead, node)
+    {
+        p = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
+        if (p->processID == pid) {
+            return p;
+        }
+    }
+    RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 }
 
 static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
@@ -425,6 +440,17 @@ static bool kprocess_kill_process (ProcessInfo** process)
     }
 
     queue_remove (&l_process->schedulerQueueNode);
+
+    // Delete items in the events queue
+    ListNode* evnode = NULL;
+    list_for_each (&l_process->eventsQueueHead, evnode)
+    {
+        ProcessEvent* e = LIST_ITEM (evnode, ProcessEvent, eventQueueNode);
+        k_assert (e != NULL, "Event cannot be NULL");
+        kfree (e);
+    }
+
+    // Now the process item can be freed.
     kfree (l_process);
     *process = NULL;
     processCount--;
@@ -603,4 +629,49 @@ VMemoryManager* kprocess_getCurrentContext()
 UINT kprocess_getCurrentPID()
 {
     return (currentProcess == NULL) ? PROCESS_ID_KERNEL : currentProcess->processID;
+}
+
+bool kprocess_popEvent (UINT pid, ProcessEvent* ev)
+{
+    FUNC_ENTRY ("pid: %x, event out: %px", pid, ev);
+
+    ProcessInfo* pinfo = s_getProcessInfoFromID (pid);
+    k_assert (pinfo != NULL, "Invalid PID");
+
+    ListNode* node = dequeue (&pinfo->eventsQueueHead);
+    if (node == NULL) {
+        RETURN_ERROR (ERR_QUEUE_EMPTY, false);
+    }
+
+    ProcessEvent* e = LIST_ITEM (node, ProcessEvent, eventQueueNode);
+    k_assert (e != NULL, "Event cannot be NULL");
+
+    // Copy the event to output so that the node memory can be freed.
+    k_assert (ev != NULL, "Output pointer is NULL");
+    *ev = *e;
+
+    // Free ProcessEvent item now that its dequeued.
+    kfree (e);
+
+    return true;
+}
+
+bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData)
+{
+    FUNC_ENTRY ("pid: %x, eventID: %x, eventData %x", pid, eventID, eventData);
+
+    ProcessInfo* pinfo = s_getProcessInfoFromID (pid);
+    k_assert (pinfo != NULL, "Invalid PID");
+
+    ProcessEvent* e = kmalloc (sizeof (ProcessEvent));
+    if (e == NULL) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    e->event = eventID;
+    e->data  = eventData;
+    list_init (&e->eventQueueNode);
+
+    enqueue (&pinfo->eventsQueueHead, &e->eventQueueNode);
+    return true;
 }

@@ -27,6 +27,7 @@ void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi
 void sys_killProcess (SystemcallFrame frame);
 void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
 void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
+bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut);
 
 static U32 s_getSysCallCount();
 
@@ -34,12 +35,13 @@ static U32 s_getSysCallCount();
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
-    &sys_console_writeln,    // 0
-    &sys_createProcess,      // 1
-    &sys_yieldProcess,       // 2
-    &sys_killProcess,        // 3
-    &sys_console_setcolor,   // 4
-    &sys_console_setposition // 5
+    &sys_console_writeln,     // 0
+    &sys_createProcess,       // 1
+    &sys_yieldProcess,        // 2
+    &sys_killProcess,         // 3
+    &sys_console_setcolor,    // 4
+    &sys_console_setposition, // 5
+    &sys_processPopEvent,     // 6
 };
 #pragma GCC diagnostic pop
 
@@ -194,4 +196,11 @@ void sys_killProcess (SystemcallFrame frame)
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
     kprocess_exit();
+}
+
+bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x, event ptr", frame.cs, frame.eip, eventPtrOut);
+    (void)frame;
+    return kprocess_popEvent (pid, (ProcessEvent*)eventPtrOut);
 }

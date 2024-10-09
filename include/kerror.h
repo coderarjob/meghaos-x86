@@ -30,7 +30,7 @@ typedef enum KernelErrorCodes {
     ERR_INVALID_ARGUMENT          = 9,  // Invalid argument.",
     ERR_PAGE_WRONG_STATE          = 10, // Page table/directory is in wrong state
     ERR_SCHEDULER_QUEUE_FULL      = 11, // No space for new process in process table
-    ERR_SCHEDULER_QUEUE_EMPTY     = 12, // No process in the process table to schedule next
+    ERR_QUEUE_EMPTY               = 12, // Queue empty. Dequeue failed.
     ERR_VMM_NOT_ALLOCATED         = 13, // Virutal address space is not allocated
     ERR_VMM_OVERLAPING_VAS        = 14, // New Virtual address space is overlaps another one
     ERR_VMM_NULL_PAGE_ACCESS      = 15, // Trying to commit a NULL page.
