@@ -38,7 +38,7 @@ extern volatile KernelStateInfo g_kstate;
 
 #define KERNEL_PHASE_VALIDATE(p) k_assert (g_kstate.phase >= p, "Current state is not " #p);
 
-#define KERNEL_MICRODEC_TO_TICK_COUNT(us) ((us) / CONFIG_TICK_PERIOD_MICROSEC)
-#define KERNEL_TICK_COUNT_TO_MICROSEC(us) ((us)*CONFIG_TICK_PERIOD_MICROSEC)
+#define KERNEL_MICRODEC_TO_TICK_COUNT(us)   ((us) / CONFIG_TICK_PERIOD_MICROSEC)
+#define KERNEL_TICK_COUNT_TO_MICROSEC(tick) ((tick)*CONFIG_TICK_PERIOD_MICROSEC)
 
 void k_delay (UINT ms);

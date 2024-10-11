@@ -10,7 +10,7 @@ where items corresponding to events will be put by the operating system for proc
 
 Some example of events are keypress/release events, mouse movement/click, paint, timer ticks or
 yield request. Most (if not all) of these events will be sent to only the 'Active' process, since
-'In-Active' processes are just idle.
+'Inactive' processes are just idle.
 
 ### Example of handling events in GUI process
 

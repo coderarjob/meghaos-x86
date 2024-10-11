@@ -128,7 +128,7 @@ static ProcessInfo* s_processInfo_malloc (ProcessFlags flags)
     pInfo->processID = ++processCount; // First process have process ID = 1. 0 is Kernel.
     pInfo->flags     = flags;
     list_init (&pInfo->schedulerQueueNode);
-    list_init(&pInfo->eventsQueueHead);
+    list_init (&pInfo->eventsQueueHead);
 
     return pInfo;
 }
@@ -249,10 +249,10 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
                        pinfo->binary.sizePages, VMM_MEMMAP_FLAG_IMMCOMMIT, &pa))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false); // allocation failed
     }
-    // memmap stores some metadata (for debugging) about the process and purpose. PID in this case
-    // needs to set, since the process calling the memmap is not the process that will use the
-    // address space. Purpose is also one of the optional metadata. These have no effect for
-    // non-debug builds.
+    // memmap can store some metadata (for debugging) about the process and purpose. The process PID
+    // which memmap stored need to be changed since the process calling memmap is not the process
+    // that will use the address space. Here I also set the optional 'purpose' metadata. This have
+    // no effect for non-debug builds.
     kvmm_setAddressSpaceMetadata (pinfo->context, pinfo->binary.virtualMemoryStart, "proc bin",
                                   &pinfo->processID);
 
@@ -293,10 +293,10 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
     if (!kvmm_memmap (pinfo->context, stackVA, NULL, 1, VMM_MEMMAP_FLAG_NULLPAGE, NULL)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
-    // memmap stores some metadata (for debugging) about the process and purpose. PID in this case
-    // needs to set, since the process calling the memmap is not the process that will use the
-    // address space. Purpose is also one of the optional metadata. These have no effect for
-    // non-debug builds.
+    // memmap can store some metadata (for debugging) about the process and purpose. The process PID
+    // which memmap stored need to be changed since the process calling memmap is not the process
+    // that will use the address space. Here I also set the optional 'purpose' metadata. This have
+    // no effect for non-debug builds.
     kvmm_setAddressSpaceMetadata (pinfo->context, stackVA, NULL, &pinfo->processID);
 
     // Stack itself
@@ -306,10 +306,6 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
                       flags, NULL)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
-    // memmap stores some metadata (for debugging) about the process and purpose. PID in this case
-    // needs to set, since the process calling the memmap is not the process that will use the
-    // address space. Purpose is also one of the optional metadata. These have no effect for
-    // non-debug builds.
     kvmm_setAddressSpaceMetadata (pinfo->context, stackVA, "proc stack", &pinfo->processID);
 
     // NULL page at the top of the stack
@@ -317,10 +313,6 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
     if (!kvmm_memmap (pinfo->context, stackVA, NULL, 1, VMM_MEMMAP_FLAG_NULLPAGE, NULL)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
-    // memmap stores some metadata (for debugging) about the process and purpose. PID in this case
-    // needs to set, since the process calling the memmap is not the process that will use the
-    // address space. Purpose is also one of the optional metadata. These have no effect for
-    // non-debug builds.
     kvmm_setAddressSpaceMetadata (pinfo->context, stackVA, NULL, &pinfo->processID);
 
     return true;
