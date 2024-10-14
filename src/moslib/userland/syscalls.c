@@ -35,3 +35,11 @@ INT sys_thread_create (void (*startLocation)(), bool isKernelMode)
     }
     return syscall (SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
 }
+
+// This is the entry point for all processes.
+__attribute__((section(".entry.text")))
+void proc_start() {
+    __asm__("jmp proc_main;");
+    while (1)
+        ;
+}

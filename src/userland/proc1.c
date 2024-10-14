@@ -1,6 +1,3 @@
-// This is the entry point for process.
-__asm__("jmp proc_main;");
-
 #include <types.h>
 #include <moslib/ulib.h>
 
@@ -21,8 +18,6 @@ void proc_main()
     sys_putstr("\n  Process 0 - Exiting");
     sys_process_kill();
     sys_putstr("\n   Process 0 - Not exited. Its is the only one.");
-    while (1)
-        ;
 }
 
 void another_thread()

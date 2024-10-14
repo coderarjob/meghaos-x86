@@ -1,14 +1,12 @@
-__asm__("jmp proc_main;");
-
 #include <types.h>
 #include <x86/vgatext.h>
 #include <moslimits.h>
 #include <moslib/ulib.h>
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text);
-void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color);
-void thread0();
-void thread1();
+static void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color);
+static void thread0();
+static void thread1();
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text)
 {
@@ -55,8 +53,6 @@ void proc_main()
     sys_process_kill();
     s_printString (37, 0, BLACK, WHITE,
                    "Cannot kill process 0. Make kernel thread slower for demo.");
-    while (1)
-        ;
 }
 
 void thread0()
