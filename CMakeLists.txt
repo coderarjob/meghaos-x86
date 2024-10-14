@@ -85,6 +85,7 @@ if(CMAKE_CROSSCOMPILING)
     # Build & link kernel and process binaries
     #---------------------------------------------------------------------------
     add_subdirectory(src/bootloader/${ARCH})
+    add_subdirectory(src/moslib)
     add_subdirectory(src/common)
     add_subdirectory(src/kernel)
     add_subdirectory(src/kernel/${ARCH})

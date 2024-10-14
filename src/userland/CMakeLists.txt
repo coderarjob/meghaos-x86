@@ -11,7 +11,9 @@ compile_lib(
 link(
     FLATTEN
     NAME proc1.flt
-    DEPENDS proc1
+    DEPENDS
+        proc1
+        ulib
     FLAGS ${MOS_LINKER_OPTIONS}
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
     )
@@ -29,7 +31,9 @@ compile_lib(
 link(
     FLATTEN
     NAME mpdemo.flt
-    DEPENDS mpdemo
+    DEPENDS
+        mpdemo
+        ulib
     FLAGS ${MOS_LINKER_OPTIONS}
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
     )
