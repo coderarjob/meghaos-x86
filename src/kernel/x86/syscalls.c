@@ -28,6 +28,7 @@ void sys_killProcess (SystemcallFrame frame);
 void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
 void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
 bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut);
+U32 sys_process_getPID (SystemcallFrame frame);
 
 static U32 s_getSysCallCount();
 
@@ -42,6 +43,7 @@ void* g_syscall_table[] = {
     &sys_console_setcolor,    // 4
     &sys_console_setposition, // 5
     &sys_processPopEvent,     // 6
+    &sys_process_getPID,      // 7
 };
 #pragma GCC diagnostic pop
 
@@ -196,6 +198,13 @@ void sys_killProcess (SystemcallFrame frame)
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
     kprocess_exit();
+}
+
+U32 sys_process_getPID (SystemcallFrame frame)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
+    (void)frame;
+    return kprocess_getCurrentPID();
 }
 
 bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut)
