@@ -34,6 +34,7 @@ endif()
 #---------------------------------------------------------------------------
 
 include(cmake/compile_assemble_link.cmake)
+include(cmake/mosflags.cmake)
 
 set(MOS_BIN_DIR                    ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR                    ${CMAKE_BINARY_DIR}/obj)
@@ -62,8 +63,6 @@ add_custom_target(show-info ALL
 #---------------------------------------------------------------------------
 
 if(CMAKE_CROSSCOMPILING)
-    include(cmake/${ARCH}/kernelflags.cmake)
-
     #---------------------------------------------------------------------------
     find_program(CROSS_OBJCOPY NAMES ${CMAKE_SYSTEM_PROCESSOR}-elf-objcopy REQUIRED)
     find_program(CROSS_OBJDUMP NAMES ${CMAKE_SYSTEM_PROCESSOR}-elf-objdump REQUIRED)
@@ -107,7 +106,7 @@ if(CMAKE_CROSSCOMPILING)
             kernel_X86
             kernel_drivers
         RESOURCES ${KERNEL_RESOURCE_FILES}
-        FLAGS ${MOS_KERNEL_LINKER_OPTIONS}
+        FLAGS ${MOS_LINKER_OPTIONS}
         LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
         LINK_LIBRARIES gcc
         )
@@ -162,8 +161,6 @@ if(CMAKE_CROSSCOMPILING)
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         )
 else()
-    include(cmake/${ARCH}/unittestflags.cmake)
-
     #---------------------------------------------------------------------------
     # Validate compiler features required for compiling unittests
     #---------------------------------------------------------------------------

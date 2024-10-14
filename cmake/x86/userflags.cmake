@@ -1,13 +1,4 @@
-set(MOS_KERNEL_GCC_WARN_FLAGS
-    -Wpedantic
-    -Wall
-    -Wextra
-    -Wconversion
-    -Wdangling-else
-    -Werror
-    )
-
-set(MOS_KERNEL_GCC_FLAGS
+set(MOS_USER_GCC_FLAGS
     ${MOS_KERNEL_GCC_WARN_FLAGS}
     -std=c99
     -nostartfiles
@@ -25,23 +16,20 @@ set(MOS_KERNEL_GCC_FLAGS
     -fno-unit-at-a-time
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
-    -DDEBUG_LEVEL=${MOS_DEBUG_LEVEL}
+    -fno-inline-small-functions
     -D${MOS_BUILD_MODE}
     -DMARCH=${MARCH}
     -DARCH=${ARCH}
-    -DKERNEL
     )
 
-set(MOS_KERNEL_NASM_BIN_MODE_FLAGS
+set(MOS_USER_NASM_BIN_MODE_FLAGS
     -O0
     -f bin
-    -DKERNEL
     )
 
-set(MOS_KERNEL_NASM_ELF_MODE_FLAGS
+set(MOS_USER_NASM_ELF_MODE_FLAGS
     -O0
     -f elf
-    -DKERNEL
-   )
+    )
 
-set(MOS_KERNEL_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/src/kernel/x86/kernel.ld)
+set(MOS_USER_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/src/kernel/x86/process.ld)
