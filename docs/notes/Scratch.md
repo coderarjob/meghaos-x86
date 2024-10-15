@@ -14,6 +14,39 @@
 
 ------------------------------------
 
+
+## Application and kernel mode standard library
+categories: note, x86
+11 Oct 2024
+
+Application here means the programs that runs outside the kernel irrespective if they are running
+in Ring 0 or Ring 3. The main purpose of this library is to abstract away the OS level details and
+interfaces/system calls from the application programs. Secondarily it provides common data
+structures and functions for applications to use.
+
+Regarding the secondary goal mentioned above, it is my observation that few implementations in the
+kernel can be useful for the application programs as well. I want to repurpose them for the
+application programs. This will reduce the headache of maintaining and testing duplicate
+implementations of the same thing. Following are some the Kernel features which can use useful for
+applications as well.
+
+* memcpy, strlen, strcpy, memset, memset_pat4
+* utils.h
+* malloc_internal
+* intrusive list & queue
+* snprintf, vsnprintf
+
+So the question is how to share the code. I plan to have two libraries one for kernel and another
+for applications. The parts that need to change can be under a define.
+
+Reusing kernel code also means both the kernel and application libraries need access to kernel
+headers at build time. While not an issue, it may look suspicious about why an application library
+requires kernel headers. This is a drawback of kernel code reuse.
+
+The application programs however just need to reference the library and the library headers.
+
+------------------------------------
+
 ## Keeping track of Virtual pages using Bitmap
 categories: note, x86
 _27 April 2024_

@@ -2,15 +2,20 @@
 # compile_lib (NAME name
 #              SOURCES <source> [<source> ...]
 #              [FLAGS <flag> ...]
-#              [INCLUDE_DIRECTORIES <paths> ...])
+#              [INCLUDE_DIRECTORIES <paths> ...]
+#              [STATIC_LIB])
 #
-# Creates object files for the sources provided. The object files can be accessed later using the
-# generator expression $<TARGET_OBJECTS:name>.
+# Creates object files or static library with the sources provided. The object files can be accessed
+# later using the generator expression $<TARGET_OBJECTS:name>.
+#
+# STATIC_LIB
+# Builds STATIC library instead of an OBJECT library.
+#
 # ==================================================================================================
 function(compile_lib)
     set(oneValueArgs NAME)
     set(multiValueArgs SOURCES FLAGS INCLUDE_DIRECTORIES)
-    set(options)
+    set(options STATIC_LIB)
     cmake_parse_arguments(PARSE_ARGV 0 COMPILE "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     # -------------------------------------------------------------------------------------------
@@ -32,7 +37,11 @@ function(compile_lib)
     # -------------------------------------------------------------------------------------------
     # Build a object library
     # -------------------------------------------------------------------------------------------
-    add_library(${COMPILE_NAME} EXCLUDE_FROM_ALL OBJECT ${COMPILE_SOURCES})
+    if (COMPILE_STATIC_LIB)
+        add_library(${COMPILE_NAME} EXCLUDE_FROM_ALL STATIC ${COMPILE_SOURCES})
+    else()
+        add_library(${COMPILE_NAME} EXCLUDE_FROM_ALL OBJECT ${COMPILE_SOURCES})
+    endif()
     target_include_directories(${COMPILE_NAME} PRIVATE ${COMPILE_INCLUDE_DIRECTORIES})
     target_compile_options(${COMPILE_NAME} PRIVATE ${COMPILE_FLAGS})
 endfunction()

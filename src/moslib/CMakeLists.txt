@@ -3,8 +3,9 @@ set(USERLIB_SOURCES
     )
 
 compile_lib(
-    NAME applib
+    NAME app
     SOURCES ${USERLIB_SOURCES}
     FLAGS ${MOS_USER_GCC_FLAGS}
     INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
+    STATIC_LIB
     )
