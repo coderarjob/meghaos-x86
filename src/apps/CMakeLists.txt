@@ -13,7 +13,7 @@ link(
     NAME proc1.flt
     DEPENDS
         proc1
-        ulib
+        applib
     FLAGS ${MOS_LINKER_OPTIONS}
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
     )
@@ -33,7 +33,7 @@ link(
     NAME mpdemo.flt
     DEPENDS
         mpdemo
-        ulib
+        applib
     FLAGS ${MOS_LINKER_OPTIONS}
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
     )

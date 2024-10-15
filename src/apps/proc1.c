@@ -1,5 +1,5 @@
 #include <types.h>
-#include <moslib/ulib.h>
+#include <moslib/app.h>
 
 void another_thread();
 

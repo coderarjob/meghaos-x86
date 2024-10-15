@@ -1,9 +1,9 @@
 set(USERLIB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/userland/syscalls.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/syscalls.c
     )
 
 compile_lib(
-    NAME ulib
+    NAME applib
     SOURCES ${USERLIB_SOURCES}
     FLAGS ${MOS_USER_GCC_FLAGS}
     INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
