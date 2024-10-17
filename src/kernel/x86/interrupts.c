@@ -53,6 +53,7 @@ void timer_interrupt_handler (InterruptFrame* frame)
               "Interrupt timer period != tick period");
 
     g_kstate.tick_count++;
+    keventmanager_invoke();
 
     pic_send_eoi (PIC_IRQ_TIMER);
 }

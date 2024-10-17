@@ -27,6 +27,13 @@ typedef enum IProcessFlags {
     IPROCESS_FLAGS_KERNEL_PROCESS = (1 << 0),
     IPROCESS_FLAGS_THREAD         = (1 << 1),
 } IProcessFlags;
+
+// Represents the 'KernelEvents' struct defined in 'kernel.h', but with some changes.
+typedef enum IAppEvents {
+    APP_EVENT_NONE               = 0,
+    APP_EVENT_TICK               = 1,
+    APP_EVENT_PROCCESS_YIELD_REQ = 2
+} IAppEvents;
 // =============================================================================
 
 typedef enum SYSCALLS {

@@ -28,6 +28,12 @@ typedef struct KernelStateInfo {
 
 extern volatile KernelStateInfo g_kstate;
 
+typedef enum KernelEvents {
+    KERNEL_EVENT_NONE = 0,
+    KERNEL_EVENT_TICK = 1,
+    KERNEL_EVENT_PROCCESS_YIELD_REQ = 2
+} KernelEvents;
+
 #define KERNEL_PHASE_SET(p)                                                                    \
     do {                                                                                       \
         k_assert (p == 0 || (g_kstate.phase + 1) == p, "Current state is unsuitable for " #p); \
@@ -42,3 +48,4 @@ extern volatile KernelStateInfo g_kstate;
 #define KERNEL_TICK_COUNT_TO_MICROSEC(tick) ((tick)*CONFIG_TICK_PERIOD_MICROSEC)
 
 void k_delay (UINT ms);
+void keventmanager_invoke();
