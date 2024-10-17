@@ -89,7 +89,7 @@ if(CMAKE_CROSSCOMPILING)
     add_subdirectory(src/kernel)
     add_subdirectory(src/kernel/${ARCH})
     add_subdirectory(src/apps)
-    add_subdirectory(src/apps/moslib)
+    add_subdirectory(src/apps/applib)
     add_subdirectory(src/kernel/drivers/${ARCH}/${MARCH})
 
     set(KERNEL_RESOURCE_FILES)

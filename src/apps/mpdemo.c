@@ -1,7 +1,7 @@
 #include <types.h>
 #include <x86/vgatext.h>
 #include <moslimits.h>
-#include <moslib/app.h>
+#include <applib/app.h>
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text);
 static void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color);
