@@ -58,7 +58,6 @@ void proc_main()
 
     s_progressbar (iterPerStep, "Process 0:\n", 25, RED);
 
-    k_halt();
     sys_process_kill();
     s_printString (37, 0, BLACK, WHITE,
                    "Cannot kill process 0. Make kernel thread slower for demo.");
