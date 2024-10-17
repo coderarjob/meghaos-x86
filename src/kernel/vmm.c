@@ -296,6 +296,15 @@ VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
     return new_vmm;
 }
 
+bool kvmm_checkbounds (VMemoryManager* vmm, PTR addr)
+{
+    FUNC_ENTRY ("vmm: %p, address: %x", vmm, addr);
+
+    k_assert (vmm != NULL, "VMM not provided");
+
+    return (addr >= vmm->start) && (addr < vmm->end);
+}
+
 PTR kvmm_findFree (VMemoryManager* vmm, SIZE szPages)
 {
     FUNC_ENTRY ("vmm: %x, szPages: %x", vmm, szPages);

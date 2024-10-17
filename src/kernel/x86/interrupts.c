@@ -89,7 +89,10 @@ void page_fault_handler (InterruptFrame *frame, UINT errorcode)
 
     // Page faults can occur for various reasons, it could be permissions or if page frame is not
     // present. Commit a physical page only it there is not one already allocated.
-    VMemoryManager* context = kprocess_getCurrentContext();
+    VMemoryManager* context = kvmm_checkbounds (g_kstate.context, fault_addr)
+                                  ? g_kstate.context
+                                  : kprocess_getCurrentContext();
+
     if (err->Present == false && kvmm_commitPage (context, fault_addr)) {
         return; // then retry
     }

@@ -31,6 +31,7 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va);
 PTR kvmm_findFree (VMemoryManager* vmm, SIZE szPages);
 PTR kvmm_memmap (VMemoryManager* vmm, PTR va, Physical const* const pa, SIZE szPages,
                  VMemoryMemMapFlags flags, Physical* const outPA);
+bool kvmm_checkbounds (VMemoryManager* vmm, PTR addr);
 
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 void kvmm_printVASList (VMemoryManager* vmm);
