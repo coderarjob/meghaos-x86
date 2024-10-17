@@ -1,5 +1,5 @@
 set(USERLIB_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/app/syscalls.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.c
     )
 
 compile_lib(
