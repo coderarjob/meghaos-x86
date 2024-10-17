@@ -198,6 +198,20 @@ void kernel_main ()
     k_halt();
 }
 
+void keventmanager_invoke()
+{
+    U32 us   = KERNEL_TICK_COUNT_TO_MICROSEC (g_kstate.tick_count);
+
+    if (us % 2000 == 0) {
+        UINT pid = kprocess_getCurrentPID();
+        if (pid != PROCESS_ID_KERNEL) {
+            if (!kprocess_pushEvent (pid, KERNEL_EVENT_PROCCESS_YIELD_REQ, g_kstate.tick_count)) {
+                BUG(); // Event push should not fail.
+            }
+        }
+    }
+}
+
 void k_delay (UINT ms)
 {
     UINT us = ms * 1000;
