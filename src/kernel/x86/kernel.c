@@ -496,9 +496,12 @@ static void multithread_demo_kernel_thread()
     INFO ("Process ID: %u", processID);
 
     // ----------------------
+    UINT thispid = kprocess_getCurrentPID();
+    ProcessEvent e;
     UINT max = 12 * MAX_VGA_COLUMNS;
-
     for (UINT i = 0; i < max; i++) {
+        // Consume process events
+        syscall (6, thispid, (PTR)&e, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
     // ----------------------
@@ -517,7 +520,11 @@ static void multithread_demo_kernel_thread()
 
     kearly_println ("------ [ END ] ------");
 
-    k_halt();
+    kbochs_breakpoint();
+    while (1) {
+        // Keep consuming process events
+        syscall (6, thispid, (PTR)&e, 0, 0, 0);
+    }
 }
 
 static void process_poc()

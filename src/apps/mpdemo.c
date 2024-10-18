@@ -8,6 +8,9 @@ static void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color);
 static void thread0();
 static void thread1();
 
+#define HANDLE_YIELD_REQ_EVENT
+
+#ifdef HANDLE_YIELD_REQ_EVENT
 static bool shouldYield()
 {
     UINT pid = sys_process_get_pid();
@@ -15,6 +18,7 @@ static bool shouldYield()
     sys_process_pop_event (pid, &e);
     return (e.event == APP_EVENT_PROCCESS_YIELD_REQ);
 }
+#endif
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text)
 {
@@ -35,28 +39,24 @@ void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color)
         if (i % iterPerStep == 0) {
             column = (column + 1) % MAX_VGA_COLUMNS;
         }
+#ifdef HANDLE_YIELD_REQ_EVENT
         if (shouldYield()) {
             sys_yield();
         }
+#else
+        sys_yield();
+#endif
     }
 }
 
 void proc_main()
 {
-    IProcessEvent e;
-    sys_process_pop_event (2, &e);
-    if (e.event == 0x10 && e.data == 0x20) {
-        s_printString (40, 0, BLACK, DARK_GRAY, "Event received.\n");
-    }
-
     sys_thread_create (thread0, false);
     sys_thread_create (&thread1, false);
 
-    s_printString (25, 0, BLACK, DARK_GRAY, "Process 0:\n");
-
     UINT iterPerStep = 11;
 
-    s_progressbar (iterPerStep, "Process 0:\n", 25, RED);
+    s_progressbar (iterPerStep, "Process 0:\n", 26, RED);
 
     sys_process_kill();
     s_printString (37, 0, BLACK, WHITE,
@@ -67,7 +67,7 @@ void thread0()
 {
     UINT iterPerStep = 10;
 
-    s_progressbar (iterPerStep, "Thread 0:\n", 29, GREEN);
+    s_progressbar (iterPerStep, "Thread 0:\n", 30, GREEN);
     sys_process_kill();
 }
 
@@ -75,6 +75,6 @@ void thread1()
 {
     UINT iterPerStep = 7;
 
-    s_progressbar (iterPerStep, "Thread 1:\n", 33, YELLOW);
+    s_progressbar (iterPerStep, "Thread 1:\n", 34, YELLOW);
     sys_process_kill();
 }
