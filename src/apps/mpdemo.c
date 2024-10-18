@@ -11,7 +11,7 @@ static void thread1();
 static bool shouldYield()
 {
     UINT pid = sys_process_get_pid();
-    IProcessEvent e;
+    IProcessEvent e = {0};
     sys_process_pop_event (pid, &e);
     return (e.event == APP_EVENT_PROCCESS_YIELD_REQ);
 }
