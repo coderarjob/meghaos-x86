@@ -15,6 +15,7 @@
 #include <disp.h>
 #include <x86/vgatext.h>
 #include <kdebug.h>
+#include <kernel.h>
 
 #if (DEBUG_LEVEL & 1)
 static void s_qemu_debugPutString (const CHAR *string)
@@ -77,39 +78,34 @@ void kdebug_dump_call_trace(PTR *raddrs, INT count)
  **************************************************************************************************/
 void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...)
 {
-    int  len = 0;
+    int len = 0;
     char buffer[MAX_PRINTABLE_STRING_LENGTH];
 
-    switch (type)
-    {
-    case KDEBUG_LOG_TYPE_INFO:
-    {
+    switch (type) {
+    case KDEBUG_LOG_TYPE_INFO: {
     #ifdef DEBUG
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ INFO ]%s %s:%u %s| ",
-                               ANSI_COL_GREEN, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
-    #else
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ INFO ]%s ", ANSI_COL_GREEN,
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[%u][ INFO ]%s %s:%u %s| ",
+                               ANSI_COL_GREEN, g_kstate.tick_count, ANSI_COL_GRAY, func, line,
                                ANSI_COL_RESET);
-    #endif // DEBUG
-    }
-    break;
-    case KDEBUG_LOG_TYPE_ERROR:
-    {
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[ ERROR ]%s %s:%u %s| ",
-                               ANSI_COL_RED, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
-    }
-    break;
-    case KDEBUG_LOG_TYPE_FUNC:
-    {
-    #ifdef DEBUG
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[ %s:%u ]%s ", ANSI_COL_YELLOW,
-                               func, line, ANSI_COL_RESET);
     #else
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[ %s ]%s ", ANSI_COL_YELLOW,
-                               func, ANSI_COL_RESET);
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[%u][ INFO ]%s ",
+                               ANSI_COL_GREEN, g_kstate.tick_count, ANSI_COL_RESET);
     #endif // DEBUG
-    }
-    break;
+    } break;
+    case KDEBUG_LOG_TYPE_ERROR: {
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[%u][ ERROR ]%s %s:%u %s| ",
+                               ANSI_COL_RED, g_kstate.tick_count, ANSI_COL_GRAY, func, line,
+                               ANSI_COL_RESET);
+    } break;
+    case KDEBUG_LOG_TYPE_FUNC: {
+    #ifdef DEBUG
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[%u][ %s:%u ]%s ",
+                               ANSI_COL_YELLOW, g_kstate.tick_count, func, line, ANSI_COL_RESET);
+    #else
+        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[%u][ %s ]%s ", ANSI_COL_YELLOW,
+                               g_kstate.tick_count, func, ANSI_COL_RESET);
+    #endif // DEBUG
+    } break;
     }
 
     va_list l;
