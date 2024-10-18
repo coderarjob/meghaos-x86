@@ -31,6 +31,7 @@
     #define CONFIG_GXMODE_BITSPERPIXEL      32
 
     #define CONFIG_INTERRUPT_CLOCK_FREQ_HZ  (1000U)
+    #define CONFIG_PROCESS_PERIOD_US        (20000U) /* Processes should yield before this time */
 
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */

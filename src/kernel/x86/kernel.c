@@ -202,9 +202,10 @@ void keventmanager_invoke()
 {
     U32 us   = KERNEL_TICK_COUNT_TO_MICROSEC (g_kstate.tick_count);
 
-    if (us % 2000 == 0) {
+    if (us % CONFIG_PROCESS_PERIOD_US == 0) {
         UINT pid = kprocess_getCurrentPID();
         if (pid != PROCESS_ID_KERNEL) {
+            INFO("PID: %x, US: %u", pid, us);
             if (!kprocess_pushEvent (pid, KERNEL_EVENT_PROCCESS_YIELD_REQ, g_kstate.tick_count)) {
                 BUG(); // Event push should not fail.
             }
