@@ -136,6 +136,12 @@ void kernel_main ()
     kmalloc_init();
     kearly_printf ("\r[OK]");
 
+#ifdef GRAPHICS_MODE_ENABLED
+    if (!graphics_init()) {
+        ERROR ("Graphics mode could not be enabled");
+    }
+#endif
+
     kearly_println ("[  ]\tProcess management & HW interrupts");
     kprocess_init();
 
@@ -184,10 +190,6 @@ void kernel_main ()
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
 #ifdef GRAPHICS_MODE_ENABLED
-    if (!graphics_init()) {
-        ERROR ("Graphics mode could not be enabled");
-    }
-
     graphics_demo_basic();
     k_halt();
 #endif
@@ -210,6 +212,9 @@ void keventmanager_invoke()
                 BUG(); // Event push should not fail.
             }
         }
+    }
+    if (us % CONFIG_PROCESS_PERIOD_US == 0) {
+        kgraphis_flush();
     }
 }
 
@@ -290,10 +295,6 @@ static void graphics_demo_basic()
     #define PAT_SIZE         200
     #define PAT_X            (WINDOW_X + WINDOW_WIDTH - PAT_SIZE - 20)
     #define PAT_Y            (WINDOW_Y + WINDOW_HEIGHT - PAT_SIZE - 20)
-
-    if (!g_kstate.framebuffer) {
-        FATAL_BUG();
-    }
 
     // ------------------------------------
     // Draw Window and title bar

@@ -32,6 +32,7 @@
 
     #define CONFIG_INTERRUPT_CLOCK_FREQ_HZ  (1000U)
     #define CONFIG_PROCESS_PERIOD_US        (20000U) /* Processes should yield before this time */
+    #define CONFIG_VIDEO_REFRESH_PERIOD_US  (20000U)
 
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */

@@ -14,6 +14,17 @@
 
 ------------------------------------
 
+## GUI basics in MeghaOS
+categories: note, independent
+21 Oct 2024
+
+GraphicsSurface (Per application)
+|--(??)----------> GraphicsElement (Per UI element)
+|--(Compositor)--> Back Buffer (OS)
+|--(Video driver)-> Framebuffer (Video driver)
+
+------------------------------------
+
 ## Application standard library
 categories: note, independent
 21 Oct 2024

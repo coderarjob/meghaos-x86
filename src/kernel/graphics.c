@@ -14,8 +14,10 @@
 #include <kerror.h>
 #include <kstdlib.h>
 #include <graphics.h>
+#include <memmanage.h>
 #if ARCH == x86
     #include <x86/boot.h>
+    #include <x86/io.h>
 #endif
 
 typedef struct GraphicsInfo {
@@ -29,6 +31,12 @@ typedef struct GraphicsInfo {
 
 static GraphicsInfo gxi;
 static GraphicsInfo arch_getGraphicsModeInfo();
+static PTR framebuffer;
+static PTR backbuffer;
+static SIZE framebuffer_size_bytes;
+#if ARCH == x86
+static void arch_waitForNextVerticalRetrace();
+#endif
 
 #if CONFIG_GXMODE_FONT_WIDTH == 8
 // RIGHT most bit in glyph is the value for LEFT most pixel of the glyph
@@ -40,7 +48,7 @@ void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg)
     FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
 
     const U8* glyph = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
-    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    U8* start       = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     GxColor* fgColor = (GxColor*)&fg;
     GxColor* bgColor = (GxColor*)&bg;
@@ -58,7 +66,7 @@ void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8*
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
 
-    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    U8* start = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     for (; h > 0; h--) {
         GxColor* row = (GxColor*)start;
@@ -82,8 +90,7 @@ void graphics_putpixel (UINT x, UINT y, Color color)
 {
     FUNC_ENTRY ("x: %u, y: %u, color: %x", x, y, color);
 
-    GxColor* start = (GxColor*)(g_kstate.framebuffer + (y * gxi.bytesPerScanLine) +
-                                (x * gxi.bytesPerPixel));
+    GxColor* start = (GxColor*)(backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel));
     GxColor* col   = (GxColor*)&color;
     *start         = *col;
 }
@@ -93,7 +100,7 @@ void graphics_rect (UINT x, UINT y, UINT w, UINT h, Color color)
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, color: %x", x, y, w, h, color);
 
     SIZE bytesPerPixel = gxi.bytesPerPixel;
-    U8* start = (U8*)g_kstate.framebuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+    U8* start          = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
 
     GxColor* col = (GxColor*)&color;
 
@@ -128,22 +135,54 @@ static GraphicsInfo arch_getGraphicsModeInfo()
 
     return gxi;
 }
+
+static void arch_waitForNextVerticalRetrace()
+{
+    while (ioread (0x3DA) & 0x8)
+        ;
+    while (!(ioread (0x3DA) & 0x8))
+        ;
+}
 #endif
 
 bool graphics_init()
 {
     FUNC_ENTRY();
 
+    KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_VMM_READY);
+
     gxi           = arch_getGraphicsModeInfo();
-    SIZE szBytes  = (SIZE)gxi.bytesPerScanLine * gxi.yResolution;
-    SIZE szPages  = BYTES_TO_PAGEFRAMES_CEILING (szBytes);
+    SIZE szPages  = BYTES_TO_PAGEFRAMES_CEILING ((SIZE)gxi.bytesPerScanLine * gxi.yResolution);
     Physical fbpa = gxi.framebufferPhysicalPtr;
-    if (fbpa.val) {
-        if (!(g_kstate.framebuffer = kvmm_memmap (g_kstate.context, (PTR)NULL, &fbpa, szPages,
-                                                  VMM_MEMMAP_FLAG_IMMCOMMIT, NULL))) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, false);
-        }
-        return true;
+    if (!fbpa.val) {
+        RETURN_ERROR (ERR_DEVICE_NOT_READY, false);
     }
-    return false;
+
+    if (!(framebuffer = kvmm_memmap (g_kstate.context, (PTR)NULL, &fbpa, szPages,
+                                     VMM_MEMMAP_FLAG_IMMCOMMIT, NULL))) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    if (!(backbuffer = kvmm_memmap (g_kstate.context, 0, NULL, szPages, VMM_MEMMAP_FLAG_NONE,
+                                    NULL))) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+    framebuffer_size_bytes = PAGEFRAMES_TO_BYTES (szPages);
+
+    KERNEL_PHASE_SET (KERNEL_PHASE_STATE_GRAPHICS_READY);
+    return true;
+}
+
+void kgraphis_flush()
+{
+    if (g_kstate.phase < KERNEL_PHASE_STATE_GRAPHICS_READY) {
+        return; // Graphics mode is not ready
+    }
+
+    k_assert ((void*)backbuffer != NULL && (void*)framebuffer != NULL,
+              "Graphics buffers cannot be NULL");
+
+    arch_waitForNextVerticalRetrace();
+
+    k_memcpy ((void*)framebuffer, (void*)backbuffer, framebuffer_size_bytes);
 }
