@@ -213,9 +213,11 @@ void keventmanager_invoke()
             }
         }
     }
+#ifdef GRAPHICS_MODE_ENABLED
     if (us % CONFIG_PROCESS_PERIOD_US == 0) {
         kgraphis_flush();
     }
+#endif
 }
 
 void k_delay (UINT ms)

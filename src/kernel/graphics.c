@@ -138,8 +138,11 @@ static GraphicsInfo arch_getGraphicsModeInfo()
 
 static void arch_waitForNextVerticalRetrace()
 {
+    // Wait for the ongoing Vertical Retrace to end.
     while (ioread (0x3DA) & 0x8)
         ;
+
+    // Wait for next Vertical Retrace to start.
     while (!(ioread (0x3DA) & 0x8))
         ;
 }
