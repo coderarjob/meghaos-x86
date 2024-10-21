@@ -14,11 +14,42 @@
 
 ------------------------------------
 
+## Application standard library
+categories: note, independent
+21 Oct 2024
+
+Application here means the programs that runs outside the kernel irrespective if they are running
+in Ring 0 or Ring 3. The main purpose of this library is to abstract away the OS level details and
+interfaces/system calls from the application programs. The abstraction demands that no OS
+structure/interface is exposed directly to the application side. The library would convert
+application types to kernel types and vice-versa. This is done to shield OS changes to cause changes
+to application programs, though library (not its headers) can change with the OS.
+
+Note that the library has a private side (the .c files) and public side (the app.h). The public side
+must which the application programs would depend on should not expose the kernel implementation
+details like enums, structures etc. The private side which talks to the kernel however requires to
+know the Kernel interfaces and configurations, so its fine for the .c files of the library to
+include Kernel headers but not so in the .h files.
+
+I previously thought that it might be possible to reuse some of the implementation from the kernel
+in the application library, parts which does not directly on the Kernel like `memcpy`, `strlen` etc.
+
+Though this is possible I am now second guessing.
+* The kernel implementation may include logging, timer perf etc which is not applicable in the
+  application side. So some change is required to disable the when building app library.
+* Having a common source for the Kernel & application side, might create blot since the functions
+  used required by a application might not every be required in the Kernel.
+
+I understand the cons of having duplicate code but I think the code which actually will be
+common would be small and talking about unit testing, it would be required test the app library
+anyways since the library would have functions which are present/required in the kernel.
+
+------------------------------------
 
 ## Application and kernel mode standard library
-categories: note, x86
+categories: note, independent, obsolete
 11 Oct 2024
-
+  
 Application here means the programs that runs outside the kernel irrespective if they are running
 in Ring 0 or Ring 3. The main purpose of this library is to abstract away the OS level details and
 interfaces/system calls from the application programs. Secondarily it provides common data

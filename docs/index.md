@@ -43,6 +43,7 @@
 
 ------------------------------------------------
 ### Notes
+- [Application standard library](notes/Scratch.md#Application-standard-library)
 - [Understanding when to use assert in Kernel code](notes/when-to-assert.md#Understanding-when-to-use-assert-in-Kernel-code)
 - [When to panic in a kernel?](notes/when-to-assert.md#When-to-panic-in-a-kernel)
 - [Abstraction is Key for a modular Operating System](notes/abstract_design.md#Abstraction-is-Key-for-a-modular-Operating-System)
@@ -85,6 +86,7 @@
 - [System call frame and signature](notes/abi.md#System-call-frame-and-signature)
 
 ### Obsolete Notes
+- [Application and kernel mode standard library](notes/Scratch.md#Application-and-kernel-mode-standard-library)
 - [Different ways to handle error/invalid input in Kernel](notes/when-to-assert.md#Different-ways-to-handle-error/invalid-input-in-Kernel)
 - [Asserts and Panics in Unittests in MeghaOS](notes/assert-panic-in-meghaos.md#Asserts-and-Panics-in-Unittests-in-MeghaOS)
 
