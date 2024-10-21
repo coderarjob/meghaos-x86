@@ -45,11 +45,13 @@ typedef enum SYSCALLS {
     SYSCALL_CONSOLE_SETCURSORPOS = 5,
     SYSCALL_POP_PROCESS_EVENT    = 6,
     SYSCALL_PROCESS_GETPID       = 7,
+    SYSCALL_TIMER_GET_TICKCOUNT  = 8,
 } SYSCALLS;
 
 S32 syscall (SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 INT sys_thread_create (void (*startLocation)(), bool isKernelMode);
 INT sys_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode);
+UINT os_tick_microseconds();
 
 static inline void sys_yield()
 {
@@ -74,4 +76,9 @@ static inline U32 sys_process_get_pid()
 static inline bool sys_process_pop_event (U32 pid, IProcessEvent* e)
 {
     return syscall (SYSCALL_POP_PROCESS_EVENT, pid, (PTR)e, 0, 0, 0);
+}
+
+static inline U32 sys_get_tickcount()
+{
+    return (U32)syscall (SYSCALL_TIMER_GET_TICKCOUNT, 0, 0, 0, 0, 0);
 }

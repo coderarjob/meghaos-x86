@@ -10,6 +10,7 @@
 #include <process.h>
 #include <x86/process.h>
 #include <x86/vgatext.h>
+#include <kernel.h>
 
 typedef struct SystemcallFrame {
     U32 ebp;
@@ -29,6 +30,7 @@ void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
 void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
 bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut);
 U32 sys_process_getPID (SystemcallFrame frame);
+U32 sys_get_tickcount(SystemcallFrame frame);
 
 static U32 s_getSysCallCount();
 
@@ -44,6 +46,7 @@ void* g_syscall_table[] = {
     &sys_console_setposition, // 5
     &sys_processPopEvent,     // 6
     &sys_process_getPID,      // 7
+    &sys_get_tickcount        // 8
 };
 #pragma GCC diagnostic pop
 
@@ -212,4 +215,11 @@ bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut)
     FUNC_ENTRY ("Frame return address: %x:%x, event ptr", frame.cs, frame.eip, eventPtrOut);
     (void)frame;
     return kprocess_popEvent (pid, (ProcessEvent*)eventPtrOut);
+}
+
+U32 sys_get_tickcount (SystemcallFrame frame)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
+    (void)frame;
+    return g_kstate.tick_count;
 }
