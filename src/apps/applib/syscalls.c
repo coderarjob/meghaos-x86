@@ -17,6 +17,7 @@
 #include <applib/app.h>
 #include <config.h>
 #include <kernel.h>
+#include <process.h>
 
 S32 syscall (SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 {
@@ -31,9 +32,9 @@ S32 syscall (SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 
 INT sys_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode)
 {
-    IProcessFlags flags = IPROCESS_FLAGS_NONE;
+    KProcessFlags flags = PROCESS_FLAGS_NONE;
     if (isKernelMode) {
-        flags |= IPROCESS_FLAGS_KERNEL_PROCESS;
+        flags |= PROCESS_FLAGS_KERNEL_PROCESS;
     }
 
     return syscall (SYSCALL_CREATE_PROCESS, (U32)startLocation, binaryLengthBytes, (U32)flags, 0,
@@ -42,9 +43,9 @@ INT sys_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKern
 
 INT sys_thread_create (void (*startLocation)(), bool isKernelMode)
 {
-    IProcessFlags flags = IPROCESS_FLAGS_THREAD;
+    KProcessFlags flags = PROCESS_FLAGS_THREAD;
     if (isKernelMode) {
-        flags |= IPROCESS_FLAGS_KERNEL_PROCESS;
+        flags |= PROCESS_FLAGS_KERNEL_PROCESS;
     }
     return syscall (SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
 }
@@ -53,6 +54,16 @@ UINT os_tick_microseconds()
 {
     UINT tick = sys_get_tickcount();
     return KERNEL_TICK_COUNT_TO_MICROSEC (tick);
+}
+
+bool sys_process_pop_event (U32 pid, ProcessEvent* e)
+{
+    KProcessEvent evnt = { 0 };
+    if (syscall (SYSCALL_POP_PROCESS_EVENT, pid, (PTR)&evnt, 0, 0, 0)) {
+        e->data  = evnt.data;
+        e->event = evnt.event;
+    }
+    return false;
 }
 
 // This is the entry point for all processes.
