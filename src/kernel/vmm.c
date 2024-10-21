@@ -298,7 +298,7 @@ VMemoryManager* kvmm_new (PTR start, PTR end, Physical pd,
 
 bool kvmm_checkbounds (VMemoryManager* vmm, PTR addr)
 {
-    FUNC_ENTRY ("vmm: %p, address: %x", vmm, addr);
+    FUNC_ENTRY ("vmm: %px, address: %x", vmm, addr);
 
     k_assert (vmm != NULL, "VMM not provided");
 
