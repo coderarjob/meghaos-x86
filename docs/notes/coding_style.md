@@ -92,7 +92,7 @@ Regardless of the intended use of the custom type, following rules must be alway
 3. Names that end with `_t` are reserved for additional type names.
 
 *Things to consider:*
-1. Do not abbreviate the work `kernel` with `k`. Say that need to be said.
+1. Try to not abbreviate the word `kernel` with `k`. Use of `k` as pneumonic is sometimes required.
 2. Write module/namespace names in full or short form that is understood by all.
    Instead of `disp_VgaColors`, write `DisplayVgaColors`
 3. Do not use `_` to separate words.

@@ -23,7 +23,7 @@ typedef struct SystemcallFrame {
 
 void sys_console_writeln (SystemcallFrame frame, char* fmt, char* text);
 INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
-                       ProcessFlags flags);
+                       KProcessFlags flags);
 void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
 void sys_killProcess (SystemcallFrame frame);
 void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
@@ -166,7 +166,7 @@ void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col)
 }
 
 INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
-                       ProcessFlags flags)
+                       KProcessFlags flags)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, flags: %x, start address: %px, binary len: %x",
                 frame.cs, frame.eip, flags, processStartAddress, binLengthBytes);
@@ -214,7 +214,7 @@ bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, event ptr", frame.cs, frame.eip, eventPtrOut);
     (void)frame;
-    return kprocess_popEvent (pid, (ProcessEvent*)eventPtrOut);
+    return kprocess_popEvent (pid, (KProcessEvent*)eventPtrOut);
 }
 
 U32 sys_get_tickcount (SystemcallFrame frame)

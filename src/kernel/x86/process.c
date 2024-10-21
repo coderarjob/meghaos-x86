@@ -30,18 +30,18 @@
 #define MAX_PROCESS_COUNT 20
 
 static UINT processCount;
-static ProcessInfo* currentProcess = NULL;
+static KProcessInfo* currentProcess = NULL;
 static ListNode schedulerQueueHead = { 0 };
 
-static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
-static ProcessInfo* s_processInfo_malloc();
-static ProcessInfo* s_dequeue();
-static bool s_enqueue (ProcessInfo* p);
-static bool s_createProcessPageDirectory (ProcessInfo* pinfo);
+static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
+static KProcessInfo* s_processInfo_malloc();
+static KProcessInfo* s_dequeue();
+static bool s_enqueue (KProcessInfo* p);
+static bool s_createProcessPageDirectory (KProcessInfo* pinfo);
 static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
-                                        ProcessInfo* pinfo);
-static bool s_setupProcessStackMemory (ProcessInfo* pinfo);
-static bool kprocess_kill_process (ProcessInfo** process);
+                                        KProcessInfo* pinfo);
+static bool s_setupProcessStackMemory (KProcessInfo* pinfo);
+static bool kprocess_kill_process (KProcessInfo** process);
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 static void s_showQueueItems (ListNode* forward, bool directionForward);
 #endif // DEBUG
@@ -112,9 +112,9 @@ __asm__(".struct 0;"
         "push [edx + proc_eip];"    // User process entry/return address
         "iret;");
 
-static ProcessInfo* s_processInfo_malloc (ProcessFlags flags)
+static KProcessInfo* s_processInfo_malloc (KProcessFlags flags)
 {
-    ProcessInfo* pInfo = kmalloc (sizeof (ProcessInfo));
+    KProcessInfo* pInfo = kmalloc (sizeof (KProcessInfo));
 
     if (pInfo == NULL) {
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
@@ -143,20 +143,20 @@ static void s_showQueueItems (ListNode* forward, bool directionForward)
     if (directionForward == true) {
         queue_for_each (forward, node)
         {
-            ProcessInfo* q = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
+            KProcessInfo* q = LIST_ITEM (node, KProcessInfo, schedulerQueueNode);
             INFO ("%u", q->processID);
         }
     } else {
         queue_for_each_backward (forward, node)
         {
-            ProcessInfo* q = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
+            KProcessInfo* q = LIST_ITEM (node, KProcessInfo, schedulerQueueNode);
             INFO ("%u", q->processID);
         }
     }
 }
 #endif // (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 
-static ProcessInfo* s_dequeue()
+static KProcessInfo* s_dequeue()
 {
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
     s_showQueueItems (&schedulerQueueHead, false);
@@ -167,11 +167,11 @@ static ProcessInfo* s_dequeue()
         RETURN_ERROR (ERR_QUEUE_EMPTY, NULL);
     }
 
-    ProcessInfo* pinfo = (ProcessInfo*)LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
+    KProcessInfo* pinfo = (KProcessInfo*)LIST_ITEM (node, KProcessInfo, schedulerQueueNode);
     return pinfo;
 }
 
-static bool s_enqueue (ProcessInfo* p)
+static bool s_enqueue (KProcessInfo* p)
 {
     if (processCount >= MAX_PROCESS_COUNT) {
         RETURN_ERROR (ERR_SCHEDULER_QUEUE_FULL, false);
@@ -181,13 +181,13 @@ static bool s_enqueue (ProcessInfo* p)
     return true;
 }
 
-static ProcessInfo* s_getProcessInfoFromID (UINT pid)
+static KProcessInfo* s_getProcessInfoFromID (UINT pid)
 {
     ListNode* node = NULL;
-    ProcessInfo* p = NULL;
+    KProcessInfo* p = NULL;
     list_for_each (&schedulerQueueHead, node)
     {
-        p = LIST_ITEM (node, ProcessInfo, schedulerQueueNode);
+        p = LIST_ITEM (node, KProcessInfo, schedulerQueueNode);
         if (p->processID == pid) {
             return p;
         }
@@ -195,7 +195,7 @@ static ProcessInfo* s_getProcessInfoFromID (UINT pid)
     RETURN_ERROR (ERR_INVALID_RANGE, NULL);
 }
 
-static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
+static bool s_createProcessPageDirectory (KProcessInfo* pinfo)
 {
     FUNC_ENTRY ("Pinfo: %px", pinfo);
 
@@ -226,7 +226,7 @@ static bool s_createProcessPageDirectory (ProcessInfo* pinfo)
 }
 
 static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
-                                        ProcessInfo* pinfo)
+                                        KProcessInfo* pinfo)
 {
     FUNC_ENTRY ("processStartAddress: %px, binLengthBytes: %x, Pinfo: %px", processStartAddress,
                 binLengthBytes, pinfo);
@@ -260,7 +260,7 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     return true;
 }
 
-static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
+static bool s_setupProcessStackMemory (KProcessInfo* pinfo)
 {
     FUNC_ENTRY ("Pinfo: %px", pinfo);
 
@@ -318,9 +318,9 @@ static bool s_setupProcessStackMemory (ProcessInfo* pinfo)
     return true;
 }
 
-static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* currentProcessState)
+static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* currentProcessState)
 {
-    FUNC_ENTRY ("ProcessInfo: %px, Current ProcessRegisterState: %px", nextProcess,
+    FUNC_ENTRY ("KProcessInfo: %px, Current ProcessRegisterState: %px", nextProcess,
                 currentProcessState);
 
     if (currentProcess != NULL) {
@@ -373,7 +373,7 @@ static bool s_switchProcess (ProcessInfo* nextProcess, ProcessRegisterState* cur
 // TODO: Ending a process should also end threads of the process.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
-static bool kprocess_kill_process (ProcessInfo** process)
+static bool kprocess_kill_process (KProcessInfo** process)
 {
     FUNC_ENTRY();
 
@@ -382,7 +382,7 @@ static bool kprocess_kill_process (ProcessInfo** process)
         RETURN_ERROR (ERR_PROC_EXIT_NOT_ALLOWED, false);
     }
 
-    ProcessInfo* l_process = *process;
+    KProcessInfo* l_process = *process;
 
     k_assert (process != NULL, "There are no process to exit");
 
@@ -437,7 +437,7 @@ static bool kprocess_kill_process (ProcessInfo** process)
     ListNode* evnode = NULL;
     list_for_each (&l_process->eventsQueueHead, evnode)
     {
-        ProcessEvent* e = LIST_ITEM (evnode, ProcessEvent, eventQueueNode);
+        KProcessEvent* e = LIST_ITEM (evnode, KProcessEvent, eventQueueNode);
         k_assert (e != NULL, "Event cannot be NULL");
         kfree (e);
     }
@@ -456,7 +456,7 @@ void kprocess_init()
     list_init (&schedulerQueueHead);
 }
 
-INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags)
+INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFlags flags)
 {
     FUNC_ENTRY ("Process start address: %px, size: %x bytes, flags: %x", processStartAddress,
                 binLengthBytes, flags);
@@ -465,7 +465,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlag
         RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
     }
 
-    ProcessInfo* pinfo = s_processInfo_malloc (flags);
+    KProcessInfo* pinfo = s_processInfo_malloc (flags);
     INFO ("Creating new process: ID = %u", pinfo->processID);
 
     if (!s_createProcessPageDirectory (pinfo)) {
@@ -530,7 +530,7 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     // process.
     // So if there are more than one process in the process table, and dequeue returns the current
     // process, then we dequeue once again.
-    ProcessInfo* pinfo = NULL;
+    KProcessInfo* pinfo = NULL;
     bool loop_again    = false;
     do {
         pinfo = s_dequeue();
@@ -623,11 +623,11 @@ UINT kprocess_getCurrentPID()
     return (currentProcess == NULL) ? PROCESS_ID_KERNEL : currentProcess->processID;
 }
 
-bool kprocess_popEvent (UINT pid, ProcessEvent* ev)
+bool kprocess_popEvent (UINT pid, KProcessEvent* ev)
 {
     FUNC_ENTRY ("pid: %x, event out: %px", pid, ev);
 
-    ProcessInfo* pinfo = s_getProcessInfoFromID (pid);
+    KProcessInfo* pinfo = s_getProcessInfoFromID (pid);
     k_assert (pinfo != NULL, "Invalid PID");
 
     ListNode* node = dequeue (&pinfo->eventsQueueHead);
@@ -635,14 +635,14 @@ bool kprocess_popEvent (UINT pid, ProcessEvent* ev)
         RETURN_ERROR (ERR_QUEUE_EMPTY, false);
     }
 
-    ProcessEvent* e = LIST_ITEM (node, ProcessEvent, eventQueueNode);
+    KProcessEvent* e = LIST_ITEM (node, KProcessEvent, eventQueueNode);
     k_assert (e != NULL, "Event cannot be NULL");
 
     // Copy the event to output so that the node memory can be freed.
     k_assert (ev != NULL, "Output pointer is NULL");
     *ev = *e;
 
-    // Free ProcessEvent item now that its dequeued.
+    // Free KProcessEvent item now that its dequeued.
     kfree (e);
 
     return true;
@@ -652,10 +652,10 @@ bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData)
 {
     FUNC_ENTRY ("pid: %x, eventID: %x, eventData %x", pid, eventID, eventData);
 
-    ProcessInfo* pinfo = s_getProcessInfoFromID (pid);
+    KProcessInfo* pinfo = s_getProcessInfoFromID (pid);
     k_assert (pinfo != NULL, "Invalid PID");
 
-    ProcessEvent* e = kmalloc (sizeof (ProcessEvent));
+    KProcessEvent* e = kmalloc (sizeof (KProcessEvent));
     if (e == NULL) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }

@@ -11,7 +11,7 @@
 // Process EAX, ECX and EDX are not preserved by the Scheduler as these are treated as scratch
 // registers. If requried these registers must be preserved by the caller just before doing a system
 // call.
-struct ProcessRegisterState {
+struct KProcessRegisterState {
     U32 ebx;
     U32 esi;
     U32 edi;

@@ -14,58 +14,58 @@
 #define PROCESS_ID_KERNEL  0x0
 #define PROCESS_ID_INVALID -1
 
-typedef enum ProcessStates {
+typedef enum KProcessStates {
     PROCESS_STATE_INVALID = 0,
     PROCESS_STATE_RUNNING = 1,
     PROCESS_STATE_IDLE    = 2,
-} ProcessStates;
+} KProcessStates;
 
-typedef enum ProcessFlags {
+typedef enum KProcessFlags {
     PROCESS_FLAGS_NONE           = 0,
     PROCESS_FLAGS_KERNEL_PROCESS = (1 << 0),
     PROCESS_FLAGS_THREAD         = (1 << 1),
-} ProcessFlags;
+} KProcessFlags;
 
 __asm__(".equ PROCESS_FLAGS_KERNEL_PROCESS, (1 << 0);"
         ".equ PROCESS_FLAGS_THREAD,         (1 << 1);");
 
-typedef struct ProcessRegisterState ProcessRegisterState;
+typedef struct KProcessRegisterState ProcessRegisterState;
 
-typedef struct ProcessSections {
+typedef struct KProcessSections {
     PTR virtualMemoryStart;
     SIZE sizePages;
-} ProcessSections;
+} KProcessSections;
 
-typedef struct ProcessEvent {
+typedef struct KProcessEvent {
     UINT event;
     UINT data;
     ListNode eventQueueNode;
-} ProcessEvent;
+} KProcessEvent;
 
-typedef struct ProcessInfo {
+typedef struct KProcessInfo {
     // ----------------------
     // Initial states. These do not change throuout the lifetime of the process.
     // ----------------------
-    ProcessSections binary;
-    ProcessSections stack;
-    ProcessSections data;
+    KProcessSections binary;
+    KProcessSections stack;
+    KProcessSections data;
     VMemoryManager* context;
     ListNode schedulerQueueNode; // Processes are part of scheduler queue through this node.
     ListNode eventsQueueHead;    // Start of the process events queue.
     UINT processID;
-    ProcessFlags flags;
+    KProcessFlags flags;
     // ----------------------
     // States which change
     // ----------------------
-    ProcessStates state;
+    KProcessStates state;
     ProcessRegisterState* registerStates;
-} ProcessInfo;
+} KProcessInfo;
 
 void kprocess_init();
-INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, ProcessFlags flags);
+INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
 bool kprocess_exit();
 VMemoryManager* kprocess_getCurrentContext();
 UINT kprocess_getCurrentPID();
-bool kprocess_popEvent (UINT pid, ProcessEvent* ev);
+bool kprocess_popEvent (UINT pid, KProcessEvent* ev);
 bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData);
