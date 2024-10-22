@@ -9,7 +9,8 @@ set(KERNEL_SOURCES
     )
 
     if (MOS_GRAPHICS_ENABLED)
-        set(KERNEL_SOURCES ${KERNEL_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/graphics.c)
+        LIST(APPEND KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/graphics.c)
+        LIST(APPEND KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/compositor.c)
     endif()
 
 compile_lib(

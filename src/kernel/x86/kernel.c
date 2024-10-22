@@ -41,6 +41,7 @@
 #include <graphics.h>
 #include <drivers/x86/pc/8259_pic.h>
 #include <drivers/x86/pc/8254_pit.h>
+#include <compositor.h>
 
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
@@ -140,6 +141,7 @@ void kernel_main ()
     if (!graphics_init()) {
         ERROR ("Graphics mode could not be enabled");
     }
+    kcompose_init();
 #endif
 
     kearly_println ("[  ]\tProcess management & HW interrupts");
@@ -190,6 +192,7 @@ void kernel_main ()
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
 #ifdef GRAPHICS_MODE_ENABLED
+    kcompose_flush();
     graphics_demo_basic();
     k_halt();
 #endif
