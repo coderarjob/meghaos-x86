@@ -172,6 +172,11 @@ bool graphics_init()
     }
     framebuffer_size_bytes = PAGEFRAMES_TO_BYTES (szPages);
 
+    // Store a copy of basic/global graphics mode information.
+    g_kstate.gx.bytesPerPixel = gxi.bytesPerPixel;
+    g_kstate.gx.xResolution   = gxi.xResolution;
+    g_kstate.gx.yResolution   = gxi.yResolution;
+
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_GRAPHICS_READY);
     return true;
 }

@@ -26,6 +26,14 @@ typedef struct KernelStateInfo {
     UINT errorNumber; // Code for last error.
     VMemoryManager* context;
     U32 tick_count; // incremented every CONFIG_TICK_PERIOD_MICROSEC micro seconds.
+#ifdef GRAPHICS_MODE_ENABLED
+    // Graphics mode information
+    struct GraphicsModeInfo {
+        U16 xResolution;
+        U16 yResolution;
+        U8 bytesPerPixel;
+    } gx;
+#endif
 } KernelStateInfo;
 
 extern volatile KernelStateInfo g_kstate;
