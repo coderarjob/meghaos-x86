@@ -45,5 +45,5 @@ void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8*
 void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg);
 void graphics_putpixel (UINT x, UINT y, Color color);
 void kgraphis_flush();
-
+void kgraphics_blit (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes);
 bool graphics_init();

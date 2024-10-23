@@ -62,6 +62,21 @@ void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg)
     }
 }
 
+void kgraphics_blit (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes)
+{
+    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
+
+    U8* start = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+
+    for (; h > 0; h--) {
+        GxColor* row = (GxColor*)start;
+        for (UINT lw = w; lw > 0; lw--, row++, bytes += bytesPerPixel) {
+            *row = *(GxColor*)bytes;
+        }
+        start += gxi.bytesPerScanLine;
+    }
+}
+
 void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes)
 {
     FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
