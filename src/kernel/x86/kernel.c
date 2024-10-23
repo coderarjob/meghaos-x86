@@ -192,8 +192,62 @@ void kernel_main ()
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
 #ifdef GRAPHICS_MODE_ENABLED
+#if CONFIG_GXMODE_BITSPERPIXEL == 8
+#define COLOR1 0x4
+#define COLOR2 0x21
+#define COLOR3 0x2
+#define COLOR4 0xE
+#define COLOR5 0xB
+#define COLOR6 0xD
+#define COLOR7 0xF
+#elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
+#define COLOR1 0xFF0000
+#define COLOR2 0x0000FF
+#define COLOR3 0x00FF00
+#define COLOR4 0xFFFF00
+#define COLOR5 0x00FFFF
+#define COLOR6 0xFF00FF
+#define COLOR7 0xFFFFFF
+#endif
+
+    KGraphicsArea* win1 = kcompose_create_window("Window 1");
+    k_panicOnError();
+    KGraphicsArea* win2 = kcompose_create_window("Window 2");
+    k_panicOnError();
+    KGraphicsArea* win3 = kcompose_create_window("Window 3");
+    k_panicOnError();
+    KGraphicsArea* win4 = kcompose_create_window("Window 4");
+    k_panicOnError();
+
+    (void)win1;
+    (void)win2;
+    (void)win3;
+    (void)win4;
+
     kcompose_flush();
+
+    k_delay(1000);
+
+    graphics_rect(win1, 0, 0, win1->width_px, win1->height_px, COLOR1);
+    graphics_rect(win1, 10, 10, 100,100, COLOR2);
+    kcompose_flush();
+
+    graphics_rect (win2, 0, 0, win2->width_px, win2->height_px, COLOR3);
+    graphics_rect(win2, 10, 10, 100,100, COLOR4);
+    kcompose_flush();
+
+    graphics_rect(win3, 0, 0, win1->width_px, win1->height_px, COLOR5);
+    graphics_rect(win3, 20, 50, 100,100, COLOR6);
+    kcompose_flush();
+
+    graphics_rect(win4, 0, 0, win1->width_px, win1->height_px, COLOR7);
+    graphics_rect(win4, 50, 50, 200,200, COLOR1);
+    kcompose_flush();
+
+    k_delay(3000);
+
     graphics_demo_basic();
+    kgraphis_flush();
     k_halt();
 #endif
     process_poc();
