@@ -54,7 +54,7 @@ void proc_main()
     sys_thread_create (thread0, false);
     sys_thread_create (&thread1, false);
 
-    UINT iterPerStep = 11;
+    UINT iterPerStep = 110;
 
     s_progressbar (iterPerStep, "Process 0:\n", 26, RED);
 

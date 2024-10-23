@@ -565,7 +565,7 @@ static void multithread_demo_kernel_thread()
     // ----------------------
     UINT thispid = kprocess_getCurrentPID();
     KProcessEvent e;
-    UINT max = 12 * MAX_VGA_COLUMNS;
+    UINT max = 111 * MAX_VGA_COLUMNS;
     for (UINT i = 0; i < max; i++) {
         // Consume process events
         syscall (6, thispid, (PTR)&e, 0, 0, 0);
