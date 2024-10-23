@@ -55,6 +55,5 @@ void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT 
 void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg);
 void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color);
 void kgraphis_flush();
-void kgraphics_blit (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
-                     U8* bytes);
+void kgraphics_blit (KGraphicsArea* destg, UINT x, UINT y, KGraphicsArea* srcg);
 bool graphics_init();

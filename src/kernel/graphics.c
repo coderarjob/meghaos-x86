@@ -45,8 +45,9 @@ void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Col
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, char: %x, fg: %u, bg: %px", g, x, y, a, fg, bg);
 
-    const U8* glyph = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
-    U8* start       = (U8*)g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    const U8* glyph  = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
+    SIZE bytesPerRow = g->bytesPerRow;
+    U8* start        = (U8*)g->surface + (y * bytesPerRow) + (x * g->bytesPerPixel);
 
     GxColor* fgColor = (GxColor*)&fg;
     GxColor* bgColor = (GxColor*)&bg;
@@ -56,23 +57,29 @@ void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Col
         for (UINT x = 0; x < CONFIG_GXMODE_FONT_WIDTH; x++, row++) {
             *row = (*glyph & glyph_mask[x]) ? *fgColor : *bgColor;
         }
-        start += gxi.bytesPerScanLine;
+        start += bytesPerRow;
     }
 }
 
-void kgraphics_blit (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
-                     U8* bytes)
+void kgraphics_blit (KGraphicsArea* destg, UINT x, UINT y, KGraphicsArea* srcg)
 {
-    FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
+    FUNC_ENTRY ("area: %px, x: %u, y: %u, src area: %px", destg, x, y, srcg);
 
-    U8* start = (U8*)g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    k_assert (destg->bytesPerPixel == srcg->bytesPerPixel, "Graphics area mismatch");
+
+    SIZE bytesPerPixel = destg->bytesPerPixel;
+    SIZE bytesPerRow   = destg->bytesPerRow;
+    U8* start          = (U8*)destg->surface + (y * bytesPerRow) + (x * bytesPerPixel);
+    UINT h             = srcg->height_px;
+    UINT w             = srcg->width_px;
+    U8* bytes          = srcg->surface;
 
     for (; h > 0; h--) {
         GxColor* row = (GxColor*)start;
         for (UINT lw = w; lw > 0; lw--, row++, bytes += bytesPerPixel) {
             *row = *(GxColor*)bytes;
         }
-        start += gxi.bytesPerScanLine;
+        start += bytesPerRow;
     }
 }
 
@@ -81,7 +88,8 @@ void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT 
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
 
-    U8* start = (U8*)g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    SIZE bytesPerRow = g->bytesPerRow;
+    U8* start        = (U8*)g->surface + (y * bytesPerRow) + (x * g->bytesPerPixel);
 
     for (; h > 0; h--) {
         GxColor* row = (GxColor*)start;
@@ -97,7 +105,7 @@ void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT 
             *row = *bytes;
 #endif
         }
-        start += gxi.bytesPerScanLine;
+        start += bytesPerRow;
     }
 }
 
@@ -105,7 +113,7 @@ void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
 
-    GxColor* start = (GxColor*)(g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel));
+    GxColor* start = (GxColor*)(g->surface + (y * g->bytesPerRow) + (x * g->bytesPerPixel));
     GxColor* col   = (GxColor*)&color;
     *start         = *col;
 }
@@ -114,9 +122,8 @@ void graphics_rect (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color colo
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, color: %x", g, x, y, w, h, color);
 
-    SIZE bytesPerPixel = g->bytesPerPixel;
-    SIZE bytesPerRow   = g->bytesPerRow;
-    U8* start          = (U8*)g->surface + (y * bytesPerRow) + (x * bytesPerPixel);
+    SIZE bytesPerRow = g->bytesPerRow;
+    U8* start        = (U8*)g->surface + (y * bytesPerRow) + (x * g->bytesPerPixel);
 
     GxColor* col = (GxColor*)&color;
 
@@ -206,7 +213,12 @@ void kgraphis_flush()
     U8* backbuffer = g_kstate.gx_back.surface;
     SIZE szBytees  = g_kstate.gx_back.surfaceSizeBytes;
 
+    // Backbuffer must exactly match the vesa framebuffer
     k_assert (backbuffer != NULL && (void*)framebuffer != NULL, "Graphics buffers cannot be NULL");
+    k_assert (g_kstate.gx_back.bytesPerRow == gxi.bytesPerScanLine, "Invalid backbuffer");
+    k_assert (g_kstate.gx_back.bytesPerPixel == gxi.bytesPerPixel, "Invalid backbuffer");
+    k_assert (g_kstate.gx_back.width_px == gxi.xResolution, "Invalid backbuffer");
+    k_assert (g_kstate.gx_back.height_px == gxi.yResolution, "Invalid backbuffer");
 
     arch_waitForNextVerticalRetrace();
 

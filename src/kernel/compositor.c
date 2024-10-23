@@ -194,19 +194,13 @@ void kcompose_flush()
     FUNC_ENTRY();
 
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_GRAPHICS_READY);
-    // INFO("Here"); // This is causing GP fault in bochs.
 
     ListNode* node;
     list_for_each (&windowsListHead, node)
     {
-        Window* win        = LIST_ITEM (node, Window, windowListNode);
-        UINT fby           = win->position.screen_y;
-        UINT fbx           = win->position.screen_x;
-        UINT width         = win->windowArea.width_px;
-        UINT height        = win->windowArea.height_px;
-        U8* surfce         = win->windowArea.surface;
-        UINT bytesPerPixel = win->windowArea.bytesPerPixel;
-        kgraphics_blit ((KGraphicsArea*)&g_kstate.gx_back, fbx, fby, width, height, bytesPerPixel,
-                        surfce);
+        Window* win = LIST_ITEM (node, Window, windowListNode);
+        UINT fby    = win->position.screen_y;
+        UINT fbx    = win->position.screen_x;
+        kgraphics_blit ((KGraphicsArea*)&g_kstate.gx_back, fbx, fby, &win->windowArea);
     }
 }
