@@ -100,6 +100,9 @@
 | interface is illogical and needs some thought.                          |           |            |
 | [ ] Keyboard driver hangs soon after responding to one or two key       | 12 Sep 24 |            |
 | strokes. Works fine in VBox, 89Box, Qemu and Bochs.                     |           |            |
+| [ ] k_delay produces inconsistent delays between Qemu, 86Box & Bochs    | 23 Oct 24 |            |
+| It seems to be working properly on HW. Working in Bochs                 |           |            |
+| after 'clock: realtime' added to bochsrc. Still improper in 86Box.      |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|

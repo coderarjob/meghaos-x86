@@ -57,3 +57,4 @@ void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color);
 void kgraphis_flush();
 void kgraphics_blit (KGraphicsArea* destg, UINT x, UINT y, KGraphicsArea* srcg);
 bool graphics_init();
+void kgraphics_drawstring (KGraphicsArea* g, UINT x, UINT y, char* text, Color fg, Color bg);

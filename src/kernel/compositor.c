@@ -47,6 +47,8 @@ typedef struct Window {
 #define WINDOW_TITLE_BAR_LEFT_PX      (0)
 #define WINDOW_TITLE_BAR_HEIGHT_PX    (20U)
 #define WINDOW_TITLE_BAR_WIDTH_PX(wa) (wa->width_px)
+#define WINDOW_TITLE_TOP_PX           (3)
+#define WINDOW_TITLE_LEFT_PX          (WINDOW_BORDER_WIDTH_PX + 5)
 
 #define WINDOW_WORKING_AREA_TOP_PX    (WINDOW_TITLE_BAR_HEIGHT_PX)
 #define WINDOW_WORKING_AREA_LEFT_PX   (WINDOW_BORDER_WIDTH_PX)
@@ -57,7 +59,7 @@ typedef struct Window {
 static ListNode windowsListHead;
 static UINT window_count;
 
-static void drawWindowDecorations (KGraphicsArea* wa)
+static void drawWindowDecorations (KGraphicsArea* wa, char* title)
 {
     UINT x, y, w, h;
 
@@ -74,6 +76,8 @@ static void drawWindowDecorations (KGraphicsArea* wa)
     w = WINDOW_TITLE_BAR_WIDTH_PX (wa);
     h = WINDOW_TITLE_BAR_HEIGHT_PX;
     graphics_rect (wa, x, y, w, h, WINDOW_TITLE_BAR_BG_COLOR);
+    kgraphics_drawstring (wa, WINDOW_TITLE_LEFT_PX, WINDOW_TITLE_TOP_PX, title,
+                          WINDOW_TITLE_BAR_FG_COLOR, WINDOW_TITLE_BAR_BG_COLOR);
 
     // Active area
     x = WINDOW_WORKING_AREA_LEFT_PX;
@@ -151,9 +155,9 @@ void kcompose_init()
     window_count = 0;
 }
 
-KGraphicsArea* kcompose_create_window()
+KGraphicsArea* kcompose_create_window(char* title)
 {
-    FUNC_ENTRY();
+    FUNC_ENTRY("Title: %px", title);
 
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_KERNEL_READY);
 
@@ -184,7 +188,7 @@ KGraphicsArea* kcompose_create_window()
           newwin->position.screen_y, newwin->windowArea.width_px, newwin->windowArea.height_px);
 
     // Draw window decorations
-    drawWindowDecorations (&newwin->windowArea);
+    drawWindowDecorations (&newwin->windowArea, title);
 
     return &newwin->workingArea;
 }

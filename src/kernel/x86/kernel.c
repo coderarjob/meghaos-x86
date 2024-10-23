@@ -241,14 +241,6 @@ static KGraphicsArea* kgraphics_backbufer()
     return (KGraphicsArea*)&g_kstate.gx_back;
 }
 
-static void graphics_drawstring (UINT x, UINT y, char* text, Color fg, Color bg)
-{
-    for (char* ch = text; *ch != '\0'; ch++) {
-        graphics_drawfont (kgraphics_backbufer(), x, y, (UCHAR)*ch, fg, bg);
-        x += CONFIG_GXMODE_FONT_WIDTH;
-    }
-}
-
 static void graphics_demo_basic()
 {
     #if CONFIG_GXMODE_BITSPERPIXEL == 8
@@ -320,8 +312,8 @@ static void graphics_demo_basic()
                    TITLE_BAR_HEIGHT, TITLE_BAR_BG_COLOR);
 
     char* wintitle = "MeghaOS V2 : Graphics & Fonts Demo";
-    graphics_drawstring (TITLE_BAR_X + 10, TITLE_BAR_Y + 3, wintitle, TITLE_BAR_FG_COLOR,
-                         TITLE_BAR_BG_COLOR);
+    kgraphics_drawstring (kgraphics_backbufer(), TITLE_BAR_X + 10, TITLE_BAR_Y + 3, wintitle,
+                          TITLE_BAR_FG_COLOR, TITLE_BAR_BG_COLOR);
 
     // ------------------------------------
     // Draw Logo image
@@ -350,7 +342,7 @@ static void graphics_demo_basic()
     for (UINT c = 0; c < 256; c++) {
         UINT y = (c / 16) * COLORMAP_SIZE;
         UINT x = (c % 16) * COLORMAP_SIZE;
-        graphics_rect (x + COLORMAP_X, y + COLORMAP_Y, COLORMAP_SIZE, COLORMAP_SIZE, c);
+        graphics_rect (kgraphics_backbufer(), x + COLORMAP_X, y + COLORMAP_Y, COLORMAP_SIZE, COLORMAP_SIZE, c);
     }
     #endif
 
@@ -359,11 +351,13 @@ static void graphics_demo_basic()
     // ------------------------------------
     char* text = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
     UINT y     = WINDOW_Y + WINDOW_HEIGHT - CONFIG_GXMODE_FONT_HEIGHT - 20;
-    graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
+    kgraphics_drawstring (kgraphics_backbufer(), WINDOW_X + 20, y, text, FONT_FG_COLOR,
+                          WINDOW_BG_COLOR);
 
     text = "the quick brown fox jumps over the lazy dog.";
     y -= CONFIG_GXMODE_FONT_HEIGHT + 5;
-    graphics_drawstring (WINDOW_X + 20, y, text, FONT_FG_COLOR, WINDOW_BG_COLOR);
+    kgraphics_drawstring (kgraphics_backbufer(), WINDOW_X + 20, y, text, FONT_FG_COLOR,
+                          WINDOW_BG_COLOR);
 
     // ------------------------------------
     // Drawing patterns

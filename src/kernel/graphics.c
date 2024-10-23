@@ -41,6 +41,15 @@ static void arch_waitForNextVerticalRetrace();
 U32 glyph_mask[] = { 1 << 7, 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 2, 1 << 1, 1 << 0 };
 #endif
 
+void kgraphics_drawstring (KGraphicsArea* g, UINT x, UINT y, char* text, Color fg, Color bg)
+{
+    FUNC_ENTRY ("area: %px, x: %u, y: %u, text: %px, fg: %u, bg: %px", g, x, y, text, fg, bg);
+    for (char* ch = text; *ch != '\0'; ch++) {
+        graphics_drawfont (g, x, y, (UCHAR)*ch, fg, bg);
+        x += CONFIG_GXMODE_FONT_WIDTH;
+    }
+}
+
 void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, char: %x, fg: %u, bg: %px", g, x, y, a, fg, bg);

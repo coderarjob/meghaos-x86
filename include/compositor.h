@@ -29,4 +29,4 @@
 
 void kcompose_init();
 void kcompose_flush();
-KGraphicsArea* kcompose_create_window();
+KGraphicsArea* kcompose_create_window(char* title);
