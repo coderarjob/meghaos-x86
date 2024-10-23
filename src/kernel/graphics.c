@@ -32,8 +32,6 @@ typedef struct GraphicsInfo {
 static GraphicsInfo gxi;
 static GraphicsInfo arch_getGraphicsModeInfo();
 static PTR framebuffer;
-static PTR backbuffer;
-static SIZE framebuffer_size_bytes;
 #if ARCH == x86
 static void arch_waitForNextVerticalRetrace();
 #endif
@@ -43,12 +41,12 @@ static void arch_waitForNextVerticalRetrace();
 U32 glyph_mask[] = { 1 << 7, 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 2, 1 << 1, 1 << 0 };
 #endif
 
-void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg)
+void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg)
 {
-    FUNC_ENTRY ("x: %u, y: %u, char: %x, fg: %u, bg: %px", x, y, a, fg, bg);
+    FUNC_ENTRY ("area: %px, x: %u, y: %u, char: %x, fg: %u, bg: %px", g, x, y, a, fg, bg);
 
     const U8* glyph = gxi.fontsData + (a * BOOT_FONTS_GLYPH_BYTES);
-    U8* start       = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    U8* start       = (U8*)g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     GxColor* fgColor = (GxColor*)&fg;
     GxColor* bgColor = (GxColor*)&bg;
@@ -62,11 +60,12 @@ void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg)
     }
 }
 
-void kgraphics_blit (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes)
+void kgraphics_blit (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+                     U8* bytes)
 {
-    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
+    FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
 
-    U8* start = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    U8* start = (U8*)g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     for (; h > 0; h--) {
         GxColor* row = (GxColor*)start;
@@ -77,11 +76,12 @@ void kgraphics_blit (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* byt
     }
 }
 
-void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes)
+void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+                         U8* bytes)
 {
-    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, bytes: %px", x, y, w, h, bytes);
+    FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
 
-    U8* start = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
+    U8* start = (U8*)g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel);
 
     for (; h > 0; h--) {
         GxColor* row = (GxColor*)start;
@@ -101,21 +101,22 @@ void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8*
     }
 }
 
-void graphics_putpixel (UINT x, UINT y, Color color)
+void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color)
 {
-    FUNC_ENTRY ("x: %u, y: %u, color: %x", x, y, color);
+    FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
 
-    GxColor* start = (GxColor*)(backbuffer + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel));
+    GxColor* start = (GxColor*)(g->surface + (y * gxi.bytesPerScanLine) + (x * gxi.bytesPerPixel));
     GxColor* col   = (GxColor*)&color;
     *start         = *col;
 }
 
-void graphics_rect (UINT x, UINT y, UINT w, UINT h, Color color)
+void graphics_rect (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color)
 {
-    FUNC_ENTRY ("x: %u, y: %u, w: %u, h: %u, color: %x", x, y, w, h, color);
+    FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, color: %x", g, x, y, w, h, color);
 
-    SIZE bytesPerPixel = gxi.bytesPerPixel;
-    U8* start          = (U8*)backbuffer + (y * gxi.bytesPerScanLine) + (x * bytesPerPixel);
+    SIZE bytesPerPixel = g->bytesPerPixel;
+    SIZE bytesPerRow   = g->bytesPerRow;
+    U8* start          = (U8*)g->surface + (y * bytesPerRow) + (x * bytesPerPixel);
 
     GxColor* col = (GxColor*)&color;
 
@@ -124,7 +125,7 @@ void graphics_rect (UINT x, UINT y, UINT w, UINT h, Color color)
         for (UINT lw = w; lw > 0; lw--, row++) {
             *row = *col;
         }
-        start += gxi.bytesPerScanLine;
+        start += bytesPerRow;
     }
 }
 
@@ -181,16 +182,16 @@ bool graphics_init()
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
-    if (!(backbuffer = kvmm_memmap (g_kstate.context, 0, NULL, szPages, VMM_MEMMAP_FLAG_NONE,
-                                    NULL))) {
+    // Store a copy of basic/global graphics mode information.
+    g_kstate.gx_back.bytesPerPixel    = gxi.bytesPerPixel;
+    g_kstate.gx_back.bytesPerRow      = gxi.bytesPerScanLine;
+    g_kstate.gx_back.width_px         = gxi.xResolution;
+    g_kstate.gx_back.height_px        = gxi.yResolution;
+    g_kstate.gx_back.surfaceSizeBytes = PAGEFRAMES_TO_BYTES (szPages);
+    if (!(g_kstate.gx_back.surface = (U8*)kvmm_memmap (g_kstate.context, 0, NULL, szPages,
+                                                       VMM_MEMMAP_FLAG_NONE, NULL))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
-    framebuffer_size_bytes = PAGEFRAMES_TO_BYTES (szPages);
-
-    // Store a copy of basic/global graphics mode information.
-    g_kstate.gx.bytesPerPixel = gxi.bytesPerPixel;
-    g_kstate.gx.xResolution   = gxi.xResolution;
-    g_kstate.gx.yResolution   = gxi.yResolution;
 
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_GRAPHICS_READY);
     return true;
@@ -202,10 +203,12 @@ void kgraphis_flush()
         return; // Graphics mode is not ready
     }
 
-    k_assert ((void*)backbuffer != NULL && (void*)framebuffer != NULL,
-              "Graphics buffers cannot be NULL");
+    U8* backbuffer = g_kstate.gx_back.surface;
+    SIZE szBytees  = g_kstate.gx_back.surfaceSizeBytes;
+
+    k_assert (backbuffer != NULL && (void*)framebuffer != NULL, "Graphics buffers cannot be NULL");
 
     arch_waitForNextVerticalRetrace();
 
-    k_memcpy ((void*)framebuffer, (void*)backbuffer, framebuffer_size_bytes);
+    k_memcpy ((void*)framebuffer, backbuffer, szBytees);
 }

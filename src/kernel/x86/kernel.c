@@ -235,10 +235,16 @@ void k_delay (UINT ms)
 }
 
 #ifdef GRAPHICS_MODE_ENABLED
+
+static KGraphicsArea* kgraphics_backbufer()
+{
+    return (KGraphicsArea*)&g_kstate.gx_back;
+}
+
 static void graphics_drawstring (UINT x, UINT y, char* text, Color fg, Color bg)
 {
     for (char* ch = text; *ch != '\0'; ch++) {
-        graphics_drawfont (x, y, (UCHAR)*ch, fg, bg);
+        graphics_drawfont (kgraphics_backbufer(), x, y, (UCHAR)*ch, fg, bg);
         x += CONFIG_GXMODE_FONT_WIDTH;
     }
 }
@@ -304,10 +310,14 @@ static void graphics_demo_basic()
     // ------------------------------------
     // Draw Window and title bar
     // ------------------------------------
-    graphics_rect (0, 0, CONFIG_GXMODE_XRESOLUTION, CONFIG_GXMODE_YRESOLUTION, BG_COLOR);
-    graphics_rect (WINDOW_X - 6, WINDOW_Y + 6, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SHADOW_COLOR);
-    graphics_rect (WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_BG_COLOR);
-    graphics_rect (TITLE_BAR_X, TITLE_BAR_Y, TITLE_BAR_WIDTH, TITLE_BAR_HEIGHT, TITLE_BAR_BG_COLOR);
+    graphics_rect (kgraphics_backbufer(), 0, 0, CONFIG_GXMODE_XRESOLUTION,
+                   CONFIG_GXMODE_YRESOLUTION, BG_COLOR);
+    graphics_rect (kgraphics_backbufer(), WINDOW_X - 6, WINDOW_Y + 6, WINDOW_WIDTH, WINDOW_HEIGHT,
+                   WINDOW_SHADOW_COLOR);
+    graphics_rect (kgraphics_backbufer(), WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT,
+                   WINDOW_BG_COLOR);
+    graphics_rect (kgraphics_backbufer(), TITLE_BAR_X, TITLE_BAR_Y, TITLE_BAR_WIDTH,
+                   TITLE_BAR_HEIGHT, TITLE_BAR_BG_COLOR);
 
     char* wintitle = "MeghaOS V2 : Graphics & Fonts Demo";
     graphics_drawstring (TITLE_BAR_X + 10, TITLE_BAR_Y + 3, wintitle, TITLE_BAR_FG_COLOR,
@@ -319,8 +329,8 @@ static void graphics_demo_basic()
     #if CONFIG_GXMODE_BITSPERPIXEL != 8
     Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
     U8* image          = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
-    graphics_image_raw (MOS_LOGO_X, MOS_LOGO_Y, MOS_LOGO_WIDTH, MOS_LOGO_HEIGHT,
-                        IMAGE_BITS_PER_PIXEL, image);
+    graphics_image_raw (kgraphics_backbufer(), MOS_LOGO_X, MOS_LOGO_Y, MOS_LOGO_WIDTH,
+                        MOS_LOGO_HEIGHT, IMAGE_BITS_PER_PIXEL, image);
     #endif
 
     // ------------------------------------
@@ -329,7 +339,8 @@ static void graphics_demo_basic()
     for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
         UINT y = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
         UINT x = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
-        graphics_drawfont (x + CHARDUMP_X, y + CHARDUMP_Y, (UCHAR)c, FONT_FG_COLOR, FONT_BG_COLOR);
+        graphics_drawfont (kgraphics_backbufer(), x + CHARDUMP_X, y + CHARDUMP_Y, (UCHAR)c,
+                           FONT_FG_COLOR, FONT_BG_COLOR);
     }
 
     // ------------------------------------
@@ -362,7 +373,8 @@ static void graphics_demo_basic()
         UINT y = PAT_Y;
         for (; y < (PAT_Y + PAT_SIZE); y++) {
             bool condition = (((x - PAT_X) & (y - PAT_Y)) % 10 == 0);
-            graphics_putpixel (x, y, condition ? PAT_FG_COLOR : PAT_BG_COLOR);
+            graphics_putpixel (kgraphics_backbufer(), x, y,
+                               condition ? PAT_FG_COLOR : PAT_BG_COLOR);
         }
     }
 }

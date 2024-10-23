@@ -9,6 +9,7 @@
 #include <kassert.h>
 #include <vmm.h>
 #include <config.h>
+#include <graphics.h>
 
 typedef struct KernelStateInfo {
     enum {
@@ -27,12 +28,8 @@ typedef struct KernelStateInfo {
     VMemoryManager* context;
     U32 tick_count; // incremented every CONFIG_TICK_PERIOD_MICROSEC micro seconds.
 #ifdef GRAPHICS_MODE_ENABLED
-    // Graphics mode information
-    struct GraphicsModeInfo {
-        U16 xResolution;
-        U16 yResolution;
-        U8 bytesPerPixel;
-    } gx;
+    // Kernel Graphics back buffer
+    KGraphicsArea gx_back;
 #endif
 } KernelStateInfo;
 

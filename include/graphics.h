@@ -32,6 +32,15 @@ typedef struct RGBColor32Bits {
     U8 alpha;
 } __attribute__ ((packed)) RGBColor32Bits;
 
+typedef struct KGraphicsArea {
+    UINT width_px;
+    UINT height_px;
+    UINT bytesPerPixel;
+    UINT bytesPerRow;
+    U8* surface;
+    SIZE surfaceSizeBytes;
+} KGraphicsArea;
+
 #if CONFIG_GXMODE_BITSPERPIXEL == 8
 typedef IndexColor8Bit GxColor;
 #elif CONFIG_GXMODE_BITSPERPIXEL == 24
@@ -40,10 +49,12 @@ typedef RGBColor24Bits GxColor;
 typedef RGBColor32Bits GxColor;
 #endif
 
-void graphics_rect (UINT x, UINT y, UINT w, UINT h, Color color);
-void graphics_image_raw (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes);
-void graphics_drawfont (UINT x, UINT y, UCHAR a, Color fg, Color bg);
-void graphics_putpixel (UINT x, UINT y, Color color);
+void graphics_rect (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color);
+void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+                         U8* bytes);
+void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg);
+void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color);
 void kgraphis_flush();
-void kgraphics_blit (UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel, U8* bytes);
+void kgraphics_blit (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+                     U8* bytes);
 bool graphics_init();
