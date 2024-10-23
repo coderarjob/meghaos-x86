@@ -14,9 +14,12 @@ project(MeghaOS-V2 C ASM_NASM)
 set(MOS_DEBUG_LEVEL "1" CACHE STRING "Sets DEBUG_LEVEL option to this value")
 set(MOS_BUILD_MODE "DEBUG" CACHE STRING "Debug mode")
 set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
+set(MOS_GRAPHICS_BPP "32" CACHE STRING "Graphics mode: bits per pixel")
 
 set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
+set(MOS_GRAPHICS_BPPS "8" "24" "32")
 set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
+set_property(CACHE MOS_GRAPHICS_BPP PROPERTY STRINGS ${MOS_GRAPHICS_BPPS})
 #---------------------------------------------------------------------------
 # Validate User settable options
 #---------------------------------------------------------------------------
@@ -58,6 +61,7 @@ add_custom_target(show-info ALL
     COMMAND ${CMAKE_COMMAND} -E echo "- BUILD MODE      : ${MOS_BUILD_MODE}"
     COMMAND ${CMAKE_COMMAND} -E echo "- DEBUG LEVEL     : ${MOS_DEBUG_LEVEL}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS MODE   : ${MOS_GRAPHICS_ENABLED}"
+    COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS BPP    : ${MOS_GRAPHICS_BPP}"
     COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"
     )
 #---------------------------------------------------------------------------

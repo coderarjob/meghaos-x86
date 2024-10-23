@@ -34,11 +34,11 @@ typedef struct Window {
     #define WINDOW_TITLE_BAR_BG_COLOR (126)
     #define WINDOW_TITLE_BAR_FG_COLOR (15)
     #define WINDOW_BG_COLOR           (29)
-    #define WINDOW_BORDER_COLOR       (16)
+    #define WINDOW_BORDER_COLOR       (127)
 #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
     #define WINDOW_TITLE_BAR_BG_COLOR (0x003971)
     #define WINDOW_TITLE_BAR_FG_COLOR (0xFFFFFF)
-    #define WINDOW_BG_COLOR           0xDFDFDF
+    #define WINDOW_BG_COLOR           (0xDFDFDF)
     #define WINDOW_BORDER_COLOR       (0x002c57)
 #endif
 
