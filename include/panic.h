@@ -9,8 +9,7 @@
  *
  * Dated: 5st November 2020
  */
-#ifndef KPANIC_H
-#define KPANIC_H
+#pragma once
 
 #include <buildcheck.h>
 #include <types.h>
@@ -50,6 +49,6 @@ extern bool panic_invoked;
 #endif // UNITTEST
 
 /* Halts the processor by going into infinite loop */
-#define k_halt() for (;;)
-
-#endif // KPANIC_H
+#define k_halt()               \
+    ARCH_DISABLE_INTERRUPTS(); \
+    for (;;)

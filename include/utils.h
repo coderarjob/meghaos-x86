@@ -7,13 +7,15 @@
 * ---------------------------------------------------------------------------
 */
 
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <buildcheck.h>
 #include <types.h>
 #include <kassert.h>
 #include <config.h>
+#if ARCH == x86
+#include <x86/cpu.h>
+#endif
 
 /** Used to know the offset of a member in a structure type */
 #define offsetOf(type,member) ((size_t)(&((type *)0)->member))
@@ -87,4 +89,8 @@
 // Calculate number of bytes between the start and end of a memory region
 #define MEM_LEN_BYTES(start, end)       (end - start + 1U)
 
-#endif // UTILS_H
+// Arch independent macros to enable/disable system interrupts
+#if ARCH == x86
+    #define ARCH_ENABLE_INTERRUPTS()  __asm__ volatile("sti")
+    #define ARCH_DISABLE_INTERRUPTS() __asm__ volatile("cli")
+#endif

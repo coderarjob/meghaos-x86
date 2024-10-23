@@ -4,6 +4,7 @@
  * ---------------------------------------------------------------------------
  */
 #pragma once
+
 #include <stddef.h>
 #include <utils.h>
 
@@ -22,3 +23,5 @@ typedef struct x86_CR3 {
 #define x86_READ_REG(reg, dest) __asm__ volatile("mov %0, " #reg :"=r"(dest))
 #define x86_READ_EFLAGS(dest) __asm__ volatile("pushfd\n pop %0" :"=r"(dest))
 #define X86_PAUSE() __asm__ volatile("pause")
+#define X86_ENABLE_INTERRUPTS() __asm__ volatile("sti")
+#define X86_DISABLE_INTERRUPTS() __asm__ volatile("cli")
