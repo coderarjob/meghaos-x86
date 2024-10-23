@@ -110,7 +110,7 @@ done
 case $RUNMODE in
     QEMU)
         {
-            OPTS="-m 2561k"
+            OPTS="-m 5m"
             [[ $# -gt 0 ]] && OPTS="$@"
 
             # Run emulator and add the output to a reports file
