@@ -35,11 +35,13 @@ typedef struct Window {
     #define WINDOW_TITLE_BAR_FG_COLOR (15)
     #define WINDOW_BG_COLOR           (29)
     #define WINDOW_BORDER_COLOR       (127)
+    #define DESKTOP_BG_COLOR          (123)
 #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
     #define WINDOW_TITLE_BAR_BG_COLOR (0x003971)
     #define WINDOW_TITLE_BAR_FG_COLOR (0xFFFFFF)
     #define WINDOW_BG_COLOR           (0xDFDFDF)
     #define WINDOW_BORDER_COLOR       (0x002c57)
+    #define DESKTOP_BG_COLOR          (0x007155)
 #endif
 
 #define WINDOW_BORDER_WIDTH_PX        (5U)
@@ -198,6 +200,8 @@ void kcompose_flush()
     FUNC_ENTRY();
 
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_GRAPHICS_READY);
+    KGraphicsArea* backbuffer = (KGraphicsArea*)&g_kstate.gx_back;
+    graphics_rect (backbuffer, 0, 0, backbuffer->width_px, backbuffer->height_px, DESKTOP_BG_COLOR);
 
     ListNode* node;
     list_for_each (&windowsListHead, node)
@@ -205,6 +209,6 @@ void kcompose_flush()
         Window* win = LIST_ITEM (node, Window, windowListNode);
         UINT fby    = win->position.screen_y;
         UINT fbx    = win->position.screen_x;
-        kgraphics_blit ((KGraphicsArea*)&g_kstate.gx_back, fbx, fby, &win->windowArea);
+        kgraphics_blit (backbuffer, fbx, fby, &win->windowArea);
     }
 }
