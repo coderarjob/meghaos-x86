@@ -58,3 +58,23 @@ void kgraphis_flush();
 void kgraphics_blit (KGraphicsArea* destg, UINT x, UINT y, KGraphicsArea* srcg);
 bool graphics_init();
 void kgraphics_drawstring (KGraphicsArea* g, UINT x, UINT y, char* text, Color fg, Color bg);
+
+static inline void kgraphics_hline (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT th, Color color)
+{
+    graphics_rect (g, x, y, w, th, color);
+}
+
+static inline void kgraphics_vline (KGraphicsArea* g, UINT x, UINT y, UINT h, UINT th, Color color)
+{
+    graphics_rect (g, x, y, th, h, color);
+}
+
+/* Draws rectangle with borders on the inside of a rectangle */
+static inline void kgraphics_inborder (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT th,
+                                       Color color)
+{
+    kgraphics_hline (g, x, y, w, th, color);            // Top
+    kgraphics_vline (g, x, y, h, th, color);            // Left
+    kgraphics_vline (g, (x + w - th), y, h, th, color); // Right
+    kgraphics_hline (g, x, (y + h - th), w, th, color); // Bottom
+}
