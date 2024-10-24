@@ -34,23 +34,23 @@ typedef struct Window {
     #define WINDOW_TITLE_BAR_BG_COLOR (126)
     #define WINDOW_TITLE_BAR_FG_COLOR (15)
     #define WINDOW_BG_COLOR           (29)
-    #define WINDOW_BORDER_COLOR       (127)
+    #define WINDOW_BORDER_COLOR       (26)
     #define DESKTOP_BG_COLOR          (123)
 #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
     #define WINDOW_TITLE_BAR_BG_COLOR (0x003971)
     #define WINDOW_TITLE_BAR_FG_COLOR (0xFFFFFF)
     #define WINDOW_BG_COLOR           (0xDFDFDF)
-    #define WINDOW_BORDER_COLOR       (0x002c57)
+    #define WINDOW_BORDER_COLOR       (0xAAAAAA)
     #define DESKTOP_BG_COLOR          (0x007155)
 #endif
 
-#define WINDOW_BORDER_WIDTH_PX        (5U)
+#define WINDOW_BORDER_WIDTH_PX        (3U)
 #define WINDOW_TITLE_BAR_TOP_PX       (0)
 #define WINDOW_TITLE_BAR_LEFT_PX      (0)
 #define WINDOW_TITLE_BAR_HEIGHT_PX    (20U)
 #define WINDOW_TITLE_BAR_WIDTH_PX(wa) (wa->width_px)
-#define WINDOW_TITLE_TOP_PX           (3)
-#define WINDOW_TITLE_LEFT_PX          (WINDOW_BORDER_WIDTH_PX + 5)
+#define WINDOW_TITLE_TOP_PX           (4)
+#define WINDOW_TITLE_LEFT_PX          (WINDOW_BORDER_WIDTH_PX + 4)
 
 #define WINDOW_WORKING_AREA_TOP_PX    (WINDOW_TITLE_BAR_HEIGHT_PX)
 #define WINDOW_WORKING_AREA_LEFT_PX   (WINDOW_BORDER_WIDTH_PX)
@@ -65,23 +65,37 @@ static void drawWindowDecorations (KGraphicsArea* wa, char* title)
 {
     UINT x, y, w, h;
 
-    // Border
-    x = 0;
-    y = 0;
-    w = wa->width_px;
-    h = wa->height_px;
-    graphics_rect (wa, x, y, w, h, WINDOW_BORDER_COLOR);
-
+    // ===============================
     // Title bar
+    // ===============================
     x = WINDOW_TITLE_BAR_LEFT_PX;
     y = WINDOW_TITLE_BAR_TOP_PX;
     w = WINDOW_TITLE_BAR_WIDTH_PX (wa);
     h = WINDOW_TITLE_BAR_HEIGHT_PX;
+    // Title bar background
     graphics_rect (wa, x, y, w, h, WINDOW_TITLE_BAR_BG_COLOR);
+
+    // Title bar title string
     kgraphics_drawstring (wa, WINDOW_TITLE_LEFT_PX, WINDOW_TITLE_TOP_PX, title,
                           WINDOW_TITLE_BAR_FG_COLOR, WINDOW_TITLE_BAR_BG_COLOR);
 
+    // Title bar bottom border
+    y = WINDOW_TITLE_BAR_HEIGHT_PX;
+    kgraphics_hline (wa, x - 1, y - 1, w, 1, 0xFFFFFF);
+
+    // ===============================
+    // 3D Border
+    // ===============================
+    x = WINDOW_TITLE_BAR_LEFT_PX;
+    y = WINDOW_TITLE_BAR_TOP_PX;
+    w = wa->width_px;
+    h = wa->height_px;
+    kgraphics_inborder (wa, x, y, w, h, WINDOW_BORDER_WIDTH_PX, WINDOW_BORDER_COLOR);
+    kgraphics_inborder (wa, x + 1, y + 1, w - 2, h - 2, 1, 0xF2F2F2);
+
+    // ===============================
     // Active area
+    // ===============================
     x = WINDOW_WORKING_AREA_LEFT_PX;
     y = WINDOW_WORKING_AREA_TOP_PX;
     w = WINDOW_WORKING_AREA_WIDTH_PX (wa);
@@ -157,9 +171,9 @@ void kcompose_init()
     window_count = 0;
 }
 
-KGraphicsArea* kcompose_create_window(char* title)
+KGraphicsArea* kcompose_create_window (char* title)
 {
-    FUNC_ENTRY("Title: %px", title);
+    FUNC_ENTRY ("Title: %px", title);
 
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_KERNEL_READY);
 
