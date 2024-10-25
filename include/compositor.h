@@ -32,3 +32,4 @@ void kcompose_init();
 void kcompose_flush();
 Handle kcompose_create_window (char* title);
 KGraphicsArea* kcompose_get_graphics (Handle h);
+bool kcompose_destroy_window (Handle h);

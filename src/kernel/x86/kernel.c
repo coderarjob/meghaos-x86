@@ -263,7 +263,14 @@ void kernel_main ()
 
     k_delay(3000);
 
-    graphics_demo_basic();
+    kcompose_destroy_window(win4h);
+    k_panicOnError();
+
+    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
+
+    kcompose_flush();
     kgraphis_flush();
     k_halt();
     graphics_demo_basic();

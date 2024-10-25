@@ -169,6 +169,27 @@ KGraphicsArea* kcompose_get_graphics (Handle h)
     return &win->workingArea;
 }
 
+bool kcompose_destroy_window (Handle h)
+{
+    FUNC_ENTRY ("Handle: %x", h);
+    Window* win = khandle_getObject (h);
+    if (!win) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    // Remove window from the windows list
+    list_remove (&win->windowListNode);
+
+    // Free the handle for the window
+    if (!khandle_freeHandle (h)) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
+    }
+
+    // Free the memories related to the window
+    destory_window (win);
+    return true;
+}
+
 Handle kcompose_create_window (char* title)
 {
     FUNC_ENTRY ("Title: %px", title);
