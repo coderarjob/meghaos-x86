@@ -20,6 +20,8 @@
     #include <x86/types.h>
 #endif
 
+typedef INT Handle;
+
 /* Casts a bit field of n bits to UINT. */
 static inline UINT CAST_BITN_TO_U32 (UINT t, UINT n) {
     return (UINT)(t & (UINT)((1 << n) -1));

@@ -106,3 +106,14 @@ test(
         ${CMAKE_CURRENT_SOURCE_DIR}/unittest.c
         ${salloc_mock_sources}
     )
+
+test(
+    NAME handle_test
+    DEPENDENT_FOR build-all
+    SOURCES
+        ${PROJECT_SOURCE_DIR}/src/kernel/handle.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/handle_test.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/common.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/unittest.c
+        ${handles_mock_sources}
+    )

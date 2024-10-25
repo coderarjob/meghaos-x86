@@ -34,6 +34,8 @@
     #define CONFIG_PROCESS_PERIOD_US        (20000U) /* Processes should yield before this time */
     #define CONFIG_VIDEO_REFRESH_PERIOD_US  (20000U)
 
+    #define CONFIG_HANDLES_ARRAY_ITEM_COUNT (1000) /* Number of objects stored in handles array */
+
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */
     #define CONFIG_PAGE_FRAME_SIZE_BITS         (31U - CONFIG_PAGE_SIZE_BITS)

@@ -38,6 +38,7 @@ typedef enum KernelErrorCodes {
     ERR_DEVICE_INIT_FAILED        = 17, // Device initialization failed
     ERR_DEVICE_NOT_READY          = 18, // Device is not ready for access
     ERR_TIMEOUT                   = 19, // Operation timed out.
+    ERR_INVALID_HANDLE            = 20, // Object handle is either outside range/no object is there
 } KernelErrorCodes;
 
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what
