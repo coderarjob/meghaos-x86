@@ -15,6 +15,7 @@
 #include <kstdlib.h>
 #include <graphics.h>
 #include <memmanage.h>
+#include <guicolours.h>
 #if ARCH == x86
     #include <x86/boot.h>
     #include <x86/io.h>
@@ -30,8 +31,10 @@ typedef struct GraphicsInfo {
 } __attribute__ ((packed)) GraphicsInfo;
 
 static GraphicsInfo gxi;
-static GraphicsInfo arch_getGraphicsModeInfo();
 static PTR framebuffer;
+
+static GraphicsInfo arch_getGraphicsModeInfo();
+static void draw_cursor (KGraphicsArea* g);
 #if ARCH == x86
 static void arch_waitForNextVerticalRetrace();
 #endif
@@ -40,6 +43,15 @@ static void arch_waitForNextVerticalRetrace();
 // RIGHT most bit in glyph is the value for LEFT most pixel of the glyph
 U32 glyph_mask[] = { 1 << 7, 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 2, 1 << 1, 1 << 0 };
 #endif
+
+static void draw_cursor (KGraphicsArea* g)
+{
+    UINT mouse_x = 600; // Some random location at this point
+    UINT mouse_y = 400;
+    graphics_rect (g, mouse_x, mouse_y, 10, 10, MOUSE_BG_COLOR);
+    kgraphics_hline (g, mouse_x, mouse_y, 10, 2, MOUSE_FG_COLOR);
+    kgraphics_vline (g, mouse_x, mouse_y, 10, 2, MOUSE_FG_COLOR);
+}
 
 void kgraphics_drawstring (KGraphicsArea* g, UINT x, UINT y, char* text, Color fg, Color bg)
 {
@@ -219,8 +231,7 @@ void kgraphis_flush()
         return; // Graphics mode is not ready
     }
 
-    U8* backbuffer = g_kstate.gx_back.surface;
-    SIZE szBytees  = g_kstate.gx_back.surfaceSizeBytes;
+    KGraphicsArea* backbuffer = (KGraphicsArea*)&g_kstate.gx_back;
 
     // Backbuffer must exactly match the vesa framebuffer
     k_assert (backbuffer != NULL && (void*)framebuffer != NULL, "Graphics buffers cannot be NULL");
@@ -230,6 +241,7 @@ void kgraphis_flush()
     k_assert (g_kstate.gx_back.height_px == gxi.yResolution, "Invalid backbuffer");
 
     arch_waitForNextVerticalRetrace();
+    draw_cursor (backbuffer);
 
-    k_memcpy ((void*)framebuffer, backbuffer, szBytees);
+    k_memcpy ((void*)framebuffer, backbuffer->surface, backbuffer->surfaceSizeBytes);
 }
