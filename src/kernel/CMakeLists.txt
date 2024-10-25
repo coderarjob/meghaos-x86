@@ -6,6 +6,7 @@ set(KERNEL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/printk.c
     ${CMAKE_CURRENT_SOURCE_DIR}/salloc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/vmm.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/handle.c
     )
 
     if (MOS_GRAPHICS_ENABLED)

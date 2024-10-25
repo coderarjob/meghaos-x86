@@ -42,6 +42,7 @@
 #include <drivers/x86/pc/8259_pic.h>
 #include <drivers/x86/pc/8254_pit.h>
 #include <compositor.h>
+#include <handle.h>
 
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
@@ -81,6 +82,7 @@ void kernel_main ()
     kearly_println ("[  ]\tVirtual memory management.");
 
     ksalloc_init();
+    khandle_init();
 
     // Initialize VMM
     Physical kernelPD = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
@@ -193,55 +195,70 @@ void kernel_main ()
 
 #ifdef GRAPHICS_MODE_ENABLED
 #if CONFIG_GXMODE_BITSPERPIXEL == 8
-#define COLOR1 0x4
-#define COLOR2 0x21
-#define COLOR3 0x2
-#define COLOR4 0xE
-#define COLOR5 0xB
-#define COLOR6 0xD
-#define COLOR7 0xF
+    #define COLOR1        0x4
+    #define COLOR2        0x21
+    #define COLOR3        0x2
+    #define COLOR4        0xE
+    #define COLOR5        0xB
+    #define COLOR6        0xD
+    #define COLOR7        0xF
+    #define BORDER_COLOR1 26
+    #define BORDER_COLOR2 30
 #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
-#define COLOR1 0xFF0000
-#define COLOR2 0x0000FF
-#define COLOR3 0x00FF00
-#define COLOR4 0xFFFF00
-#define COLOR5 0x00FFFF
-#define COLOR6 0xFF00FF
-#define COLOR7 0xFFFFFF
+    #define COLOR1        0xFF0000
+    #define COLOR2        0x0000FF
+    #define COLOR3        0x00FF00
+    #define COLOR4        0xFFFF00
+    #define COLOR5        0x00FFFF
+    #define COLOR6        0xFF00FF
+    #define COLOR7        0xFFFFFF
+    #define BORDER_COLOR1 0xA2A2A2
+    #define BORDER_COLOR2 0xF2F2F2
 #endif
 
-    KGraphicsArea* win1 = kcompose_create_window("Window 1");
+    Handle win1h = kcompose_create_window("Window 1");
     k_panicOnError();
-    KGraphicsArea* win2 = kcompose_create_window("Window 2");
+    KGraphicsArea *win1 = kcompose_get_graphics(win1h);
     k_panicOnError();
-    KGraphicsArea* win3 = kcompose_create_window("Window 3");
+    Handle win2h = kcompose_create_window("Window 2");
     k_panicOnError();
-    KGraphicsArea* win4 = kcompose_create_window("Window 4");
+    KGraphicsArea *win2 = kcompose_get_graphics(win2h);
+    k_panicOnError();
+    Handle win3h = kcompose_create_window("Window 3");
+    k_panicOnError();
+    KGraphicsArea *win3 = kcompose_get_graphics(win3h);
     k_panicOnError();
 
     (void)win1;
     (void)win2;
     (void)win3;
-    (void)win4;
 
     kcompose_flush();
 
     k_delay(1000);
 
     graphics_rect(win1, 0, 0, win1->width_px, win1->height_px, COLOR1);
-    graphics_rect(win1, 10, 10, 100,100, COLOR2);
-    kcompose_flush();
+    graphics_rect (win1, 10, 10, 100, 100, COLOR2);
+    kgraphics_inborder (win1, 10, 10, 100, 100, 3, BORDER_COLOR1);
+    kgraphics_inborder (win1, 11, 11, 98, 98, 1, BORDER_COLOR2);
 
     graphics_rect (win2, 0, 0, win2->width_px, win2->height_px, COLOR3);
     graphics_rect(win2, 10, 10, 100,100, COLOR4);
-    kcompose_flush();
 
     graphics_rect(win3, 0, 0, win1->width_px, win1->height_px, COLOR5);
     graphics_rect(win3, 20, 50, 100,100, COLOR6);
-    kcompose_flush();
 
-    graphics_rect(win4, 0, 0, win1->width_px, win1->height_px, COLOR7);
-    graphics_rect(win4, 50, 50, 200,200, COLOR1);
+    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
+
+    Handle win4h = kcompose_create_window("Window 3");
+    k_panicOnError();
+    KGraphicsArea *win4 = kcompose_get_graphics(win4h);
+    k_panicOnError();
+    graphics_rect(win4, 0, 0, win1->width_px, win1->height_px, COLOR1);
+    graphics_rect(win4, 50, 50, 200,100, COLOR2);
+
     kcompose_flush();
 
     k_delay(3000);
@@ -249,6 +266,7 @@ void kernel_main ()
     graphics_demo_basic();
     kgraphis_flush();
     k_halt();
+    graphics_demo_basic();
 #endif
     process_poc();
     //new_process();

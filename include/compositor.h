@@ -8,6 +8,7 @@
 
 #include <types.h>
 #include <graphics.h>
+#include <handle.h>
 
 #define WINMAN_GRID_ROWS_MAX                (2U)
 #define WINMAN_GRID_COLS_MAX                (2U)
@@ -29,4 +30,5 @@
 
 void kcompose_init();
 void kcompose_flush();
-KGraphicsArea* kcompose_create_window(char* title);
+Handle kcompose_create_window (char* title);
+KGraphicsArea* kcompose_get_graphics (Handle h);

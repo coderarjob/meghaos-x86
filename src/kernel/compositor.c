@@ -19,6 +19,7 @@
 #include <memmanage.h>
 #include <process.h>
 #include <guicolours.h>
+#include <handle.h>
 
 typedef struct Window {
     struct {
@@ -90,19 +91,6 @@ static void drawWindowDecorations (KGraphicsArea* wa, char* title)
     graphics_rect (wa, x, y, w, h, WINDOW_BG_COLOR);
 }
 
-// static void freeWindow (Window* win)
-//{
-//     FUNC_ENTRY ("Window: %px", win);
-//
-//     if (!kfree (win->windowArea.surface)) {
-//         BUG(); // Should be able to free.
-//     }
-//
-//     if (!kfree (win)) {
-//         BUG(); // Should be able to free.
-//     }
-// }
-
 static Window* allocWindow (UINT processID, UINT screen_x, UINT screen_y, UINT width_px,
                             UINT height_px, UINT bytesPerPixel)
 {
@@ -148,6 +136,19 @@ static Window* allocWindow (UINT processID, UINT screen_x, UINT screen_y, UINT w
     return newwin;
 }
 
+static void destory_window (Window* win)
+{
+    FUNC_ENTRY ("Window: %px", win);
+
+    if (!kfree (win->windowArea.surface)) {
+        BUG(); // Should be able to free.
+    }
+
+    if (!kfree (win)) {
+        BUG(); // Should be able to free.
+    }
+}
+
 void kcompose_init()
 {
     FUNC_ENTRY();
@@ -158,7 +159,17 @@ void kcompose_init()
     window_count = 0;
 }
 
-KGraphicsArea* kcompose_create_window (char* title)
+KGraphicsArea* kcompose_get_graphics (Handle h)
+{
+    FUNC_ENTRY ("Handle: %x", h);
+    Window* win = khandle_getObject (h);
+    if (!win) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
+    }
+    return &win->workingArea;
+}
+
+Handle kcompose_create_window (char* title)
 {
     FUNC_ENTRY ("Title: %px", title);
 
@@ -166,7 +177,7 @@ KGraphicsArea* kcompose_create_window (char* title)
 
     // Find free window cell
     if (window_count == WINMAN_GRID_CELL_COUNT) {
-        RETURN_ERROR (ERR_OUT_OF_MEM, NULL);
+        RETURN_ERROR (ERR_OUT_OF_MEM, INVALID_HANLDE);
     }
 
     UINT col = WINMAN_GRID_CELL_COL (window_count);
@@ -181,19 +192,25 @@ KGraphicsArea* kcompose_create_window (char* title)
                                   WINMAN_GRID_CELL_HEIGHT_PX (g_kstate.gx_back),
                                   g_kstate.gx_back.bytesPerPixel);
     if (!newwin) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
+        RETURN_ERROR (ERROR_PASSTHROUGH, INVALID_HANLDE);
     }
 
     // Add window to the windows list
     list_add_after (&windowsListHead, &newwin->windowListNode);
 
-    INFO ("Window created: Position = %u, %u, Size: %u, %u", newwin->position.screen_x,
-          newwin->position.screen_y, newwin->windowArea.width_px, newwin->windowArea.height_px);
-
     // Draw window decorations
     drawWindowDecorations (&newwin->windowArea, title);
 
-    return &newwin->workingArea;
+    INFO ("Window created: Position = %u, %u, Size: %u, %u", newwin->position.screen_x,
+          newwin->position.screen_y, newwin->windowArea.width_px, newwin->windowArea.height_px);
+
+    // Get handle for new window
+    Handle hwin = khandle_createHandle (newwin);
+    if (hwin == INVALID_HANLDE) {
+        destory_window (newwin);
+        RETURN_ERROR (ERROR_PASSTHROUGH, INVALID_HANLDE);
+    }
+    return hwin;
 }
 
 void kcompose_flush()
