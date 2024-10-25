@@ -44,6 +44,41 @@ static void arch_waitForNextVerticalRetrace();
 U32 glyph_mask[] = { 1 << 7, 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 2, 1 << 1, 1 << 0 };
 #endif
 
+#if ARCH == x86
+static GraphicsInfo arch_getGraphicsModeInfo()
+{
+    FUNC_ENTRY();
+    GraphisModeInfo gmi = kboot_getGraphicsModeInfo();
+
+    INFO ("Mode: %x", gmi.graphicsMode);
+    INFO ("VBE Version: %x", gmi.vbeVersion);
+    INFO ("FrameBuffer: %x", gmi.framebufferPhysicalPtr);
+    INFO ("Resolution: %u x %u, %ubpp", gmi.xResolution, gmi.yResolution, gmi.bitsPerPixel);
+    INFO ("BytesPerScanLine: %x", gmi.bytesPerScanLine);
+
+    //  Store required infromation in arch independent structure.
+    GraphicsInfo gxi = { .bytesPerPixel          = gmi.bitsPerPixel / 8,
+                         .bytesPerScanLine       = gmi.bytesPerScanLine,
+                         .framebufferPhysicalPtr = gmi.framebufferPhysicalPtr,
+                         .xResolution            = gmi.xResolution,
+                         .yResolution            = gmi.yResolution,
+                         .fontsData              = (U8*)kboot_getFontData() };
+
+    return gxi;
+}
+
+static void arch_waitForNextVerticalRetrace()
+{
+    // Wait for the ongoing Vertical Retrace to end.
+    while (ioread (0x3DA) & 0x8)
+        ;
+
+    // Wait for next Vertical Retrace to start.
+    while (!(ioread (0x3DA) & 0x8))
+        ;
+}
+#endif
+
 static void draw_cursor (KGraphicsArea* g)
 {
     UINT mouse_x = 600; // Some random location at this point
@@ -156,41 +191,6 @@ void graphics_rect (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color colo
         start += bytesPerRow;
     }
 }
-
-#if ARCH == x86
-static GraphicsInfo arch_getGraphicsModeInfo()
-{
-    FUNC_ENTRY();
-    GraphisModeInfo gmi = kboot_getGraphicsModeInfo();
-
-    INFO ("Mode: %x", gmi.graphicsMode);
-    INFO ("VBE Version: %x", gmi.vbeVersion);
-    INFO ("FrameBuffer: %x", gmi.framebufferPhysicalPtr);
-    INFO ("Resolution: %u x %u, %ubpp", gmi.xResolution, gmi.yResolution, gmi.bitsPerPixel);
-    INFO ("BytesPerScanLine: %x", gmi.bytesPerScanLine);
-
-    //  Store required infromation in arch independent structure.
-    GraphicsInfo gxi = { .bytesPerPixel          = gmi.bitsPerPixel / 8,
-                         .bytesPerScanLine       = gmi.bytesPerScanLine,
-                         .framebufferPhysicalPtr = gmi.framebufferPhysicalPtr,
-                         .xResolution            = gmi.xResolution,
-                         .yResolution            = gmi.yResolution,
-                         .fontsData              = (U8*)kboot_getFontData() };
-
-    return gxi;
-}
-
-static void arch_waitForNextVerticalRetrace()
-{
-    // Wait for the ongoing Vertical Retrace to end.
-    while (ioread (0x3DA) & 0x8)
-        ;
-
-    // Wait for next Vertical Retrace to start.
-    while (!(ioread (0x3DA) & 0x8))
-        ;
-}
-#endif
 
 bool graphics_init()
 {
