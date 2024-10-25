@@ -159,7 +159,7 @@ void kcompose_init()
     window_count = 0;
 }
 
-KGraphicsArea* kcompose_get_graphics (Handle h)
+KGraphicsArea* kcompose_getWorkingArea (Handle h)
 {
     FUNC_ENTRY ("Handle: %x", h);
     Window* win = khandle_getObject (h);
@@ -169,7 +169,7 @@ KGraphicsArea* kcompose_get_graphics (Handle h)
     return &win->workingArea;
 }
 
-bool kcompose_destroy_window (Handle h)
+bool kcompose_destroyWindow (Handle h)
 {
     FUNC_ENTRY ("Handle: %x", h);
     Window* win = khandle_getObject (h);
@@ -190,7 +190,7 @@ bool kcompose_destroy_window (Handle h)
     return true;
 }
 
-Handle kcompose_create_window (char* title)
+Handle kcompose_createWindow (char* title)
 {
     FUNC_ENTRY ("Title: %px", title);
 
