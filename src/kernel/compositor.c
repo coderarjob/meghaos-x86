@@ -49,7 +49,7 @@ typedef struct Window {
 static ListNode windowsListHead;
 static UINT window_count;
 
-static void drawWindowDecorations (KGraphicsArea* wa, char* title)
+static void drawWindowDecorations (const KGraphicsArea* wa, const char* title)
 {
     UINT x, y, w, h;
 
@@ -190,7 +190,7 @@ bool kcompose_destroyWindow (Handle h)
     return true;
 }
 
-Handle kcompose_createWindow (char* title)
+Handle kcompose_createWindow (const char* title)
 {
     FUNC_ENTRY ("Title: %px", title);
 

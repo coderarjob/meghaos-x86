@@ -34,7 +34,7 @@ static GraphicsInfo gxi;
 static PTR framebuffer;
 
 static GraphicsInfo arch_getGraphicsModeInfo();
-static void draw_cursor (KGraphicsArea* g);
+static void draw_cursor (const KGraphicsArea* g);
 #if ARCH == x86
 static void arch_waitForNextVerticalRetrace();
 #endif
@@ -79,7 +79,7 @@ static void arch_waitForNextVerticalRetrace()
 }
 #endif
 
-static void draw_cursor (KGraphicsArea* g)
+static void draw_cursor (const KGraphicsArea* g)
 {
     UINT mouse_x = 600; // Some random location at this point
     UINT mouse_y = 400;
@@ -88,16 +88,17 @@ static void draw_cursor (KGraphicsArea* g)
     kgraphics_vline (g, mouse_x, mouse_y, 10, 2, MOUSE_FG_COLOR);
 }
 
-void kgraphics_drawstring (KGraphicsArea* g, UINT x, UINT y, char* text, Color fg, Color bg)
+void kgraphics_drawstring (const KGraphicsArea* g, UINT x, UINT y, const char* text, Color fg,
+                           Color bg)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, text: %px, fg: %u, bg: %px", g, x, y, text, fg, bg);
-    for (char* ch = text; *ch != '\0'; ch++) {
+    for (const char* ch = text; *ch != '\0'; ch++) {
         graphics_drawfont (g, x, y, (UCHAR)*ch, fg, bg);
         x += CONFIG_GXMODE_FONT_WIDTH;
     }
 }
 
-void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg)
+void graphics_drawfont (const KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, char: %x, fg: %u, bg: %px", g, x, y, a, fg, bg);
 
@@ -117,7 +118,7 @@ void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Col
     }
 }
 
-void kgraphics_blit (KGraphicsArea* destg, UINT x, UINT y, KGraphicsArea* srcg)
+void kgraphics_blit (const KGraphicsArea* destg, UINT x, UINT y, const KGraphicsArea* srcg)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, src area: %px", destg, x, y, srcg);
 
@@ -139,7 +140,7 @@ void kgraphics_blit (KGraphicsArea* destg, UINT x, UINT y, KGraphicsArea* srcg)
     }
 }
 
-void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+void graphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
                          U8* bytes)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
@@ -165,7 +166,7 @@ void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT 
     }
 }
 
-void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color)
+void graphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
 
@@ -174,7 +175,7 @@ void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color)
     *start         = *col;
 }
 
-void graphics_rect (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color)
+void graphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, color: %x", g, x, y, w, h, color);
 

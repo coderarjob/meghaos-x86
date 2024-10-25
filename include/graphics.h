@@ -49,29 +49,32 @@ typedef RGBColor24Bits GxColor;
 typedef RGBColor32Bits GxColor;
 #endif
 
-void graphics_rect (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color);
-void graphics_image_raw (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+void graphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color);
+void graphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
                          U8* bytes);
-void graphics_drawfont (KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg);
-void graphics_putpixel (KGraphicsArea* g, UINT x, UINT y, Color color);
+void graphics_drawfont (const KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg);
+void graphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color);
 void kgraphis_flush();
-void kgraphics_blit (KGraphicsArea* destg, UINT x, UINT y, KGraphicsArea* srcg);
+void kgraphics_blit (const KGraphicsArea* destg, UINT x, UINT y, const KGraphicsArea* srcg);
 bool graphics_init();
-void kgraphics_drawstring (KGraphicsArea* g, UINT x, UINT y, char* text, Color fg, Color bg);
+void kgraphics_drawstring (const KGraphicsArea* g, UINT x, UINT y, const char* text, Color fg,
+                           Color bg);
 
-static inline void kgraphics_hline (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT th, Color color)
+static inline void kgraphics_hline (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT th,
+                                    Color color)
 {
     graphics_rect (g, x, y, w, th, color);
 }
 
-static inline void kgraphics_vline (KGraphicsArea* g, UINT x, UINT y, UINT h, UINT th, Color color)
+static inline void kgraphics_vline (const KGraphicsArea* g, UINT x, UINT y, UINT h, UINT th,
+                                    Color color)
 {
     graphics_rect (g, x, y, th, h, color);
 }
 
 /* Draws rectangle with borders on the inside of a rectangle */
-static inline void kgraphics_inborder (KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT th,
-                                       Color color)
+static inline void kgraphics_inborder (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h,
+                                       UINT th, Color color)
 {
     kgraphics_hline (g, x, y, w, th, color);            // Top
     kgraphics_vline (g, x, y, h, th, color);            // Left

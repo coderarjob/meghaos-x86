@@ -30,6 +30,6 @@
 
 void kcompose_init();
 void kcompose_flush();
-Handle kcompose_createWindow (char* title);
+Handle kcompose_createWindow (const char* title);
 KGraphicsArea* kcompose_getWorkingArea (Handle h);
 bool kcompose_destroyWindow (Handle h);
