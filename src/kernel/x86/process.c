@@ -31,7 +31,7 @@
 
 static UINT processCount;
 static KProcessInfo* currentProcess = NULL;
-static ListNode schedulerQueueHead = { 0 };
+static ListNode schedulerQueueHead  = { 0 };
 
 static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
 static KProcessInfo* s_processInfo_malloc();
@@ -41,6 +41,7 @@ static bool s_createProcessPageDirectory (KProcessInfo* pinfo);
 static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
                                         KProcessInfo* pinfo);
 static bool s_setupProcessStackMemory (KProcessInfo* pinfo);
+static bool s_setupProcessDataMemory (KProcessInfo* pinfo);
 static bool kprocess_kill_process (KProcessInfo** process);
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 static void s_showQueueItems (ListNode* forward, bool directionForward);
@@ -183,7 +184,7 @@ static bool s_enqueue (KProcessInfo* p)
 
 static KProcessInfo* s_getProcessInfoFromID (UINT pid)
 {
-    ListNode* node = NULL;
+    ListNode* node  = NULL;
     KProcessInfo* p = NULL;
     list_for_each (&schedulerQueueHead, node)
     {
@@ -260,6 +261,40 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     return true;
 }
 
+static bool s_setupProcessDataMemory (KProcessInfo* pinfo)
+{
+    FUNC_ENTRY ("Pinfo: %px", pinfo);
+
+    if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
+        // Data memory address space is never Privileged. This is because its going to be shared
+        // among all the other child processes (whether they are privileged or not).
+        VMemoryMemMapFlags flags = VMM_MEMMAP_FLAG_NONE;
+
+        // Process data memory are always allocated dynamically. Their sizes are fixed for now
+        // though.
+        pinfo->data.sizePages = BYTES_TO_PAGEFRAMES_CEILING (ARCH_MEM_LEN_BYTES_PROCESS_DATA);
+
+        if (!(pinfo->data.virtualMemoryStart = kvmm_memmap (pinfo->context, 0, NULL,
+                                                            pinfo->data.sizePages, flags, NULL))) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false);
+        }
+        kvmm_setAddressSpaceMetadata (pinfo->context, pinfo->data.virtualMemoryStart, "proc data",
+                                      &pinfo->processID);
+    } else if (currentProcess != NULL) {
+        // Threads reuse the data section of its parent.
+        pinfo->data = currentProcess->data;
+        INFO ("Reusing data area of parent process ID: %u for process ID: %u", pinfo->processID,
+              currentProcess->processID);
+    } else {
+        // Threads of kernel does not have data area.
+        // TODO: Should we have a process flag say PROCESS_FLAGS_NO_DATA_AREA?
+        pinfo->data.virtualMemoryStart = 0;
+        pinfo->data.sizePages          = 0;
+        INFO ("Threads of kernel does not have any data area.");
+    }
+    return true;
+}
+
 static bool s_setupProcessStackMemory (KProcessInfo* pinfo)
 {
     FUNC_ENTRY ("Pinfo: %px", pinfo);
@@ -272,10 +307,10 @@ static bool s_setupProcessStackMemory (KProcessInfo* pinfo)
         flags |= VMM_MEMMAP_FLAG_KERNEL_PAGE;
         // We need to pre-allocate & map physical memory for Kernel threads/processes. The reason is
         // this: Normally Physical pages are allocated in the page fault handler after a page fault.
-        // After a page fault, control is passed to the Kernel (Ring 0 stack and privilage level
+        // After a page fault, control is passed to the Kernel (Ring 0 stack and privilege level
         // switch) and the page fault handler is called. It is here a physical page is allocated,
         // mapped to the faulting virtual address and control is passed back to the faulting
-        // instruction. This however does not work for Kernel stack memory, and we get a tripple
+        // instruction. This however does not work for Kernel stack memory, and we get a triple
         // fault. This is because the control is already in Ring 0 and when CPU calls interrupt
         // handler which pushes registers values causing another page fault.
         //
@@ -482,6 +517,10 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFla
         goto failure;
     }
 
+    if (!s_setupProcessDataMemory (pinfo)) {
+        goto failure;
+    }
+
     INFO ("New process: ID = %u", pinfo->processID);
     kvmm_printVASList (pinfo->context);
     INFO ("------------------------");
@@ -531,7 +570,7 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     // So if there are more than one process in the process table, and dequeue returns the current
     // process, then we dequeue once again.
     KProcessInfo* pinfo = NULL;
-    bool loop_again    = false;
+    bool loop_again     = false;
     do {
         pinfo = s_dequeue();
         if (pinfo == NULL) {
