@@ -146,3 +146,9 @@
     2. Implement either a.out or ELF within the kenrel. 
 
     No matter what the solution, it is clear, that the module files cannot be raw flat binary.
+
+[ ] Double allocation when accessing graphics backbuffer (kcompose_flush)
+    * 8 bit color
+    * kcompose_flush from user program
+
+[ ] Triple fault when multithread_demo_kernel_thread starts mpdemo in kernel mode.

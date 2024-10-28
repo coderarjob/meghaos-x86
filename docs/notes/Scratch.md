@@ -89,6 +89,102 @@ The application programs however just need to reference the library and the libr
 
 ------------------------------------
 
+## New Git workflow
+categories: note, independent
+29 Aug 2024
+
+I used to do development in the 'kernel/develop' branch and after a substantial amount of work I
+would merge it to the 'master'. However I am rethinking this approach and proposing either all
+development be done in the 'master' or in some short lived feature branch.
+
+### Development only in the 'master' branch:
+
+#### Advantages:
+1. Visitors to my GitHub page will be able to see the most recent state of the project and not
+   how it was months ago.
+2. Since I am the only person developing, there is not reason to have a separate long-running 'dev'
+   branch. I am not doing a release or merging changes from multiple people.
+3. Less disruptive since there is no need to merge with the 'master' later.
+
+#### Disadvantages
+1. The idea is that the 'master' must always be in 'good' state. However now since every commit goes
+   into the 'master' a bad commit would break the 'master'.
+2. Some features which replaces an older implementation and would take a long time to complete,
+   risks making either the 'master' branch dirty (with both old and new implementations coexisting,
+   or the documentation stale). For example if I make the transition to CMake in the 'master'
+   branch then for sometime the branch would have files for both 'build.sh' and CMake build. Worse
+   would be when I start deleting the 'build.sh' files and the CMake build not yet fully ready. That
+   surely meant that the build system is completely broken.
+
+### Development in the 'master' & 'feature' branches:
+
+#### Advantages:
+1. Visitors to my GitHub page will be able to see a relatively recent state of the project and not
+   how it was months ago. The state of the 'master' would be the last good.
+2. All other benefits from development in the 'master' branch.
+3. The disadvantages mentioned about stability is also reduced. I would not merge with the 'master'
+   until the feature is ready. But it would also not run more than few weeks.
+4. Non-disruptive changes would not require a 'feature' branch and can be done all in the 'master'
+   branch. If required they can be controlled using a 'Feature flag'.
+   
+#### Disadvantages
+1. The 'short' lived feature branches could still go on for a long time, causing the same problem it
+   tries to solve.
+2. Stability of the 'master' branch is reduced but cannot completely be eliminated.
+
+Read more in the stackexchange question: 
+https://softwareengineering.stackexchange.com/questions/454794/git-trunk-based-development-for-change-to-build-sytem-and-documentation
+
+------------------------------------
+
+## Theory of mixing platform dependent and independent parts
+categories: note, x86
+23 July 2024
+
+Here are the scnerarios that are possible. The variables are 'Implementation' and 'Use', each can
+have to values 'arch dependent' (AD) or 'arch independent' (AID).
+
+|----------------|-----|-----------------------------|-----------------------|
+| Implementation | Use | Interface naming convention | Interface declaration |
+|----------------|-----|-----------------------------|-----------------------|
+| AD             | AD  | 'X86_' prepended            | AD header file        |
+| AD             | AID | 'ARCH_' prepended           | AID header file       |
+| AID            | AID | Nothing special             | AID header            |
+| AID            | AD  | <not possible>              | -                     |
+|----------------|-----|-----------------------------|-----------------------|
+
+Now unittests are always arch independent, because they run in environment different from what they
+are testing. Depending on what its testing these two scnerarios can occur.
+
+|----------------|------------------------------------------------|
+| Implementation | Unittest convention                            |
+|----------------|------------------------------------------------|
+| AD             | Either mock the AD part or it cannot be tested |
+| AID            | Nothing special is required                    |
+|----------------|------------------------------------------------|
+
+------------------------------------
+## How to test stack overflow/underflow checks
+categories: note, x86
+05 August 2024
+
+```c
+    // Stack pointer decremented - should hit the stack bottom boundary
+    volatile U8 ar;
+    volatile U8* a = &ar;
+    for (SIZE i = 0;  i < (256 * KB); i++) {
+        *a-- = 19;
+    }
+
+    // Stack pointer incremented - should hit the stack top boundary
+    volatile U8 ar;
+    volatile U8* a = &ar;
+    for (SIZE i = 0;  i < (256 * KB); i++) {
+        *a++ = 19;
+    }
+```
+------------------------------------
+
 ## Keeping track of Virtual pages using Bitmap
 categories: note, x86
 _27 April 2024_

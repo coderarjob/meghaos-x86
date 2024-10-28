@@ -75,9 +75,11 @@ INTERRUPT_HANDLER (mouse_interrupt)
 void mouse_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
+#if (DEBUG_LEVEL & 1)
     U8 data1, data2, data3 = 0;
     data1 = (U8)ps2_no_wait_read (PS2_DATA_PORT);
     data2 = (U8)ps2_no_wait_read (PS2_DATA_PORT);
-    kearly_println ("Mouse handler: %x, %x, %x", data1, data2, data3);
+    INFO ("Mouse handler: %x, %x, %x", data1, data2, data3);
+#endif
     pic_send_eoi (PIC_IRQ_PS2_MOUSE);
 }
