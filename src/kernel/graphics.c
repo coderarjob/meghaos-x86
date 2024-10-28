@@ -207,9 +207,11 @@ bool graphics_init()
     }
 
     if (!(framebuffer = kvmm_memmap (g_kstate.context, (PTR)NULL, &fbpa, szPages,
-                                     VMM_MEMMAP_FLAG_IMMCOMMIT, NULL))) {
+                                     VMM_MEMMAP_FLAG_IMMCOMMIT | VMM_MEMMAP_FLAG_KERNEL_PAGE,
+                                     NULL))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
+    kvmm_setAddressSpaceMetadata (g_kstate.context, (PTR)framebuffer, "vesafb", NULL);
 
     // Store a copy of basic/global graphics mode information.
     g_kstate.gx_back.bytesPerPixel    = gxi.bytesPerPixel;
@@ -217,10 +219,13 @@ bool graphics_init()
     g_kstate.gx_back.width_px         = gxi.xResolution;
     g_kstate.gx_back.height_px        = gxi.yResolution;
     g_kstate.gx_back.surfaceSizeBytes = PAGEFRAMES_TO_BYTES (szPages);
-    if (!(g_kstate.gx_back.surface = (U8*)kvmm_memmap (g_kstate.context, 0, NULL, szPages,
-                                                       VMM_MEMMAP_FLAG_NONE, NULL))) {
+    if (!(g_kstate.gx_back.surface = (U8*)
+              kvmm_memmap (g_kstate.context, 0, NULL, szPages,
+                           VMM_MEMMAP_FLAG_IMMCOMMIT | VMM_MEMMAP_FLAG_KERNEL_PAGE, NULL))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
+    kvmm_setAddressSpaceMetadata (g_kstate.context, (PTR)g_kstate.gx_back.surface, "gxbackbuffer",
+                                  NULL);
 
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_GRAPHICS_READY);
     return true;

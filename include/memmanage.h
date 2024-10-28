@@ -26,14 +26,12 @@ typedef struct MallocHeader
 void ksalloc_init();
 void* ksalloc (UINT bytes);
 void* kscalloc (UINT bytes);
-void* ksalloc_arch_preAllocateMemory();
 SIZE ksalloc_getUsedMemory();
 
 void* kmalloc (size_t bytes);
 void* kmallocz (size_t bytes);
 bool kfree (void* addr);
 void kmalloc_init();
-void* kmalloc_arch_preAllocateMemory();
 SIZE kmalloc_getUsedMemory();
 
 #endif // MEMMANAGE_H
