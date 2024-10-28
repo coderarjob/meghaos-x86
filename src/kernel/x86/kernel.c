@@ -216,54 +216,48 @@ void kernel_main ()
     #define BORDER_COLOR2 0xF2F2F2
 #endif
 
-    Handle win1h = kcompose_createWindow("Window 1");
-    k_panicOnError();
-    KGraphicsArea *win1 = kcompose_getWorkingArea(win1h);
-    k_panicOnError();
-    Handle win2h = kcompose_createWindow("Window 2");
-    k_panicOnError();
-    KGraphicsArea *win2 = kcompose_getWorkingArea(win2h);
-    k_panicOnError();
-    Handle win3h = kcompose_createWindow("Window 3");
-    k_panicOnError();
-    KGraphicsArea *win3 = kcompose_getWorkingArea(win3h);
+    Window* win1 = kcompose_createWindow ("Window 1");
+    KGraphicsArea* w1a = &win1->workingArea;
     k_panicOnError();
 
-    (void)win1;
-    (void)win2;
-    (void)win3;
+    Window* win2 = kcompose_createWindow ("Window 2");
+    KGraphicsArea* w2a = &win2->workingArea;
+    k_panicOnError();
+
+    Window* win3 = kcompose_createWindow ("Window 3");
+    KGraphicsArea* w3a = &win3->workingArea;
+    k_panicOnError();
 
     kcompose_flush();
 
     k_delay(1000);
 
-    graphics_rect(win1, 0, 0, win1->width_px, win1->height_px, COLOR1);
-    graphics_rect (win1, 10, 10, 100, 100, COLOR2);
-    kgraphics_inborder (win1, 10, 10, 100, 100, 3, BORDER_COLOR1);
-    kgraphics_inborder (win1, 11, 11, 98, 98, 1, BORDER_COLOR2);
+    graphics_rect(w1a, 0, 0, w1a->width_px, w1a->height_px, COLOR1);
+    graphics_rect (w1a, 10, 10, 100, 100, COLOR2);
+    kgraphics_inborder (w1a, 10, 10, 100, 100, 3, BORDER_COLOR1);
+    kgraphics_inborder (w1a, 11, 11, 98, 98, 1, BORDER_COLOR2);
 
-    graphics_rect (win2, 0, 0, win2->width_px, win2->height_px, COLOR3);
-    graphics_rect(win2, 10, 10, 100,100, COLOR4);
+    graphics_rect (w2a, 0, 0, w2a->width_px, w2a->height_px, COLOR3);
+    graphics_rect(w2a, 10, 10, 100,100, COLOR4);
 
-    graphics_rect(win3, 0, 0, win1->width_px, win1->height_px, COLOR5);
-    graphics_rect(win3, 20, 50, 100,100, COLOR6);
+    graphics_rect(w3a, 0, 0, w3a->width_px, w3a->height_px, COLOR5);
+    graphics_rect(w3a, 20, 50, 100,100, COLOR6);
 
     INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
     INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
     INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 
-    Handle win4h = kcompose_createWindow("Window 3");
+    Window* win4 = kcompose_createWindow ("Window 4");
+    KGraphicsArea* w4a = &win4->workingArea;
     k_panicOnError();
-    KGraphicsArea *win4 = kcompose_getWorkingArea(win4h);
-    k_panicOnError();
-    graphics_rect(win4, 0, 0, win1->width_px, win1->height_px, COLOR1);
-    graphics_rect(win4, 50, 50, 200,100, COLOR2);
+    graphics_rect(w4a, 0, 0, w4a->width_px, w4a->height_px, COLOR1);
+    graphics_rect(w4a, 50, 50, 200,100, COLOR2);
 
     kcompose_flush();
 
     k_delay(3000);
 
-    kcompose_destroyWindow(win4h);
+    kcompose_destroyWindow(win4);
     k_panicOnError();
 
     INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
