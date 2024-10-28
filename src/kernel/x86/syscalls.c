@@ -11,6 +11,8 @@
 #include <x86/process.h>
 #include <x86/vgatext.h>
 #include <kernel.h>
+#include <compositor.h>
+#include <handle.h>
 #include <panic.h>
 
 typedef struct SystemcallFrame {
@@ -33,6 +35,14 @@ bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut);
 U32 sys_process_getPID (SystemcallFrame frame);
 U32 sys_get_tickcount (SystemcallFrame frame);
 PTR sys_process_getDataMemoryStart (SystemcallFrame frame);
+
+#ifdef GRAPHICS_MODE_ENABLED
+Handle sys_window_createWindow (SystemcallFrame frame, const char* winTitle);
+bool sys_window_destoryWindow (SystemcallFrame frame, Handle h);
+PTR sys_get_window_graphics_surface (SystemcallFrame frame, Handle h);
+void sys_window_graphics_flush_all (SystemcallFrame frame);
+#endif // GRAPHICS_MODE_ENABLED
+
 static U32 s_getSysCallCount();
 static INT s_handleInvalidSystemCall();
 
@@ -50,6 +60,17 @@ void* g_syscall_table[] = {
     &sys_process_getPID,             // 7
     &sys_get_tickcount,              // 8
     &sys_process_getDataMemoryStart, // 9
+#ifdef GRAPHICS_MODE_ENABLED
+    &sys_window_createWindow,         // 10
+    &sys_window_destoryWindow,        // 11
+    &sys_get_window_graphics_surface, // 12
+    &sys_window_graphics_flush_all,   // 13
+#else
+    &s_handleInvalidSystemCall, // 10
+    &s_handleInvalidSystemCall, // 11
+    &s_handleInvalidSystemCall, // 12
+    &s_handleInvalidSystemCall, // 13
+#endif
 };
 #pragma GCC diagnostic pop
 
@@ -248,3 +269,59 @@ U32 sys_get_os_error (SystemcallFrame frame)
     (void)frame;
     return g_kstate.errorNumber;
 }
+
+#ifdef GRAPHICS_MODE_ENABLED
+Handle sys_window_createWindow (SystemcallFrame frame, const char* winTitle)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x, title: %px", frame.cs, frame.eip, winTitle);
+    (void)frame;
+    Window* win = kcompose_createWindow (winTitle);
+    if (!win) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, INVALID_HANDLE);
+    }
+
+    // Create handle for Window obj
+    Handle newh;
+    if ((newh = khandle_createHandle (win)) == KERNEL_EXIT_FAILURE) {
+        kcompose_destroyWindow (win);
+        RETURN_ERROR (ERROR_PASSTHROUGH, INVALID_HANDLE);
+    }
+
+    return newh;
+}
+
+bool sys_window_destoryWindow (SystemcallFrame frame, Handle h)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x, Handle: %x", frame.cs, frame.eip, h);
+    (void)frame;
+
+    // Get window associated with this handle
+    Window* win = NULL;
+    if (!(win = khandle_getObject (h))) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, INVALID_HANDLE);
+    }
+
+    return kcompose_destroyWindow (win);
+}
+
+PTR sys_get_window_graphics_surface (SystemcallFrame frame, Handle h)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x, Handle: %x", frame.cs, frame.eip, h);
+    (void)frame;
+
+    // Get window associated with this handle
+    Window* win = NULL;
+    if (!(win = khandle_getObject (h))) {
+        RETURN_ERROR (ERROR_PASSTHROUGH, 0);
+    }
+
+    return (PTR)win->workingArea.surface;
+}
+
+void sys_window_graphics_flush_all (SystemcallFrame frame)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
+    (void)frame;
+    kcompose_flush();
+}
+#endif // GRAPHICS_MODE_ENABLED
