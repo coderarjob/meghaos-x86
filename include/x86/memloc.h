@@ -53,7 +53,7 @@
 
         #define MEM_START_KERNEL_HIGH_REGION    0xC0100000
 #ifdef GRAPHICS_MODE_ENABLED
-        #define X86_MEM_LEN_BYTES_KMALLOC       (2 * MB)
+        #define X86_MEM_LEN_BYTES_KMALLOC       (128 * KB)
 #else
         #define X86_MEM_LEN_BYTES_KMALLOC       (128 * KB)
 #endif // GRAPHICS_MODE_ENABLED

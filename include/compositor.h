@@ -6,20 +6,35 @@
 
 #pragma once
 
+#include <kernel.h>
 #include <types.h>
 #include <graphics.h>
-#include <handle.h>
 
-#define WINMAN_GRID_ROWS_MAX                (2U)
-#define WINMAN_GRID_COLS_MAX                (2U)
-#define WINMAN_GRID_CELL_COUNT              (WINMAN_GRID_ROWS_MAX * WINMAN_GRID_COLS_MAX)
+typedef struct Window {
+    struct {
+        UINT screen_x;
+        UINT screen_y;
+    } position;
+    KGraphicsArea windowArea;
+    KGraphicsArea workingArea;
+    ListNode windowListNode;
+    UINT processID;
+} Window;
 
-#define WINMAN_GRID_CELL_WIDTH_PX(gx)       (gx.width_px / WINMAN_GRID_COLS_MAX)
-#define WINMAN_GRID_CELL_HEIGHT_PX(gx)      (gx.height_px / WINMAN_GRID_ROWS_MAX)
+#define WINMAN_GRID_ROWS_MAX   (2U)
+#define WINMAN_GRID_COLS_MAX   (2U)
+#define WINMAN_GRID_CELL_COUNT (WINMAN_GRID_ROWS_MAX * WINMAN_GRID_COLS_MAX)
+
+#ifdef GRAPHICS_MODE_ENABLED
+    #define GX_BACKBUFFER g_kstate.gx_back
+#endif // GRAPHICS_MODE_ENABLED
+
+#define WINMAN_GRID_CELL_WIDTH_PX()         (GX_BACKBUFFER.width_px / WINMAN_GRID_COLS_MAX)
+#define WINMAN_GRID_CELL_HEIGHT_PX()        (GX_BACKBUFFER.height_px / WINMAN_GRID_ROWS_MAX)
 
 // Window grid coordiate of rows and columns to screen coordinates
-#define WINMAN_GRID_CELL_Y(gx, r)           (WINMAN_GRID_CELL_HEIGHT_PX (gx) * r)
-#define WINMAN_GRID_CELL_X(gx, c)           (WINMAN_GRID_CELL_WIDTH_PX (gx) * c)
+#define WINMAN_GRID_CELL_Y(r)               (WINMAN_GRID_CELL_HEIGHT_PX() * r)
+#define WINMAN_GRID_CELL_X(c)               (WINMAN_GRID_CELL_WIDTH_PX() * c)
 
 // Window grid index to window grid coordiate of rows and columns
 #define WINMAN_GRID_CELL_ROW(wini)          (wini / WINMAN_GRID_COLS_MAX)
@@ -30,6 +45,5 @@
 
 void kcompose_init();
 void kcompose_flush();
-Handle kcompose_createWindow (const char* title);
-KGraphicsArea* kcompose_getWorkingArea (Handle h);
-bool kcompose_destroyWindow (Handle h);
+Window* kcompose_createWindow (const char* const title);
+bool kcompose_destroyWindow (Window* win);
