@@ -90,7 +90,10 @@
 #define MEM_LEN_BYTES(start, end)       (end - start + 1U)
 
 // Arch independent macros to enable/disable system interrupts
-#if ARCH == x86
-    #define ARCH_ENABLE_INTERRUPTS()  __asm__ volatile("sti")
-    #define ARCH_DISABLE_INTERRUPTS() __asm__ volatile("cli")
+#if ARCH == x86 && !defined(UNITTEST)
+    #define ARCH_ENABLE_INTERRUPTS()  X86_ENABLE_INTERRUPTS();
+    #define ARCH_DISABLE_INTERRUPTS() X86_DISABLE_INTERRUPTS();
+#else
+    #define ARCH_ENABLE_INTERRUPTS()  (void)0
+    #define ARCH_DISABLE_INTERRUPTS() (void)0
 #endif
