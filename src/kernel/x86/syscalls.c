@@ -30,23 +30,24 @@ void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
 void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
 bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut);
 U32 sys_process_getPID (SystemcallFrame frame);
-U32 sys_get_tickcount(SystemcallFrame frame);
-
+U32 sys_get_tickcount (SystemcallFrame frame);
+PTR sys_process_getDataMemoryStart (SystemcallFrame frame);
 static U32 s_getSysCallCount();
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
-    &sys_console_writeln,     // 0
-    &sys_createProcess,       // 1
-    &sys_yieldProcess,        // 2
-    &sys_killProcess,         // 3
-    &sys_console_setcolor,    // 4
-    &sys_console_setposition, // 5
-    &sys_processPopEvent,     // 6
-    &sys_process_getPID,      // 7
-    &sys_get_tickcount        // 8
+    &sys_console_writeln,            // 0
+    &sys_createProcess,              // 1
+    &sys_yieldProcess,               // 2
+    &sys_killProcess,                // 3
+    &sys_console_setcolor,           // 4
+    &sys_console_setposition,        // 5
+    &sys_processPopEvent,            // 6
+    &sys_process_getPID,             // 7
+    &sys_get_tickcount,              // 8
+    &sys_process_getDataMemoryStart, // 9
 };
 #pragma GCC diagnostic pop
 
@@ -208,6 +209,14 @@ U32 sys_process_getPID (SystemcallFrame frame)
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
     return kprocess_getCurrentPID();
+}
+
+PTR sys_process_getDataMemoryStart (SystemcallFrame frame)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
+    (void)frame;
+    KProcessSections* section = kprocess_getCurrentProcessDataSection();
+    return section == NULL ? (PTR)0 : section->virtualMemoryStart;
 }
 
 bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut)

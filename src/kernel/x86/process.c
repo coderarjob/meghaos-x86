@@ -662,6 +662,11 @@ UINT kprocess_getCurrentPID()
     return (currentProcess == NULL) ? PROCESS_ID_KERNEL : currentProcess->processID;
 }
 
+KProcessSections* kprocess_getCurrentProcessDataSection()
+{
+    return (currentProcess == NULL) ? NULL  : &currentProcess->data;
+}
+
 bool kprocess_popEvent (UINT pid, KProcessEvent* ev)
 {
     FUNC_ENTRY ("pid: %x, event out: %px", pid, ev);
