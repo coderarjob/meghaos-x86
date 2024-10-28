@@ -11,6 +11,7 @@
 #include <x86/process.h>
 #include <x86/vgatext.h>
 #include <kernel.h>
+#include <panic.h>
 
 typedef struct SystemcallFrame {
     U32 ebp;
@@ -33,6 +34,7 @@ U32 sys_process_getPID (SystemcallFrame frame);
 U32 sys_get_tickcount (SystemcallFrame frame);
 PTR sys_process_getDataMemoryStart (SystemcallFrame frame);
 static U32 s_getSysCallCount();
+static INT s_handleInvalidSystemCall();
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
@@ -88,7 +90,7 @@ __asm__(
     "       cmp ebx, eax;"
     "    pop ebx;"
     "    pop eax;"
-    "    jae .fini;"
+    "    jae .fail;"
     ////////////////////////////
     /// Creates a space in the local stack frame for "System call frame". "System call frame" which
     /// includes the interrupt frame, SS:ESP & EBP of the caller is consistent irrespective of the
@@ -133,6 +135,9 @@ __asm__(
     "    lea eax, [4 * eax + g_syscall_table];"
     "    call [eax];"
     "    add esp, syscall_frame_struct_size;"
+    "    jmp .fini;"
+    ".fail:;"
+    "   call s_handleInvalidSystemCall;"
     ".fini:;"
     "    pop ebp;"
     "    iret;");
@@ -142,6 +147,10 @@ __asm__(
 static U32 s_getSysCallCount()
 {
     return ARRAY_LENGTH (g_syscall_table);
+}
+static INT s_handleInvalidSystemCall()
+{
+    RETURN_ERROR(ERR_INVALID_SYSCALL, KERNEL_EXIT_FAILURE);
 }
 #pragma GCC diagnostic pop
 
@@ -231,4 +240,11 @@ U32 sys_get_tickcount (SystemcallFrame frame)
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
     return g_kstate.tick_count;
+}
+
+U32 sys_get_os_error (SystemcallFrame frame)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
+    (void)frame;
+    return g_kstate.errorNumber;
 }
