@@ -115,7 +115,7 @@ static Window* allocWindow (UINT processID, UINT screen_x, UINT screen_y)
     workingArea.width_px      = WINDOW_WORKING_AREA_WIDTH_PX ((&windowArea));
     workingArea.surface += WINDOW_WORKING_AREA_TOP_PX * workingArea.bytesPerRow +
                            WINDOW_WORKING_AREA_LEFT_PX * workingArea.bytesPerPixel;
-    windowArea.surfaceSizeBytes = workingArea.height_px * workingArea.bytesPerRow;
+    workingArea.surfaceSizeBytes = workingArea.height_px * workingArea.bytesPerRow;
 
     // Create new associated window. The graphics areas will be part of and owned by this window.
     Window* newwin = NULL;
