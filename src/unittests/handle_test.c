@@ -49,7 +49,7 @@ TEST (handles, add_get_first_success)
 
     int obj1  = 0xAAFFBB00;
     Handle h1 = khandle_createHandle (&obj1);
-    NEQ_SCALAR (h1, KERNEL_EXIT_FAILURE);
+    NEQ_SCALAR (h1, INVALID_HANDLE);
     EQ_SCALAR (h1, FIRST_HANDLE);
 
     EQ_SCALAR ((PTR)khandle_getObject (h1), (PTR)&obj1);
@@ -68,7 +68,7 @@ TEST (handles, add_get_last_success)
 
     int obj1  = 0xAAFFBB00;
     Handle h1 = khandle_createHandle (&obj1);
-    NEQ_SCALAR (h1, KERNEL_EXIT_FAILURE);
+    NEQ_SCALAR (h1, INVALID_HANDLE);
     NEQ_SCALAR (h1, FIRST_HANDLE);
 
     EQ_SCALAR ((PTR)khandle_getObject (h1), (PTR)&obj1);
@@ -84,7 +84,7 @@ TEST (handles, add_null_obj_inadd_failure)
     // None
     // ------------------
 
-    EQ_SCALAR (khandle_createHandle (NULL), KERNEL_EXIT_FAILURE);
+    EQ_SCALAR (khandle_createHandle (NULL), INVALID_HANDLE);
     EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
     END();
 }
@@ -98,7 +98,7 @@ TEST (handles, add_oom_failure)
     // ------------------
 
     int obj1 = 0xAAFFBB00;
-    EQ_SCALAR (khandle_createHandle (&obj1), KERNEL_EXIT_FAILURE);
+    EQ_SCALAR (khandle_createHandle (&obj1), INVALID_HANDLE);
     EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
     END();
 }
@@ -110,7 +110,7 @@ TEST (handles, get_invalid_handle_failure)
     // ------------------
     int obj1  = 0xAAFFBB00;
     Handle h1 = khandle_createHandle (&obj1);
-    NEQ_SCALAR (h1, KERNEL_EXIT_FAILURE);
+    NEQ_SCALAR (h1, INVALID_HANDLE);
     // ------------------
 
     // Invalid handle 1: Exceeds the Max count
@@ -130,7 +130,7 @@ TEST (handles, remove_invalid_handle_failure)
     // ------------------
     int obj1  = 0xAAFFBB00;
     Handle h1 = khandle_createHandle (&obj1);
-    NEQ_SCALAR (h1, KERNEL_EXIT_FAILURE);
+    NEQ_SCALAR (h1, INVALID_HANDLE);
     // ------------------
 
     // Invalid handle 1: Exceeds the Max count
@@ -152,9 +152,9 @@ TEST (handles, remove_object_success)
     Handle h1 = khandle_createHandle (&obj1);
     Handle h2 = khandle_createHandle (&obj1);
     Handle h3 = khandle_createHandle (&obj1);
-    NEQ_SCALAR (h1, KERNEL_EXIT_FAILURE);
-    NEQ_SCALAR (h2, KERNEL_EXIT_FAILURE);
-    NEQ_SCALAR (h3, KERNEL_EXIT_FAILURE);
+    NEQ_SCALAR (h1, INVALID_HANDLE);
+    NEQ_SCALAR (h2, INVALID_HANDLE);
+    NEQ_SCALAR (h3, INVALID_HANDLE);
     // ------------------
 
     // Free the handle for the middle object

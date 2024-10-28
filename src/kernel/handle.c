@@ -50,7 +50,7 @@ Handle khandle_createHandle (void* obj)
     k_assert (handles != NULL, "Handles not initialized");
 
     if (obj == NULL) {
-        RETURN_ERROR (ERR_INVALID_ARGUMENT, KERNEL_EXIT_FAILURE);
+        RETURN_ERROR (ERR_INVALID_ARGUMENT, INVALID_HANDLE);
     }
 
     // Find free location
@@ -64,7 +64,7 @@ Handle khandle_createHandle (void* obj)
     }
 
     // No free slot found.
-    RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
+    RETURN_ERROR (ERR_OUT_OF_MEM, INVALID_HANDLE);
 }
 
 bool khandle_freeHandle (Handle h)

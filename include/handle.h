@@ -11,7 +11,7 @@
 #include <types.h>
 #include <kerror.h>
 
-#define INVALID_HANLDE KERNEL_EXIT_FAILURE
+#define INVALID_HANDLE KERNEL_EXIT_FAILURE
 
 void khandle_init();
 Handle khandle_createHandle (void* obj);
