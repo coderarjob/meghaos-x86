@@ -38,10 +38,12 @@
 #include <x86/cpu.h>
 #include <kernel.h>
 #include <vmm.h>
-#include <graphics.h>
 #include <drivers/x86/pc/8259_pic.h>
 #include <drivers/x86/pc/8254_pit.h>
-#include <compositor.h>
+#ifdef GRAPHICS_MODE_ENABLED
+    #include <graphics.h>
+    #include <compositor.h>
+#endif // GRAPHICS_MODE_ENABLED
 #include <handle.h>
 
 static void display_system_info ();

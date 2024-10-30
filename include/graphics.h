@@ -6,6 +6,10 @@
 
 #pragma once
 
+#ifndef GRAPHICS_MODE_ENABLED
+    #error "Gui demo only works in graphics mode"
+#endif
+
 #include <types.h>
 
 // This is a arch independent color type large enough for all the color modes supported.

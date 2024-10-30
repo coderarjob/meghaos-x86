@@ -12,7 +12,9 @@
 #include <x86/process.h>
 #include <x86/vgatext.h>
 #include <kernel.h>
-#include <compositor.h>
+#ifdef GRAPHICS_MODE_ENABLED
+    #include <compositor.h>
+#endif // GRAPHICS_MODE_ENABLED
 #include <handle.h>
 #include <panic.h>
 #include <applib/osif.h>

@@ -9,7 +9,9 @@
 #include <kassert.h>
 #include <vmm.h>
 #include <config.h>
-#include <graphics.h>
+#ifdef GRAPHICS_MODE_ENABLED
+    #include <graphics.h>
+#endif // GRAPHICS_MODE_ENABLED
 
 typedef struct KernelStateInfo {
     enum {
