@@ -15,7 +15,7 @@
 #include <compositor.h>
 #include <handle.h>
 #include <panic.h>
-#include <applib/app.h>
+#include <applib/osif.h>
 
 typedef struct SystemcallFrame {
     U32 ebp;
@@ -41,7 +41,7 @@ PTR sys_process_getDataMemoryStart (SystemcallFrame frame);
 #ifdef GRAPHICS_MODE_ENABLED
 Handle sys_window_createWindow (SystemcallFrame frame, const char* winTitle);
 bool sys_window_destoryWindow (SystemcallFrame frame, Handle h);
-bool ksys_getWindowFB (SystemcallFrame frame, Handle h, AppWindowFrameBuffer * const wfb);
+bool ksys_getWindowFB (SystemcallFrame frame, Handle h, OSIF_WindowFrameBufferInfo * const wfb);
 void sys_window_graphics_flush_all (SystemcallFrame frame);
 #endif // GRAPHICS_MODE_ENABLED
 
@@ -306,7 +306,7 @@ bool sys_window_destoryWindow (SystemcallFrame frame, Handle h)
     return kcompose_destroyWindow (win);
 }
 
-bool ksys_getWindowFB (SystemcallFrame frame, Handle h, AppWindowFrameBuffer * const wfb)
+bool ksys_getWindowFB (SystemcallFrame frame, Handle h, OSIF_WindowFrameBufferInfo * const wfb)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, Handle: %x", frame.cs, frame.eip, h);
     (void)frame;

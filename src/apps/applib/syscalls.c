@@ -19,7 +19,7 @@
 #include <kernel.h>
 #include <process.h>
 
-S32 syscall (SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
+S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 {
     S32 retval = 0;
     __asm__ volatile("int 0x50"
