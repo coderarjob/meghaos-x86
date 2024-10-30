@@ -58,7 +58,7 @@ ULLONG kboot_calculateInstalledMemory()
     return length_bytes;
 }
 
-GraphisModeInfo kboot_getGraphicsModeInfo()
+BootGraphicsModeInfo kboot_getGraphicsModeInfo()
 {
     return kboot_getCurrentBootLoaderInfo()->gxInfo;
 }

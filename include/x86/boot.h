@@ -35,7 +35,7 @@ typedef struct BootFileItem {
     const U16 length;
 } __attribute__ ((packed)) BootFileItem;
 
-typedef struct GraphisModeInfo {
+typedef struct BootGraphicsModeInfo {
     const U16 xResolution;
     const U16 yResolution;
     const U8 bitsPerPixel;
@@ -43,7 +43,7 @@ typedef struct GraphisModeInfo {
     const U16 vbeVersion;
     const Physical framebufferPhysicalPtr;
     const U16 bytesPerScanLine;
-} __attribute__ ((packed)) GraphisModeInfo;
+} __attribute__ ((packed)) BootGraphicsModeInfo;
 
 U16 kboot_getBootFileItemCount();
 BootFileItem kboot_getBootFileItem (INT index);
@@ -51,5 +51,5 @@ BootMemoryMapItem kboot_getBootMemoryMapItem (INT index);
 U16 kboot_getBootMemoryMapItemCount();
 ULLONG kboot_calculateInstalledMemory();
 
-GraphisModeInfo kboot_getGraphicsModeInfo();
+BootGraphicsModeInfo kboot_getGraphicsModeInfo();
 const U8* kboot_getFontData();

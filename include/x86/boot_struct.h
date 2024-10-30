@@ -17,7 +17,7 @@
 
 struct BootLoaderInfo {
     const U8 font_data[BOOT_FONTS_GLYPH_COUNT * BOOT_FONTS_GLYPH_BYTES];
-    const struct GraphisModeInfo gxInfo;
+    const struct BootGraphicsModeInfo gxInfo;
     const U16 filecount;
     const struct BootFileItem files[11];
     const U16 count;

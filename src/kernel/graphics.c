@@ -48,7 +48,7 @@ U32 glyph_mask[] = { 1 << 7, 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 2, 1 << 1, 1 <
 static GraphicsInfo arch_getGraphicsModeInfo()
 {
     FUNC_ENTRY();
-    GraphisModeInfo gmi = kboot_getGraphicsModeInfo();
+    BootGraphicsModeInfo gmi = kboot_getGraphicsModeInfo();
 
     INFO ("Mode: %x", gmi.graphicsMode);
     INFO ("VBE Version: %x", gmi.vbeVersion);
