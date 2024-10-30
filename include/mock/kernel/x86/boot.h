@@ -9,7 +9,7 @@ DECLARE_FUNC (BootFileItem,kboot_getBootFileItem, INT);
 DECLARE_FUNC (BootMemoryMapItem,kboot_getBootMemoryMapItem, INT);
 DECLARE_FUNC (U16,kboot_getBootMemoryMapItemCount);
 DECLARE_FUNC (ULLONG,kboot_calculateInstalledMemory);
-DECLARE_FUNC (GraphisModeInfo,kboot_getGraphicsModeInfo);
+DECLARE_FUNC (BootGraphicsModeInfo,kboot_getGraphicsModeInfo);
 
 void resetBootFake();
 #endif //BOOT_FAKE_X86_H

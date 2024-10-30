@@ -6,7 +6,7 @@ DEFINE_FUNC (BootFileItem,kboot_getBootFileItem, INT);
 DEFINE_FUNC (BootMemoryMapItem,kboot_getBootMemoryMapItem, INT);
 DEFINE_FUNC (U16,kboot_getBootMemoryMapItemCount);
 DEFINE_FUNC (ULLONG,kboot_calculateInstalledMemory);
-DEFINE_FUNC (GraphisModeInfo,kboot_getGraphicsModeInfo);
+DEFINE_FUNC (BootGraphicsModeInfo,kboot_getGraphicsModeInfo);
 
 void resetBootFake()
 {
