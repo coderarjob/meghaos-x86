@@ -14,7 +14,7 @@
  * This library should change with OS in order to shield the applications from the changes.
  */
 
-#include <applib/app.h>
+#include <applib/syscall.h>
 #include <config.h>
 #include <kernel.h>
 #include <process.h>
@@ -30,7 +30,7 @@ S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
     return retval;
 }
 
-INT sys_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode)
+INT os_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode)
 {
     KProcessFlags flags = PROCESS_FLAGS_NONE;
     if (isKernelMode) {
@@ -41,7 +41,7 @@ INT sys_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKern
                     0);
 }
 
-INT sys_thread_create (void (*startLocation)(), bool isKernelMode)
+INT os_thread_create (void (*startLocation)(), bool isKernelMode)
 {
     KProcessFlags flags = PROCESS_FLAGS_THREAD;
     if (isKernelMode) {
@@ -52,7 +52,7 @@ INT sys_thread_create (void (*startLocation)(), bool isKernelMode)
 
 UINT os_tick_microseconds()
 {
-    UINT tick = sys_get_tickcount();
+    UINT tick = os_get_tickcount();
     return KERNEL_TICK_COUNT_TO_MICROSEC (tick);
 }
 

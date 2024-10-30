@@ -1,7 +1,7 @@
 #include <types.h>
 #include <x86/vgatext.h>
 #include <moslimits.h>
-#include <applib/app.h>
+#include <applib/syscall.h>
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text);
 static void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color);
@@ -13,9 +13,9 @@ static void thread1();
 #ifdef HANDLE_YIELD_REQ_EVENT
 static bool shouldYield()
 {
-    UINT pid = sys_process_get_pid();
+    UINT pid = os_process_get_pid();
     OSIF_ProcessEvent e = {0};
-    sys_process_pop_event (pid, &e);
+    os_process_pop_event (pid, &e);
     return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
 }
 #endif
@@ -24,7 +24,7 @@ static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* tex
 {
     syscall (OSIF_SYSCALL_CONSOLE_SETCOLOR, bgcolor, fgcolor, 0, 0, 0);
     syscall (OSIF_SYSCALL_CONSOLE_SETCURSORPOS, row, col, 0, 0, 0);
-    sys_putstr (text);
+    os_putstr (text);
 }
 
 void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color)
@@ -41,24 +41,24 @@ void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color)
         }
 #ifdef HANDLE_YIELD_REQ_EVENT
         if (shouldYield()) {
-            sys_yield();
+            os_yield();
         }
 #else
-        sys_yield();
+        os_yield();
 #endif
     }
 }
 
 void proc_main()
 {
-    sys_thread_create (thread0, false);
-    sys_thread_create (&thread1, false);
+    os_thread_create (thread0, false);
+    os_thread_create (&thread1, false);
 
     UINT iterPerStep = 110;
 
     s_progressbar (iterPerStep, "Process 0:\n", 26, RED);
 
-    sys_process_kill();
+    os_process_kill();
     s_printString (37, 0, BLACK, WHITE,
                    "Cannot kill process 0. Make kernel thread slower for demo.");
 }
@@ -68,7 +68,7 @@ void thread0()
     UINT iterPerStep = 10;
 
     s_progressbar (iterPerStep, "Thread 0:\n", 30, GREEN);
-    sys_process_kill();
+    os_process_kill();
 }
 
 void thread1()
@@ -76,5 +76,5 @@ void thread1()
     UINT iterPerStep = 7;
 
     s_progressbar (iterPerStep, "Thread 1:\n", 34, YELLOW);
-    sys_process_kill();
+    os_process_kill();
 }
