@@ -83,7 +83,12 @@ if(CMAKE_CROSSCOMPILING)
 
     #---------------------------------------------------------------------------
     add_custom_target(build-all ALL)
-    add_dependencies(build-all kernel.flt boot1.flt boot0.flt proc1.flt mpdemo.flt)
+    add_dependencies(build-all kernel.flt boot1.flt boot0.flt)
+    if (MOS_GRAPHICS_ENABLED)
+        add_dependencies(build-all gui0.flt)
+    else()
+        add_dependencies(build-all proc1.flt mpdemo.flt)
+    endif()
 
     #---------------------------------------------------------------------------
     # Build & link kernel and process binaries

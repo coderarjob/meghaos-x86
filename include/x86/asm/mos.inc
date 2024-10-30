@@ -60,8 +60,12 @@
 
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"
+%ifdef GRAPHICS_MODE_ENABLED
+    %define GUI0_APP_FILE   "GUI0    FLT"
+%else
     %define PROC1_FILE      "PROC1   FLT"
     %define MPDEMO_FILE     "MPDEMO  FLT"
+%endif
     %define MOS_IMAGE_FILE  "MOS     RBM"
 
     %define GXMODE_XRESOLUTION 800
