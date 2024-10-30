@@ -26,23 +26,23 @@ typedef struct SystemcallFrame {
     U32 ss;
 } __attribute__ ((packed)) SystemcallFrame;
 
-void sys_console_writeln (SystemcallFrame frame, char* fmt, char* text);
-INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
+void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text);
+INT ksys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        KProcessFlags flags);
-void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
-void sys_killProcess (SystemcallFrame frame);
-void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
-void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
-bool sys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e);
-U32 sys_process_getPID (SystemcallFrame frame);
-U32 sys_get_tickcount (SystemcallFrame frame);
-PTR sys_process_getDataMemoryStart (SystemcallFrame frame);
+void ksys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
+void ksys_killProcess (SystemcallFrame frame);
+void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
+void ksys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
+bool ksys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e);
+U32 ksys_process_getPID (SystemcallFrame frame);
+U32 ksys_get_tickcount (SystemcallFrame frame);
+PTR ksys_process_getDataMemoryStart (SystemcallFrame frame);
 
 #ifdef GRAPHICS_MODE_ENABLED
-Handle sys_window_createWindow (SystemcallFrame frame, const char* winTitle);
-bool sys_window_destoryWindow (SystemcallFrame frame, Handle h);
+Handle ksys_window_createWindow (SystemcallFrame frame, const char* winTitle);
+bool ksys_window_destoryWindow (SystemcallFrame frame, Handle h);
 bool ksys_getWindowFB (SystemcallFrame frame, Handle h, OSIF_WindowFrameBufferInfo * const wfb);
-void sys_window_graphics_flush_all (SystemcallFrame frame);
+void ksys_window_graphics_flush_all (SystemcallFrame frame);
 #endif // GRAPHICS_MODE_ENABLED
 
 static U32 s_getSysCallCount();
@@ -52,21 +52,21 @@ static INT s_handleInvalidSystemCall();
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
-    &sys_console_writeln,            // 0
-    &sys_createProcess,              // 1
-    &sys_yieldProcess,               // 2
-    &sys_killProcess,                // 3
-    &sys_console_setcolor,           // 4
-    &sys_console_setposition,        // 5
-    &sys_processPopEvent,            // 6
-    &sys_process_getPID,             // 7
-    &sys_get_tickcount,              // 8
-    &sys_process_getDataMemoryStart, // 9
+    &ksys_console_writeln,            // 0
+    &ksys_createProcess,              // 1
+    &ksys_yieldProcess,               // 2
+    &ksys_killProcess,                // 3
+    &ksys_console_setcolor,           // 4
+    &ksys_console_setposition,        // 5
+    &ksys_processPopEvent,            // 6
+    &ksys_process_getPID,             // 7
+    &ksys_get_tickcount,             // 8
+    &ksys_process_getDataMemoryStart, // 9
 #ifdef GRAPHICS_MODE_ENABLED
-    &sys_window_createWindow,        // 10
-    &sys_window_destoryWindow,       // 11
+    &ksys_window_createWindow,        // 10
+    &ksys_window_destoryWindow,       // 11
     &ksys_getWindowFB,               // 12
-    &sys_window_graphics_flush_all,  // 13
+    &ksys_window_graphics_flush_all,  // 13
 #else
     &s_handleInvalidSystemCall,      // 10
     &s_handleInvalidSystemCall,      // 11
@@ -173,32 +173,32 @@ static U32 s_getSysCallCount()
 }
 static INT s_handleInvalidSystemCall()
 {
-    RETURN_ERROR(ERR_INVALID_SYSCALL, KERNEL_EXIT_FAILURE);
+    RETURN_ERROR (ERR_INVALID_SYSCALL, KERNEL_EXIT_FAILURE);
 }
 #pragma GCC diagnostic pop
 
-void sys_console_writeln (SystemcallFrame frame, char* fmt, char* text)
+void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text)
 {
     FUNC_ENTRY ("Frame return address: %x:%px, fmt: %px text: %px", frame.cs, frame.eip, fmt, text);
     (void)frame;
     kearly_printf (fmt, text);
 }
 
-void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg)
+void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg)
 {
     FUNC_ENTRY ("Frame return address: %x:%px, fg: %x bg: %x", frame.cs, frame.eip, fg, bg);
     (void)frame;
     kdisp_ioctl (DISP_SETATTR, k_dispAttr (bg, fg, 0));
 }
 
-void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col)
+void ksys_console_setposition (SystemcallFrame frame, U8 row, U8 col)
 {
     FUNC_ENTRY ("Frame return address: %x:%px, row: %x col: %x", frame.cs, frame.eip, row, col);
     (void)frame;
     kdisp_ioctl (DISP_SETCOORDS, row, col);
 }
 
-INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
+INT ksys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        KProcessFlags flags)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, flags: %x, start address: %px, binary len: %x",
@@ -208,7 +208,7 @@ INT sys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE bi
     return kprocess_create (processStartAddress, binLengthBytes, flags);
 }
 
-void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi)
+void ksys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi)
 {
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)ecx;
@@ -229,21 +229,21 @@ void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi
     kprocess_yield (&state);
 }
 
-void sys_killProcess (SystemcallFrame frame)
+void ksys_killProcess (SystemcallFrame frame)
 {
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
     kprocess_exit();
 }
 
-U32 sys_process_getPID (SystemcallFrame frame)
+U32 ksys_process_getPID (SystemcallFrame frame)
 {
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
     return kprocess_getCurrentPID();
 }
 
-PTR sys_process_getDataMemoryStart (SystemcallFrame frame)
+PTR ksys_process_getDataMemoryStart (SystemcallFrame frame)
 {
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
@@ -251,7 +251,7 @@ PTR sys_process_getDataMemoryStart (SystemcallFrame frame)
     return section == NULL ? (PTR)0 : section->virtualMemoryStart;
 }
 
-bool sys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e)
+bool ksys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, event ptr", frame.cs, frame.eip, e);
     (void)frame;
@@ -267,7 +267,7 @@ bool sys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* con
     return true;
 }
 
-U32 sys_get_tickcount (SystemcallFrame frame)
+U32 ksys_get_tickcount (SystemcallFrame frame)
 {
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
@@ -282,7 +282,7 @@ U32 sys_get_os_error (SystemcallFrame frame)
 }
 
 #ifdef GRAPHICS_MODE_ENABLED
-Handle sys_window_createWindow (SystemcallFrame frame, const char* winTitle)
+Handle ksys_window_createWindow (SystemcallFrame frame, const char* winTitle)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, title: %px", frame.cs, frame.eip, winTitle);
     (void)frame;
@@ -301,7 +301,7 @@ Handle sys_window_createWindow (SystemcallFrame frame, const char* winTitle)
     return newh;
 }
 
-bool sys_window_destoryWindow (SystemcallFrame frame, Handle h)
+bool ksys_window_destoryWindow (SystemcallFrame frame, Handle h)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, Handle: %x", frame.cs, frame.eip, h);
     (void)frame;
@@ -336,7 +336,7 @@ bool ksys_getWindowFB (SystemcallFrame frame, Handle h, OSIF_WindowFrameBufferIn
     return true;
 }
 
-void sys_window_graphics_flush_all (SystemcallFrame frame)
+void ksys_window_graphics_flush_all (SystemcallFrame frame)
 {
     FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
     (void)frame;
