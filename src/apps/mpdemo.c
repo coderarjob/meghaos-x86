@@ -14,16 +14,16 @@ static void thread1();
 static bool shouldYield()
 {
     UINT pid = sys_process_get_pid();
-    ProcessEvent e = {0};
+    OSIF_ProcessEvent e = {0};
     sys_process_pop_event (pid, &e);
-    return (e.event == APP_EVENT_PROCCESS_YIELD_REQ);
+    return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
 }
 #endif
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text)
 {
-    syscall (SYSCALL_CONSOLE_SETCOLOR, bgcolor, fgcolor, 0, 0, 0);
-    syscall (SYSCALL_CONSOLE_SETCURSORPOS, row, col, 0, 0, 0);
+    syscall (OSIF_SYSCALL_CONSOLE_SETCOLOR, bgcolor, fgcolor, 0, 0, 0);
+    syscall (OSIF_SYSCALL_CONSOLE_SETCURSORPOS, row, col, 0, 0, 0);
     sys_putstr (text);
 }
 

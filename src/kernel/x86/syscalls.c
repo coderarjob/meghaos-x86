@@ -33,7 +33,7 @@ void sys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi
 void sys_killProcess (SystemcallFrame frame);
 void sys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
 void sys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
-bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut);
+bool sys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e);
 U32 sys_process_getPID (SystemcallFrame frame);
 U32 sys_get_tickcount (SystemcallFrame frame);
 PTR sys_process_getDataMemoryStart (SystemcallFrame frame);
@@ -251,11 +251,20 @@ PTR sys_process_getDataMemoryStart (SystemcallFrame frame)
     return section == NULL ? (PTR)0 : section->virtualMemoryStart;
 }
 
-bool sys_processPopEvent (SystemcallFrame frame, U32 pid, PTR eventPtrOut)
+bool sys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e)
 {
-    FUNC_ENTRY ("Frame return address: %x:%x, event ptr", frame.cs, frame.eip, eventPtrOut);
+    FUNC_ENTRY ("Frame return address: %x:%x, event ptr", frame.cs, frame.eip, e);
     (void)frame;
-    return kprocess_popEvent (pid, (KProcessEvent*)eventPtrOut);
+
+    KProcessEvent ke;
+    if (!kprocess_popEvent (pid, &ke)) {
+        RETURN_ERROR(ERROR_PASSTHROUGH, false);
+    }
+
+    // Copy to user space
+    e->event = ke.event;
+    e->data = ke.data;
+    return true;
 }
 
 U32 sys_get_tickcount (SystemcallFrame frame)

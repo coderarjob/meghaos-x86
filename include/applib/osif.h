@@ -17,18 +17,28 @@ typedef struct OSIF_WindowFrameBufferInfo {
 } OSIF_WindowFrameBufferInfo;
 
 typedef enum OSIF_SYSCALLS {
-    SYSCALL_CONSOLE_WRITELN           = 0,
-    SYSCALL_CREATE_PROCESS            = 1,
-    SYSCALL_YIELD_PROCESS             = 2,
-    SYSCALL_KILL_PROCESS              = 3,
-    SYSCALL_CONSOLE_SETCOLOR          = 4,
-    SYSCALL_CONSOLE_SETCURSORPOS      = 5,
-    SYSCALL_POP_PROCESS_EVENT         = 6,
-    SYSCALL_PROCESS_GETPID            = 7,
-    SYSCALL_TIMER_GET_TICKCOUNT       = 8,
-    SYSCALL_PROCESS_GET_DATAMEM_START = 9,
-    SYSCALL_WINDOW_CREATE             = 10,
-    SYSCALL_WINDOW_DESTORY            = 11,
-    SYSCALL_WINDOW_GET_WINDOW_FB      = 12,
-    SYSCALL_WINDOW_FLUSH_GRAPHICS     = 13,
+    OSIF_SYSCALL_CONSOLE_WRITELN           = 0,
+    OSIF_SYSCALL_CREATE_PROCESS            = 1,
+    OSIF_SYSCALL_YIELD_PROCESS             = 2,
+    OSIF_SYSCALL_KILL_PROCESS              = 3,
+    OSIF_SYSCALL_CONSOLE_SETCOLOR          = 4,
+    OSIF_SYSCALL_CONSOLE_SETCURSORPOS      = 5,
+    OSIF_SYSCALL_POP_PROCESS_EVENT         = 6,
+    OSIF_SYSCALL_PROCESS_GETPID            = 7,
+    OSIF_SYSCALL_TIMER_GET_TICKCOUNT       = 8,
+    OSIF_SYSCALL_PROCESS_GET_DATAMEM_START = 9,
+    OSIF_SYSCALL_WINDOW_CREATE             = 10,
+    OSIF_SYSCALL_WINDOW_DESTORY            = 11,
+    OSIF_SYSCALL_WINDOW_GET_WINDOW_FB      = 12,
+    OSIF_SYSCALL_WINDOW_FLUSH_GRAPHICS     = 13,
 } OSIF_SYSCALLS;
+
+typedef enum OSIF_ProcessEvents {
+    OSIF_PROCESS_EVENT_NONE               = 0,
+    OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ = 2
+} OSIF_ProcessEvents;
+
+typedef struct OSIF_ProcessEvent {
+    OSIF_ProcessEvents event;
+    UINT data;
+} OSIF_ProcessEvent;

@@ -37,7 +37,7 @@ INT sys_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKern
         flags |= PROCESS_FLAGS_KERNEL_PROCESS;
     }
 
-    return syscall (SYSCALL_CREATE_PROCESS, (U32)startLocation, binaryLengthBytes, (U32)flags, 0,
+    return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, binaryLengthBytes, (U32)flags, 0,
                     0);
 }
 
@@ -47,23 +47,13 @@ INT sys_thread_create (void (*startLocation)(), bool isKernelMode)
     if (isKernelMode) {
         flags |= PROCESS_FLAGS_KERNEL_PROCESS;
     }
-    return syscall (SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
+    return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
 }
 
 UINT os_tick_microseconds()
 {
     UINT tick = sys_get_tickcount();
     return KERNEL_TICK_COUNT_TO_MICROSEC (tick);
-}
-
-bool sys_process_pop_event (U32 pid, ProcessEvent* e)
-{
-    KProcessEvent evnt = { 0 };
-    if (syscall (SYSCALL_POP_PROCESS_EVENT, pid, (PTR)&evnt, 0, 0, 0)) {
-        e->data  = evnt.data;
-        e->event = evnt.event;
-    }
-    return false;
 }
 
 // This is the entry point for all processes.
