@@ -37,8 +37,8 @@ typedef struct KGraphicsArea {
     UINT height_px;
     UINT bytesPerPixel;
     UINT bytesPerRow;
-    U8* surface;
-    SIZE surfaceSizeBytes;
+    U8* buffer;
+    SIZE bufferSizeBytes;
 } KGraphicsArea;
 
 #if CONFIG_GXMODE_BITSPERPIXEL == 8

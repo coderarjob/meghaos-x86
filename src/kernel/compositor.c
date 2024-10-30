@@ -99,23 +99,23 @@ static Window* allocWindow (UINT processID, UINT screen_x, UINT screen_y)
                                  .bytesPerRow   = WINMAN_GRID_CELL_WIDTH_PX() *
                                                 g_kstate.gx_back.bytesPerPixel };
 
-    VMemoryManager* vmm         = kprocess_getCurrentContext();
-    SIZE surfaceSzPages         = BYTES_TO_PAGEFRAMES_CEILING (getWindowAreaSizeBytes());
-    windowArea.surfaceSizeBytes = PAGEFRAMES_TO_BYTES (surfaceSzPages);
-    if (!(windowArea.surface = (U8*)kvmm_memmap (vmm, 0, NULL, surfaceSzPages, VMM_MEMMAP_FLAG_NONE,
-                                                 NULL))) {
+    VMemoryManager* vmm        = kprocess_getCurrentContext();
+    SIZE bufferSzPages         = BYTES_TO_PAGEFRAMES_CEILING (getWindowAreaSizeBytes());
+    windowArea.bufferSizeBytes = PAGEFRAMES_TO_BYTES (bufferSzPages);
+    if (!(windowArea.buffer = (U8*)kvmm_memmap (vmm, 0, NULL, bufferSzPages, VMM_MEMMAP_FLAG_NONE,
+                                                NULL))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, NULL);
     }
-    kvmm_setAddressSpaceMetadata (vmm, (PTR)windowArea.surface, "winfb", &processID);
+    kvmm_setAddressSpaceMetadata (vmm, (PTR)windowArea.buffer, "winfb", &processID);
 
     // Working area is derived from the window area. Its the rectangle in the middle that not
     // effected by the window decorations.
     KGraphicsArea workingArea = windowArea;
     workingArea.height_px     = WINDOW_WORKING_AREA_HEIGHT_PX ((&windowArea));
     workingArea.width_px      = WINDOW_WORKING_AREA_WIDTH_PX ((&windowArea));
-    workingArea.surface += WINDOW_WORKING_AREA_TOP_PX * workingArea.bytesPerRow +
-                           WINDOW_WORKING_AREA_LEFT_PX * workingArea.bytesPerPixel;
-    workingArea.surfaceSizeBytes = workingArea.height_px * workingArea.bytesPerRow;
+    workingArea.buffer += WINDOW_WORKING_AREA_TOP_PX * workingArea.bytesPerRow +
+                          WINDOW_WORKING_AREA_LEFT_PX * workingArea.bytesPerPixel;
+    workingArea.bufferSizeBytes = workingArea.height_px * workingArea.bytesPerRow;
 
     // Create new associated window. The graphics areas will be part of and owned by this window.
     Window* newwin = NULL;
@@ -139,7 +139,7 @@ static void destory_window (Window* win)
     FUNC_ENTRY ("Window: %px", win);
 
     VMemoryManager* vmm = kprocess_getCurrentContext();
-    if (!kvmm_free (vmm, (PTR)win->windowArea.surface)) {
+    if (!kvmm_free (vmm, (PTR)win->windowArea.buffer)) {
         BUG(); // Should be able to free.
     }
 
