@@ -4,6 +4,7 @@
  * ---------------------------------------------------------------------------
  */
 #include <disp.h>
+#include <stdbool.h>
 #include <utils.h>
 #include <types.h>
 #include <kdebug.h>
@@ -14,6 +15,7 @@
 #include <compositor.h>
 #include <handle.h>
 #include <panic.h>
+#include <applib/app.h>
 
 typedef struct SystemcallFrame {
     U32 ebp;
@@ -39,7 +41,7 @@ PTR sys_process_getDataMemoryStart (SystemcallFrame frame);
 #ifdef GRAPHICS_MODE_ENABLED
 Handle sys_window_createWindow (SystemcallFrame frame, const char* winTitle);
 bool sys_window_destoryWindow (SystemcallFrame frame, Handle h);
-PTR sys_get_window_graphics_surface (SystemcallFrame frame, Handle h);
+bool ksys_getWindowFB (SystemcallFrame frame, Handle h, AppWindowFrameBuffer * const wfb);
 void sys_window_graphics_flush_all (SystemcallFrame frame);
 #endif // GRAPHICS_MODE_ENABLED
 
@@ -61,15 +63,15 @@ void* g_syscall_table[] = {
     &sys_get_tickcount,              // 8
     &sys_process_getDataMemoryStart, // 9
 #ifdef GRAPHICS_MODE_ENABLED
-    &sys_window_createWindow,         // 10
-    &sys_window_destoryWindow,        // 11
-    &sys_get_window_graphics_surface, // 12
-    &sys_window_graphics_flush_all,   // 13
+    &sys_window_createWindow,        // 10
+    &sys_window_destoryWindow,       // 11
+    &ksys_getWindowFB,               // 12
+    &sys_window_graphics_flush_all,  // 13
 #else
-    &s_handleInvalidSystemCall, // 10
-    &s_handleInvalidSystemCall, // 11
-    &s_handleInvalidSystemCall, // 12
-    &s_handleInvalidSystemCall, // 13
+    &s_handleInvalidSystemCall,      // 10
+    &s_handleInvalidSystemCall,      // 11
+    &s_handleInvalidSystemCall,      // 12
+    &s_handleInvalidSystemCall,      // 13
 #endif
 };
 #pragma GCC diagnostic pop
@@ -304,18 +306,25 @@ bool sys_window_destoryWindow (SystemcallFrame frame, Handle h)
     return kcompose_destroyWindow (win);
 }
 
-PTR sys_get_window_graphics_surface (SystemcallFrame frame, Handle h)
+bool ksys_getWindowFB (SystemcallFrame frame, Handle h, AppWindowFrameBuffer * const wfb)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, Handle: %x", frame.cs, frame.eip, h);
     (void)frame;
-
-    // Get window associated with this handle
     Window* win = NULL;
     if (!(win = khandle_getObject (h))) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, 0);
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
-    return (PTR)win->workingArea.surface;
+    // Copy to user space
+    KGraphicsArea wa = win->workingArea;
+    wfb->buffer = wa.buffer;
+    wfb->bufferSizeBytes = wa.bufferSizeBytes;
+    wfb->width_px = wa.width_px;
+    wfb->height_px = wa.height_px;
+    wfb->bytesPerPixel = wa.bytesPerPixel;
+    wfb->bytesPerRow = wa.bytesPerRow;
+
+    return true;
 }
 
 void sys_window_graphics_flush_all (SystemcallFrame frame)

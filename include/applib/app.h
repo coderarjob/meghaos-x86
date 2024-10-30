@@ -13,6 +13,15 @@ typedef struct ProcessEvent {
     UINT data;
 } ProcessEvent;
 
+typedef struct AppWindowFrameBuffer {
+    UINT width_px;
+    UINT height_px;
+    UINT bytesPerPixel;
+    UINT bytesPerRow;
+    U8* buffer;
+    SIZE bufferSizeBytes;
+} AppWindowFrameBuffer;
+
 typedef enum AppEvents {
     APP_EVENT_NONE               = 0,
     APP_EVENT_PROCCESS_YIELD_REQ = 2
@@ -20,20 +29,20 @@ typedef enum AppEvents {
 // =============================================================================
 
 typedef enum SYSCALLS {
-    SYSCALL_CONSOLE_WRITELN                  = 0,
-    SYSCALL_CREATE_PROCESS                   = 1,
-    SYSCALL_YIELD_PROCESS                    = 2,
-    SYSCALL_KILL_PROCESS                     = 3,
-    SYSCALL_CONSOLE_SETCOLOR                 = 4,
-    SYSCALL_CONSOLE_SETCURSORPOS             = 5,
-    SYSCALL_POP_PROCESS_EVENT                = 6,
-    SYSCALL_PROCESS_GETPID                   = 7,
-    SYSCALL_TIMER_GET_TICKCOUNT              = 8,
-    SYSCALL_PROCESS_GET_DATAMEM_START        = 9,
-    SYSCALL_WINDOW_CREATE                    = 10,
-    SYSCALL_WINDOW_DESTORY                   = 11,
-    SYSCALL_WINDOW_GETGRAPHICS_SURFACE_START = 12,
-    SYSCALL_WINDOW_FLUSH_GRAPHICS            = 13,
+    SYSCALL_CONSOLE_WRITELN           = 0,
+    SYSCALL_CREATE_PROCESS            = 1,
+    SYSCALL_YIELD_PROCESS             = 2,
+    SYSCALL_KILL_PROCESS              = 3,
+    SYSCALL_CONSOLE_SETCOLOR          = 4,
+    SYSCALL_CONSOLE_SETCURSORPOS      = 5,
+    SYSCALL_POP_PROCESS_EVENT         = 6,
+    SYSCALL_PROCESS_GETPID            = 7,
+    SYSCALL_TIMER_GET_TICKCOUNT       = 8,
+    SYSCALL_PROCESS_GET_DATAMEM_START = 9,
+    SYSCALL_WINDOW_CREATE             = 10,
+    SYSCALL_WINDOW_DESTORY            = 11,
+    SYSCALL_WINDOW_GET_WINDOW_FB      = 12,
+    SYSCALL_WINDOW_FLUSH_GRAPHICS     = 13,
 } SYSCALLS;
 
 S32 syscall (SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
@@ -85,4 +94,9 @@ static inline void* sys_process_get_datamem_start()
 static inline void* sys_window_flush_graphics()
 {
     return (void*)syscall (SYSCALL_WINDOW_FLUSH_GRAPHICS, 0, 0, 0, 0, 0);
+}
+
+static inline bool sys_window_getFB (Handle h, AppWindowFrameBuffer* wfb)
+{
+    return syscall (SYSCALL_WINDOW_GET_WINDOW_FB, (U32)h, (PTR)wfb, 0, 0, 0);
 }
