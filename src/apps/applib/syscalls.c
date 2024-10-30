@@ -55,12 +55,3 @@ UINT os_tick_microseconds()
     UINT tick = os_get_tickcount();
     return KERNEL_TICK_COUNT_TO_MICROSEC (tick);
 }
-
-// This is the entry point for all processes.
-__attribute__ ((section (".entry.text")))
-void proc_start()
-{
-    __asm__("jmp proc_main;");
-    while (1)
-        ;
-}

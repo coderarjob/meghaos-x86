@@ -7,6 +7,7 @@ SECTIONS
     {
         /* '.entry.text' section must be at the top.
          * _start must have the address 0x00010000. */
+        KEEP(*(.entry.text));
         *(.entry.text);
         *(.text);
     }
