@@ -152,3 +152,12 @@
     * kcompose_flush from user program
 
 [ ] Triple fault when multithread_demo_kernel_thread starts mpdemo in kernel mode.
+
+[ ] os_process_is_yield_requested not working properly if defined in applib/syscall.c
+
+[ ] os_process_is_yield_requested & os_yield not working in delay() function in applib/app.c.
+
+[ ] gui0 program hanging after running for sometime. NDEBUG, DEBUG_LEVEL=0 build in Qemu, bochs, 
+86box and laptop.
+
+[ ] Duplicate defination of types if applib/types.h is included in `applib/*.c` files.
