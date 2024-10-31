@@ -13,7 +13,7 @@
 __attribute__ ((section (".entry.text")))
 void proc_start()
 {
-    __asm__("jmp proc_main;");
+    __asm__("call proc_main;");
     while (1)
         ;
 }
