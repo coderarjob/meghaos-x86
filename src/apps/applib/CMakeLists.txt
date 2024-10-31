@@ -23,6 +23,10 @@ set(APPLIB_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/debug.c
     )
 
+    if (MOS_GRAPHICS_ENABLED)
+        LIST(APPEND APPLIB_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/graphics.c)
+    endif()
+
 compile_lib(
     NAME app
     SOURCES ${APPLIB_SOURCES}
