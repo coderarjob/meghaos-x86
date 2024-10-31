@@ -19,6 +19,8 @@ compile_lib(
 # ------------------------------------------------------------------------
 set(APPLIB_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/printf.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/debug.c
     )
 
 compile_lib(
@@ -28,4 +30,6 @@ compile_lib(
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     STATIC_LIB
     )
+
+target_link_libraries(app PUBLIC gcc)
 # ------------------------------------------------------------------------

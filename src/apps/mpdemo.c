@@ -1,9 +1,10 @@
 #include <types.h>
 #include <syscall.h>
+#include <app.h>
 
 #define MAX_VGA_COLUMNS             80U
 
-typedef enum DisplayVgaColors 
+typedef enum DisplayVgaColors
 {
     BLACK,
     BLUE,

@@ -1,6 +1,6 @@
 #include <syscall.h>
 #include <types.h>
-#define INVALID_HANDLE -1
+#include <app.h>
 
 #ifndef GRAPHICS_MODE_ENABLED
     #error "Gui demo only works in graphics mode"
