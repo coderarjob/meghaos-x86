@@ -19,7 +19,13 @@
 S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 INT os_thread_create (void (*startLocation)(), bool isKernelMode);
 INT os_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode);
-UINT os_tick_microseconds();
+UINT os_get_tick_period_us();
+bool os_process_is_yield_requested();
+
+static inline UINT os_tickcount_to_microsec(UINT tick)
+{
+    return ((tick)*os_get_tick_period_us());
+}
 
 static inline void os_yield()
 {

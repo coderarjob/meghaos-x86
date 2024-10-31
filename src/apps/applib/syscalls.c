@@ -37,8 +37,8 @@ INT os_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKerne
         flags |= PROCESS_FLAGS_KERNEL_PROCESS;
     }
 
-    return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, binaryLengthBytes, (U32)flags, 0,
-                    0);
+    return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, binaryLengthBytes, (U32)flags,
+                    0, 0);
 }
 
 INT os_thread_create (void (*startLocation)(), bool isKernelMode)
@@ -50,8 +50,7 @@ INT os_thread_create (void (*startLocation)(), bool isKernelMode)
     return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
 }
 
-UINT os_tick_microseconds()
+UINT os_get_tick_period_us()
 {
-    UINT tick = os_get_tickcount();
-    return KERNEL_TICK_COUNT_TO_MICROSEC (tick);
+    return CONFIG_TICK_PERIOD_MICROSEC;
 }

@@ -15,6 +15,8 @@
 /** Length of an array in bytes */
 #define ARRAY_LENGTH(ar)            (sizeof ((ar)) / sizeof ((ar)[0]))
 
+#define HALT()                      for (;;)
+
 #if ARCH == x86
     #define outb(p, v) __asm__ volatile("out dx, al;" : : "a"(v), "d"(p))
     #define inb(p, v)  __asm__ volatile("in al, dx" : "=a"(v) : "d"(p))
@@ -55,3 +57,10 @@ void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, .
  * @return      Nothing
  **************************************************************************************************/
 #define kbochs_breakpoint() __asm__ volatile("xchg bx, bx")
+
+/***************************************************************************************************
+ * Halts thread for 'ms' miliseconds
+ *
+ * @return      Nothing
+ **************************************************************************************************/
+void delay (UINT ms);
