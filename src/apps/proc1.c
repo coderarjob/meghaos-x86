@@ -1,5 +1,5 @@
 #include <types.h>
-#include <applib/syscall.h>
+#include <syscall.h>
 
 void another_thread();
 

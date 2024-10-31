@@ -10,8 +10,8 @@ set(APPS_CRT_SOURCES
 compile_lib(
     NAME crta
     SOURCES ${APPS_CRT_SOURCES}
-    FLAGS ${MOS_USER_GCC_FLAGS}
-    INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
+    FLAGS ${MOS_KERNEL_GCC_FLAGS}
+    INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     )
 # ------------------------------------------------------------------------
 # LIBAPP
@@ -24,8 +24,8 @@ set(APPLIB_SOURCES
 compile_lib(
     NAME app
     SOURCES ${APPLIB_SOURCES}
-    FLAGS ${MOS_USER_GCC_FLAGS}
-    INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
+    FLAGS ${MOS_KERNEL_GCC_FLAGS}
+    INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     STATIC_LIB
     )
 # ------------------------------------------------------------------------

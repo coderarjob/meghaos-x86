@@ -1,13 +1,20 @@
 /*
  * -------------------------------------------------------------------------------------------------
- * Megha Operating System V2 - User Library
+ * Megha Operating System V2 - App Library - OS Syscall calls
  * -------------------------------------------------------------------------------------------------
  */
 
 #pragma once
 
 #include <types.h>
-#include <applib/osif.h>
+// App library is built with the with Kernel flags and kernel include directories. Whereas when
+// applications will include this header (either directly or indirectly) the include path will
+// differ, thus this change in the way applib headers are included here.
+#ifdef KERNEL
+    #include <applib/osif.h>
+#else
+    #include <osif.h>
+#endif
 
 S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
 INT os_thread_create (void (*startLocation)(), bool isKernelMode);

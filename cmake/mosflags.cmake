@@ -7,15 +7,6 @@ if(CMAKE_CROSSCOMPILING)
         -nostdlib
         )
 
-    set(MOS_ASM_INCLUDE_DIRS
-        ${PROJECT_SOURCE_DIR}/include/asm
-        ${PROJECT_SOURCE_DIR}/include/x86/asm
-        )
-
-    set(MOS_GCC_INCLUDE_DIRS
-        ${PROJECT_SOURCE_DIR}/include
-        )
-
     if (MOS_BUILD_MODE STREQUAL "DEBUG")
         list(APPEND MOS_KERNEL_GCC_FLAGS -g)
         list(APPEND MOS_KERNEL_NASM_ELF_MODE_FLAGS -g)

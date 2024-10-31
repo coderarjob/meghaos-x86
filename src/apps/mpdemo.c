@@ -1,7 +1,27 @@
 #include <types.h>
-#include <x86/vgatext.h>
-#include <moslimits.h>
-#include <applib/syscall.h>
+#include <syscall.h>
+
+#define MAX_VGA_COLUMNS             80U
+
+typedef enum DisplayVgaColors 
+{
+    BLACK,
+    BLUE,
+    GREEN,
+    CYAN,
+    RED,
+    MAGENTA,
+    BROWN,
+    LIGHT_GRAY,
+    DARK_GRAY,
+    LIGHT_BLUE,
+    LIGHT_GREEN,
+    LIGHT_CYAN,
+    LIGHT_RED,
+    PINK,
+    YELLOW,
+    WHITE
+} DisplayVgaColors;
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text);
 static void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color);

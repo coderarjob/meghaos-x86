@@ -32,4 +32,9 @@ set(MOS_USER_NASM_ELF_MODE_FLAGS
     -f elf
     )
 
+set(MOS_USER_GCC_INCLUDE_DIRS
+    ${PROJECT_SOURCE_DIR}/include/applib
+)
+
+
 set(MOS_USER_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/src/kernel/x86/process.ld)
