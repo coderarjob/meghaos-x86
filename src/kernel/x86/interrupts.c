@@ -49,8 +49,8 @@ INTERRUPT_HANDLER (timer_interrupt)
 void timer_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
-    k_assert (CONFIG_TICK_PERIOD_MICROSEC == CONFIG_INTERRUPT_CLOCK_TP_MICROSEC,
-              "Interrupt timer period != tick period");
+    // As we are simply incrementing the tick_count every time the timer expires.
+    k_staticAssert (CONFIG_TICK_PERIOD_MICROSEC == CONFIG_INTERRUPT_CLOCK_TP_MICROSEC);
 
     g_kstate.tick_count++;
     keventmanager_invoke();

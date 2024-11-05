@@ -53,8 +53,8 @@ typedef enum KernelEvents {
 
 #define KERNEL_PHASE_VALIDATE(p)            k_assert (g_kstate.phase >= p, "Current state is not " #p);
 
-#define KERNEL_MICRODEC_TO_TICK_COUNT(us)   ((us) / CONFIG_TICK_PERIOD_MICROSEC)
-#define KERNEL_TICK_COUNT_TO_MICROSEC(tick) ((tick)*CONFIG_TICK_PERIOD_MICROSEC)
+#define KERNEL_MICRODEC_TO_TICK_COUNT(us)   ((U32)((us) / CONFIG_TICK_PERIOD_MICROSEC))
+#define KERNEL_TICK_COUNT_TO_MICROSEC(tick) ((U64)(tick) * (U64)CONFIG_TICK_PERIOD_MICROSEC)
 
 void k_delay (UINT ms);
 void keventmanager_invoke();
