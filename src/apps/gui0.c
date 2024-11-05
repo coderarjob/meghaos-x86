@@ -43,14 +43,14 @@ void proc_main()
 void thread0()
 {
 #if GRAPHICS_BPP == 8
-    UINT color       = 0x9;
+    UINT color       = 0x1;
     const UINT WHITE = 0xF;
 #elif GRAPHICS_BPP == 32 || GRAPHICS_BPP == 24
     UINT color       = 0x0000FF;
     const UINT WHITE = 0xFFFFFFF;
 #endif
     INT x                          = 0;
-    INT width                      = 50;
+    INT width                      = 20;
     OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 1");
     while (1) {
         if ((UINT)(x + width) >= fbi.width_px) {
@@ -74,8 +74,8 @@ void thread1()
     const UINT WHITE = 0xFFFFFFF;
 #endif
     INT y                          = 0;
-    INT height                     = 50;
-    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 1");
+    INT height                     = 10;
+    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 2");
     while (1) {
         if ((UINT)(y + height) >= fbi.height_px) {
             y = 0;
@@ -83,7 +83,7 @@ void thread1()
         }
         graphics_rect (&fbi, 0, (UINT)y, fbi.width_px, (UINT)height, color);
         y += height + 3;
-        delay (10);
+        delay (100);
         os_window_flush_graphics();
     }
 }
