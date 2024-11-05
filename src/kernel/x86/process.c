@@ -676,7 +676,10 @@ bool kprocess_popEvent (UINT pid, KProcessEvent* ev)
 
     ListNode* node = dequeue (&pinfo->eventsQueueHead);
     if (node == NULL) {
-        RETURN_ERROR (ERR_QUEUE_EMPTY, false);
+        // Note: This is not a faulure sceanario to pop even there are no events.
+        ev->event = KERNEL_EVENT_NONE;
+        ev->data  = 0;
+        return true;
     }
 
     KProcessEvent* e = LIST_ITEM (node, KProcessEvent, eventQueueNode);
