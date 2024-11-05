@@ -153,9 +153,13 @@
 
 [ ] Triple fault when multithread_demo_kernel_thread starts mpdemo in kernel mode.
 
-[ ] os_process_is_yield_requested not working properly if defined in applib/syscall.c
+[X] os_process_is_yield_requested not working properly if defined in applib/syscall.c
+Cause: Compiler optimization.
+Fix  : A 'volatile' keyword fixed the issue. Fixed in commit 7897a67
 
-[ ] os_process_is_yield_requested & os_yield not working in delay() function in applib/app.c.
+[X] os_process_is_yield_requested & os_yield not working in delay() function in applib/app.c.
+Cause: Compiler optimization.
+Fix  : A 'volatile' keyword fixed the issue. Fixed in commit 7897a67
 
 [ ] gui0 program hanging after running for sometime. NDEBUG, DEBUG_LEVEL=0 build in Qemu, bochs, 
 86box and laptop.
