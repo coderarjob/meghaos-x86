@@ -77,7 +77,7 @@ static inline bool os_window_getFB (Handle h, OSIF_WindowFrameBufferInfo* wfb)
     return syscall (OSIF_SYSCALL_WINDOW_GET_WINDOW_FB, (U32)h, (PTR)wfb, 0, 0, 0);
 }
 
-static inline bool os_process_pop_event (U32 pid, OSIF_ProcessEvent* e)
+static inline bool os_process_pop_event (OSIF_ProcessEvent* e)
 {
-    return syscall (OSIF_SYSCALL_POP_PROCESS_EVENT, pid, (PTR)e, 0, 0, 0);
+    return syscall (OSIF_SYSCALL_POP_PROCESS_EVENT, (PTR)e, 0, 0, 0, 0);
 }

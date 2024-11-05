@@ -35,7 +35,7 @@ void ksys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 es
 void ksys_killProcess (SystemcallFrame frame);
 void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
 void ksys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
-bool ksys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e);
+bool ksys_processPopEvent (SystemcallFrame frame, OSIF_ProcessEvent* const e);
 U32 ksys_process_getPID (SystemcallFrame frame);
 U32 ksys_get_tickcount (SystemcallFrame frame);
 PTR ksys_process_getDataMemoryStart (SystemcallFrame frame);
@@ -253,19 +253,20 @@ PTR ksys_process_getDataMemoryStart (SystemcallFrame frame)
     return section == NULL ? (PTR)0 : section->virtualMemoryStart;
 }
 
-bool ksys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e)
+bool ksys_processPopEvent (SystemcallFrame frame, OSIF_ProcessEvent* const e)
 {
-    FUNC_ENTRY ("Frame return address: %x:%x, pid: %x, e: %px ", frame.cs, frame.eip, pid, e);
+    FUNC_ENTRY ("Frame return address: %x:%x, e: %px ", frame.cs, frame.eip, e);
     (void)frame;
 
     KProcessEvent ke;
+    UINT pid = kprocess_getCurrentPID();
     if (!kprocess_popEvent (pid, &ke)) {
-        RETURN_ERROR(ERROR_PASSTHROUGH, false);
+        RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Copy to user space
     e->event = ke.event;
-    e->data = ke.data;
+    e->data  = ke.data;
     return true;
 }
 

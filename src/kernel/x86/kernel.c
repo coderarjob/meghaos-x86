@@ -584,12 +584,11 @@ static void multithread_demo_kernel_thread()
     INFO ("Process ID: %u", processID);
 
     // ----------------------
-    UINT thispid = kprocess_getCurrentPID();
     KProcessEvent e;
     UINT max = 111 * MAX_VGA_COLUMNS;
     for (UINT i = 0; i < max; i++) {
         // Consume process events
-        syscall (6, thispid, (PTR)&e, 0, 0, 0);
+        syscall (6, (PTR)&e, 0, 0, 0, 0);
         syscall (2, 0, 0, 0, 0, 0);
     }
     // ----------------------
@@ -611,7 +610,7 @@ static void multithread_demo_kernel_thread()
     kbochs_breakpoint();
     while (1) {
         // Keep consuming process events
-        syscall (6, thispid, (PTR)&e, 0, 0, 0);
+        syscall (6, (PTR)&e, 0, 0, 0, 0);
     }
 }
 

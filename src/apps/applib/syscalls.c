@@ -52,9 +52,8 @@ INT os_thread_create (void (*startLocation)(), bool isKernelMode)
 
 bool os_process_is_yield_requested()
 {
-    UINT pid            = os_process_get_pid();
     volatile OSIF_ProcessEvent e = { 0 };
-    os_process_pop_event (pid, (OSIF_ProcessEvent*)&e);
+    os_process_pop_event ((OSIF_ProcessEvent*)&e);
     return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
 }
 
