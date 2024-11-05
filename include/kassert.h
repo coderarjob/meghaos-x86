@@ -25,17 +25,18 @@
                 k_panic ("Assertion failed: %s\nAt %s:%u", e, __FILE__, __LINE__); \
         } while (0)
 
-    /* If expression `t' is false, compiler will generate an error
+    /* If expression `t' is false, compiler will generate an error.
      *
-     * Note: This works because an array dimension cannot be negative, which is
-     * what the macro expands to when t == false.
-     *
-     * Note: sizeof (CHAR[!!(t) - 1]) would also have worked, but when t == true,
-     * the array size will become 0. This gives compiler warning
-     * 'ISO C forbids zero sized array'. To avoid this warning/error, we multiply
-     * by 2.
+     * This works because an array dimension cannot be negative, which is what the macro expands to
+     * when t == false.
      */
-    #define k_staticAssert(t) ((void)sizeof(CHAR[2 * !!(t)-1]))
+    #define CALL_COMPILER_CHECK2_NDU(m, t) \
+        __attribute__ ((unused)) typedef char static_assert_##m[(t) ? 1 : -1]
+
+    #define CALL_COMPILER_CHECK_NDU(m, t) CALL_COMPILER_CHECK2_NDU (m, t)
+
+    #define k_staticAssert(t)             CALL_COMPILER_CHECK_NDU (__LINE__, t)
+
 #else
     #define k_assert(t, e) (void)0
     #define k_staticAssert(t) (void)0
