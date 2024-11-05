@@ -10,14 +10,23 @@
 void thread0();
 void thread1();
 
-//bool os_process_is_yield_requested()
-//{
-//    UINT pid            = os_process_get_pid();
-//    OSIF_ProcessEvent e = { 0 };
-//    os_process_pop_event (pid, &e);
-//    return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
-//}
-//
+static OSIF_WindowFrameBufferInfo createWindow (const char* const title)
+{
+    Handle h = os_window_create (title);
+    if (h == INVALID_HANDLE) {
+        ERROR ("Window creation failed");
+        HALT();
+    }
+
+    OSIF_WindowFrameBufferInfo fbi;
+    if (!os_window_getFB (h, &fbi)) {
+        ERROR ("Window creation failed");
+        HALT();
+    }
+
+    return fbi;
+}
+
 void proc_main()
 {
     os_window_flush_graphics();
@@ -33,62 +42,48 @@ void proc_main()
 
 void thread0()
 {
-    Handle h = os_window_create ("window - 0");
-    if (h == INVALID_HANDLE) {
-        ERROR ("Window creation failed");
-        HALT();
-    }
-
-    OSIF_WindowFrameBufferInfo fbi;
-    if (!os_window_getFB (h, &fbi)) {
-        ERROR ("Window creation failed");
-        HALT();
-    }
-
-    UINT x     = 10;
-    UINT color = 0x20;
+#if GRAPHICS_BPP == 8
+    UINT color       = 0x9;
+    const UINT WHITE = 0xF;
+#elif GRAPHICS_BPP == 32 || GRAPHICS_BPP == 24
+    UINT color       = 0x0000FF;
+    const UINT WHITE = 0xFFFFFFF;
+#endif
+    INT x                          = 0;
+    INT width                      = 50;
+    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 1");
     while (1) {
-        graphics_rect (&fbi, x, x, 100, 200, color);
-        graphics_rect (&fbi, x + 100 + 10, x, 100, 200, color);
-        // delay(50);
-        // x+=5;
-        if (color++ > 0x30) {
-            color = 0x20;
+        if ((UINT)(x + width) >= fbi.width_px) {
+            x = 0;
+            graphics_rect (&fbi, 0, 0, fbi.width_px, fbi.height_px, WHITE);
         }
-
-        if (os_process_is_yield_requested()) {
-            os_window_flush_graphics();
-            os_yield();
-        }
+        graphics_rect (&fbi, (UINT)x, 0, (UINT)width, fbi.height_px, color);
+        x += width + 3;
+        delay (10);
+        os_window_flush_graphics();
     }
 }
 
 void thread1()
 {
-    Handle h = os_window_create ("window - 1");
-    if (h == INVALID_HANDLE) {
-        ERROR ("Window creation failed");
-        HALT();
-    }
-
-    OSIF_WindowFrameBufferInfo fbi;
-    if (!os_window_getFB (h, &fbi)) {
-        ERROR ("Window creation failed");
-        HALT();
-    }
-
-    UINT x     = 10;
-    UINT color = 0x70;
+#if GRAPHICS_BPP == 8
+    UINT color       = 0x4;
+    const UINT WHITE = 0xF;
+#elif GRAPHICS_BPP == 32 || GRAPHICS_BPP == 24
+    UINT color       = 0xFF0000;
+    const UINT WHITE = 0xFFFFFFF;
+#endif
+    INT y                          = 0;
+    INT height                     = 50;
+    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 1");
     while (1) {
-        graphics_rect (&fbi, x, x, 200, 100, color);
-        graphics_rect (&fbi, x, x + 100 + 10, 200, 100, color);
-        if (color++ > 0x80) {
-            color = 0x70;
+        if ((UINT)(y + height) >= fbi.height_px) {
+            y = 0;
+            graphics_rect (&fbi, 0, 0, fbi.width_px, fbi.height_px, WHITE);
         }
-
-        if (os_process_is_yield_requested()) {
-            os_window_flush_graphics();
-            os_yield();
-        }
+        graphics_rect (&fbi, 0, (UINT)y, fbi.width_px, (UINT)height, color);
+        y += height + 3;
+        delay (10);
+        os_window_flush_graphics();
     }
 }
