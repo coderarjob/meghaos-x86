@@ -50,6 +50,14 @@ INT os_thread_create (void (*startLocation)(), bool isKernelMode)
     return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
 }
 
+bool os_process_is_yield_requested()
+{
+    UINT pid            = os_process_get_pid();
+    volatile OSIF_ProcessEvent e = { 0 };
+    os_process_pop_event (pid, (OSIF_ProcessEvent*)&e);
+    return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
+}
+
 UINT os_get_tick_period_us()
 {
     return CONFIG_TICK_PERIOD_MICROSEC;

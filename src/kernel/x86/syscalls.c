@@ -255,7 +255,7 @@ PTR ksys_process_getDataMemoryStart (SystemcallFrame frame)
 
 bool ksys_processPopEvent (SystemcallFrame frame, U32 pid, OSIF_ProcessEvent* const e)
 {
-    FUNC_ENTRY ("Frame return address: %x:%x, event ptr", frame.cs, frame.eip, e);
+    FUNC_ENTRY ("Frame return address: %x:%x, pid: %x, e: %px ", frame.cs, frame.eip, pid, e);
     (void)frame;
 
     KProcessEvent ke;

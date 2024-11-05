@@ -10,14 +10,14 @@
 void thread0();
 void thread1();
 
-bool os_process_is_yield_requested()
-{
-    UINT pid            = os_process_get_pid();
-    OSIF_ProcessEvent e = { 0 };
-    os_process_pop_event (pid, &e);
-    return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
-}
-
+//bool os_process_is_yield_requested()
+//{
+//    UINT pid            = os_process_get_pid();
+//    OSIF_ProcessEvent e = { 0 };
+//    os_process_pop_event (pid, &e);
+//    return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
+//}
+//
 void proc_main()
 {
     os_window_flush_graphics();
