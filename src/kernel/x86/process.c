@@ -500,13 +500,15 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFla
         RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
     }
 
-    KProcessInfo* pinfo = s_processInfo_malloc (flags);
+    KProcessInfo* pinfo = NULL;
+    if (!(pinfo = s_processInfo_malloc (flags))) {
+        goto failure;
+    }
+
     INFO ("Creating new process: ID = %u", pinfo->processID);
 
     if (!s_createProcessPageDirectory (pinfo)) {
-        // On failure the process page directory is deleted by s_createProcessPageDirectory itself
-        // and so there is nothing to be done here but to exit.
-        RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
+        goto failure;
     }
 
     if (!s_setupProcessBinaryMemory (processStartAddress, binLengthBytes, pinfo)) {
