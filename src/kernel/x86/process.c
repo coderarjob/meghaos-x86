@@ -407,7 +407,6 @@ static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* cu
 // would to implement signals. When a process ending it would add SIGCHILD signal for its parent
 // and the scheduler will make sure that the parent gets the message. However I do not want a ZOMBIE
 // process as well.
-// TODO: Ending a process should also end threads of the process.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 static bool kprocess_kill_process (KProcessInfo** process)
@@ -419,9 +418,14 @@ static bool kprocess_kill_process (KProcessInfo** process)
         RETURN_ERROR (ERR_PROC_EXIT_NOT_ALLOWED, false);
     }
 
+    k_assert (process != NULL, "There are no process to exit");
+
     KProcessInfo* l_process = *process;
 
-    k_assert (process != NULL, "There are no process to exit");
+    if (l_process->parentProcessID <= PROCESS_ID_KERNEL) {
+        // Cannot exit root process.
+        RETURN_ERROR (ERR_PROC_EXIT_NOT_ALLOWED, false);
+    }
 
     INFO ("Killing process: %u. Parent: %u", l_process->processID, l_process->parentProcessID);
     INFO ("Is thread: %s", BIT_ISSET (l_process->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
@@ -609,7 +613,7 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     do {
         pinfo = s_dequeue();
         if (pinfo == NULL) {
-            RETURN_ERROR (ERROR_PASSTHROUGH, false);
+            FATAL_BUG(); // There should be at least one process in the queue.
         }
 
         if (!s_enqueue (pinfo)) {

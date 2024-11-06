@@ -144,6 +144,10 @@
 | ::: PD of the Kernel. At the start we copy the Kernel PDEs but are not  |           |            |
 | ::: copying it back. The Kernel memory mapping might have changed by    |           |            |
 | ::: now, so this copying is needed.                                     |           |            |
+| ::: [X] Process hierarchy. New processes will have the current process  | 06 Nov 24 | 06 Nov 24  |
+| as its parent.                                                          |           |            |
+| ::: [X] Process Kill: When killing a process, its child processes are   | 06 Nov 24 | 06 Nov 24  |
+| also killed.                                                            |           |            |
 | ::: [X] Free up process memory when creation or switching fails         | 15 Apr 24 | 10 Aug 24  |
 | ::: [-] Ability to select and extend stack memory as required.          | 12 Apr 24 | 03 Aug 24  |
 | With VMM the stack can be allocated dynamically but is of fixed size,   |           |            |
