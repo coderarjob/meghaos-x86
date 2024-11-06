@@ -52,6 +52,9 @@ typedef struct KProcessInfo {
     VMemoryManager* context;
     ListNode schedulerQueueNode; // Processes are part of scheduler queue through this node.
     ListNode eventsQueueHead;    // Start of the process events queue.
+    ListNode childrenListHead;   // Start of child processes list
+    ListNode childrenListNode;   // Processes are linked to the parent through this node.
+    UINT parentProcessID;        // Parent process. PROCESS_ID_KERNEL for the first process.
     UINT processID;
     KProcessFlags flags;
     // ----------------------

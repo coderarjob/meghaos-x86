@@ -130,6 +130,8 @@ static KProcessInfo* s_processInfo_malloc (KProcessFlags flags)
     pInfo->flags     = flags;
     list_init (&pInfo->schedulerQueueNode);
     list_init (&pInfo->eventsQueueHead);
+    list_init (&pInfo->childrenListHead);
+    list_init (&pInfo->childrenListNode);
 
     return pInfo;
 }
@@ -283,8 +285,8 @@ static bool s_setupProcessDataMemory (KProcessInfo* pinfo)
     } else if (currentProcess != NULL) {
         // Threads reuse the data section of its parent.
         pinfo->data = currentProcess->data;
-        INFO ("Reusing data area of parent process ID: %u for process ID: %u", pinfo->processID,
-              currentProcess->processID);
+        INFO ("Reusing data area of parent process ID: %u for process ID: %u",
+              pinfo->parentProcessID, pinfo->processID);
     } else {
         // Threads of kernel does not have data area.
         // TODO: Should we have a process flag say PROCESS_FLAGS_NO_DATA_AREA?
@@ -421,22 +423,35 @@ static bool kprocess_kill_process (KProcessInfo** process)
 
     k_assert (process != NULL, "There are no process to exit");
 
-    INFO ("Killing process: %u", l_process->processID);
+    INFO ("Killing process: %u. Parent: %u", l_process->processID, l_process->parentProcessID);
     INFO ("Is thread: %s", BIT_ISSET (l_process->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
-
-    if (!kfree (l_process->registerStates)) {
-        BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
-    }
 
     // Delete complete context only for non-thread processes
     if (BIT_ISUNSET (l_process->flags, PROCESS_FLAGS_THREAD)) {
         INFO ("Removing complete process context");
 
-        // If there is no current process or current process is not the process being killed, there
-        // is no need to change CR3.
+        // Kill the child processes if any
+        INFO ("Killing all child process");
+
+        ListNode* node = NULL;
+        ListNode* head = &currentProcess->childrenListHead;
+        for (node = head->next; node != head; node = head->next) {
+            KProcessInfo* cpinfo = NULL;
+            if (!(cpinfo = LIST_ITEM (node, KProcessInfo, childrenListNode))) {
+                FATAL_BUG();
+            }
+            INFO ("Killing child process. PID: %u", cpinfo->processID);
+            if (!kprocess_kill_process (&cpinfo)) {
+                FATAL_BUG(); // Under normal condition its not possible for such a failure.
+            }
+        }
+        INFO ("All child processes killed. Now killing parent: %x", l_process->processID);
+
+        // If current process is not the process being killed, then there is no need to change
+        // Page Directories.
         if (currentProcess != NULL && currentProcess->processID == l_process->processID) {
-            // In order to destroy the context of the current process, it is required to switch to
-            // the Kernel context, otherwise we would be killing the context while using it.
+            // In order to destroy the PD of the current process, it is required to switch to
+            // the Kernel PD, otherwise we would be killing the PD while using it.
             register x86_CR3 cr3 = { 0 };
             cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
             cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
@@ -461,14 +476,18 @@ static bool kprocess_kill_process (KProcessInfo** process)
         }
     } else {
         INFO ("Removing thread context");
-        if (!kvmm_free (l_process->context, currentProcess->stack.virtualMemoryStart)) {
+        if (!kvmm_free (l_process->context, l_process->stack.virtualMemoryStart)) {
             BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
         }
     }
 
-    queue_remove (&l_process->schedulerQueueNode);
+    INFO ("Freeing register states");
+    if (!kfree (l_process->registerStates)) {
+        BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
+    }
 
     // Delete items in the events queue
+    INFO ("Freeing process events queue");
     ListNode* evnode = NULL;
     list_for_each (&l_process->eventsQueueHead, evnode)
     {
@@ -477,7 +496,14 @@ static bool kprocess_kill_process (KProcessInfo** process)
         kfree (e);
     }
 
+    // Remove the process from its parent child process list
+    list_remove (&l_process->childrenListNode);
+
+    // Remove the process from scheduler queue
+    queue_remove (&l_process->schedulerQueueNode);
+
     // Now the process item can be freed.
+    INFO ("Process removed from scheduler queue. Freeeing process item");
     kfree (l_process);
     *process = NULL;
     processCount--;
@@ -523,7 +549,14 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFla
         goto failure;
     }
 
-    INFO ("New process: ID = %u", pinfo->processID);
+    // Add the new process as children of the current one.
+    pinfo->parentProcessID = kprocess_getCurrentPID();
+    if (currentProcess != NULL) {
+        // The first process does not have any parent.
+        list_add_before (&currentProcess->childrenListHead, &pinfo->childrenListNode);
+    }
+
+    INFO ("New process: ID = %u, Parent process ID: %u", pinfo->processID, pinfo->parentProcessID);
     kvmm_printVASList (pinfo->context);
     INFO ("------------------------");
 
@@ -666,7 +699,7 @@ UINT kprocess_getCurrentPID()
 
 KProcessSections* kprocess_getCurrentProcessDataSection()
 {
-    return (currentProcess == NULL) ? NULL  : &currentProcess->data;
+    return (currentProcess == NULL) ? NULL : &currentProcess->data;
 }
 
 bool kprocess_popEvent (UINT pid, KProcessEvent* ev)
