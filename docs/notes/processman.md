@@ -7,52 +7,162 @@ categories: feature, independent
 ### Process modes
 
 A process is instance of runnable code in the context of an Operating System. They does not
-necessarily correlate one to one with executable files. A process can then run portions in
-"light-weight" processes called threads.
+necessarily correlate one to one with executable files. A process can also create "light-weight"
+processes called threads that run independently by share code & data with the parent process. These
+are the two types of processes - 'Threads' & 'Non-thread' processes aka just 'Process'.
 
 Both these types of processes can be run in either Ring 3 or Ring 0, the later is called Kernel
 mode. The ability to run whole program or portions in either Ring 0 or 3 is important as no
 commercial Operating System will allow this easily.
 
-### Threads
+```
+|                                    | Process  | Threads        | Kernel process |
+|------------------------------------|----------|----------------|----------------|
+| Physical memory (& Page Directory) | Separate | Same as Parent | Separate       |
+| Code run level                     | Ring 3   | Ring 3         | Ring 0         |
+| Data run level                     | Ring 3   | Ring 3         | Ring 0         |
+|------------------------------------|----------|----------------|----------------|
+| Text virtual address space (VAS)   | Separate | Same as parent | Separeate      |
+| Text VAS privilege level           | Ring 3   | Ring 3         | Ring 3         |
+|------------------------------------|----------|----------------|----------------|
+| Data Heap VAS                      | Separate | Same as parent | Separeate      |
+| Data Heap VAS privilege level      | Ring 3   | Ring 3         | Ring 3         |
+|------------------------------------|----------|----------------|----------------|
+| Stack VAS                          | Separate | Separate       | Separeate      |
+| Stack VAS privilege level          | Ring 3   | Ring 3         | Ring 0         |
+|------------------------------------|----------|----------------|----------------|
+```
 
-#### How threads and non-thread processes differ
+The 'Run Level' is the privilege levels for code & data in a process while its running. If it tries
+to access memory for which it does not have permission, CPU will through an exception. Ring 0 is the
+most privileged, so a process running in Ring 3 cannot have execute Ring 0 specific instructions &
+memory pages. Megha OS however allows any process/thread to run in the most privileged, Ring 0 mode
+allowing it to access hardware and memory locations for playing around and experimenting.
 
-1. It runs within the address space of its non-thread parent (one thread can create other threads
-   and they all share the same address space of the parent of the first thread). This means no new
-   Page Directory is created for threads.
-2. Threads do not run whole binaries/programs, they run arbitrary code from its (already loaded)
-   parent. In the other case a binary is loaded, mapped and starts execution from a fixed
-   location (Programs must be linked properly so that the entry point is at the right/expected
-   location in the binary).
+The 'Virtual page privilege levels' is the privilege level of virtual memory pages. Memory used by
+the hardware or the Kernel are always Ring 0, which means a process running in Ring 3 would not be
+able to access them.
 
-#### What remains the same
+Note that the within a process's virtual address space, the pages for Code & Data are always Ring 3,
+this is so that a Non-Kernel thread can run code & access data of its Kernel process.
 
-1. Specific stack for each process. Threads and non-thread ones, whether in Kernel or not has
-   separate stacks.
-   Process stacks are mapped to a fixed virtual location in non-thread processes
-   (PROCESS_STACK_VA_START), but in thread processes this is not possible as the fixed stack
-   location will already be mapped and used by its parent, so thread process stack are mapped
-   dynamically.
-2. Kernel/non-kernel mode determines which ring the process will be run in.
+### Process creation
 
-### Kernel mode processes
+Every process has three regions of memory, the Text, Data Heap and Stack. The placement in VAS and
+their size is shown in the table below.
 
-This depends on the architecture of the CPU and but here are the broad points.
-1. Runs in the same privileged mode as the Kernel.
-2. Address space (of code, data and stack) separation remains same as general processes. All
-   processes, Kernel mode or otherwise runs in its own address space.
-3. Non-Kernel mode process can create Kernel mode processes (thread processes or otherwise).
+```
+|                     | Process                              | Threads                   |
+|---------------------|--------------------------------------|---------------------------|
+| Text VAS start      | ARCH_MEM_START_PROCESS_TEXT          | Function address          |
+| Text VAS size       | Provided                             | n/a  (Text is shared)     |
+|---------------------|--------------------------------------|---------------------------|
+| Data Heap VAS start | Dynamic                              | n/a (Data heap is shared) |
+| Data Heap VAS size  | ARCH_MEM_LEN_BYTES_PROCESS_DATA      | n/a (Data heap is shared) |
+|---------------------|--------------------------------------|---------------------------|
+| Stack VAS start     | Dynamic                              | Dynamic                   |
+| Stack VAS size      | ARCH_MEM_LEN_BYTES_PROCESS_STACK + 2 | :- Same as Process :-     |
+|---------------------|--------------------------------------|---------------------------|
+```
 
-#### How Kernel mode differs from non-Kernel mode processes
+The VAS for each process starts from `ARCH_MEM_START_PROCESS_MEMORY` (4 KB) and ends at
+`ARCH_MEM_END_PROCESS_MEMORY` (3GB). The Kernel VAS is from 3GB to 4 GB.
 
-1. Kernel process runs in Ring 0. In x86 architecture this means the Segment registers are so setup
-   to select Ring 0 rather than Ring 3.
-2. On the x86 architecture, non-kernel mode processes has two stacks, one for user mode another
-   for Kernel mode. Kernel mode processes on the other hand has one process stack that is used when
-   by Kernel as well (With everything in Ring 0, there is no need for a separate stack).
+As the table above shows Threads run the same memory context as its parent, it shares the Physical
+memory pages and Virtual Memory addresses. Threads do however have separate Stacks.
 
-### Problem with creation of new process from a kernel process
+Processes (non threads) programs must be linked properly so that the entry point is at the expected
+location in the binary. Memory for Stack & Data heap gets allocated dynamically but always have a
+fixed maximum size.
+
+The memory for stack has guard pages at the top & bottom to catch stack overflow & underflow.
+
+Kernel/non-kernel mode determines which ring the process will be run in. A process running in
+non-Kernel mode process can create Kernel mode processes (thread processes or otherwise).
+
+Kernel processes runs in Ring 0. In x86 this means the Segment registers are so setup to select Ring
+0 rather than Ring 3.
+
+### Process Hierarchy
+
+Except for the 'Root' process, every other processes and all threads have a parent. Root process is
+the process started by the Kernel. It does not have any parent process and its called root because
+all application level processes are started by it or its child processes.
+
+When a non-thread process starts another process (thread or otherwise), it becomes the parent
+process of the new process. When a thread process starts another process, it however does not become
+the parent, but the parent process of the thread becomes the parent of the new process. This means
+that threads cannot have child processes. This simplifies thread exit process as we do not have to
+kill/adopt their child processes. Note that threads can still create other process & threads they
+just don't own them.
+
+Another restriction on threads is that they can never be the 'Root' process. Threads must always
+have a parent. This restriction exits just to keep the process hierarchy always have one single
+root.
+
+Furthermore to have a single root process, there is another restriction. 'Root' process can only be
+created when there are no current process.
+
+```
+| Parent  | Child       | Allowed?                   | Parent                    |
+|---------|-------------|----------------------------|---------------------------|
+| Kernel  | 1st Process | Yes (Becomes root process) | NULL                      |
+| Kernel  | 2nd Process | No (Single root process)   | -                         |
+| Kernel  | Thread      | No (must have a parent)    | -                         |
+| Process | Process     | Yes                        | Current process           |
+| Process | Thread      | Yes                        | Current process           |
+| Thread  | Process     | Yes                        | Parent of current process |
+| Thread  | Thread      | Yes                        | Parent of current process |
+|---------|-------------|----------------------------|---------------------------|
+```
+
+### Process Scheduler
+
+`TDB`
+
+### Process Events
+
+Every process has a queue for process events. These events tell the process about some event or
+state change. For instance when timer wants the current process to yield it adds
+`KERNEL_EVENT_PROCCESS_YIELD_REQ` even to the events queue of the current process.
+
+Each event item contains two fields: Event ID and Event Data.
+
+Every process has its own process & thread have individual event queue.
+
+### Process exit
+
+Exiting threads is the simplest. Since they only have a stack, exiting threads means to only
+deallocate the virtual & physical memory for its stack, and freeing the memory used by process's
+events and removing the thread from the scheduler queue. That is steps 1 to 4 don't happen for
+threads but 5,6 does happen.
+
+Exiting process is little bit extended. Its done in the following flow.
+
+1. Recursively exit all its child processes (threads & otherwise).
+2. If current process is being killed, then we first switch to use the Kernel Page Directory so that
+   the current one can be freed. Its possible to change to Kernel PD seamlessly because Kernel VAS
+   is mapped to every process.
+3. Delete entire virtual address space of the process. This will also free the physical memory pages
+   that were mapped.
+4. Deallocate physical memory used for the process's Page Directory and Tables are deallocated.
+5. Memory used up by process events are freed.
+6. Process is removed from the scheduler queue.
+
+The steps are same for both kernel and non-kernel processes just that no stack switch occurs when a
+kernel process makes a system call. This however causes a problem when a killing a Kernel process.
+Specifically after virtual memory for its stack gets unmapped it becomes impossible for the function
+to return back to complete the rest of the exit process. To kill a Kernel process (thread or
+otherwise) there is one additional step that happens before the start of the exit process, that is
+before step 1. Since the problem happens only using a different stack would be sufficient, here we
+switch to use the Kernel Stack (which is separate from the process's stack). This again works
+because the page mapping for the Kernel Stack is already present in every process.
+
+------------------------------------------------------------------------------
+
+## Problem with creation of new process from a kernel process
+categories: note, x86, obsolete
+10th Nov 2024
 
 When a Kernel process makes a syscall, no stack switch occurs. This causes stack corruption when
 trying to switch to the new process.
@@ -74,7 +184,11 @@ The solutions I see are these:
    Do not see any problem with this approach, just that I have to think of a way to make these
    temporary mappings, as the existing temporary map function cannot be used for these.
 
-### Problem with creating kernel modules
+------------------------------------------------------------------------------
+
+## Problem with creating kernel modules
+categories: note, x86
+10th Nov 2024
 
 At this point, processes can be run in ring 0 and therefore will be able to whatever the kernel can
 do. However this does not make it a kernel module. They must provide functionality which user

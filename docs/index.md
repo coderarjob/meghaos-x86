@@ -43,7 +43,10 @@
 
 ------------------------------------------------
 ### Notes
+- [App library headers paths](notes/Scratch.md#App-library-headers-paths)
+- [GUI basics in MeghaOS](notes/Scratch.md#GUI-basics-in-MeghaOS)
 - [Application standard library](notes/Scratch.md#Application-standard-library)
+- [New Git workflow](notes/Scratch.md#New-Git-workflow)
 - [Understanding when to use assert in Kernel code](notes/when-to-assert.md#Understanding-when-to-use-assert-in-Kernel-code)
 - [When to panic in a kernel?](notes/when-to-assert.md#When-to-panic-in-a-kernel)
 - [Abstraction is Key for a modular Operating System](notes/abstract_design.md#Abstraction-is-Key-for-a-modular-Operating-System)
@@ -83,6 +86,7 @@
 - [Notes: Why not preallocate the whole 256 MB? ](notes/paging.md#Notes:-Why-not-preallocate-the-whole-256-MB-)
 - [Physical page allocation basics](notes/memorymanagement.md#Physical-page-allocation-basics)
 - [Recursive mapping and temporary mapping in Kernel](notes/recursive_map_clarity_with_example.md#Recursive-mapping-and-temporary-mapping-in-Kernel)
+- [Problem with creating kernel modules](notes/processman.md#Problem-with-creating-kernel-modules)
 - [System call frame and signature](notes/abi.md#System-call-frame-and-signature)
 
 ### Obsolete Notes
@@ -94,6 +98,7 @@
 - [Physical Memory Map](notes/gdt.md#Physical-Memory-Map)
 - [Where to keep the GDT?](notes/gdt.md#Where-to-keep-the-GDT)
 - [Virtual memory management - Concept of Regions](notes/virtual_memory_manager.md#Virtual-memory-management---Concept-of-Regions)
+- [Problem with creation of new process from a kernel process](notes/processman.md#Problem-with-creation-of-new-process-from-a-kernel-process)
 - [Physical Memory allocation - Making physical address 0x0000 invalid](notes/physical_memory_allocation.md#Physical-Memory-allocation---Making-physical-address-0x0000-invalid)
 - [Physical Memory allocation - Dry run](notes/physical_memory_allocation.md#Physical-Memory-allocation---Dry-run)
 - [Physical Memory allocation - Notes on API](notes/physical_memory_allocation.md#Physical-Memory-allocation---Notes-on-API)
