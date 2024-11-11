@@ -46,23 +46,12 @@
 #endif // GRAPHICS_MODE_ENABLED
 #include <handle.h>
 
+#define MPDEMO
+
 static void display_system_info ();
 static void s_initializeMemoryManagers ();
 static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end);
-//static void vmm_basic_testing();
-//static void s_dumpPab ();
-//static void paging_test_map_unmap();
-//static void paging_test_temp_map_unmap();
-//static void kmalloc_test();
-//static void find_virtual_address();
-static void process_poc();
-//static void multiprocess_demo();
-static void multithread_demo_kernel_thread();
-static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
-
-#ifdef GRAPHICS_MODE_ENABLED
-static void graphics_demo_basic();
-#endif
+static void run_root_process();
 
 /* Kernel state global variable */
 volatile KernelStateInfo g_kstate;
@@ -154,7 +143,7 @@ void kernel_main ()
     // Start timer receiving interupts
     pit_set_interrupt_counter(PIT_COUNTER_MODE_2,CONFIG_INTERRUPT_CLOCK_FREQ_HZ);
     pic_enable_disable_irq(PIC_IRQ_TIMER, true);
-    __asm__ volatile ("sti;");
+    ARCH_ENABLE_INTERRUPTS();
 
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_KERNEL_READY);
     kearly_printf ("\r[OK]");
@@ -163,21 +152,6 @@ void kernel_main ()
     kearly_println ("Kernel initialization finished..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,LIGHT_GRAY,0));
 
-    // Display available memory
-    //s_dumpPab();
-    // Paging information
-    //extern void paging_print ();
-    //paging_print ();
-    //paging_test_map_unmap();
-    //paging_test_temp_map_unmap();
-    //kmalloc_test();
-
-    //find_virtual_address();
-    //display_system_info ();
-    //s_dumpPab();
-    //vmm_basic_testing();
-    //k_halt();
-    
     //---------------
     int cpuflags_present = 0;
     __asm__ volatile("pushfd;"
@@ -195,85 +169,12 @@ void kernel_main ()
     __asm__ volatile ("cpuid;":"+eax"(eax):"eax"(0));
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
+    run_root_process();
+
 #ifdef GRAPHICS_MODE_ENABLED
-#if CONFIG_GXMODE_BITSPERPIXEL == 8
-    #define COLOR1        0x4
-    #define COLOR2        0x21
-    #define COLOR3        0x2
-    #define COLOR4        0xE
-    #define COLOR5        0xB
-    #define COLOR6        0xD
-    #define COLOR7        0xF
-    #define BORDER_COLOR1 26
-    #define BORDER_COLOR2 30
-#elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
-    #define COLOR1        0xFF0000
-    #define COLOR2        0x0000FF
-    #define COLOR3        0x00FF00
-    #define COLOR4        0xFFFF00
-    #define COLOR5        0x00FFFF
-    #define COLOR6        0xFF00FF
-    #define COLOR7        0xFFFFFF
-    #define BORDER_COLOR1 0xA2A2A2
-    #define BORDER_COLOR2 0xF2F2F2
-#endif
-
-    Window* win1 = kcompose_createWindow ("Window 1");
-    KGraphicsArea* w1a = &win1->workingArea;
-    k_panicOnError();
-
-    Window* win2 = kcompose_createWindow ("Window 2");
-    KGraphicsArea* w2a = &win2->workingArea;
-    k_panicOnError();
-
-    Window* win3 = kcompose_createWindow ("Window 3");
-    KGraphicsArea* w3a = &win3->workingArea;
-    k_panicOnError();
-
-    kcompose_flush();
-
-    k_delay(1000);
-
-    graphics_rect(w1a, 0, 0, w1a->width_px, w1a->height_px, COLOR1);
-    graphics_rect (w1a, 10, 10, 100, 100, COLOR2);
-    kgraphics_inborder (w1a, 10, 10, 100, 100, 3, BORDER_COLOR1);
-    kgraphics_inborder (w1a, 11, 11, 98, 98, 1, BORDER_COLOR2);
-
-    graphics_rect (w2a, 0, 0, w2a->width_px, w2a->height_px, COLOR3);
-    graphics_rect(w2a, 10, 10, 100,100, COLOR4);
-
-    graphics_rect(w3a, 0, 0, w3a->width_px, w3a->height_px, COLOR5);
-    graphics_rect(w3a, 20, 50, 100,100, COLOR6);
-
-    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
-
-    Window* win4 = kcompose_createWindow ("Window 4");
-    KGraphicsArea* w4a = &win4->workingArea;
-    k_panicOnError();
-    graphics_rect(w4a, 0, 0, w4a->width_px, w4a->height_px, COLOR1);
-    graphics_rect(w4a, 50, 50, 200,100, COLOR2);
-
-    kcompose_flush();
-
-    k_delay(3000);
-
-    kcompose_destroyWindow(win4);
-    k_panicOnError();
-
-    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
-
     kcompose_flush();
     kgraphis_flush();
-    k_halt();
-    graphics_demo_basic();
 #endif
-    process_poc();
-    //new_process();
-    //new_process_2();
 
     k_halt();
 }
@@ -309,426 +210,44 @@ void k_delay (UINT ms)
         ;
 }
 
-#ifdef GRAPHICS_MODE_ENABLED
-
-static KGraphicsArea* kgraphics_backbufer()
-{
-    return (KGraphicsArea*)&g_kstate.gx_back;
-}
-
-static void graphics_demo_basic()
-{
-    #if CONFIG_GXMODE_BITSPERPIXEL == 8
-        #define BG_COLOR             26
-        #define FONT_FG_COLOR        17
-        #define FONT_BG_COLOR        WINDOW_BG_COLOR
-        #define IMAGE_BITS_PER_PIXEL 1
-
-        #define WINDOW_BG_COLOR      29
-        #define WINDOW_SHADOW_COLOR  23
-
-        #define TITLE_BAR_BG_COLOR   126
-        #define TITLE_BAR_FG_COLOR   15
-
-        #define COLORMAP_SIZE        15 // square
-        #define COLORMAP_X           WINDOW_X + WINDOW_WIDTH - (COLORMAP_SIZE * 16) - 20
-        #define COLORMAP_Y           WINDOW_Y + 20
-
-        #define PAT_BG_COLOR         16
-        #define PAT_FG_COLOR         41
-    #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
-        #define BG_COLOR             0xAFAFAF
-        #define FONT_FG_COLOR        0x101010
-        #define FONT_BG_COLOR        WINDOW_BG_COLOR
-        #define IMAGE_BITS_PER_PIXEL 3
-
-        #define WINDOW_BG_COLOR      0xDFDFDF
-        #define WINDOW_SHADOW_COLOR  0x7D7D7D
-
-        #define TITLE_BAR_BG_COLOR   0x003971
-        #define TITLE_BAR_FG_COLOR   0xFFFFFF
-
-        #define MOS_LOGO_WIDTH       (200)
-        #define MOS_LOGO_HEIGHT      (80)
-        #define MOS_LOGO_Y           (WINDOW_Y + 10)
-        #define MOS_LOGO_X           (WINDOW_X + WINDOW_WIDTH - MOS_LOGO_WIDTH - 20)
-
-        #define PAT_BG_COLOR         0x101010
-        #define PAT_FG_COLOR         0xff4100
-    #endif
-
-    #define WINDOW_Y         40
-    #define WINDOW_X         20
-    #define WINDOW_WIDTH     CONFIG_GXMODE_XRESOLUTION - WINDOW_X - 20
-    #define WINDOW_HEIGHT    CONFIG_GXMODE_YRESOLUTION - WINDOW_Y - 20
-
-    #define TITLE_BAR_HEIGHT (CONFIG_GXMODE_FONT_HEIGHT + 6)
-    #define TITLE_BAR_WIDTH  (WINDOW_WIDTH)
-    #define TITLE_BAR_X      (WINDOW_X)
-    #define TITLE_BAR_Y      (WINDOW_Y - TITLE_BAR_HEIGHT)
-
-    #define CHARDUMP_Y       (WINDOW_Y + 20)
-    #define CHARDUMP_X       (WINDOW_X + 20)
-
-    #define PAT_SIZE         200
-    #define PAT_X            (WINDOW_X + WINDOW_WIDTH - PAT_SIZE - 20)
-    #define PAT_Y            (WINDOW_Y + WINDOW_HEIGHT - PAT_SIZE - 20)
-
-    // ------------------------------------
-    // Draw Window and title bar
-    // ------------------------------------
-    graphics_rect (kgraphics_backbufer(), 0, 0, CONFIG_GXMODE_XRESOLUTION,
-                   CONFIG_GXMODE_YRESOLUTION, BG_COLOR);
-    graphics_rect (kgraphics_backbufer(), WINDOW_X - 6, WINDOW_Y + 6, WINDOW_WIDTH, WINDOW_HEIGHT,
-                   WINDOW_SHADOW_COLOR);
-    graphics_rect (kgraphics_backbufer(), WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT,
-                   WINDOW_BG_COLOR);
-    graphics_rect (kgraphics_backbufer(), TITLE_BAR_X, TITLE_BAR_Y, TITLE_BAR_WIDTH,
-                   TITLE_BAR_HEIGHT, TITLE_BAR_BG_COLOR);
-
-    char* wintitle = "MeghaOS V2 : Graphics & Fonts Demo";
-    kgraphics_drawstring (kgraphics_backbufer(), TITLE_BAR_X + 10, TITLE_BAR_Y + 3, wintitle,
-                          TITLE_BAR_FG_COLOR, TITLE_BAR_BG_COLOR);
-
-    // ------------------------------------
-    // Draw Logo image
-    // ------------------------------------
-    #if CONFIG_GXMODE_BITSPERPIXEL != 8
-    Physical fileStart = PHYSICAL (kboot_getBootFileItem (3).startLocation);
-    U8* image          = (U8*)HIGHER_HALF_KERNEL_TO_VA (fileStart);
-    graphics_image_raw (kgraphics_backbufer(), MOS_LOGO_X, MOS_LOGO_Y, MOS_LOGO_WIDTH,
-                        MOS_LOGO_HEIGHT, IMAGE_BITS_PER_PIXEL, image);
-    #endif
-
-    // ------------------------------------
-    // Character Map dump
-    // ------------------------------------
-    for (UINT c = 0; c < BOOT_FONTS_GLYPH_COUNT; c++) {
-        UINT y = (c / 16) * CONFIG_GXMODE_FONT_HEIGHT * 2;
-        UINT x = (c % 16) * CONFIG_GXMODE_FONT_WIDTH * 2;
-        graphics_drawfont (kgraphics_backbufer(), x + CHARDUMP_X, y + CHARDUMP_Y, (UCHAR)c,
-                           FONT_FG_COLOR, FONT_BG_COLOR);
-    }
-
-    // ------------------------------------
-    // Color Map dump
-    // ------------------------------------
-    #if CONFIG_GXMODE_BITSPERPIXEL == 8
-    for (UINT c = 0; c < 256; c++) {
-        UINT y = (c / 16) * COLORMAP_SIZE;
-        UINT x = (c % 16) * COLORMAP_SIZE;
-        graphics_rect (kgraphics_backbufer(), x + COLORMAP_X, y + COLORMAP_Y, COLORMAP_SIZE, COLORMAP_SIZE, c);
-    }
-    #endif
-
-    // ------------------------------------
-    // Printing string
-    // ------------------------------------
-    char* text = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.";
-    UINT y     = WINDOW_Y + WINDOW_HEIGHT - CONFIG_GXMODE_FONT_HEIGHT - 20;
-    kgraphics_drawstring (kgraphics_backbufer(), WINDOW_X + 20, y, text, FONT_FG_COLOR,
-                          WINDOW_BG_COLOR);
-
-    text = "the quick brown fox jumps over the lazy dog.";
-    y -= CONFIG_GXMODE_FONT_HEIGHT + 5;
-    kgraphics_drawstring (kgraphics_backbufer(), WINDOW_X + 20, y, text, FONT_FG_COLOR,
-                          WINDOW_BG_COLOR);
-
-    // ------------------------------------
-    // Drawing patterns
-    // ------------------------------------
-    UINT x = PAT_X;
-    for (; x < (PAT_X + PAT_SIZE); x++) {
-        UINT y = PAT_Y;
-        for (; y < (PAT_Y + PAT_SIZE); y++) {
-            bool condition = (((x - PAT_X) & (y - PAT_Y)) % 10 == 0);
-            graphics_putpixel (kgraphics_backbufer(), x, y,
-                               condition ? PAT_FG_COLOR : PAT_BG_COLOR);
-        }
-    }
-}
-#endif // GRAPHICS_MODE_ENABLED
-
-//static void vmm_basic_testing()
-//{
-//    FUNC_ENTRY();
-//
-//    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
-//
-//    // Physical kernelPD = HIGHER_HALF_KERNEL_TO_PA(MEM_START_KERNEL_PAGE_DIR);
-//    // VMemoryManager* vmm = kvmm_new (0xC03E8000, 0xC03EA000, kernelPD, PMM_REGION_ANY);
-//    VMemoryManager* vmm = g_kstate.context;
-//
-//    Physical newPA;
-//    kpmm_alloc(&newPA, 2, PMM_REGION_ANY);
-//
-//    int* addr = (int*)kvmm_memmap (vmm, (PTR)NULL, &newPA, 2,
-//                                   VMM_MEMMAP_FLAG_IMMCOMMIT | VMM_MEMMAP_FLAG_KERNEL_PAGE, &newPA);
-//
-//    INFO ("Allocated Physical page: %px", newPA.val);
-//
-//    kvmm_printVASList (vmm);
-//
-//    *addr = 10;
-//    INFO ("Reading from %px. Value is: %u", addr, *addr);
-//
-//    // Now delete allocated vm address space
-//    kvmm_free(vmm, (PTR)addr);
-//
-//    //
-//    //    int* addr = (int*)kvmm_alloc (vmm, 1, PG_MAP_FLAG_KERNEL_DEFAULT,
-//    //    VMM_ADDR_SPACE_FLAG_NONE); INFO ("Allocated address: %px", addr);
-//    //
-//    //    // Commit page here only
-//    //    PageDirectory pd = kpg_getcurrentpd();
-//    //    Physical pa;
-//    //
-//    //    kpmm_alloc (&pa, 1, PMM_REGION_ANY);
-//    //
-//    //    PTR va        = 0xC03E8000;
-//    //    PTR pageStart = ALIGN_DOWN (va, CONFIG_PAGE_FRAME_SIZE_BYTES);
-//    //    kpg_map (pd, pageStart, pa, PG_MAP_FLAG_KERNEL_DEFAULT);
-//    //    INFO ("Commit successful for VA: %px", va);
-//    //
-//    //    // Test allocation
-//    //    kvmm_printVASList (vmm);
-//    //
-//    //    *addr = 10;
-//    //    kdebug_println ("Value is %u", *addr);
-//    //
-//    //    // Now delete allocated vm address space
-//    //    // kvmm_free(vmm, va);
-//    //
-//    //    //// Test Deallocation
-//    //    // kvmm_printVASList (vmm);
-//    //
-//    //    // kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    //    // kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    //    // kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
-//    //
-//    //    // Now delete complete VMM
-//    //    kvmm_delete (&vmm);
-//    //
-//    INFO ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    INFO ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    INFO ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
-//}
-
-//static void multiprocess_demo()
-//{
-//    FUNC_ENTRY();
-//
-//    BootLoaderInfo* bootloaderinfo = kboot_getCurrentBootLoaderInfo();
-//    BootFileItem* fileinfo         = kBootLoaderInfo_getFileItem (bootloaderinfo, 1);
-//    Physical startAddress          = PHYSICAL (kBootFileItem_getStartLocation (fileinfo));
-//    SIZE lengthBytes               = (SIZE)kBootFileItem_getLength (fileinfo);
-//
-//    kearly_println ("\n------ [ Cooperative Multithreading Demo ] ------\n");
-//
-//    INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
-//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
-//
-//    void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
-//    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
-//    if (processID < 0) {
-//        k_panicOnError();
-//    }
-//
-//    INFO ("Process ID: %u", processID);
-//
-//    for (int i = 0; i < 8; i++)
-//    {
-//        kearly_println("Kernel thread - Yielding");
-//        syscall (2, 0, 0, 0, 0, 0);
-//    }
-//
-//    kearly_println ("Kernel thread - Exiting.");
-//    syscall (3, 0, 0, 0, 0, 0);
-//
-//    kearly_println ("Kernel thread - Not exited. It is the only process.");
-//
-//    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-//    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-//    kdebug_println ("Used salloc bytes: %x bytes", salloc_getUsedMemory());
-//
-//    kearly_println ("------ [ END ] ------");
-//
-//    k_halt();
-//}
-
-static void multithread_demo_kernel_thread()
+static void run_root_process()
 {
     FUNC_ENTRY();
 
+#ifdef GRAPHICS_MODE_ENABLED
+    BootFileItem fileinfo = kboot_getBootFileItem (1);
+#else
+    #ifdef MPDEMO
     BootFileItem fileinfo = kboot_getBootFileItem (2);
+    #else
+    BootFileItem fileinfo = kboot_getBootFileItem (1);
+    #endif // MPDEMO
+#endif     // GRAPHICS_MODE_ENABLED
+
     Physical startAddress = PHYSICAL (fileinfo.startLocation);
     SIZE lengthBytes      = (SIZE)fileinfo.length;
 
-    kearly_println ("\n------ [ Cooperative Multithreading Demo ] ------\n");
-
-    INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
-    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
+    // INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
+    // kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
+    // kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
+    // kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 
     void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
-    INT processID = syscall (1, (PTR)startAddress_va, lengthBytes, PROCESS_FLAGS_NONE, 0, 0);
+    INT processID         = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
     if (processID < 0) {
-        k_panicOnError();
+        FATAL_BUG();
     }
 
     INFO ("Process ID: %u", processID);
+    k_assert (processID == 1, "Root process must have process ID = 1");
 
-    // ----------------------
-    KProcessEvent e;
-    UINT max = 111 * MAX_VGA_COLUMNS;
-    for (UINT i = 0; i < max; i++) {
-        // Consume process events
-        syscall (6, (PTR)&e, 0, 0, 0, 0);
-        syscall (2, 0, 0, 0, 0, 0);
-    }
-    // ----------------------
-
-    kdisp_ioctl (DISP_SETATTR, k_dispAttr (BLACK, LIGHT_GRAY, 0));
-    kdisp_ioctl (DISP_SETCOORDS, 40, 0);
-
-    kearly_println ("Kernel thread - Exiting.");
-    syscall (3, 0, 0, 0, 0, 0);
-
-    kearly_println ("Kernel thread - Not exited. It is the only process.");
-
-    kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-    kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
-
-    kearly_println ("------ [ END ] ------");
-
-    kbochs_breakpoint();
-    while (1) {
-        // Keep consuming process events
-        syscall (6, (PTR)&e, 0, 0, 0, 0);
-    }
-}
-
-static void process_poc()
-{
-    FUNC_ENTRY();
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-    void* startAddress_va = multithread_demo_kernel_thread;
-    //void* startAddress_va = multiprocess_demo;
-#pragma GCC diagnostic pop
-
-    INT processID = kprocess_create (startAddress_va, 0,
-                                     PROCESS_FLAGS_THREAD | PROCESS_FLAGS_KERNEL_PROCESS);
-    if (processID < 0) {
-        k_panicOnError();
+    if (!kprocess_yield (NULL)) {
+        FATAL_BUG();
     }
 
-    INFO ("Process ID: %u", processID);
-
-    kprocess_yield (NULL);
     UNREACHABLE();
+    k_halt();
 }
-
-static INT syscall (U32 fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
-{
-    INT retval = 0;
-    __asm__ volatile("int 0x50"
-                     : "=a"(retval) // This is required. Otherwise compiler will not know that eax
-                                    // will be changed after this instruction.
-                     : "a"(fn), "b"(arg1), "c"(arg2), "d"(arg3), "S"(arg4), "D"(arg5)
-                     :);
-    return retval;
-}
-
-//static void kmalloc_test()
-//{
-//    int* addr1 = (int*)kmalloc(10 * sizeof(UINT));
-//    int* addr2 = (int*)kmalloc(100 * sizeof(UINT));
-//
-//    *addr1 = 0xB001;
-//    *addr2 = 0xC002;
-//
-//    INFO ("addr1: %px, addr2: %px", addr1, addr2);
-//
-//    kfree(addr1);
-//    kfree(addr2);
-//}
-//
-//static void paging_test_map_unmap()
-//{
-//    FUNC_ENTRY();
-//
-//    volatile CHAR* a = (CHAR*)0xC0400000;
-//
-//    Physical pa;
-//    kpmm_alloc (&pa, 1, PMM_REGION_ANY);
-//    PageDirectory pd = kpg_getcurrentpd();
-//    kpg_map (pd, (PTR)a, pa, PG_MAP_FLAG_WRITABLE);
-//    k_assertOnError();
-//
-//    *a = 0;
-//
-//    kpg_unmap (pd, (PTR)a);
-//    k_assertOnError();
-//
-//    kpmm_free(pa, 1);
-//    k_assertOnError();
-//}
-//
-//static void paging_test_temp_map_unmap()
-//{
-//    FUNC_ENTRY();
-//
-//    Physical pa1, pa2;
-//    kpmm_alloc (&pa1, 1, PMM_REGION_ANY);
-//    kpmm_alloc (&pa2, 1, PMM_REGION_ANY);
-//
-//    void* addr = kpg_temporaryMap (pa1);
-//    //x86_TLB_INVAL_SINGLE (0xC03FF000U);
-//    //tlb_inval_complete();
-//    *(INT*)addr = 0xF001;
-//    kpg_temporaryUnmap();
-//
-//    addr = kpg_temporaryMap (pa2);
-//    //x86_TLB_INVAL_SINGLE (0xC03FF000U);
-//    //tlb_inval_complete();
-//    *(INT*)addr = 0xF002;
-//    kpg_temporaryUnmap();
-//
-//    kdebug_println ("Read Value at %x", pa1.val);
-//    kdebug_println ("Read Value at %x", pa2.val);
-//    kbochs_breakpoint();
-//
-//    kpmm_free(pa1, 1);
-//    k_assertOnError();
-//
-//    kpmm_free(pa2, 1);
-//    k_assertOnError();
-//}
-
-//void s_dumpPab()
-//{
-//    FUNC_ENTRY();
-//
-//#if DEBUG
-//    U8*  s_pab = (U8*)CAST_PA_TO_VA (g_pab);
-//    UINT bytes = 120;
-//
-//    while (bytes)
-//    {
-//        kdebug_println ("%h:", s_pab);
-//        for (int i = 0; i < 16 && bytes; bytes--, i += 2, s_pab += 2)
-//            kdebug_printf ("\t%h:%h ", *s_pab, *(s_pab + 1));
-//    }
-//#endif // DEBUG
-//}
 
 void display_system_info()
 {
