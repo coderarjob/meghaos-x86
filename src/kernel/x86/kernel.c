@@ -170,12 +170,6 @@ void kernel_main ()
     kearly_println ("CPUID [EAX=0]: %x", eax);
 
     run_root_process();
-
-#ifdef GRAPHICS_MODE_ENABLED
-    kcompose_flush();
-    kgraphis_flush();
-#endif
-
     k_halt();
 }
 
