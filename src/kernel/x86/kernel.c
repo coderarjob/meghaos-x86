@@ -280,7 +280,7 @@ void kernel_main ()
 
 void keventmanager_invoke()
 {
-    U32 us   = KERNEL_TICK_COUNT_TO_MICROSEC (g_kstate.tick_count);
+    U64 us   = KERNEL_TICK_COUNT_TO_MICROSEC (g_kstate.tick_count);
 
     if (us % CONFIG_PROCESS_PERIOD_US == 0) {
         UINT pid = kprocess_getCurrentPID();
