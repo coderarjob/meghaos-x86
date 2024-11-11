@@ -54,7 +54,8 @@ typedef struct KProcessInfo {
     ListNode eventsQueueHead;    // Start of the process events queue.
     ListNode childrenListHead;   // Start of child processes list
     ListNode childrenListNode;   // Processes are linked to the parent through this node.
-    UINT parentProcessID;        // Parent process. PROCESS_ID_KERNEL for the first process.
+    struct KProcessInfo* parent; // Parent process. NULL for processes with no parent (Root
+                                 // processes).
     UINT processID;
     KProcessFlags flags;
     // ----------------------

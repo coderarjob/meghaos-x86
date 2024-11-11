@@ -40,6 +40,7 @@ typedef enum KernelErrorCodes {
     ERR_TIMEOUT                   = 19, // Operation timed out.
     ERR_INVALID_HANDLE            = 20, // Object handle is either outside range/no object is there
     ERR_INVALID_SYSCALL           = 21, // Invalid system call number invoked
+    ERR_PROC_CREATE_NOT_ALLOWED   = 22, // Process creation not allowed.
 } KernelErrorCodes;
 
 // Use this with RETURN_ERROR when you do not want to set a new error number but pass through what

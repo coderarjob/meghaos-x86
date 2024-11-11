@@ -27,7 +27,8 @@
 #define PROCESS_STACK_SIZE_PAGES 0x1
 #define PROCESS_STACK_VA_TOP(stackstart, pages) \
     ((stackstart) + (pages)*CONFIG_PAGE_FRAME_SIZE_BYTES - 1)
-#define MAX_PROCESS_COUNT 20
+#define PARENT_PROCESS_ID(child) ((child->parent) ? child->parent->processID : PROCESS_ID_KERNEL)
+#define MAX_PROCESS_COUNT        20
 
 static UINT processCount;
 static KProcessInfo* currentProcess = NULL;
@@ -286,7 +287,7 @@ static bool s_setupProcessDataMemory (KProcessInfo* pinfo)
         // Threads reuse the data section of its parent.
         pinfo->data = currentProcess->data;
         INFO ("Reusing data area of parent process ID: %u for process ID: %u",
-              pinfo->parentProcessID, pinfo->processID);
+              PARENT_PROCESS_ID (pinfo), pinfo->processID);
     } else {
         // Threads of kernel does not have data area.
         // TODO: Should we have a process flag say PROCESS_FLAGS_NO_DATA_AREA?
@@ -413,8 +414,8 @@ static bool kprocess_kill_process (KProcessInfo** process)
 {
     FUNC_ENTRY();
 
-    if (processCount <= 1) {
-        // Cannot exit when there is zero/single process running.
+    if (processCount == 0) {
+        // Cannot exit when there is zero process running.
         RETURN_ERROR (ERR_PROC_EXIT_NOT_ALLOWED, false);
     }
 
@@ -422,12 +423,12 @@ static bool kprocess_kill_process (KProcessInfo** process)
 
     KProcessInfo* l_process = *process;
 
-    if (l_process->parentProcessID <= PROCESS_ID_KERNEL) {
+    if (l_process->parent == NULL) {
         // Cannot exit root process.
         RETURN_ERROR (ERR_PROC_EXIT_NOT_ALLOWED, false);
     }
 
-    INFO ("Killing process: %u. Parent: %u", l_process->processID, l_process->parentProcessID);
+    INFO ("Killing process: %u. Parent: %u", l_process->processID, PARENT_PROCESS_ID (l_process));
     INFO ("Is thread: %s", BIT_ISSET (l_process->flags, PROCESS_FLAGS_THREAD) ? "Yes" : "No");
 
     // Delete complete context only for non-thread processes
@@ -480,6 +481,8 @@ static bool kprocess_kill_process (KProcessInfo** process)
         }
     } else {
         INFO ("Removing thread context");
+        k_assert (list_is_empty (&l_process->childrenListHead), "Threads cannot have children");
+
         if (!kvmm_free (l_process->context, l_process->stack.virtualMemoryStart)) {
             BUG(); // Cannot fail under normal operation. It was allocated so should also be freed.
         }
@@ -526,8 +529,23 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFla
     FUNC_ENTRY ("Process start address: %px, size: %x bytes, flags: %x", processStartAddress,
                 binLengthBytes, flags);
 
+    // Check if new process can be created.
+
+    // MAX_PROCESS_COUNT is an arbitory limit just to keep a tap on the number of processes at any
+    // time.
     if (processCount == MAX_PROCESS_COUNT) {
-        RETURN_ERROR (ERR_OUT_OF_MEM, KERNEL_EXIT_FAILURE);
+        RETURN_ERROR (ERR_PROC_CREATE_NOT_ALLOWED, KERNEL_EXIT_FAILURE);
+    }
+
+    // Threads must have a parent process, so threads cannot be created when there are no processes
+    // running.
+    if (currentProcess == NULL && BIT_ISSET (flags, PROCESS_FLAGS_THREAD)) {
+        RETURN_ERROR (ERR_PROC_CREATE_NOT_ALLOWED, KERNEL_EXIT_FAILURE);
+    }
+
+    // There can be only one root process
+    if (currentProcess == NULL && processCount > 0) {
+        RETURN_ERROR (ERR_PROC_CREATE_NOT_ALLOWED, KERNEL_EXIT_FAILURE);
     }
 
     KProcessInfo* pinfo = NULL;
@@ -554,13 +572,25 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFla
     }
 
     // Add the new process as children of the current one.
-    pinfo->parentProcessID = kprocess_getCurrentPID();
-    if (currentProcess != NULL) {
-        // The first process does not have any parent.
-        list_add_before (&currentProcess->childrenListHead, &pinfo->childrenListNode);
+
+    // Root processes does not have a parent.
+    pinfo->parent = NULL;
+    if (currentProcess == NULL) {
+        // Must be creation of root process. Must not be a flag
+        k_assert (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD), "Orphan thread");
+        INFO ("Root process creation");
+    } else {
+        // Processes created by threads are owned by its parent process.
+        pinfo->parent = BIT_ISSET (currentProcess->flags, PROCESS_FLAGS_THREAD)
+                            ? currentProcess->parent
+                            : currentProcess;
+
+        k_assert (pinfo->parent != NULL, "Non-Root processes & Threads must have a parent");
+        // Parent is non-root process
+        list_add_before (&pinfo->parent->childrenListHead, &pinfo->childrenListNode);
     }
 
-    INFO ("New process: ID = %u, Parent process ID: %u", pinfo->processID, pinfo->parentProcessID);
+    INFO ("New process: ID = %u, Parent ID: %u", pinfo->processID, PARENT_PROCESS_ID (pinfo));
     kvmm_printVASList (pinfo->context);
     INFO ("------------------------");
 
