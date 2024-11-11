@@ -204,9 +204,10 @@ void k_delay (UINT ms)
     UINT us = ms * 1000;
     k_assert (us >= CONFIG_INTERRUPT_CLOCK_TP_MICROSEC, "Delay too small");
 
-    U32 end_tick   = KERNEL_MICRODEC_TO_TICK_COUNT (us);
     U32 start_tick = g_kstate.tick_count;
-    while ((g_kstate.tick_count - start_tick) < end_tick)
+    U32 end_tick   = start_tick + KERNEL_MICRODEC_TO_TICK_COUNT (us);
+
+    while (g_kstate.tick_count < end_tick)
         ;
 }
 
