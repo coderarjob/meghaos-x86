@@ -158,6 +158,12 @@ before step 1. Since the problem happens only using a different stack would be s
 switch to use the Kernel Stack (which is separate from the process's stack). This again works
 because the page mapping for the Kernel Stack is already present in every process.
 
+When process exits it passes along a 'exit code', corresponding to the its state. These exit codes
+are 8 bit numbers (so it can at most be 255), which are sent to the parent of the process being
+killed by pushing a `KERNEL_EVENT_PROCCESS_CHILD_KILLED` event.
+
+Through this event the parent can determine if a child process has exited and in what condition.
+
 ------------------------------------------------------------------------------
 
 ## Problem with creation of new process from a kernel process

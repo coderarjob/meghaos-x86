@@ -10,6 +10,22 @@
 
 #define OS_MICRODEC_TO_TICK_COUNT(us) ((us) / os_get_tick_period_us())
 
+void event_handler_NDU_()
+{
+    volatile OSIF_ProcessEvent e = { 0 };
+    os_process_pop_event ((OSIF_ProcessEvent*)&e);
+    switch (e.event) {
+    case OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ:
+        os_yield();
+        break;
+    case OSIF_PROCESS_EVENT_PROCCESS_CHILD_KILLED:
+        INFO ("Child exitted with code: %x", e.data);
+        break;
+    case OSIF_PROCESS_EVENT_NONE:
+        break;
+    }
+}
+
 void delay (UINT ms)
 {
     UINT us = ms * 1000;
@@ -18,8 +34,6 @@ void delay (UINT ms)
     U32 end_tick   = start_tick + OS_MICRODEC_TO_TICK_COUNT (us);
 
     while (os_get_tickcount() < end_tick) {
-        if (os_process_is_yield_requested()) {
-            os_yield();
-        }
+        event_handler_NDU_();
     }
 }

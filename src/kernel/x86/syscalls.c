@@ -32,7 +32,7 @@ void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text);
 INT ksys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        KProcessFlags flags);
 void ksys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
-void ksys_killProcess (SystemcallFrame frame);
+void ksys_killProcess (SystemcallFrame frame, UINT exitCode);
 void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
 void ksys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
 bool ksys_processPopEvent (SystemcallFrame frame, OSIF_ProcessEvent* const e);
@@ -231,11 +231,11 @@ void ksys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 es
     kprocess_yield (&state);
 }
 
-void ksys_killProcess (SystemcallFrame frame)
+void ksys_killProcess (SystemcallFrame frame, UINT exitCode)
 {
-    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
+    FUNC_ENTRY ("Frame return address: %x:%x, exit code: %x", frame.cs, frame.eip, exitCode);
     (void)frame;
-    kprocess_exit();
+    kprocess_exit ((U8)exitCode);
 }
 
 U32 ksys_process_getPID (SystemcallFrame frame)
@@ -265,7 +265,7 @@ bool ksys_processPopEvent (SystemcallFrame frame, OSIF_ProcessEvent* const e)
     }
 
     // Copy to user space
-    e->event = ke.event;
+    e->event = (OSIF_ProcessEvents)ke.event;
     e->data  = ke.data;
     return true;
 }

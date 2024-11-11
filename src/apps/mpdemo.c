@@ -55,19 +55,21 @@ void proc_main()
 
     s_progressbar (200, "Process 0:\n", 26, RED);
 
-    os_process_kill();
+    s_progressbar (20, "Process 0:\n", 26, RED);
+
+    os_process_kill(1);
     s_printString (37, 0, BLACK, WHITE,
                    "Cannot kill process 0. Make kernel thread slower for demo.");
 }
 
 void thread0()
 {
-    s_progressbar (100, "Thread 0:\n", 30, GREEN);
-    os_process_kill();
+    s_progressbar (10, "Thread 0:\n", 30, GREEN);
+    os_process_kill(2);
 }
 
 void thread1()
 {
-    s_progressbar (50, "Thread 1:\n", 34, YELLOW);
-    os_process_kill();
+    s_progressbar (5, "Thread 1:\n", 34, YELLOW);
+    os_process_kill(3);
 }

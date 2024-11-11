@@ -10,9 +10,11 @@
 #include <intrusive_queue.h>
 #include <intrusive_list.h>
 #include <vmm.h>
+#include <kernel.h>
 
-#define PROCESS_ID_KERNEL  0x0
-#define PROCESS_ID_INVALID -1
+#define PROCESS_ID_KERNEL               0x0
+#define PROCESS_ID_INVALID              -1
+#define KPROCESS_EXIT_CODE_FORCE_KILLED (255U)
 
 typedef enum KProcessStates {
     PROCESS_STATE_INVALID = 0,
@@ -37,8 +39,8 @@ typedef struct KProcessSections {
 } KProcessSections;
 
 typedef struct KProcessEvent {
-    UINT event;
-    UINT data;
+    KernelEvents event;
+    U64 data;
     ListNode eventQueueNode;
 } KProcessEvent;
 
@@ -68,7 +70,7 @@ typedef struct KProcessInfo {
 void kprocess_init();
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
-bool kprocess_exit();
+bool kprocess_exit (U8 exitCode);
 VMemoryManager* kprocess_getCurrentContext();
 UINT kprocess_getCurrentPID();
 bool kprocess_popEvent (UINT pid, KProcessEvent* ev);

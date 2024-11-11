@@ -43,7 +43,7 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
                                         KProcessInfo* pinfo);
 static bool s_setupProcessStackMemory (KProcessInfo* pinfo);
 static bool s_setupProcessDataMemory (KProcessInfo* pinfo);
-static bool kprocess_kill_process (KProcessInfo** process);
+static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode);
 #if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
 static void s_showQueueItems (ListNode* forward, bool directionForward);
 #endif // DEBUG
@@ -410,9 +410,9 @@ static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* cu
 // process as well.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
-static bool kprocess_kill_process (KProcessInfo** process)
+static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode)
 {
-    FUNC_ENTRY();
+    FUNC_ENTRY ("Exit code: %x", exitCode);
 
     if (processCount == 0) {
         // Cannot exit when there is zero process running.
@@ -446,7 +446,7 @@ static bool kprocess_kill_process (KProcessInfo** process)
                 FATAL_BUG();
             }
             INFO ("Killing child process. PID: %u", cpinfo->processID);
-            if (!kprocess_kill_process (&cpinfo)) {
+            if (!kprocess_kill_process (&cpinfo, KPROCESS_EXIT_CODE_FORCE_KILLED)) {
                 FATAL_BUG(); // Under normal condition its not possible for such a failure.
             }
         }
@@ -508,6 +508,10 @@ static bool kprocess_kill_process (KProcessInfo** process)
 
     // Remove the process from scheduler queue
     queue_remove (&l_process->schedulerQueueNode);
+
+    // Signal parent process that the child has exited.
+    k_assert (l_process->parent != NULL, "Must not be a root process");
+    kprocess_pushEvent (l_process->parent->processID, KERNEL_EVENT_PROCCESS_CHILD_KILLED, exitCode);
 
     // Now the process item can be freed.
     INFO ("Process removed from scheduler queue. Freeeing process item");
@@ -621,7 +625,7 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFla
     return (INT)pinfo->processID;
 
 failure:
-    kprocess_kill_process (&pinfo);
+    kprocess_kill_process (&pinfo, KPROCESS_EXIT_CODE_FORCE_KILLED);
     RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
 }
 
@@ -658,10 +662,13 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     return s_switchProcess (pinfo, currentState);
 }
 
-bool kprocess_exit()
+bool kprocess_exit (U8 exitCode)
 {
+    FUNC_ENTRY ("Exit Code: %x", exitCode);
+
     UINT ret;
-    UINT flags = (currentProcess != NULL) ? currentProcess->flags : 0;
+    UINT flags      = (currentProcess != NULL) ? currentProcess->flags : 0;
+    UINT l_exitCode = (UINT)exitCode;
 
     // clang-format off
     // In a Kernel process, no stack switch happens in a system call and the same process stack is
@@ -689,10 +696,11 @@ bool kprocess_exit()
                     ".cont:;"
                      //////////////////////////////////////////////////////////////////////////////
                     // Call to kprocess_kill_process to kill 'currentProcess'.
+                    "   push %2;"  // exit code
                     "   lea eax, [currentProcess];"
-                    "   push eax;"
+                    "   push eax;" // &currentProcess
                     "   call kprocess_kill_process;"
-                    "   add esp, 4;"
+                    "   add esp, 16;"
                      //////////////////////////////////////////////////////////////////////////////
                     // In case kprocess_kill_process fails, there is nothing to do but exit.
                     "   cmp eax, 0;"
@@ -713,7 +721,7 @@ bool kprocess_exit()
                     "   pop ebp;"
                     //////////////////////////////////////////////////////////////////////////////
                     : "=r"(ret)
-                    : "r"(flags)
+                    : "r"(flags), "r"(l_exitCode)
                     : // No clobber
     );
     // clang-format on

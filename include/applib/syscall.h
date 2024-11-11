@@ -21,6 +21,7 @@ INT os_thread_create (void (*startLocation)(), bool isKernelMode);
 INT os_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode);
 UINT os_get_tick_period_us();
 bool os_process_is_yield_requested();
+bool os_process_is_child_exited (UINT* exitCode);
 
 static inline UINT os_tickcount_to_microsec(UINT tick)
 {
@@ -32,9 +33,9 @@ static inline void os_yield()
     syscall (OSIF_SYSCALL_YIELD_PROCESS, 0, 0, 0, 0, 0);
 }
 
-static inline void os_process_kill()
+static inline void os_process_kill(UINT code)
 {
-    syscall (OSIF_SYSCALL_KILL_PROCESS, 0, 0, 0, 0, 0);
+    syscall (OSIF_SYSCALL_KILL_PROCESS, code, 0, 0, 0, 0);
 }
 
 static inline void os_putstr (char* text)

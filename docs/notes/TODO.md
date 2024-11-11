@@ -135,7 +135,7 @@
 | ::: need to be done.                                                    |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process management                                                  | 11 Apr 24 |            |
-| ::: [ ] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 |            |
+| ::: [X] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 | 11 Nov 24  |
 | Possible solution.                                                      |           |            |
 | When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
 | and the scheduler will make sure that the parent gets the message.      |           |            |

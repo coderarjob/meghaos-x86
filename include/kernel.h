@@ -38,9 +38,9 @@ typedef struct KernelStateInfo {
 extern volatile KernelStateInfo g_kstate;
 
 typedef enum KernelEvents {
-    KERNEL_EVENT_NONE               = 0,
-    KERNEL_EVENT_TICK               = 1,
-    KERNEL_EVENT_PROCCESS_YIELD_REQ = 2
+    KERNEL_EVENT_NONE                  = 0,
+    KERNEL_EVENT_PROCCESS_YIELD_REQ    = 1,
+    KERNEL_EVENT_PROCCESS_CHILD_KILLED = 2
 } KernelEvents;
 
 #define KERNEL_PHASE_SET(p)                                                                    \
