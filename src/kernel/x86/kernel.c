@@ -175,12 +175,12 @@ void kernel_main ()
 
 void keventmanager_invoke()
 {
-    U64 us   = KERNEL_TICK_COUNT_TO_MICROSEC (g_kstate.tick_count);
+    U64 us = KERNEL_TICK_COUNT_TO_MICROSEC (g_kstate.tick_count);
 
     if (us % CONFIG_PROCESS_PERIOD_US == 0) {
         UINT pid = kprocess_getCurrentPID();
         if (pid != PROCESS_ID_KERNEL) {
-            INFO("PID: %x, US: %u", pid, us);
+            INFO ("PID: %x, US: %u", pid, us);
             if (!kprocess_pushEvent (pid, KERNEL_EVENT_PROCCESS_YIELD_REQ, g_kstate.tick_count)) {
                 BUG(); // Event push should not fail.
             }
@@ -221,11 +221,6 @@ static void run_root_process()
 
     Physical startAddress = PHYSICAL (fileinfo.startLocation);
     SIZE lengthBytes      = (SIZE)fileinfo.length;
-
-    // INFO ("Process: Phy start: %px, Len: %x bytes", startAddress.val, lengthBytes);
-    // kdebug_println ("Free RAM bytes: %x bytes", kpmm_getFreeMemorySize());
-    // kdebug_println ("Used Kmalloc bytes: %x bytes", kmalloc_getUsedMemory());
-    // kdebug_println ("Used salloc bytes: %x bytes", ksalloc_getUsedMemory());
 
     void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
     INT processID         = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);

@@ -104,6 +104,20 @@
 | It seems to be working properly on HW. Working in Bochs                 |           |            |
 | after 'clock: realtime' added to bochsrc. Still improper in 86Box.      |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| GRAPHICS                                                                |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] Logs in graphics mode for kearly_printf & kdebug_printf             | 13 Nov 24 |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] k_panic in graphics mode - Need to have very low dependency. May be | 13 Nov 24 |            |
+| have to draw directly to video frame buffer                             |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| APP LIB                                                                 |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] APPLIB is just a terrible name.                                     | 13 Nov 24 |            |
+|-------------------------------------------------------------------------|-----------|------------|
+| [ ] Process events need to be handled such that no event gets lost.     | 13 Nov 24 |            |
+| Sort of what Windows                                                    |           |            |
+|-------------------------------------------------------------------------|-----------|------------|
 | KERNEL                                                                  |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Determine CPU/machine capabilites and take steps if they are less   | 17 Aug 24 |            |
@@ -218,7 +232,7 @@
 | Kernel binary resides need to be higher-half mapped. Rest should go     |           |            |
 | through PMM and VMM/Paging.                                             | 03 Mar 24 |            |
 | ::: [ ] May be kpg_temporaryMap/Unmap can call kpg_map.                 | 14 Jul 24 |            |
-| ::: [ ] kvmm_memmap API may simplify the VMM API.                       | 17 Aug 24 |            |
+| ::: [X] kvmm_memmap API may simplify the VMM API.                       | 17 Aug 24 | 18 Aug 24  |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] DEBUG_LEVEL determines where debug messages are printed. Does it    | 27 May 24 |            |
 | makes sense to print debug messages in NDEBUG build mode?               |           |            |

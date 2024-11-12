@@ -147,11 +147,15 @@
 
     No matter what the solution, it is clear, that the module files cannot be raw flat binary.
 
-[ ] Double allocation when accessing graphics backbuffer (kcompose_flush)
+[-] Double allocation when accessing graphics backbuffer (kcompose_flush)
     * 8 bit color
     * kcompose_flush from user program
 
-[ ] Triple fault when multithread_demo_kernel_thread starts mpdemo in kernel mode.
+Not seen with a later commit 12aef3e
+
+[-] Triple fault when multithread_demo_kernel_thread starts mpdemo in kernel mode.
+
+Not seen with a later commit 12aef3e
 
 [X] os_process_is_yield_requested not working properly if defined in applib/syscall.c
 Cause: Compiler optimization.
@@ -170,10 +174,15 @@ master PIC & IRQ15 for slave one) is called when a 'spurious' interrupt has occu
 interrupts are triggered by PIC when the handshaking with the CPU has started but IR disappears
 before it can complete. This happens if there's noise in the IR line or when software sends EOI
 command.
-Read: https://wiki.osdev.org/8259_PIC#Spurious_IRQs
+Read: `https://wiki.osdev.org/8259_PIC#Spurious_IRQs`
 
-In this case the spurious interrupt occurred when a EOI from timer interrupt handler lands when
-another timer IRQ handshaking has already started.
+In this case the spurious interrupt occurred when a EOI from timer interrupt handler lands at a
+time when PIC has started another timer IRQ handshaking. 
+
+In our case normally the timer interrupt does not take much time to complete, but when it needs to
+update the video framebuffer it takes longer and can finish around the next timer IRQ. Note that
+spurious interrupts may not occur immediately at the next timer IRQ but much later as it accumulates
+delay with each interrupt handler call.
 
 Solution:
 Detect and handle the spurious interrupts. I am not sure if its possible to prevent spurious
