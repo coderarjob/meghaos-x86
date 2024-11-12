@@ -103,5 +103,7 @@ void general_protection_fault_asm_handler ();
 void div_zero_asm_handler ();
 void syscall_asm_despatcher ();
 void timer_interrupt_asm_handler();
+void irq_7_asm_handler();
+void irq_15_asm_handler();
 
 #endif // INTERRUPT_H_x86

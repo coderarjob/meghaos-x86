@@ -10,7 +10,10 @@
 typedef enum PC_IRQ {
     PIC_IRQ_TIMER     = 0,
     PIC_IRQ_KEYBOARD  = 1,
+    PIC_IRQ_SLAVE_PIC = 2,
     PIC_IRQ_PS2_MOUSE = 12,
+    PIC_IRQ_7         = 7,
+    PIC_IRQ_15        = 15,
 } PIC_IRQ;
 
 void pic_init (U8 master_vector_start, U8 slave_vector_start);

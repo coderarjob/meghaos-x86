@@ -115,13 +115,13 @@ void kernel_main ()
     // External Maskable Interrupts are from Vector 0x20 to 0x30
     pic_init (0x20, 0x28);
 
-    pic_enable_disable_irq(PIC_IRQ_KEYBOARD, false);
-    pic_enable_disable_irq(PIC_IRQ_PS2_MOUSE, false);
-    pic_enable_disable_irq(PIC_IRQ_TIMER, false);
-
     // Add handlers for timer and keyboard interrupts
     kidt_edit (0x20, timer_interrupt_asm_handler, GDT_SELECTOR_KCODE,
                IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+
+    // Spurious IRQ handler (IRQ7 and IRQ15)
+    kidt_edit (0x27, irq_7_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
+    kidt_edit (0x2F, irq_15_asm_handler, GDT_SELECTOR_KCODE, IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
 #endif
 
     kearly_printf ("\r[OK]");

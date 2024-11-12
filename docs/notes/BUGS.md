@@ -161,7 +161,23 @@ Fix  : A 'volatile' keyword fixed the issue. Fixed in commit 7897a67
 Cause: Compiler optimization.
 Fix  : A 'volatile' keyword fixed the issue. Fixed in commit 7897a67
 
-[ ] gui0 program hanging after running for sometime. NDEBUG, DEBUG_LEVEL=0 build in Qemu, bochs, 
+[X] gui0 program hanging after running for sometime. NDEBUG, DEBUG_LEVEL=0 build in Qemu, bochs,
 86box and laptop.
+
+Reason:
+A GP fault occurred because interrupt handler for vector 0x27 (or IRQ7) did not exit. IRQ7 (for
+master PIC & IRQ15 for slave one) is called when a 'spurious' interrupt has occurred. Spurious
+interrupts are triggered by PIC when the handshaking with the CPU has started but IR disappears
+before it can complete. This happens if there's noise in the IR line or when software sends EOI
+command.
+Read: https://wiki.osdev.org/8259_PIC#Spurious_IRQs
+
+In this case the spurious interrupt occurred when a EOI from timer interrupt handler lands when
+another timer IRQ handshaking has already started.
+
+Solution:
+Detect and handle the spurious interrupts. I am not sure if its possible to prevent spurious
+interrupts due to wrong EOI timing from inside interrupt handlers. Anyways its a good idea to handle
+spurious interrupts since they can also occur due to noise in the lines.
 
 [ ] Duplicate defination of types if applib/types.h is included in `applib/*.c` files.

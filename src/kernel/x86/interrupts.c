@@ -4,6 +4,7 @@
  * ---------------------------------------------------------------------------
  */
 #include <stdarg.h>
+#include <stdbool.h>
 #include <types.h>
 #include <x86/interrupt.h>
 #include <utils.h>
@@ -67,6 +68,49 @@ void sys_dummy_handler (InterruptFrame *frame)
     __asm__ volatile ("mov ebx, %0"::"i"(0xffa1):"ebx");
     kbochs_breakpoint();
     //outb (0x80,4);
+}
+
+static void spurious_irq_eoi (PIC_IRQ irq)
+{
+    if (irq == PIC_IRQ_7) {
+        // Nothing need to be done here.
+    } else if (irq == PIC_IRQ_15) {
+        // Send EOI to only the master
+        pic_send_eoi (PIC_IRQ_7);
+    } else {
+        UNREACHABLE();
+    }
+    k_halt();
+}
+
+INTERRUPT_HANDLER (irq_7)
+void irq_7_handler (InterruptFrame* frame)
+{
+    (void)frame;
+    UINT master, slave;
+    pic_read_IRR_ISR (true, &master, &slave);
+    if (BIT_ISUNSET (master, PIC_IRQ_7)) {
+        INFO ("Spurious IRQ7: ISR master: %x, ISR slave: %x", master, slave);
+        spurious_irq_eoi (PIC_IRQ_7);
+        return;
+    }
+    // Actual IRQ 7. Send EOI.
+    pic_send_eoi (PIC_IRQ_7);
+}
+
+INTERRUPT_HANDLER (irq_15)
+void irq_15_handler (InterruptFrame* frame)
+{
+    (void)frame;
+    UINT master, slave;
+    pic_read_IRR_ISR (true, &master, &slave);
+    if (BIT_ISUNSET (slave, PIC_IRQ_15)) {
+        INFO ("Spurious IRQ15: ISR master: %x, ISR slave: %x", master, slave);
+        spurious_irq_eoi (PIC_IRQ_15);
+        return;
+    }
+    // Actual IRQ 15. Send EOI.
+    pic_send_eoi (PIC_IRQ_15);
 }
 
 EXCEPTION_WITH_CODE_HANDLER(double_fault)
