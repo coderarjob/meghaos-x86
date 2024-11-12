@@ -58,6 +58,14 @@ void pic_init (U8 master_vector_start, U8 slave_vector_start)
     io_delay();
     outb (SLAVE_DATA_PORT, ICW4_8086_MICROPROCESSOR);
     io_delay();
+
+    // Mask/Disable all IRQs expect IRQ2 in master.
+    // IRQ2 connects to slave PIC.
+    // OCW1
+    outb (MASTER_DATA_PORT, 0xFB);
+    io_delay();
+    outb (SLAVE_DATA_PORT, 0xFF);
+    io_delay();
 }
 
 void pic_enable_disable_irq (PIC_IRQ irq, bool enable)
