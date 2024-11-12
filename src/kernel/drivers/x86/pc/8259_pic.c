@@ -93,20 +93,19 @@ void pic_enable_disable_irq (PIC_IRQ irq, bool enable)
     outb (port, value);
 }
 
-UINT pic_read_IRR_ISR (bool readISR)
+void pic_read_IRR_ISR (bool readISR, UINT* master, UINT* slave)
 {
     FUNC_ENTRY();
+
+    k_assert (master != NULL && slave != NULL, "Invalid input");
 
     U8 ocw3 = (readISR) ? OCW3_READ_ISR : OCW3_READ_IRR;
 
     outb (MASTER_CMD_PORT, ocw3);
     outb (SLAVE_CMD_PORT, ocw3);
 
-    UINT master, slave;
-    inb (MASTER_CMD_PORT, master);
-    inb (SLAVE_CMD_PORT, slave);
-
-    return (slave << 8U) | master;
+    inb (MASTER_CMD_PORT, *master);
+    inb (SLAVE_CMD_PORT, *slave);
 }
 
 void pic_send_eoi (PIC_IRQ irq)

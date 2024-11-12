@@ -15,5 +15,5 @@ typedef enum PC_IRQ {
 
 void pic_init (U8 master_vector_start, U8 slave_vector_start);
 void pic_enable_disable_irq (PIC_IRQ irq, bool enable);
-UINT pic_read_IRR_ISR (bool readISR);
+void pic_read_IRR_ISR (bool readISR, UINT *master, UINT *slave);
 void pic_send_eoi (PIC_IRQ irq);
