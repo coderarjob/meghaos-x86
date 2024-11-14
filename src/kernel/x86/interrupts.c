@@ -56,6 +56,11 @@ void timer_interrupt_handler (InterruptFrame* frame)
     g_kstate.tick_count++;
     keventmanager_invoke();
 
+    UINT master = 0;
+    pic_read_IRR_ISR (false, &master, NULL);
+    if (BIT_ISSET (master, 1 << PIC_IRQ_TIMER)) {
+        INFO ("Timer IRQ: too slow..| IRR: %x", master);
+    }
     pic_send_eoi (PIC_IRQ_TIMER);
 }
 #endif
@@ -80,17 +85,18 @@ static void spurious_irq_eoi (PIC_IRQ irq)
     } else {
         UNREACHABLE();
     }
-    k_halt();
 }
 
 INTERRUPT_HANDLER (irq_7)
 void irq_7_handler (InterruptFrame* frame)
 {
     (void)frame;
-    UINT master, slave;
-    pic_read_IRR_ISR (true, &master, &slave);
+    UINT master;
+    pic_read_IRR_ISR (true, &master, NULL);
     if (BIT_ISUNSET (master, PIC_IRQ_7)) {
-        INFO ("Spurious IRQ7: ISR master: %x, ISR slave: %x", master, slave);
+        UINT irr;
+        pic_read_IRR_ISR (false, &irr, NULL);
+        INFO ("Spurious IRQ7: ISR master: %x, IRR master: %x", master, irr);
         spurious_irq_eoi (PIC_IRQ_7);
         return;
     }
@@ -102,10 +108,12 @@ INTERRUPT_HANDLER (irq_15)
 void irq_15_handler (InterruptFrame* frame)
 {
     (void)frame;
-    UINT master, slave;
-    pic_read_IRR_ISR (true, &master, &slave);
+    UINT slave;
+    pic_read_IRR_ISR (true, NULL, &slave);
     if (BIT_ISUNSET (slave, PIC_IRQ_15)) {
-        INFO ("Spurious IRQ15: ISR master: %x, ISR slave: %x", master, slave);
+        UINT irr;
+        pic_read_IRR_ISR (false, NULL, &irr);
+        INFO ("Spurious IRQ15: ISR slave: %x, IRR slave", slave, irr);
         spurious_irq_eoi (PIC_IRQ_15);
         return;
     }

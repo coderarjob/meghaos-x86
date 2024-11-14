@@ -97,15 +97,17 @@ void pic_read_IRR_ISR (bool readISR, UINT* master, UINT* slave)
 {
     FUNC_ENTRY();
 
-    k_assert (master != NULL && slave != NULL, "Invalid input");
-
     U8 ocw3 = (readISR) ? OCW3_READ_ISR : OCW3_READ_IRR;
 
     outb (MASTER_CMD_PORT, ocw3);
     outb (SLAVE_CMD_PORT, ocw3);
 
-    inb (MASTER_CMD_PORT, *master);
-    inb (SLAVE_CMD_PORT, *slave);
+    if (master) {
+        inb (MASTER_CMD_PORT, *master);
+    }
+    if (slave) {
+        inb (SLAVE_CMD_PORT, *slave);
+    }
 }
 
 void pic_send_eoi (PIC_IRQ irq)
