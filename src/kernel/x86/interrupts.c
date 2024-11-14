@@ -45,7 +45,6 @@ typedef struct PageFaultError
 static void s_appendStackFrame(InterruptFrame *frame, char *buffer, INT size);
 static void s_callPanic(InterruptFrame *frame, char *fmt, ...);
 
-#if MARCH == pc
 INTERRUPT_HANDLER (timer_interrupt)
 void timer_interrupt_handler (InterruptFrame* frame)
 {
@@ -63,7 +62,6 @@ void timer_interrupt_handler (InterruptFrame* frame)
     }
     pic_send_eoi (PIC_IRQ_TIMER);
 }
-#endif
 
 INTERRUPT_HANDLER(sys_dummy)
 void sys_dummy_handler (InterruptFrame *frame)
@@ -85,6 +83,7 @@ static void spurious_irq_eoi (PIC_IRQ irq)
     } else {
         UNREACHABLE();
     }
+    k_halt();
 }
 
 INTERRUPT_HANDLER (irq_7)
@@ -93,7 +92,7 @@ void irq_7_handler (InterruptFrame* frame)
     (void)frame;
     UINT master;
     pic_read_IRR_ISR (true, &master, NULL);
-    if (BIT_ISUNSET (master, PIC_IRQ_7)) {
+    if (BIT_ISUNSET (master, 1 << PIC_IRQ_7)) {
         UINT irr;
         pic_read_IRR_ISR (false, &irr, NULL);
         INFO ("Spurious IRQ7: ISR master: %x, IRR master: %x", master, irr);
@@ -110,7 +109,7 @@ void irq_15_handler (InterruptFrame* frame)
     (void)frame;
     UINT slave;
     pic_read_IRR_ISR (true, NULL, &slave);
-    if (BIT_ISUNSET (slave, PIC_IRQ_15)) {
+    if (BIT_ISUNSET (slave, 1 << PIC_IRQ_15)) {
         UINT irr;
         pic_read_IRR_ISR (false, NULL, &irr);
         INFO ("Spurious IRQ15: ISR slave: %x, IRR slave", slave, irr);
