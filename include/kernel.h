@@ -16,7 +16,9 @@
 typedef struct KernelStateInfo {
     enum {
         KERNEL_PHASE_STATE_BOOT_COMPLETE = 0,
+#if defined(DEBUG) && !defined(GRAPHICS_MODE_ENABLED)
         KERNEL_PHASE_STATE_TEXTDISP_READY,
+#endif
         KERNEL_PHASE_STATE_PMM_READY,
         KERNEL_PHASE_STATE_SALLOC_READY,
         KERNEL_PHASE_STATE_VMM_READY,

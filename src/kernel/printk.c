@@ -29,13 +29,15 @@ static IntTypes s_readtype (const CHAR **fmt, CHAR *c);
 static U64 s_readint (IntTypes inttype, va_list *l);
 
 #if defined(DEBUG)
-static void s_prnstr (const CHAR *str);
+    #if !defined(GRAPHICS_MODE_ENABLED)
+static void s_prnstr (const CHAR* str);
 
-static void s_prnstr (const CHAR *str)
+static void s_prnstr (const CHAR* str)
 {
-    for (;*str;str++)
+    for (; *str; str++)
         kdisp_putc (*str);
 }
+    #endif
 
 /***************************************************************************************************
  * Prints on screen the arguments in the format specified.
@@ -50,8 +52,6 @@ static void s_prnstr (const CHAR *str)
  **************************************************************************************************/
 INT kearly_printf (const CHAR *fmt, ...)
 {
-    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_TEXTDISP_READY);
-
     va_list l;
     va_start (l, fmt);
 
@@ -60,10 +60,15 @@ INT kearly_printf (const CHAR *fmt, ...)
 
     va_end (l);
 
-    s_prnstr (buffer);    
+    #if !defined(GRAPHICS_MODE_ENABLED)
+    KERNEL_PHASE_VALIDATE(KERNEL_PHASE_STATE_TEXTDISP_READY);
+    s_prnstr (buffer);
+    #else
+    // TODO: VirtualScreen not yet implemented.
+    #endif
     return len;
 }
-#endif
+#endif // DEBUG
 
 /***************************************************************************************************
  * Writes to a string pointer the arguments in the format specified.

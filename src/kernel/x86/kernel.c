@@ -62,8 +62,11 @@ void kernel_main ()
     FUNC_ENTRY();
 
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_BOOT_COMPLETE);
+
+#if defined(DEBUG) && !defined(GRAPHICS_MODE_ENABLED)
     // Initialize Text display
-    kdisp_init ();
+    kdisp_init();
+#endif
 
     // Initilaize Physical Memory Manger
     kpmm_init ();
@@ -148,9 +151,11 @@ void kernel_main ()
     KERNEL_PHASE_SET(KERNEL_PHASE_STATE_KERNEL_READY);
     kearly_printf ("\r[OK]");
 
+#if defined(DEBUG) && !defined(GRAPHICS_MODE_ENABLED)
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,GREEN,0));
     kearly_println ("Kernel initialization finished..");
     kdisp_ioctl (DISP_SETATTR,k_dispAttr (BLACK,LIGHT_GRAY,0));
+#endif
 
     //---------------
     int cpuflags_present = 0;

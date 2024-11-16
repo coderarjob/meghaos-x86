@@ -9,8 +9,11 @@ set(KERNEL_X86_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/process.c
     ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.c
     ${CMAKE_CURRENT_SOURCE_DIR}/tss.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/vgadisp.c
     )
+
+    if (MOS_BUILD_MODE STREQUAL "DEBUG" AND NOT MOS_GRAPHICS_ENABLED)
+        LIST(APPEND KERNEL_X86_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/vgatext.c)
+    endif()
 
 compile_lib(
     NAME kernel_X86
