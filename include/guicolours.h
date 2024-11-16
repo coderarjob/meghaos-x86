@@ -16,6 +16,7 @@
     #define DESKTOP_BG_COLOR          (123)
     #define MOUSE_BG_COLOR            (18)
     #define MOUSE_FG_COLOR            (15)
+    #define COLOR_BG_BSOD             (106)
 #elif CONFIG_GXMODE_BITSPERPIXEL == 32 || CONFIG_GXMODE_BITSPERPIXEL == 24
     #define COLOR_WHITE               (0xFFFFFF)
     #define WINDOW_TITLE_BAR_BG_COLOR (0x003971)
@@ -26,4 +27,5 @@
     #define DESKTOP_BG_COLOR          (0x007155)
     #define MOUSE_BG_COLOR            (0x202020)
     #define MOUSE_FG_COLOR            (0xFFFFFF)
+    #define COLOR_BG_BSOD             (0x390071)
 #endif

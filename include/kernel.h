@@ -32,6 +32,8 @@ typedef struct KernelStateInfo {
 #ifdef GRAPHICS_MODE_ENABLED
     // Kernel Graphics back buffer
     KGraphicsArea gx_back;
+    // HW Video Framebuffer
+    KGraphicsArea gx_hwfb;
 #endif
 } KernelStateInfo;
 

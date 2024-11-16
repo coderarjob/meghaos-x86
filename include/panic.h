@@ -16,13 +16,13 @@
 #include <disp.h>
 
 #ifndef UNITTEST
+    void kpanic_ndu (UINT line, const CHAR* file, const CHAR* fmt, ...);
+
     /* Displays an error message on the screen and Halts */
     #define k_panic(...)                                  \
         do {                                              \
-            kdisp_importantPrint ("\n\nKernel Panic:\n"); \
-            kdisp_importantPrint (__VA_ARGS__);           \
-            kdisp_show_call_trace();                      \
-            k_halt();                                     \
+            ARCH_DISABLE_INTERRUPTS()                     \
+            kpanic_ndu(__LINE__, __FILE__, __VA_ARGS__);  \
         } while (0)
 #else // UNITTEST
 void        unittest_panic_handler (const CHAR* s, ...);

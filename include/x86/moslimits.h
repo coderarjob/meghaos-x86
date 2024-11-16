@@ -16,10 +16,11 @@
 #include <buildcheck.h>
 #include <config.h>
 #include <paging.h>
+#include <kassert.h>
 
 #define MAX_VGA_COLUMNS             80U
 #define MAX_VGA_ROWS                50U
-#define MAX_PRINTABLE_STRING_LENGTH (MAX_VGA_COLUMNS * 3)
+#define MAX_PRINTABLE_STRING_LENGTH (MAX_VGA_COLUMNS * MAX_VGA_ROWS)
 
 #define MIN_GDT_INDEX      3U   /* Minimum index that can be editted in Kernel. */
 #define MAX_GDT_DESC_COUNT 512U /* Number of GDT entries in memory */

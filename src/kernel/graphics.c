@@ -92,7 +92,13 @@ void kgraphics_drawstring (const KGraphicsArea* g, UINT x, UINT y, const char* t
                            Color bg)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, text: %px, fg: %u, bg: %px", g, x, y, text, fg, bg);
+    UINT sx = x;
     for (const char* ch = text; *ch != '\0'; ch++) {
+        if (*ch == '\n') {
+            x = sx;
+            y += CONFIG_GXMODE_FONT_HEIGHT + 1;
+            continue;
+        }
         graphics_drawfont (g, x, y, (UCHAR)*ch, fg, bg);
         x += CONFIG_GXMODE_FONT_WIDTH;
     }
@@ -213,11 +219,11 @@ bool graphics_init()
     }
     kvmm_setAddressSpaceMetadata (g_kstate.context, (PTR)framebuffer, "vesafb", NULL);
 
-    // Store a copy of basic/global graphics mode information.
-    g_kstate.gx_back.bytesPerPixel    = gxi.bytesPerPixel;
-    g_kstate.gx_back.bytesPerRow      = gxi.bytesPerScanLine;
-    g_kstate.gx_back.width_px         = gxi.xResolution;
-    g_kstate.gx_back.height_px        = gxi.yResolution;
+    // Backbuffer: Store a copy of basic/global graphics mode information.
+    g_kstate.gx_back.bytesPerPixel   = gxi.bytesPerPixel;
+    g_kstate.gx_back.bytesPerRow     = gxi.bytesPerScanLine;
+    g_kstate.gx_back.width_px        = gxi.xResolution;
+    g_kstate.gx_back.height_px       = gxi.yResolution;
     g_kstate.gx_back.bufferSizeBytes = PAGEFRAMES_TO_BYTES (szPages);
     if (!(g_kstate.gx_back.buffer = (U8*)
               kvmm_memmap (g_kstate.context, 0, NULL, szPages,
@@ -226,6 +232,10 @@ bool graphics_init()
     }
     kvmm_setAddressSpaceMetadata (g_kstate.context, (PTR)g_kstate.gx_back.buffer, "gxbackbuffer",
                                   NULL);
+
+    // HW Framebuffer: Store a copy of basic/global graphics mode information.
+    g_kstate.gx_hwfb        = g_kstate.gx_back;
+    g_kstate.gx_hwfb.buffer = (U8*)framebuffer;
 
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_GRAPHICS_READY);
     return true;
