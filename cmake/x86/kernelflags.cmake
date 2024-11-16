@@ -25,12 +25,15 @@ set(MOS_KERNEL_GCC_FLAGS
     -fno-unit-at-a-time
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
-    -DPORT_E9_ENABLED=${MOS_PORT_E9_ENABLED}
     -D${MOS_BUILD_MODE}
     -DMARCH=${MARCH}
     -DARCH=${ARCH}
     -DKERNEL
     )
+
+if (MOS_PORT_E9_ENABLED)
+    list(APPEND MOS_KERNEL_GCC_FLAGS -DPORT_E9_ENABLED)
+endif()
 
 set(MOS_KERNEL_NASM_BIN_MODE_FLAGS
     -O0

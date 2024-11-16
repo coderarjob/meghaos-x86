@@ -14,6 +14,106 @@
 
 ------------------------------------
 
+## Logging & Debugging a graphical OS
+categories: note, independent
+16 Nov 2024
+
+The previous note on this topic stated that `kearly_printf` should replace `kdebug_printf` and that
+macros like `INFO` should also use `kearly_printf`. It also stated that `kdebug_printf` should print
+to VGA Text/VirtualScreen along with port 0xE9. Here are the problems this would create:
+* Throwing all the debug logs at the screen (and to VirtualScreen) would just create a wall of text
+  and I am not sure how would that be any helpful.
+* Since `kearly_printf` will be dumping everything on the screen, the debug programs would not be
+  able to show any structured output.
+
+So there is the new proposal. To keep both `kearly_printf` and `kdebug_printf` each having separate
+purpose. The former can be used for structured output on the screen (and to VirtualScreen), while
+the later be used for debug logging. Both of these will exist only for debug builds, but separating
+it this way would allow debug specific programs/tests to use the screen for some sensible output.
+
+Sure this means that `kdebug_printf` is of no use for standalone debugging, but the previous
+proposal also would not have been be any better. For standalone debugging it would make sense to
+have `kdebug_printf` to print to serial port. But that can come later on.
+
+Here is the new proposal to make the OS Graphical yet would allow text mode/debugging programs to
+run and produce output both for non-graphical & graphical builds.
+
+1. `kearly_printf`, `vgatext` function only be defined for DEBUG builds.
+2. `vgatext` function only be defined for DEBUG, non-graphical builds.
+3. `VirtualScreen` would be defined for DEBUG, graphical builds.
+4. `kearly_printf` will write to VGA text if non-graphical, or to VirtualScreen for graphical
+   builds. VirtualScreen will display the text in a 'Window'. It would flush out the text (repaint)
+   as soon as its written.
+5. `kdebug_printf` will also be defined for DEBUG builds with `E9_ENABLED` set. It will (as of now)
+   will print to the host terminal using port 0xE9. Whatever is printed using `kearly_printf` will
+   also be passed to `kdebug_printf`.
+6. `DEBUG_LEVEL` will be removed as `E9_ENABLED` macro makes it redundant.
+
+
+```
+|-------|------------|-----------|---------------|---------------|---------------|---------|
+| Debug | E9_ENABLED | Graphical | kearly_printf | kdebug_printf | kdisp_putc    | e9_putc |
+|-------|------------|-----------|---------------|---------------|---------------|---------|
+| No    | No         | No        | No            | No            | No            | No      |
+| Yes   | No         | No        | kdisp_putc    | No            | Yes           | No      |
+| No    | Yes        | No        | invalid       | invalid       | invalid       | invalid |
+| Yes   | Yes        | No        | kdisp_putc    | Yes           | Yes           | Yes     |
+|-------|------------|-----------|---------------|---------------|---------------|---------|
+| Debug | E9_ENABLED | Graphical | kearly_printf | kdebug_printf | VirtualScreen | e9_putc |
+|-------|------------|-----------|---------------|---------------|---------------|---------|
+| No    | No         | Yes       | No            | No            | No            | No      |
+| Yes   | No         | Yes       | VritualScreen | No            | Yes           | No      |
+| No    | Yes        | Yes       | invalid       | invalid       | invalid       | invalid |
+| Yes   | Yes        | Yes       | VirtualScreen | e9_putc       | Yes           | Yes     |
+|-------|------------|-----------|---------------|---------------|---------------|---------|
+
+kdisp_putc = (Debug & !Graphical)
+e9_putc    = (Debug & E9_ENABLED)
+
+VirtualScreen = (Debug & Graphical)
+
+kearly_printf = (kdisp_putc | VirtualScreen) = (Debug)
+kdebug_printf = (e9_putc) = (Debug & E9_ENABLED)
+```
+
+As with `kdisp_importantPrint`, its of no use. `kpanic` will
+* NDEBUG & Graphical -> Print panic text directly to vesa framebuffer.
+* DEBUG & Graphical  -> + `kdebug_printf`
+* DEBUG & Text       -> Print panic text to `kdebug_printf` + `kearly_printf`.
+
+------------------------------------
+
+## Logging & Debugging a graphical OS
+categories: note, independent, obsolete
+13 Nov 2024
+
+Since I want the OS to be primarily Graphical and text mode for only debugging purposes, some design
+changes is required.
+
+1. Functions which can only be used in text mode would become debug only.
+2. Few functions which were used specific for debug printing becomes redundant & can be removed.
+
+`kearly_printf` function which prints only works in text mode thus now be treated as a DEBUG only
+function. `kdebug_printf` thus now becomes redundant. `kdisp_importantPrint` also has no purpose
+now.
+
+The `kearly_printf` would now be printing to any of these 3 destinations:
+* `kdisp_putc` -> When in debug text mode, prints to VGA text mode buffer
+* `kdscreen_putc` -> When in debug graphical mode, prints to Debug Screen (new debug feature)
+* `kdebug_qemu_putc` -> When in debug & `E9_ENABLED` mode, prints to host console using port 0xE9.
+
+Note debug mode would work in both text & graphical mode. So there would be two build options:
+1. BUILD = (debug|ndebug)
+2. UI = (debug/text|graphical)
+3. E9_ENABLED = (true|false)
+
+All macros `INFO`, `ERROR` now will use `kearly_printf`.
+
+`k_panic` would use graphical implementation when in graphical mode and also print using
+`kearly_printf` in debug mode. For debug text mode `k_panic` would only print using `kearly_printf`.
+
+------------------------------------
+
 ## GUI basics in MeghaOS
 categories: note, independent
 21 Oct 2024
@@ -257,6 +357,40 @@ typedef struct Bitmap {
 ```
 
 ------------------------------------
+
+## System call frame
+categories: note, x86
+_17 April 2024_
+
+```
+|------------------|----------|
+| Interrupt frame  |          |
+|------------------|----------|
+| Offset           | Register |
+|------------------|----------|
+| 40               | SS       |
+| 36               | ESP      |
+| 32               | EFLAGS   |
+| 28               | CS       |
+| 24               | EIP      |
+|------------------|----------|
+| OS Syscall frame |          |
+|------------------|----------|
+| 20               | EBP      |
+| 16               | EDI      |
+| 12               | ESI      |
+| 08               | EDX      |
+| 04               | ECX      |
+| 00               | EBX      |
+|------------------|----------|
+
+Interrupt Frame Size : 4 * 5 = 20 bytes
+OS Syscall Frame Size: 4 * 6 = 24 bytes
+Total                :         44 bytes
+```
+
+------------------------------------
+
 ## Round-robin operation using queue
 categories: note, x86
 _11 April 2024_
