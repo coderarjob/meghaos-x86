@@ -83,7 +83,6 @@ static void spurious_irq_eoi (PIC_IRQ irq)
     } else {
         UNREACHABLE();
     }
-    k_halt();
 }
 
 INTERRUPT_HANDLER (irq_7)
