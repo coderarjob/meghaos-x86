@@ -14,6 +14,13 @@ set(KERNEL_SOURCES
         LIST(APPEND KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/compositor.c)
     endif()
 
+    if (MOS_BUILD_MODE STREQUAL "DEBUG")
+        LIST(APPEND KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/printk.c)
+        if (MOS_PORT_E9_ENABLED)
+            LIST(APPEND KERNEL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/kdebug.c)
+        endif()
+    endif()
+
 compile_lib(
     NAME kernel
     SOURCES ${KERNEL_SOURCES}

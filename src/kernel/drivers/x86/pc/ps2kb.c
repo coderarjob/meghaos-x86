@@ -79,7 +79,10 @@ INTERRUPT_HANDLER (kb_interrupt)
 void kb_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
+
+#if defined(DEBUG)
     U8 scancode = (U8)ps2_no_wait_read (PS2_DATA_PORT);
     kearly_println ("Keyboard ISR: Scancode: %x", scancode);
+#endif
     pic_send_eoi (PIC_IRQ_KEYBOARD);
 }

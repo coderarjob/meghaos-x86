@@ -7,7 +7,7 @@
 
 #include <types.h>
 #include <buildcheck.h>
-#include <disp.h>
+#include <stdarg.h>
 
 typedef enum KernelDebugLogType {
     KDEBUG_LOG_TYPE_INFO,
@@ -19,13 +19,15 @@ typedef enum KernelDebugLogType {
 /* Prints formatted string to 0xE9 port and can optionally print to vga
  * buffer.
  */
-#if defined(DEBUG) && defined(PORT_E9_ENABLED)
-void kdebug_printf_ndu (const CHAR* fmt, ...);
-void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...);
+
+#if defined(PORT_E9_ENABLED)
+    void kdebug_printf_ndu (const CHAR* fmt, ...);
+    void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...);
 
     #define kdebug_printf(...) kdebug_printf_ndu (__VA_ARGS__)
 
     #define INFO(...)          kdebug_log_ndu (KDEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
+
     #define FUNC_ENTRY(...) \
         kdebug_log_ndu (KDEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "" __VA_ARGS__)
     #define ERROR(...) kdebug_log_ndu (KDEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
@@ -36,7 +38,23 @@ void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char*
     #define FUNC_ENTRY(...)    (void)0
     #define ERROR(...)         (void)0
     #define WARN(...)          (void)0
-#endif // DEBUG && PORT_E9_ENABLED
+#endif
+
+#if defined(DEBUG)
+    INT kearly_printf (const CHAR* fmt, ...);
+#else
+    #define kearly_printf(...) (void)0
+#endif // DEBUG
+
+INT kearly_snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
+INT kearly_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
+
+/***************************************************************************************************
+ * Moves to the next line and prints formatted input on the screen.
+ *
+ * @return      For description for `kearly_vsnprintf`.
+ **************************************************************************************************/
+#define kearly_println(...) kearly_printf ("\n" __VA_ARGS__)
 
 /***************************************************************************************************
  * Moves to the next line and prints formatted input on the screen and E9 port.

@@ -10,24 +10,32 @@
 * Dated: 5th September 2021
 */
 
-#include <disp.h>
 #include <types.h>
 #include <moslimits.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <utils.h>
 #include <kernel.h>
+#include <kdebug.h>
 
 typedef enum IntTypes 
 {
     INTEGER, LONGINT, LONGLONGINT, ADDRESS
 } IntTypes;
 
-static void s_prnstr (const CHAR *str);
-static void s_itoa (CHAR **dest, S64 *size, U64 num, U32 base);
+static void s_itoa (CHAR** dest, S64* size, U64 num, U32 base);
 static bool s_convert (CHAR **dest, S64 *size, IntTypes inttype, CHAR c, va_list *l);
 static IntTypes s_readtype (const CHAR **fmt, CHAR *c);
 static U64 s_readint (IntTypes inttype, va_list *l);
+
+#if defined(DEBUG)
+static void s_prnstr (const CHAR *str);
+
+static void s_prnstr (const CHAR *str)
+{
+    for (;*str;str++)
+        kdisp_putc (*str);
+}
 
 /***************************************************************************************************
  * Prints on screen the arguments in the format specified.
@@ -55,6 +63,7 @@ INT kearly_printf (const CHAR *fmt, ...)
     s_prnstr (buffer);    
     return len;
 }
+#endif
 
 /***************************************************************************************************
  * Writes to a string pointer the arguments in the format specified.
@@ -265,10 +274,4 @@ static void s_itoa (CHAR **dest, S64 *size, U64 num, U32 base)
         if (*size > 1) *(*dest)++ = output[i];
         (*size)--;
     }
-}
-
-static void s_prnstr (const CHAR *str)
-{
-    for (;*str;str++)
-        kdisp_putc (*str);
 }

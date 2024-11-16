@@ -62,19 +62,4 @@ void kdisp_init ();
  **************************************************************************************************/
 void kdisp_putc (CHAR c);
 
-INT kearly_printf (const CHAR *fmt, ...);
-INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...);
-INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l);
-
-/***************************************************************************************************
- * Moves to the next line and prints formatted input on the screen.
- *
- * @return      For description for `kearly_vsnprintf`.
- **************************************************************************************************/
-#define kearly_println(...) kearly_printf ("\n" __VA_ARGS__)
-
-/* Message are printed on screen and if configured also on the debug console. */
-void kdisp_importantPrint(char *fmt, ...);
-void kdisp_show_call_trace();
-
 #endif // DISPTEXT_H

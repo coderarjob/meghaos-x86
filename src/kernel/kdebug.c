@@ -1,6 +1,6 @@
 /*
  * ---------------------------------------------------------------------------
- * Megha Operating System V2 - x86 Kernel - Debug console
+ * Megha Operating System V2 - Cross Platform Kernel - Debug console
  *
  * Uses the port 0xE9 hack to output characters to the linux Qemu console.
  * ---------------------------------------------------------------------------

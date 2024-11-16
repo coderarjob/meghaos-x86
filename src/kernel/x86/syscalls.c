@@ -28,13 +28,17 @@ typedef struct SystemcallFrame {
     U32 ss;
 } __attribute__ ((packed)) SystemcallFrame;
 
+#if defined(DEBUG)
 void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text);
+#if !defined(GRAPHICS_MODE_ENABLED)
+void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
+void ksys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
+#endif // !GRAPHICS_MODE_ENABLED
+#endif // DEBUG
 INT ksys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        KProcessFlags flags);
 void ksys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
 void ksys_killProcess (SystemcallFrame frame, UINT exitCode);
-void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
-void ksys_console_setposition (SystemcallFrame frame, U8 row, U8 col);
 bool ksys_processPopEvent (SystemcallFrame frame, OSIF_ProcessEvent* const e);
 U32 ksys_process_getPID (SystemcallFrame frame);
 U32 ksys_get_tickcount (SystemcallFrame frame);
@@ -54,20 +58,29 @@ static INT s_handleInvalidSystemCall();
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
+#if defined(DEBUG)
     &ksys_console_writeln,            // 0
+#else
+    &s_handleInvalidSystemCall,       // 0
+#endif
     &ksys_createProcess,              // 1
     &ksys_yieldProcess,               // 2
     &ksys_killProcess,                // 3
+#if defined(DEBUG) && !defined(GRAPHICS_MODE_ENABLED)
     &ksys_console_setcolor,           // 4
     &ksys_console_setposition,        // 5
+#else
+    &s_handleInvalidSystemCall,       // 4
+    &s_handleInvalidSystemCall,       // 5
+#endif
     &ksys_processPopEvent,            // 6
     &ksys_process_getPID,             // 7
-    &ksys_get_tickcount,             // 8
+    &ksys_get_tickcount,              // 8
     &ksys_process_getDataMemoryStart, // 9
 #ifdef GRAPHICS_MODE_ENABLED
     &ksys_window_createWindow,        // 10
     &ksys_window_destoryWindow,       // 11
-    &ksys_getWindowFB,               // 12
+    &ksys_getWindowFB,                // 12
     &ksys_window_graphics_flush_all,  // 13
 #else
     &s_handleInvalidSystemCall,      // 10
@@ -179,6 +192,7 @@ static INT s_handleInvalidSystemCall()
 }
 #pragma GCC diagnostic pop
 
+#if defined(DEBUG)
 void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text)
 {
     FUNC_ENTRY ("Frame return address: %x:%px, fmt: %px text: %px", frame.cs, frame.eip, fmt, text);
@@ -186,6 +200,7 @@ void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text)
     kearly_printf (fmt, text);
 }
 
+#if !defined(GRAPHICS_MODE_ENABLED)
 void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg)
 {
     FUNC_ENTRY ("Frame return address: %x:%px, fg: %x bg: %x", frame.cs, frame.eip, fg, bg);
@@ -199,6 +214,8 @@ void ksys_console_setposition (SystemcallFrame frame, U8 row, U8 col)
     (void)frame;
     kdisp_ioctl (DISP_SETCOORDS, row, col);
 }
+#endif // !GRAPHICS_MODE_ENABLED
+#endif // DEBUG
 
 INT ksys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE binLengthBytes,
                        KProcessFlags flags)
