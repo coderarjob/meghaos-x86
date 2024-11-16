@@ -7,13 +7,12 @@
  */
 #include <stdarg.h>
 #include <types.h>
-#include <x86/io.h>
 #include <moslimits.h>
-#include <utils.h>
-#include <disp.h>
-#include <x86/vgatext.h>
 #include <kdebug.h>
 #include <kernel.h>
+#if ARCH == x86
+    #include <x86/io.h>
+#endif
 
 #define ANSI_COL_GRAY   "\x1b[90m"
 #define ANSI_COL_YELLOW "\x1b[93m"

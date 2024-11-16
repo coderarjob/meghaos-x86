@@ -47,7 +47,7 @@ if(CMAKE_CROSSCOMPILING)
     endif()
 else()
     if (MOS_BUILD_MODE STREQUAL "DEBUG" OR MOS_PORT_E9_ENABLED)
-        message(FATAL_ERROR "Unittests should not be build with DEBUG or PORT_E9_ENABLED.")
+        message(FATAL_ERROR "Unittests should have DEBUG or PORT_E9_ENABLED enabled.")
     endif()
 endif()
 
