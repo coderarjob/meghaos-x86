@@ -25,7 +25,7 @@ set(MOS_KERNEL_GCC_FLAGS
     -fno-unit-at-a-time
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
-    -DDEBUG_LEVEL=${MOS_DEBUG_LEVEL}
+    -DPORT_E9_ENABLED=${MOS_PORT_E9_ENABLED}
     -D${MOS_BUILD_MODE}
     -DMARCH=${MARCH}
     -DARCH=${ARCH}

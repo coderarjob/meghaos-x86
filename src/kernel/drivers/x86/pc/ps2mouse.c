@@ -75,7 +75,7 @@ INTERRUPT_HANDLER (mouse_interrupt)
 void mouse_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
-#if (DEBUG_LEVEL & 1)
+#if defined(DEBUG) && defined(PORT_E9_ENABLED)
     U8 data1, data2, data3 = 0;
     data1 = (U8)ps2_no_wait_read (PS2_DATA_PORT);
     data2 = (U8)ps2_no_wait_read (PS2_DATA_PORT);

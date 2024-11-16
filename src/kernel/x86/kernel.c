@@ -243,7 +243,7 @@ void display_system_info()
 {
     FUNC_ENTRY();
 
-#if DEBUG_LEVEL & 0x1
+#if defined(DEBUG) && defined(PORT_E9_ENABLED)
     INT loadedFilesCount = kboot_getBootFileItemCount();
 
     INFO ("Loaded kernel files:");

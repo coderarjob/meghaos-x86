@@ -80,7 +80,7 @@ used by another.
 
 * `CMAKE_TOOLCHAIN_FILE` (Required) - Path to toolchain file.
 * `MOS_BUILD_MODE` (Defaults to DEBUG) - Valid values are DEBUG, NDEBUG.
-* `MOS_DEBUG_LEVEL` (Defaults to 1) - Enables/disables debug printing. Bit 0: E9, Bit 1: Screen.
+* `MOS_PORT_E9_ENABLED` (Defaults to 0) - Enables/disables debug printing using port 0xE9.
 * `CMAKE_PREFIX_PATH` - Path to where cross compiler is installed. Required if PATH environment
     variable does not include it.
 
@@ -92,13 +92,13 @@ $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
         -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross                \
         -B build-os
 
-# Option 2: NDEBUG mode build with DEBUG_LEVEL = 3.
+# Option 2: NDEBUG mode build with MOS_PORT_E9_ENABLED = 1.
 
 # NOTE; Cross compiler path taken from $PATH.
-# NOTE: DEBUG_LEVEL = 3 causes debug messages to print on both on the screen and E9 port.
+# NOTE: MOS_PORT_E9_ENABLED will enable printing debug messages to host terminal.
 
 $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
-        -DMOS_BUILD_MODE=NDEBUG -DMOS_DEBUG_LEVEL="3" -B build-os
+        -DMOS_BUILD_MODE=NDEBUG -DMOS_PORT_E9_ENABLED=true -B build-os
 ```
 ```
 $ cd build-os
@@ -135,7 +135,7 @@ $ make ARGS="<qemu arguments> run
 
 Build unittests using the following command:
 ```
-$ cmake -DMOS_DEBUG_LEVEL="3" -DARCH="x86" -B build-ut
+$ cmake -DARCH="x86" -B build-ut
 $ cd build-ut
 $ make
 ```

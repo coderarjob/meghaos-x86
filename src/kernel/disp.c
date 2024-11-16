@@ -25,11 +25,7 @@ void kdisp_importantPrint(char *fmt, ...)
     va_end(l);
 
     kdebug_printf ("%s",buffer);
-
-#if !defined(DEBUG) || !(DEBUG_LEVEL & 2)
     kearly_printf (buffer);
-#endif
-
 }
 
 void kdisp_show_call_trace()

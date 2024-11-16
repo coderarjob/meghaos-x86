@@ -16,7 +16,7 @@ jobs:
       run: sudo apt-get install nasm gcc-multilib
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DMOS_DEBUG_LEVEL="3" -DMARCH="pc" -DARCH="x86"
+      run: cmake -B ${{github.workspace}}/build -DMARCH="pc" -DARCH="x86"
 
     - name: Build and run
       run: cmake --build ${{github.workspace}}/build --target run

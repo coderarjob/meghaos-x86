@@ -21,5 +21,5 @@ cppcheck --output-file="$OUTFILE" \
          -I include \
          -D__i386__ \
          -DDEBUG \
-         -DEBUG_LEVEL=3 \
+         -DPORT_E9_ENABLED \
          src/common src/kernel/ || exit

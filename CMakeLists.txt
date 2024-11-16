@@ -11,10 +11,10 @@ set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS ${CMAKE_ASM_NASM_SOURCE_FILE_EXTENSION
 
 project(MeghaOS-V2 C ASM_NASM)
 
-set(MOS_DEBUG_LEVEL "1" CACHE STRING "Sets DEBUG_LEVEL option to this value")
 set(MOS_BUILD_MODE "DEBUG" CACHE STRING "Debug mode")
 set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
 set(MOS_GRAPHICS_BPP "32" CACHE STRING "Graphics mode: bits per pixel")
+set(MOS_PORT_E9_ENABLED No CACHE BOOL "Enable printing using Port E9")
 
 set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
 set(MOS_GRAPHICS_BPPS "8" "24" "32")
@@ -26,6 +26,24 @@ set_property(CACHE MOS_GRAPHICS_BPP PROPERTY STRINGS ${MOS_GRAPHICS_BPPS})
 if (NOT MOS_BUILD_MODE IN_LIST MOS_BUILD_MODES)
     message(FATAL_ERROR "${MOS_BUILD_MODE} is not a valid build mode.")
 endif()
+
+if (NOT MOS_GRAPHICS_BPP IN_LIST MOS_GRAPHICS_BPPS)
+    message(FATAL_ERROR "${MOS_GRAPHICS_BPP} is not a valid bits per pixel.")
+endif()
+
+if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND MOS_PORT_E9_ENABLED)
+    message(WARNING "Ignoring MOS_PORT_E9_ENABLED for NDEBUG builds")
+    set(MOS_PORT_E9_ENABLED No CACHE BOOL "Enable printing using Port E9" FORCE)
+endif()
+
+if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND MOS_PORT_E9_ENABLED)
+    message(WARNING "Ignoring MOS_PORT_E9_ENABLED for NDEBUG builds")
+endif()
+
+# TODO: Disabling this rule since VirtualScreen is not yet implemented.
+#if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND NOT MOS_GRAPHICS_ENABLED)
+#    message(FATAL_ERROR "Graphics mode cannot be disabled for NDEBUG builds.")
+#endif()
 
 if (CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "MOS_BUILD_MODE should be used to setup build mode.")
@@ -59,7 +77,7 @@ add_custom_target(show-info ALL
     COMMAND ${CMAKE_COMMAND} -E echo "- CROSS COMPILING : ${CMAKE_CROSSCOMPILING}"
     COMMAND ${CMAKE_COMMAND} -E echo "- C COMPILER      : ${CMAKE_C_COMPILER}"
     COMMAND ${CMAKE_COMMAND} -E echo "- BUILD MODE      : ${MOS_BUILD_MODE}"
-    COMMAND ${CMAKE_COMMAND} -E echo "- DEBUG LEVEL     : ${MOS_DEBUG_LEVEL}"
+    COMMAND ${CMAKE_COMMAND} -E echo "- E9 ENABLED     : ${MOS_PORT_E9_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS MODE   : ${MOS_GRAPHICS_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS BPP    : ${MOS_GRAPHICS_BPP}"
     COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"

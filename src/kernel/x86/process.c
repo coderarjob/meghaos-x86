@@ -44,8 +44,10 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
 static bool s_setupProcessStackMemory (KProcessInfo* pinfo);
 static bool s_setupProcessDataMemory (KProcessInfo* pinfo);
 static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode);
-#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
+#if defined(DEBUG) && defined(PORT_E9_ENABLED)
 static void s_showQueueItems (ListNode* forward, bool directionForward);
+#else
+    #define s_showQueueItems(...) (void)0
 #endif // DEBUG
 
 __attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
@@ -137,7 +139,7 @@ static KProcessInfo* s_processInfo_malloc (KProcessFlags flags)
     return pInfo;
 }
 
-#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
+#if defined(DEBUG) && defined(PORT_E9_ENABLED)
 static void s_showQueueItems (ListNode* forward, bool directionForward)
 {
     ListNode* node;
@@ -158,13 +160,11 @@ static void s_showQueueItems (ListNode* forward, bool directionForward)
         }
     }
 }
-#endif // (DEBUG_LEVEL & 1) && !defined(UNITTEST)
+#endif // DEBUG && PORT_E9_ENABLED
 
 static KProcessInfo* s_dequeue()
 {
-#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
     s_showQueueItems (&schedulerQueueHead, false);
-#endif // DEBUG
 
     ListNode* node = dequeue (&schedulerQueueHead);
     if (node == NULL) {

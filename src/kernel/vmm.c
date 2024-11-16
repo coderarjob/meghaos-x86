@@ -448,7 +448,7 @@ bool kvmm_free (VMemoryManager* vmm, PTR start_va)
     return true;
 }
 
-#if (DEBUG_LEVEL & 1) && !defined(UNITTEST)
+#if defined(DEBUG) && defined(PORT_E9_ENABLED)
 void kvmm_printVASList (VMemoryManager* vmm)
 {
     FUNC_ENTRY ("vmm: %x", vmm);
