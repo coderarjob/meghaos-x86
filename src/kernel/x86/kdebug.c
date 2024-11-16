@@ -15,6 +15,12 @@
 #include <kdebug.h>
 #include <kernel.h>
 
+#define ANSI_COL_GRAY   "\x1b[90m"
+#define ANSI_COL_YELLOW "\x1b[93m"
+#define ANSI_COL_RED    "\x1b[31m"
+#define ANSI_COL_GREEN  "\x1b[32m"
+#define ANSI_COL_RESET  "\x1b[0m"
+
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
 static void s_qemu_debugPutString (const CHAR* string)
 {
@@ -46,23 +52,30 @@ void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char*
 {
     int len = 0;
     char buffer[MAX_PRINTABLE_STRING_LENGTH];
+    char* message  = NULL;
+    char* logColor = ANSI_COL_RESET;
 
     switch (type) {
     case KDEBUG_LOG_TYPE_INFO: {
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[%u][ INFO ]%s %s:%u %s| ",
-                               ANSI_COL_GREEN, g_kstate.tick_count, ANSI_COL_GRAY, func, line,
-                               ANSI_COL_RESET);
-    } break;
-    case KDEBUG_LOG_TYPE_ERROR: {
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[%u][ ERROR ]%s %s:%u %s| ",
-                               ANSI_COL_RED, g_kstate.tick_count, ANSI_COL_GRAY, func, line,
-                               ANSI_COL_RESET);
+        message  = "\n  %s[%u][ INFO ]%s %s:%u %s|";
+        logColor = ANSI_COL_GREEN;
     } break;
     case KDEBUG_LOG_TYPE_FUNC: {
-        len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[%u][ %s:%u ]%s ",
-                               ANSI_COL_YELLOW, g_kstate.tick_count, func, line, ANSI_COL_RESET);
+        message  = "\n%s[%u]%s[ %s:%u ]%s|";
+        logColor = ANSI_COL_YELLOW;
+    } break;
+    case KDEBUG_LOG_TYPE_ERROR: {
+        message  = "\n  %s[%u][ ERROR ]%s %s:%u %s|";
+        logColor = ANSI_COL_RED;
+    } break;
+    case KDEBUG_LOG_TYPE_WARN: {
+        message  = "\n  %s[%u][ WARN ]%s %s:%u %s|";
+        logColor = ANSI_COL_YELLOW;
     } break;
     }
+
+    len = kearly_snprintf (buffer, ARRAY_LENGTH (buffer), message, logColor, g_kstate.tick_count,
+                           ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
 
     va_list l;
     va_start (l, fmt);
