@@ -38,11 +38,6 @@ typedef struct SectionAttributes {
 extern ListNode s_freeHead, s_allocHead, s_adjHead;
 ListNode s_freeHead, s_allocHead, s_adjHead;
 
-// At this point we cannot create Fake of functions with variac parameters.
-void kdisp_importantPrint (char* fmt, ...)
-{ // Dummy function
-}
-
 // The kmalloc buffer size must be large enough to meet the test expectations.
 #define UT_KMALLOC_SIZE_BYTES 400
 char kmalloc_buffer[UT_KMALLOC_SIZE_BYTES];
