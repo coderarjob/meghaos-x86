@@ -25,7 +25,6 @@
 
 static U8 pab[PAB_SIZE_BYTES];
 
-void kdebug_printf_ndu (const CHAR *fmt, ...) {}
 static void validate_pab (const U8 *pab, USYSINT addr, KernelPhysicalMemoryStates state);
 static void set_pab (U8 *const pab, USYSINT start, UINT pgCount, KernelPhysicalMemoryStates state);
 

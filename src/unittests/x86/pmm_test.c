@@ -4,8 +4,6 @@
 #include <pmm.h>
 #include <kerror.h>
 
-void kdebug_printf_ndu (const CHAR *fmt, ...) { }
-
 TEST(PMM, actual_accessable_ram)
 {
     kboot_calculateInstalledMemory_fake.ret = 5 * MB;

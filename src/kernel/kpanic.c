@@ -67,10 +67,8 @@ void kpanic_ndu (UINT line, const CHAR* file, const CHAR* fmt, ...)
 #endif
 
 #ifdef DEBUG
-    kdebug_printf ("%s", buffer);
-    #ifndef GRAPHICS_MODE_ENABLED
+    ERROR ("%s", buffer);
     kearly_printf (buffer);
-    #endif
 #endif
 
     k_halt();

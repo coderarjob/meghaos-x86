@@ -21,23 +21,19 @@ typedef enum KernelDebugLogType {
  */
 
 #if defined(PORT_E9_ENABLED)
-    void kdebug_printf_ndu (const CHAR* fmt, ...);
     void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...);
 
-    #define kdebug_printf(...) kdebug_printf_ndu (__VA_ARGS__)
-
-    #define INFO(...)          kdebug_log_ndu (KDEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
+    #define INFO(...) kdebug_log_ndu (KDEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
 
     #define FUNC_ENTRY(...) \
         kdebug_log_ndu (KDEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "" __VA_ARGS__)
     #define ERROR(...) kdebug_log_ndu (KDEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
     #define WARN(...)  kdebug_log_ndu (KDEBUG_LOG_TYPE_WARN, __func__, __LINE__, __VA_ARGS__)
 #else
-    #define kdebug_printf(...) (void)0
-    #define INFO(...)          (void)0
-    #define FUNC_ENTRY(...)    (void)0
-    #define ERROR(...)         (void)0
-    #define WARN(...)          (void)0
+    #define INFO(...)       (void)0
+    #define FUNC_ENTRY(...) (void)0
+    #define ERROR(...)      (void)0
+    #define WARN(...)       (void)0
 #endif
 
 #if defined(DEBUG)
@@ -55,13 +51,6 @@ INT kearly_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
  * @return      For description for `kearly_vsnprintf`.
  **************************************************************************************************/
 #define kearly_println(...) kearly_printf ("\n" __VA_ARGS__)
-
-/***************************************************************************************************
- * Moves to the next line and prints formatted input on the screen and E9 port.
- *
- * @return      Nothing
- **************************************************************************************************/
-#define kdebug_println(...) kdebug_printf ("\n" __VA_ARGS__)
 
 /***************************************************************************************************
  * Magic break point used by bochs emulator

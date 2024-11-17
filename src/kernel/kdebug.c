@@ -28,19 +28,6 @@ static void s_qemu_debugPutString (const CHAR* string)
         outb (0xE9, c);
 }
 
-void kdebug_printf_ndu (const CHAR* fmt, ...)
-{
-    CHAR buffer[MAX_PRINTABLE_STRING_LENGTH];
-    va_list l;
-
-    va_start (l, fmt);
-    kearly_vsnprintf (buffer, ARRAY_LENGTH (buffer), fmt, l);
-    va_end (l);
-
-    // Print to E9 port
-    s_qemu_debugPutString (buffer);
-}
-
 /***************************************************************************************************
  * Prints log to the host console in a new line. When DEBUG is defined also prints the function name
  * and line number.
