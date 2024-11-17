@@ -42,8 +42,7 @@ endif()
 
 if(CMAKE_CROSSCOMPILING)
     if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND MOS_PORT_E9_ENABLED)
-        message(WARNING "Ignoring MOS_PORT_E9_ENABLED for NDEBUG builds")
-        set(MOS_PORT_E9_ENABLED No CACHE BOOL "Enable printing using Port E9" FORCE)
+        message(FATAL_ERROR "NDEBUG builds must have MOS_PORT_E9_ENABLED disabled")
     endif()
 else()
     if (MOS_BUILD_MODE STREQUAL "DEBUG" OR MOS_PORT_E9_ENABLED)
@@ -51,14 +50,9 @@ else()
     endif()
 endif()
 
-if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND MOS_PORT_E9_ENABLED)
-    message(WARNING "Ignoring MOS_PORT_E9_ENABLED for NDEBUG builds")
+if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND NOT MOS_GRAPHICS_ENABLED)
+    message(FATAL_ERROR "NDEBUG build must have Graphics enabled.")
 endif()
-
-# TODO: Disabling this rule since VirtualScreen is not yet implemented.
-#if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND NOT MOS_GRAPHICS_ENABLED)
-#    message(FATAL_ERROR "Graphics mode cannot be disabled for NDEBUG builds.")
-#endif()
 
 if (CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "MOS_BUILD_MODE should be used to setup build mode.")
