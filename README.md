@@ -31,7 +31,7 @@ synchronization between threads and processes.
 The OS runs in x86 Protected Mode with Virtual Memory to ensure that one process do not touch memory
 used by another.
 
-![MeghaOS Screenshot](/docs/images/meghaos_screenshot.png)
+![MeghaOS Screenshot](/docs/images/meghaos_panic.png)
 
 ## Roadmap
 
