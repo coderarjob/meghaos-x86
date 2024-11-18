@@ -17,20 +17,13 @@ set(MOS_USER_GCC_FLAGS
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
     -fno-inline-small-functions
-    -D${MOS_BUILD_MODE}
-    -DMARCH=${MARCH}
-    -DARCH=${ARCH}
     )
 
-set(MOS_USER_NASM_BIN_MODE_FLAGS
-    -O0
-    -f bin
-    )
-
-set(MOS_USER_NASM_ELF_MODE_FLAGS
-    -O0
-    -f elf
-    )
+set(MOS_USER_GCC_DEFINITIONS
+    ${MOS_BUILD_MODE}
+    MARCH=${MARCH}
+    ARCH=${ARCH}
+)
 
 set(MOS_USER_GCC_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include/applib

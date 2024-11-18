@@ -25,26 +25,31 @@ set(MOS_KERNEL_GCC_FLAGS
     -fno-unit-at-a-time
     -fno-omit-frame-pointer
     -fno-inline-functions-called-once
-    -D${MOS_BUILD_MODE}
-    -DMARCH=${MARCH}
-    -DARCH=${ARCH}
-    -DKERNEL
     )
 
+set(MOS_KERNEL_GCC_DEFINITIONS
+    ${MOS_BUILD_MODE}
+    MARCH=${MARCH}
+    ARCH=${ARCH}
+    KERNEL
+)
+
 if (MOS_PORT_E9_ENABLED)
-    list(APPEND MOS_KERNEL_GCC_FLAGS -DPORT_E9_ENABLED)
+    list(APPEND MOS_KERNEL_GCC_DEFINITIONS PORT_E9_ENABLED)
 endif()
+
+set(MOS_KERNEL_NASM_DEFINITIONS
+    KERNEL
+)
 
 set(MOS_KERNEL_NASM_BIN_MODE_FLAGS
     -O0
     -f bin
-    -DKERNEL
     )
 
 set(MOS_KERNEL_NASM_ELF_MODE_FLAGS
     -O0
     -f elf
-    -DKERNEL
    )
 
 set(MOS_KERNEL_ASM_INCLUDE_DIRS

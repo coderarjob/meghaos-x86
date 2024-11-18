@@ -11,6 +11,7 @@ compile_lib(
     NAME crta
     SOURCES ${APPS_CRT_SOURCES}
     FLAGS ${MOS_KERNEL_GCC_FLAGS}
+    DEFINITIONS ${MOS_KERNEL_GCC_DEFINITIONS}
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     )
 # ------------------------------------------------------------------------
@@ -32,6 +33,7 @@ compile_lib(
     NAME app
     SOURCES ${APPLIB_SOURCES}
     FLAGS ${MOS_KERNEL_GCC_FLAGS}
+    DEFINITIONS ${MOS_KERNEL_GCC_DEFINITIONS}
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     STATIC_LIB
     )

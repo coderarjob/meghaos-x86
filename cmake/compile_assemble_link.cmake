@@ -2,6 +2,7 @@
 # compile_lib (NAME name
 #              SOURCES <source> [<source> ...]
 #              [FLAGS <flag> ...]
+#              [DEFINITIONS <compiler macros> ...]
 #              [INCLUDE_DIRECTORIES <paths> ...]
 #              [STATIC_LIB])
 #
@@ -237,6 +238,7 @@ endfunction()
 # test (NAME name
 #       [DEPENDENT_FOR target]
 #       [SOURCES <source> [<source> ...]
+#       [DEFINITIONS <compiler macros> ...]
 #       [INCLUDE_DIRECTORIES <paths> ..])
 #
 # Produces test executable from the source files. Binary files so produced are placed in
@@ -287,13 +289,14 @@ endfunction()
 # assemble_and_copy_bin (NAME name
 #                        SOURCES <source> [<source> ...]
 #                        [FLAGS <assembler flag> ...]
+#                        [DEFINITIONS <assembler macros> ...]
 #                        [INCLUDE_DIRECTORIES <paths> ..])
 #
 # Compiles a assembly files using NASM then copies each object files to MOS_BIN_DIR.
 # ==================================================================================================
 function(assemble_and_copy_bin)
     set(oneValueArgs NAME)
-    set(multiValueArgs SOURCES FLAGS INCLUDE_DIRECTORIES)
+    set(multiValueArgs SOURCES FLAGS INCLUDE_DIRECTORIES DEFINITIONS)
     set(options)
     cmake_parse_arguments(PARSE_ARGV 0 ASSEMBLE "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -312,6 +315,7 @@ function(assemble_and_copy_bin)
         NAME ${INTERMEDIATE_BIN_NAME}
         SOURCES ${ASSEMBLE_SOURCES}
         FLAGS ${ASSEMBLE_FLAGS}
+        DEFINITIONS ${ASSEMBLE_DEFINITIONS}
         INCLUDE_DIRECTORIES ${ASSEMBLE_INCLUDE_DIRECTORIES}
         )
     copy_object_file(
