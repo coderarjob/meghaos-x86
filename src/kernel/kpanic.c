@@ -8,7 +8,6 @@
 #include <types.h>
 #include <moslimits.h>
 #include <kdebug.h>
-#include <disp.h>
 #include <stdarg.h>
 #include <kernel.h>
 #include <utils.h>

@@ -1,5 +1,4 @@
 #include <unittest/unittest.h>
-#include <mock/kernel/x86/vgadisp.h>
 #include <types.h>
 #include <moslimits.h>
 #include <kdebug.h>
@@ -199,22 +198,8 @@ TEST(kearly_snprintf, pointer_literal)
     END();
 }
 
-// -------------------------------------------------------------------------------------------------
-// Handler functions for fake kdisp_putc function.
-// Used in the following tests: printk_test_disp_initialized, printk_test_disp_not_initialized
-// -------------------------------------------------------------------------------------------------
-static U16 vgab [10];
-void kdisp_putc_hander (CHAR c)
-{
-    static UINT index = 0;
-    vgab [index++] = (U16)((0x0FF << 8) | (UINT)c); // attribute of 0xFF (arbitary value)
-}
-// -------------------------------------------------------------------------------------------------
-
 void reset()
 {
-    resetVgaDisp();
-    memset (vgab, 0, ARRAY_LENGTH (vgab));
 }
 
 int main()

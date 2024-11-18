@@ -13,7 +13,6 @@
 #include <x86/paging.h>
 #include <paging.h>
 #include <config.h>
-#include <disp.h>
 #include <types.h>
 #include <kassert.h>
 #include <utils.h>

@@ -8,7 +8,6 @@
 
 #include <types.h>
 #include <config.h>
-#include <disp.h>
 #include <kernel.h>
 #include <kdebug.h>
 #include <kerror.h>

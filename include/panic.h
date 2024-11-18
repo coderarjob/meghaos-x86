@@ -13,7 +13,6 @@
 
 #include <buildcheck.h>
 #include <types.h>
-#include <disp.h>
 
 #ifndef UNITTEST
     void kpanic_ndu (UINT line, const CHAR* file, const CHAR* fmt, ...);
