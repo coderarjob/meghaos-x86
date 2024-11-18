@@ -67,7 +67,7 @@ jobs:
       env: 
         BUILD_DIR: ${{github.workspace}}/build-2
       run: |
-        cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_PORT_E9_ENABLED=OFF -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=NDEBUG -DMOS_GRAPHICS_ENABLED=OFF
+        cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_PORT_E9_ENABLED=OFF -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED=OFF
         cmake --build $BUILD_DIR
 
     # --------------------------------------------------------------------------
@@ -87,7 +87,7 @@ jobs:
         cmake --build $BUILD_DIR
 
     # --------------------------------------------------------------------------
-    - name: Build (NDebug, Graphics)
+    - name: Build (NDebug, Graphics, No Logs)
       env: 
         BUILD_DIR: ${{github.workspace}}/build-5
       run: |
