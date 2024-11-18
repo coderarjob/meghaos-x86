@@ -11,11 +11,14 @@ set(MOS_UNITTESTS_GCC_FLAGS
     -march=i386
     -masm=intel
     --coverage
-    -DUNITTEST
-    -DARCH=${ARCH}
-    -DMARCH=${MARCH}
-    -D${MOS_BUILD_MODE}
     )
+
+set (MOS_UNITTESTS_GCC_DEFINITIONS
+    UNITTEST
+    ARCH=${ARCH}
+    MARCH=${MARCH}
+)
+
 
 if (MOS_BUILD_MODE STREQUAL "DEBUG")
     set(MOS_UNITTESTS_GCC_FLAGS ${MOS_UNITTESTS_GCC_FLAGS} -g)

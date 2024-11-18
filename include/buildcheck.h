@@ -16,10 +16,10 @@
 #error "You are not targetting i386."
 #endif
 
-#if !defined (DEBUG) && !defined(GRAPHICS_MODE_ENABLED)
+#if !defined (DEBUG) && !defined(GRAPHICS_MODE_ENABLED) && !defined (UNITTEST)
 #error "Non-Graphics mode is only for debug."
 #endif
 
-#if !defined (DEBUG) && defined(PORT_E9_ENABLED)
+#if !defined (DEBUG) && defined(PORT_E9_ENABLED) && !defined (UNITTEST)
 #error "PORT 0xE9 is for debug mode only."
 #endif

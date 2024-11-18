@@ -14,7 +14,7 @@
 # ==================================================================================================
 function(compile_lib)
     set(oneValueArgs NAME)
-    set(multiValueArgs SOURCES FLAGS INCLUDE_DIRECTORIES)
+    set(multiValueArgs SOURCES FLAGS DEFINITIONS INCLUDE_DIRECTORIES)
     set(options STATIC_LIB)
     cmake_parse_arguments(PARSE_ARGV 0 COMPILE "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -44,6 +44,7 @@ function(compile_lib)
     endif()
     target_include_directories(${COMPILE_NAME} PRIVATE ${COMPILE_INCLUDE_DIRECTORIES})
     target_compile_options(${COMPILE_NAME} PRIVATE ${COMPILE_FLAGS})
+    target_compile_definitions(${COMPILE_NAME} PRIVATE ${COMPILE_DEFINITIONS})
 endfunction()
 
 # ==================================================================================================
@@ -243,7 +244,7 @@ endfunction()
 # ==================================================================================================
 function(test)
     set(oneValueArgs NAME DEPENDENT_FOR)
-    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES)
+    set(multiValueArgs SOURCES INCLUDE_DIRECTORIES DEFINITIONS)
     set(options)
     cmake_parse_arguments(PARSE_ARGV 0 TEST "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -265,6 +266,7 @@ function(test)
         NAME ${TEST_NAME}.co
         SOURCES ${TEST_SOURCES}
         FLAGS ${MOS_UNITTESTS_GCC_FLAGS}
+        DEFINITIONS ${MOS_UNITTESTS_GCC_DEFINITIONS} ${TEST_DEFINITIONS}
         INCLUDE_DIRECTORIES ${MOS_GCC_INCLUDE_DIRS}
         )
 

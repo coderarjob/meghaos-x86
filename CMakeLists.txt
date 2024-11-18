@@ -11,47 +11,40 @@ set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS ${CMAKE_ASM_NASM_SOURCE_FILE_EXTENSION
 
 project(MeghaOS-V2 C ASM_NASM)
 
-set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
-set(MOS_GRAPHICS_BPP "32" CACHE STRING "Graphics mode: bits per pixel")
-set(MOS_GRAPHICS_BPPS "8" "24" "32")
-set_property(CACHE MOS_GRAPHICS_BPP PROPERTY STRINGS ${MOS_GRAPHICS_BPPS})
-
 if(CMAKE_CROSSCOMPILING)
+    # Build options does not apply to Unittests. It enables/disables build options depending on the
+    # test.
     set(MOS_BUILD_MODE "DEBUG" CACHE STRING "Debug mode")
     set(MOS_PORT_E9_ENABLED No CACHE BOOL "Enable printing using Port E9")
-else()
-    # Unittests should not care about debug features, so should be build with NDEBUG and
-    # PORT_E9_ENABLED Off.
-    set(MOS_BUILD_MODE "NDEBUG" CACHE INTERNAL "Debug mode")
-    set(MOS_PORT_E9_ENABLED No CACHE INTERNAL "Enable printing using Port E9")
-endif()
+    set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
+    set(MOS_GRAPHICS_BPP "32" CACHE STRING "Graphics mode: bits per pixel")
 
-set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
-set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
+    set(MOS_GRAPHICS_BPPS "8" "24" "32")
+    set_property(CACHE MOS_GRAPHICS_BPP PROPERTY STRINGS ${MOS_GRAPHICS_BPPS})
+
+    set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
+    set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
+endif()
 
 #---------------------------------------------------------------------------
 # Validate User settable options
 #---------------------------------------------------------------------------
-if (NOT MOS_BUILD_MODE IN_LIST MOS_BUILD_MODES)
-    message(FATAL_ERROR "${MOS_BUILD_MODE} is not a valid build mode.")
-endif()
-
-if (NOT MOS_GRAPHICS_BPP IN_LIST MOS_GRAPHICS_BPPS)
-    message(FATAL_ERROR "${MOS_GRAPHICS_BPP} is not a valid bits per pixel.")
-endif()
-
 if(CMAKE_CROSSCOMPILING)
+    if (NOT MOS_BUILD_MODE IN_LIST MOS_BUILD_MODES)
+        message(FATAL_ERROR "${MOS_BUILD_MODE} is not a valid build mode.")
+    endif()
+
+    if (NOT MOS_GRAPHICS_BPP IN_LIST MOS_GRAPHICS_BPPS)
+        message(FATAL_ERROR "${MOS_GRAPHICS_BPP} is not a valid bits per pixel.")
+    endif()
+
     if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND MOS_PORT_E9_ENABLED)
         message(FATAL_ERROR "NDEBUG builds must have MOS_PORT_E9_ENABLED disabled")
     endif()
-else()
-    if (MOS_BUILD_MODE STREQUAL "DEBUG" OR MOS_PORT_E9_ENABLED)
-        message(FATAL_ERROR "Unittests should have DEBUG or PORT_E9_ENABLED enabled.")
-    endif()
-endif()
 
-if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND NOT MOS_GRAPHICS_ENABLED)
-    message(FATAL_ERROR "NDEBUG build must have Graphics enabled.")
+    if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND NOT MOS_GRAPHICS_ENABLED)
+        message(FATAL_ERROR "NDEBUG build must have Graphics enabled.")
+    endif()
 endif()
 
 if (CMAKE_BUILD_TYPE)

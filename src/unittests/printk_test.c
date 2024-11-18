@@ -2,12 +2,11 @@
 #include <mock/kernel/x86/vgadisp.h>
 #include <types.h>
 #include <moslimits.h>
-#include <disp.h>
+#include <kdebug.h>
 #include <string.h>
 #include <stdio.h>
 #include <utils.h>
 #include <kernel.h>
-
 
 TEST(kearly_snprintf, no_vargs)
 {
