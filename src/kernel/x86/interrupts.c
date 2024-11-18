@@ -8,7 +8,6 @@
 #include <types.h>
 #include <x86/interrupt.h>
 #include <utils.h>
-#include <disp.h>
 #include <panic.h>
 #include <kdebug.h>
 #include <kassert.h>

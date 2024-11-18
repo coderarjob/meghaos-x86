@@ -12,7 +12,7 @@
 
 #include <types.h>
 #include <stdarg.h>
-#include <disp.h>
+#include <kdebug.h>
 #include <x86/vgatext.h>
 #include <moslimits.h>
 #include <kerror.h>

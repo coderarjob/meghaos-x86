@@ -3,7 +3,6 @@
  * Megha Operating System V2 - Cross platform kernel - System calls
  * ---------------------------------------------------------------------------
  */
-#include <disp.h>
 #include <stdbool.h>
 #include <utils.h>
 #include <types.h>

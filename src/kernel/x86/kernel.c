@@ -12,7 +12,6 @@
 */
 
 #include <kassert.h>
-#include <disp.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <stdbool.h>

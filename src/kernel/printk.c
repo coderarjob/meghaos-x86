@@ -17,7 +17,6 @@
 #include <utils.h>
 #include <kernel.h>
 #include <kdebug.h>
-#include <disp.h>
 
 typedef enum IntTypes 
 {

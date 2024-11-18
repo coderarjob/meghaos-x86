@@ -21,6 +21,14 @@ typedef enum KernelDebugLogType {
  */
 
 #if defined(PORT_E9_ENABLED)
+    typedef enum DisplayControls {
+        DISP_GETCOORDS,
+        DISP_SETCOORDS,
+        DISP_COORDS_MAX,
+        DISP_SETATTR,
+        DISP_GETATTR
+    } DisplayControls;
+
     void kdebug_log_ndu (KernelDebugLogType type, const char* func, UINT line, char* fmt, ...);
 
     #define INFO(...) kdebug_log_ndu (KDEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
@@ -29,6 +37,12 @@ typedef enum KernelDebugLogType {
         kdebug_log_ndu (KDEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "" __VA_ARGS__)
     #define ERROR(...) kdebug_log_ndu (KDEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
     #define WARN(...)  kdebug_log_ndu (KDEBUG_LOG_TYPE_WARN, __func__, __LINE__, __VA_ARGS__)
+
+    INT kdisp_ioctl (INT request, ...);
+    void kdisp_scrollDown();
+    void kdisp_init();
+    void kdisp_putc (CHAR c);
+
 #else
     #define INFO(...)       (void)0
     #define FUNC_ENTRY(...) (void)0
