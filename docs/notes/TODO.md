@@ -106,9 +106,16 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | GRAPHICS                                                                |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] Logs in graphics mode for kearly_printf & kdebug_printf             | 13 Nov 24 |            |
+| [X] kearly_printf, kdebug_printf should be debug specific funcitons.    | 16 Nov 24 | 17 Nov 24  |
+| Implementation:                                                         |           |            |
+| * `kearly_printf` is now a DEBUG specific function.                     |           |            |
+| * `kearly_printf` would print to VGA Text buffer in text mode. In       |           |            |
+| graphics mode it does nothing.                                          |           |            |
+| * `kdebug_printf` is removed.                                           |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] k_panic in graphics mode - Need to have very low dependency. May be | 13 Nov 24 |            |
+| [X] Logs in graphics mode should not print to VGA text buffer           | 13 Nov 24 | 17 Nov 24  |
+|-------------------------------------------------------------------------|-----------|------------|
+| [X] k_panic in graphics mode - Need to have very low dependency. May be | 13 Nov 24 | 17 Nov 24  |
 | have to draw directly to video frame buffer                             |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
 | APP LIB                                                                 |           |            |

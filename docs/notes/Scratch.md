@@ -54,7 +54,7 @@ run and produce output both for non-graphical & graphical builds.
 |-------|------------|-----------|---------------|---------------|---------------|---------|
 | Debug | E9_ENABLED | Graphical | kearly_printf | kdebug_printf | kdisp_putc    | e9_putc |
 |-------|------------|-----------|---------------|---------------|---------------|---------|
-| No    | No         | No        | No            | No            | No            | No      |
+| No    | No         | No        | invalid       | invalid       | invalid       | invalid |
 | Yes   | No         | No        | kdisp_putc    | No            | Yes           | No      |
 | No    | Yes        | No        | invalid       | invalid       | invalid       | invalid |
 | Yes   | Yes        | No        | kdisp_putc    | Yes           | Yes           | Yes     |
@@ -80,6 +80,10 @@ As with `kdisp_importantPrint`, its of no use. `kpanic` will
 * NDEBUG & Graphical -> Print panic text directly to vesa framebuffer.
 * DEBUG & Graphical  -> + `kdebug_printf`
 * DEBUG & Text       -> Print panic text to `kdebug_printf` + `kearly_printf`.
+
+Also note that these above rules & build options are not for Unittests. It is required to test even
+the debug components, so the `ifdef` guards for debug specific components must allow when building
+unittests.
 
 ------------------------------------
 
