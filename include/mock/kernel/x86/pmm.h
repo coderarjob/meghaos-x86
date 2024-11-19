@@ -1,7 +1,7 @@
 #ifndef PMM_FAKE_X86_H
 #define PMM_FAKE_X86_H
 
-#include <common/bitmap.h>
+#include <bitmap.h>
 #include <unittest/fake.h>
 #include <types.h>
 

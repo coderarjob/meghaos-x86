@@ -1,13 +1,12 @@
 /*
 * ---------------------------------------------------------------------------
-* Megha Operating System V2 - Common - Bitmap
+* Megha Operating System V2 - Cross Platform Kernel - Bitmap
 *
 * Bitmap implementation for use in the OS.
 * ---------------------------------------------------------------------------
 */
 
-#ifndef COMMON_BITMAP_H
-#define COMMON_BITMAP_H
+#pragma once
 
 #include <types.h>
 #include <utils.h>
@@ -34,4 +33,3 @@ BitmapState bitmap_get (Bitmap *b, UINT index);
 bool bitmap_setContinous (Bitmap *b, UINT index, UINT len, BitmapState state);
 INT bitmap_findContinous (Bitmap *b, BitmapState state, UINT len);
 bool bitmap_findContinousAt (Bitmap *b, BitmapState state, UINT len, UINT indexAt);
-#endif // COMMON_BITMAP_H

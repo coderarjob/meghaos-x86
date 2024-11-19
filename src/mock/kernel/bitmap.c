@@ -1,4 +1,4 @@
-#include <mock/common/bitmap.h>
+#include <mock/kernel/bitmap.h>
 #include <unittest/fake.h>
 
 DEFINE_FUNC(BitmapState, bitmap_get, Bitmap*, UINT);

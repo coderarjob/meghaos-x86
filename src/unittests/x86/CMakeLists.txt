@@ -9,7 +9,7 @@ test(
         ${CMAKE_CURRENT_SOURCE_DIR}/../common.c
         # Mock sources
         ${PROJECT_SOURCE_DIR}/src/mock/kernel/kstdlib.c
-        ${PROJECT_SOURCE_DIR}/src/mock/common/bitmap.c
+        ${PROJECT_SOURCE_DIR}/src/mock/kernel/bitmap.c
         ${PROJECT_SOURCE_DIR}/src/mock/kernel/pmm.c
         ${PROJECT_SOURCE_DIR}/src/mock/kernel/x86/boot.c
     )

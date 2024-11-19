@@ -2,7 +2,7 @@
 #define BITMAP_FAKE_H
 
 #include <unittest/fake.h>
-#include <common/bitmap.h>
+#include <bitmap.h>
 
 DECLARE_FUNC(BitmapState, bitmap_get, Bitmap *, UINT);
 DECLARE_FUNC(bool, bitmap_setContinous, Bitmap *, UINT, UINT, BitmapState);

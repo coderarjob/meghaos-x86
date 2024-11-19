@@ -35,7 +35,7 @@ test(
     NAME bitmap_test
     DEPENDENT_FOR build-all
     SOURCES
-        ${PROJECT_SOURCE_DIR}/src/common/bitmap.c
+        ${PROJECT_SOURCE_DIR}/src/kernel/bitmap.c
         ${CMAKE_CURRENT_SOURCE_DIR}/bitmap_test.c
         ${CMAKE_CURRENT_SOURCE_DIR}/unittest.c
         ${CMAKE_CURRENT_SOURCE_DIR}/common.c
@@ -78,7 +78,7 @@ test(
     DEPENDENT_FOR build-all
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/pmm.c
-        ${PROJECT_SOURCE_DIR}/src/common/bitmap.c
+        ${PROJECT_SOURCE_DIR}/src/kernel/bitmap.c
         ${CMAKE_CURRENT_SOURCE_DIR}/pmm_test.c
         ${CMAKE_CURRENT_SOURCE_DIR}/common.c
         ${CMAKE_CURRENT_SOURCE_DIR}/unittest.c

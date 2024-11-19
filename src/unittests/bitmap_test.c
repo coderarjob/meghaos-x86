@@ -1,4 +1,4 @@
-#include <common/bitmap.h>
+#include <bitmap.h>
 #include <stdio.h>
 #include <string.h>
 #include <types.h>
