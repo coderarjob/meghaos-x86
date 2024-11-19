@@ -28,7 +28,7 @@
 #include <utils.h>
 #include <types.h>
 #include <kerror.h>
-#include <common/bitmap.h>
+#include <bitmap.h>
 
 /***************************************************************************************************
  * Checks if a section in the bitmap exists starting at index `indexAt` having at least `len`

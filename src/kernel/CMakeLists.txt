@@ -12,6 +12,7 @@ set(KERNEL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/salloc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/vmm.c
     ${CMAKE_CURRENT_SOURCE_DIR}/handle.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/bitmap.c
     )
 
     if (MOS_GRAPHICS_ENABLED)

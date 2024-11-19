@@ -13,7 +13,7 @@
 #include <types.h>
 #include <kdebug.h>
 #include <kerror.h>
-#include <common/bitmap.h>
+#include <bitmap.h>
 #include <utils.h>
 #include <kernel.h>
 #include <memloc.h>

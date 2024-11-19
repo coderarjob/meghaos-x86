@@ -6,7 +6,6 @@
 
 #include <stdbool.h>
 #include <types.h>
-#include <common/bitmap.h>
 #include <graphics.h>
 #include <config.h>
 #include <kernel.h>

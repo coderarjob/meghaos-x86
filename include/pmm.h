@@ -12,7 +12,7 @@
 #include <types.h>
 #include <utils.h>
 #include <config.h>
-#include <common/bitmap.h>
+#include <bitmap.h>
 
 typedef enum KernelPhysicalMemoryRegions
 {
