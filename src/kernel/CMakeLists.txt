@@ -34,3 +34,37 @@ compile_lib(
     DEFINITIONS ${MOS_KERNEL_GCC_DEFINITIONS}
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     )
+
+#---------------------------------------------------------------------------
+# Build Arch dependent kernel & drivers
+#---------------------------------------------------------------------------
+add_subdirectory(${ARCH})
+add_subdirectory(drivers/${ARCH}/${MARCH})
+
+set(KERNEL_RESOURCE_FILES)
+
+#---------------------------------------------------------------------------
+# Link the kernel
+#---------------------------------------------------------------------------
+if (MOS_GRAPHICS_ENABLED)
+    list (APPEND KERNEL_RESOURCE_FILES ${PROJECT_SOURCE_DIR}/docs/images/mos.rbm)
+endif()
+
+link(
+    FLATTEN
+    NAME kernel.flt
+    DEPENDS
+        kernel
+        kernel_entry
+        kernel_X86
+        kernel_drivers
+    RESOURCES ${KERNEL_RESOURCE_FILES}
+    FLAGS ${MOS_LINKER_OPTIONS}
+    LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
+    LINK_LIBRARIES gcc
+    )
+
+#---------------------------------------------------------------------------
+# Add to the global 'build-all' target
+#---------------------------------------------------------------------------
+add_dependencies(build-all kernel.flt)

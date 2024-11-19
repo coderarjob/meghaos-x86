@@ -48,6 +48,7 @@ compile_lib(
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/gui0.c
     FLAGS ${MOS_USER_GCC_FLAGS}
     DEFINITIONS ${MOS_USER_GCC_DEFINITIONS}
+                GRAPHICS_BPP=${MOS_GRAPHICS_BPP}
     INCLUDE_DIRECTORIES ${MOS_USER_GCC_INCLUDE_DIRS}
     )
 
@@ -59,3 +60,12 @@ link(
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
     LINK_LIBRARIES app
     )
+
+#---------------------------------------------------------------------------
+# Add to the global 'build-all' target
+#---------------------------------------------------------------------------
+if (MOS_GRAPHICS_ENABLED)
+    add_dependencies(build-all gui0.flt)
+else()
+    add_dependencies(build-all proc1.flt mpdemo.flt)
+endif()

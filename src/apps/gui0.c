@@ -3,10 +3,6 @@
 #include <app.h>
 #include <graphics.h>
 
-#ifndef GRAPHICS_MODE_ENABLED
-    #error "Gui demo only works in graphics mode"
-#endif
-
 void thread0();
 void thread1();
 

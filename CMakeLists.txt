@@ -101,43 +101,20 @@ if(CMAKE_CROSSCOMPILING)
     set(MOS_DISKIMAGE_PATH              ${MOS_DISKIMAGE_DIR}/mos.flp)
 
     #---------------------------------------------------------------------------
+    # Components which want to build by default should add themselves to this global target.
     add_custom_target(build-all ALL)
-    add_dependencies(build-all kernel.flt boot1.flt boot0.flt)
-    if (MOS_GRAPHICS_ENABLED)
-        add_dependencies(build-all gui0.flt)
-    else()
-        add_dependencies(build-all proc1.flt mpdemo.flt)
-    endif()
 
     #---------------------------------------------------------------------------
-    # Build & link kernel and process binaries
+    # Build & link bootloader, kernel and application library
     #---------------------------------------------------------------------------
     add_subdirectory(src/bootloader/${ARCH})
     add_subdirectory(src/kernel)
-    add_subdirectory(src/kernel/${ARCH})
-    add_subdirectory(src/apps)
     add_subdirectory(src/apps/applib)
-    add_subdirectory(src/kernel/drivers/${ARCH}/${MARCH})
 
-    set(KERNEL_RESOURCE_FILES)
-    if (MOS_GRAPHICS_ENABLED)
-        list (APPEND KERNEL_RESOURCE_FILES ${CMAKE_SOURCE_DIR}/docs/images/mos.rbm)
-    endif()
-
-    link(
-        FLATTEN
-        NAME kernel.flt
-        DEPENDS 
-            common
-            kernel
-            kernel_entry
-            kernel_X86
-            kernel_drivers
-        RESOURCES ${KERNEL_RESOURCE_FILES}
-        FLAGS ${MOS_LINKER_OPTIONS}
-        LINKER_FILE ${MOS_KERNEL_LINKER_SCRIPT_FILE}
-        LINK_LIBRARIES gcc
-        )
+    #---------------------------------------------------------------------------
+    # Build & link applications
+    #---------------------------------------------------------------------------
+    add_subdirectory(src/apps)
 
     #---------------------------------------------------------------------------
     # Create new floppy image and the copy flat binary files

@@ -6,10 +6,6 @@
 
 #pragma once
 
-#ifndef GRAPHICS_MODE_ENABLED
-    #error "Gui demo only works in graphics mode"
-#endif
-
 #include <types.h>
 #ifdef KERNEL
     #include <applib/osif.h>
