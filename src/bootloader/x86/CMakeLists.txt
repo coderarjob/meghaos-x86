@@ -1,3 +1,5 @@
+include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
+
 assemble_and_copy_bin(
     NAME boot0.flt
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/boot0/boot.s

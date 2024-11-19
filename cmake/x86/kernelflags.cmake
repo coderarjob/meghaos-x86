@@ -1,31 +1,12 @@
-set(MOS_KERNEL_GCC_WARN_FLAGS
-    -Wpedantic
-    -Wall
-    -Wextra
-    -Wconversion
-    -Wdangling-else
-    -Werror
-    )
+include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/commonflags.cmake)
 
+# ----------------------------------------------------
+# GCC
+# ----------------------------------------------------
 set(MOS_KERNEL_GCC_FLAGS
-    ${MOS_KERNEL_GCC_WARN_FLAGS}
-    -std=c99
-    -nostartfiles
-    -ffreestanding
-    -fno-pie
-    -fno-stack-protector
-    -fno-asynchronous-unwind-tables
-    -m32
-    -march=i686
-    -masm=intel
-    -mno-red-zone
-    -mno-sse
-    -malign-data=abi
-    -Os
-    -fno-unit-at-a-time
-    -fno-omit-frame-pointer
-    -fno-inline-functions-called-once
-    )
+    ${MOS_GCC_WARN_FLAGS}
+    ${MOS_GCC_FLAGS}
+)
 
 set(MOS_KERNEL_GCC_DEFINITIONS
     ${MOS_BUILD_MODE}
@@ -38,6 +19,13 @@ if (MOS_PORT_E9_ENABLED)
     list(APPEND MOS_KERNEL_GCC_DEFINITIONS PORT_E9_ENABLED)
 endif()
 
+set(MOS_KERNEL_GCC_INCLUDE_DIRS
+    ${PROJECT_SOURCE_DIR}/include
+)
+
+# ----------------------------------------------------
+# NASM
+# ----------------------------------------------------
 set(MOS_KERNEL_NASM_DEFINITIONS
     KERNEL
 )
@@ -57,8 +45,28 @@ set(MOS_KERNEL_ASM_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include/x86/asm
 )
 
-set(MOS_KERNEL_GCC_INCLUDE_DIRS
-    ${PROJECT_SOURCE_DIR}/include
-)
+# ----------------------------------------------------
+# Both GCC & NASM
+# ----------------------------------------------------
+if (MOS_BUILD_MODE STREQUAL "DEBUG")
+    list(APPEND MOS_KERNEL_GCC_FLAGS -g)
+    list(APPEND MOS_KERNEL_NASM_ELF_MODE_FLAGS -g)
+endif()
 
+If (MOS_GRAPHICS_ENABLED)
+    list(APPEND MOS_KERNEL_GCC_DEFINITIONS
+        GRAPHICS_MODE_ENABLED
+        GRAPHICS_BPP=${MOS_GRAPHICS_BPP}
+    )
+
+    list(APPEND MOS_KERNEL_NASM_DEFINITIONS
+        GRAPHICS_MODE_ENABLED
+        GRAPHICS_BPP=${MOS_GRAPHICS_BPP}
+    )
+endif()
+
+
+# ----------------------------------------------------
+# LINKER
+# ----------------------------------------------------
 set(MOS_KERNEL_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/src/kernel/x86/kernel.ld)

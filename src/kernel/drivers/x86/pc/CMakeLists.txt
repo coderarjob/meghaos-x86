@@ -1,3 +1,5 @@
+include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
+
 set(DRIVER_SOUCES
     ${CMAKE_CURRENT_SOURCE_DIR}/8259_pic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/8254_pit.c

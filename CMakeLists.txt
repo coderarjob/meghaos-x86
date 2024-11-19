@@ -57,7 +57,6 @@ endif()
 #---------------------------------------------------------------------------
 
 include(cmake/compile_assemble_link.cmake)
-include(cmake/mosflags.cmake)
 
 set(MOS_BIN_DIR                    ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR                    ${CMAKE_BINARY_DIR}/obj)
@@ -191,6 +190,8 @@ if(CMAKE_CROSSCOMPILING)
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         )
 else()
+    include(cmake/x86/unittestflags.cmake)
+
     #---------------------------------------------------------------------------
     # Validate compiler features required for compiling unittests
     #---------------------------------------------------------------------------

@@ -1,3 +1,5 @@
+include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
+
 # ------------------------------------------------------------------------
 # CRTA
 # Application C Runtime is analogous to the CRT in Linux, it provides prologue & epilogue code for

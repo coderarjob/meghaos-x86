@@ -1,3 +1,5 @@
+include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
+
 set(KERNEL_X86_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/boot.c
     ${CMAKE_CURRENT_SOURCE_DIR}/gdt.c

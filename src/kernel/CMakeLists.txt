@@ -1,3 +1,8 @@
+include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
+
+#---------------------------------------------------------------------------
+# Build Arch independent kernel
+#---------------------------------------------------------------------------
 set(KERNEL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/kpanic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/kmalloc.c
