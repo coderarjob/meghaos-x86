@@ -82,7 +82,7 @@ static void draw_cursor (const KGraphicsArea* g)
 {
     UINT mouse_x = 600; // Some random location at this point
     UINT mouse_y = 400;
-    graphics_rect (g, mouse_x, mouse_y, 10, 10, MOUSE_BG_COLOR);
+    kgraphics_rect (g, mouse_x, mouse_y, 10, 10, MOUSE_BG_COLOR);
     kgraphics_hline (g, mouse_x, mouse_y, 10, 2, MOUSE_FG_COLOR);
     kgraphics_vline (g, mouse_x, mouse_y, 10, 2, MOUSE_FG_COLOR);
 }
@@ -98,12 +98,12 @@ void kgraphics_drawstring (const KGraphicsArea* g, UINT x, UINT y, const char* t
             y += CONFIG_GXMODE_FONT_HEIGHT + 1;
             continue;
         }
-        graphics_drawfont (g, x, y, (UCHAR)*ch, fg, bg);
+        kgraphics_drawfont (g, x, y, (UCHAR)*ch, fg, bg);
         x += CONFIG_GXMODE_FONT_WIDTH;
     }
 }
 
-void graphics_drawfont (const KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg)
+void kgraphics_drawfont (const KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, char: %x, fg: %u, bg: %px", g, x, y, a, fg, bg);
 
@@ -145,7 +145,7 @@ void kgraphics_blit (const KGraphicsArea* destg, UINT x, UINT y, const KGraphics
     }
 }
 
-void graphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+void kgraphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
                          U8* bytes)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
@@ -171,7 +171,7 @@ void graphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h,
     }
 }
 
-void graphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color)
+void kgraphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
 
@@ -180,7 +180,7 @@ void graphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color)
     *start         = *col;
 }
 
-void graphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color)
+void kgraphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, color: %x", g, x, y, w, h, color);
 
@@ -198,7 +198,7 @@ void graphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Colo
     }
 }
 
-bool graphics_init()
+bool kgraphics_init()
 {
     FUNC_ENTRY();
 

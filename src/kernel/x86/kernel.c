@@ -133,8 +133,8 @@ void kernel_main ()
     kearly_printf ("\r[OK]");
 
 #ifdef GRAPHICS_MODE_ENABLED
-    if (!graphics_init()) {
-        ERROR ("Graphics mode could not be enabled");
+    if (!kgraphics_init()) {
+        FATAL_BUG();
     }
     kcompose_init();
 #endif

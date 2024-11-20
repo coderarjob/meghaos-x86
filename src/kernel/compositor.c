@@ -59,7 +59,7 @@ static void drawWindowDecorations (const KGraphicsArea* wa, const char* title)
     w = WINDOW_TITLE_BAR_WIDTH_PX (wa);
     h = WINDOW_TITLE_BAR_HEIGHT_PX;
     // Title bar background
-    graphics_rect (wa, x, y, w, h, WINDOW_TITLE_BAR_BG_COLOR);
+    kgraphics_rect (wa, x, y, w, h, WINDOW_TITLE_BAR_BG_COLOR);
 
     // Title bar title string
     kgraphics_drawstring (wa, WINDOW_TITLE_LEFT_PX, WINDOW_TITLE_TOP_PX, title,
@@ -86,7 +86,7 @@ static void drawWindowDecorations (const KGraphicsArea* wa, const char* title)
     y = WINDOW_WORKING_AREA_TOP_PX;
     w = WINDOW_WORKING_AREA_WIDTH_PX (wa);
     h = WINDOW_WORKING_AREA_HEIGHT_PX (wa);
-    graphics_rect (wa, x, y, w, h, WINDOW_BG_COLOR);
+    kgraphics_rect (wa, x, y, w, h, WINDOW_BG_COLOR);
 }
 
 static Window* allocWindow (UINT processID, UINT screen_x, UINT screen_y)
@@ -209,7 +209,7 @@ void kcompose_flush()
 
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_GRAPHICS_READY);
     KGraphicsArea* backbuffer = (KGraphicsArea*)&g_kstate.gx_back;
-    graphics_rect (backbuffer, 0, 0, backbuffer->width_px, backbuffer->height_px, DESKTOP_BG_COLOR);
+    kgraphics_rect (backbuffer, 0, 0, backbuffer->width_px, backbuffer->height_px, DESKTOP_BG_COLOR);
 
     ListNode* node;
     list_for_each (&windowsListHead, node)

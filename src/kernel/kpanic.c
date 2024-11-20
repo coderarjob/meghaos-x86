@@ -27,7 +27,7 @@ static void kpanic_gx_ui (const char* buffer)
     if (KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_GRAPHICS_READY)) {
         KGraphicsArea* ga = (KGraphicsArea*)&g_kstate.gx_hwfb;
         UINT width        = MIN (ga->width_px, CONFIG_GXMODE_FONT_WIDTH * MAX_VGA_COLUMNS);
-        graphics_rect (ga, 0, 0, width, ga->height_px, COLOR_BG_BSOD);
+        kgraphics_rect (ga, 0, 0, width, ga->height_px, COLOR_BG_BSOD);
         kgraphics_drawstring (ga, 10, 0, buffer, COLOR_WHITE, COLOR_BG_BSOD);
     } else {
         // This has to be a failure very early on.

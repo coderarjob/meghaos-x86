@@ -53,27 +53,27 @@ typedef RGBColor24Bits GxColor;
 typedef RGBColor32Bits GxColor;
 #endif
 
-void graphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color);
-void graphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
+void kgraphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Color color);
+void kgraphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
                          U8* bytes);
-void graphics_drawfont (const KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg);
-void graphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color);
+void kgraphics_drawfont (const KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg);
+void kgraphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color);
 void kgraphis_flush();
 void kgraphics_blit (const KGraphicsArea* destg, UINT x, UINT y, const KGraphicsArea* srcg);
-bool graphics_init();
+bool kgraphics_init();
 void kgraphics_drawstring (const KGraphicsArea* g, UINT x, UINT y, const char* text, Color fg,
                            Color bg);
 
 static inline void kgraphics_hline (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT th,
                                     Color color)
 {
-    graphics_rect (g, x, y, w, th, color);
+    kgraphics_rect (g, x, y, w, th, color);
 }
 
 static inline void kgraphics_vline (const KGraphicsArea* g, UINT x, UINT y, UINT h, UINT th,
                                     Color color)
 {
-    graphics_rect (g, x, y, th, h, color);
+    kgraphics_rect (g, x, y, th, h, color);
 }
 
 /* Draws rectangle with borders on the inside of a rectangle */
