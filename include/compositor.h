@@ -29,8 +29,8 @@ typedef struct Window {
 #define WINMAN_GRID_COLS_MAX   (2U)
 #define WINMAN_GRID_CELL_COUNT (WINMAN_GRID_ROWS_MAX * WINMAN_GRID_COLS_MAX)
 
-#define WINMAN_GRID_CELL_WIDTH_PX()         (g_kstate.gx_back.width_px / WINMAN_GRID_COLS_MAX)
-#define WINMAN_GRID_CELL_HEIGHT_PX()        (g_kstate.gx_back.height_px / WINMAN_GRID_ROWS_MAX)
+#define WINMAN_GRID_CELL_WIDTH_PX()         (g_kstate.gx_backfb.width_px / WINMAN_GRID_COLS_MAX)
+#define WINMAN_GRID_CELL_HEIGHT_PX()        (g_kstate.gx_backfb.height_px / WINMAN_GRID_ROWS_MAX)
 
 // Window grid coordiate of rows and columns to screen coordinates
 #define WINMAN_GRID_CELL_Y(r)               (WINMAN_GRID_CELL_HEIGHT_PX() * r)

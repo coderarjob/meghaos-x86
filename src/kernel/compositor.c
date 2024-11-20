@@ -37,7 +37,7 @@
 static SIZE getWindowAreaSizeBytes()
 {
     return WINMAN_GRID_CELL_WIDTH_PX() * WINMAN_GRID_CELL_HEIGHT_PX() *
-           g_kstate.gx_back.bytesPerPixel;
+           g_kstate.gx_backfb.bytesPerPixel;
 }
 
 static ListNode windowsListHead;
@@ -92,11 +92,11 @@ static void drawWindowDecorations (const KGraphicsArea* wa, const char* title)
 static Window* allocWindow (UINT processID, UINT screen_x, UINT screen_y)
 {
     // Create new window graphics area
-    KGraphicsArea windowArea = { .bytesPerPixel = g_kstate.gx_back.bytesPerPixel,
+    KGraphicsArea windowArea = { .bytesPerPixel = g_kstate.gx_backfb.bytesPerPixel,
                                  .width_px      = WINMAN_GRID_CELL_WIDTH_PX(),
                                  .height_px     = WINMAN_GRID_CELL_HEIGHT_PX(),
                                  .bytesPerRow   = WINMAN_GRID_CELL_WIDTH_PX() *
-                                                g_kstate.gx_back.bytesPerPixel };
+                                                g_kstate.gx_backfb.bytesPerPixel };
 
     VMemoryManager* vmm        = kprocess_getCurrentContext();
     SIZE bufferSzPages         = BYTES_TO_PAGEFRAMES_CEILING (getWindowAreaSizeBytes());
@@ -208,8 +208,9 @@ void kcompose_flush()
     FUNC_ENTRY();
 
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_GRAPHICS_READY);
-    KGraphicsArea* backbuffer = (KGraphicsArea*)&g_kstate.gx_back;
-    kgraphics_rect (backbuffer, 0, 0, backbuffer->width_px, backbuffer->height_px, DESKTOP_BG_COLOR);
+    KGraphicsArea* backbuffer = (KGraphicsArea*)&g_kstate.gx_backfb;
+    kgraphics_rect (backbuffer, 0, 0, backbuffer->width_px, backbuffer->height_px,
+                    DESKTOP_BG_COLOR);
 
     ListNode* node;
     list_for_each (&windowsListHead, node)

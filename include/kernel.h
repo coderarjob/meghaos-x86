@@ -33,7 +33,7 @@ typedef struct KernelStateInfo {
     U32 tick_count; // incremented every CONFIG_TICK_PERIOD_MICROSEC micro seconds.
 #ifdef GRAPHICS_MODE_ENABLED
     // Kernel Graphics back buffer
-    KGraphicsArea gx_back;
+    KGraphicsArea gx_backfb;
     // HW Video Framebuffer
     KGraphicsArea gx_hwfb;
 #endif

@@ -145,8 +145,8 @@ void kgraphics_blit (const KGraphicsArea* destg, UINT x, UINT y, const KGraphics
     }
 }
 
-void kgraphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, UINT bytesPerPixel,
-                         U8* bytes)
+void kgraphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h,
+                          UINT bytesPerPixel, U8* bytes)
 {
     FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
 
@@ -219,21 +219,21 @@ bool kgraphics_init()
     kvmm_setAddressSpaceMetadata (g_kstate.context, (PTR)framebuffer, "vesafb", NULL);
 
     // Backbuffer: Store a copy of basic/global graphics mode information.
-    g_kstate.gx_back.bytesPerPixel   = gxi.bytesPerPixel;
-    g_kstate.gx_back.bytesPerRow     = gxi.bytesPerScanLine;
-    g_kstate.gx_back.width_px        = gxi.xResolution;
-    g_kstate.gx_back.height_px       = gxi.yResolution;
-    g_kstate.gx_back.bufferSizeBytes = PAGEFRAMES_TO_BYTES (szPages);
-    if (!(g_kstate.gx_back.buffer = (U8*)
+    g_kstate.gx_backfb.bytesPerPixel   = gxi.bytesPerPixel;
+    g_kstate.gx_backfb.bytesPerRow     = gxi.bytesPerScanLine;
+    g_kstate.gx_backfb.width_px        = gxi.xResolution;
+    g_kstate.gx_backfb.height_px       = gxi.yResolution;
+    g_kstate.gx_backfb.bufferSizeBytes = PAGEFRAMES_TO_BYTES (szPages);
+    if (!(g_kstate.gx_backfb.buffer = (U8*)
               kvmm_memmap (g_kstate.context, 0, NULL, szPages,
                            VMM_MEMMAP_FLAG_IMMCOMMIT | VMM_MEMMAP_FLAG_KERNEL_PAGE, NULL))) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
-    kvmm_setAddressSpaceMetadata (g_kstate.context, (PTR)g_kstate.gx_back.buffer, "gxbackbuffer",
+    kvmm_setAddressSpaceMetadata (g_kstate.context, (PTR)g_kstate.gx_backfb.buffer, "gxbackbuffer",
                                   NULL);
 
     // HW Framebuffer: Store a copy of basic/global graphics mode information.
-    g_kstate.gx_hwfb        = g_kstate.gx_back;
+    g_kstate.gx_hwfb        = g_kstate.gx_backfb;
     g_kstate.gx_hwfb.buffer = (U8*)framebuffer;
 
     KERNEL_PHASE_SET (KERNEL_PHASE_STATE_GRAPHICS_READY);
@@ -246,14 +246,14 @@ void kgraphis_flush()
         return; // Graphics mode is not ready
     }
 
-    KGraphicsArea* backbuffer = (KGraphicsArea*)&g_kstate.gx_back;
+    KGraphicsArea* backbuffer = (KGraphicsArea*)&g_kstate.gx_backfb;
 
     // Backbuffer must exactly match the vesa framebuffer
     k_assert (backbuffer != NULL && (void*)framebuffer != NULL, "Graphics buffers cannot be NULL");
-    k_assert (g_kstate.gx_back.bytesPerRow == gxi.bytesPerScanLine, "Invalid backbuffer");
-    k_assert (g_kstate.gx_back.bytesPerPixel == gxi.bytesPerPixel, "Invalid backbuffer");
-    k_assert (g_kstate.gx_back.width_px == gxi.xResolution, "Invalid backbuffer");
-    k_assert (g_kstate.gx_back.height_px == gxi.yResolution, "Invalid backbuffer");
+    k_assert (g_kstate.gx_backfb.bytesPerRow == gxi.bytesPerScanLine, "Invalid backbuffer");
+    k_assert (g_kstate.gx_backfb.bytesPerPixel == gxi.bytesPerPixel, "Invalid backbuffer");
+    k_assert (g_kstate.gx_backfb.width_px == gxi.xResolution, "Invalid backbuffer");
+    k_assert (g_kstate.gx_backfb.height_px == gxi.yResolution, "Invalid backbuffer");
 
     arch_waitForNextVerticalRetrace();
     draw_cursor (backbuffer);
