@@ -17,11 +17,10 @@ the ability to play around and explore their computers.
 
 ![MeghaOS Screenshot](/docs/images/meghaos_vesafb.png)
 
-I am working to make MeghaOS a completely graphical operating system and text mode will only be for
-debugging and development. It can run variety of graphics modes and supports 8-bit, 24 & 32-bit
-color.
+MeghaOS is primarily a graphical operating system with text mode reserved for debugging &
+development. It supports variety of graphics modes and has 8-bit, 24 & 32-bit color suport.
 
-![MeghaOS Screenshot](/docs/images/meghaos_mpdemo.gif)
+![MeghaOS Screenshot](/docs/images/meghaos_gui0.gif)
 
 Multitasking capabilities using Cooperative multitasking allows processes and threads to run
 simultaneously. The choice of Cooperative multitasking was intentional as it provides a good base
@@ -52,7 +51,7 @@ used by another.
 - [X] Enhancements to the process management.
 - [X] VESA VGA frame buffer.
 - [X] Basic graphics & fonts library
-- [ ] Basic drivers (Keyboard, Mouse, RTC)
+- [ ] Basic drivers (PS2, PIT, PIC, Keyboard, Mouse, RTC)
 - [ ] CPIO based RAMDISK FS, for loading kernel modules and other programs.
 - [ ] Graphical shell.
 
@@ -83,23 +82,24 @@ used by another.
 * `MOS_PORT_E9_ENABLED` (Defaults to 0) - Enables/disables debug printing using port 0xE9.
 * `CMAKE_PREFIX_PATH` - Path to where cross compiler is installed. Required if PATH environment
     variable does not include it.
+* `MOS_GRAPHICS_ENABLED` (Defaults to No) - Enables/disables VESA graphics.
+* `MOS_GRAPHICS_BPP` (Defaults to 32) - Graphics bits per pixel. Valid values are 8, 24, 32.
 
 Generate the build system and then start the build:
 ```
-# Option 1: DEBUG build and cross compiler installation path passed explicitly.
+# Example 1: DEBUG build and cross compiler installation path passed explicitly.
+# NOTE: If full path was not provided the, Cross compiler path taken from $PATH variable.
 
 $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
         -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross                \
         -B build-os
 
-# Option 2: NDEBUG mode build with MOS_PORT_E9_ENABLED = 1.
-
-# NOTE; Cross compiler path taken from $PATH.
-# NOTE: MOS_PORT_E9_ENABLED will enable printing debug messages to host terminal.
+# Example 2: DEBUG mode build with Graphics mode.
 
 $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
-        -DMOS_BUILD_MODE=NDEBUG -DMOS_PORT_E9_ENABLED=true -B build-os
+        -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED='Yes' -B build-os
 ```
+
 ```
 $ cd build-os
 
@@ -107,11 +107,13 @@ $ cd build-os
 $ make
 
 # Compiles and bulids disk image.
-$ make mos.flp
+$ make image
 ```
+
 ### Running
 
 To run the disk image in Qemu use the following command:
+
 ```
 $ cd build-os
 
