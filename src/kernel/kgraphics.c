@@ -12,7 +12,7 @@
 #include <kdebug.h>
 #include <kerror.h>
 #include <kstdlib.h>
-#include <graphics.h>
+#include <kgraphics.h>
 #include <memmanage.h>
 #include <guicolours.h>
 #if ARCH == x86

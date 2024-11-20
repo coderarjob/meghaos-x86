@@ -12,7 +12,7 @@
 #include <kernel.h>
 #include <utils.h>
 #ifdef GRAPHICS_MODE_ENABLED
-    #include <graphics.h>
+    #include <kgraphics.h>
     #include <guicolours.h>
 #endif
 

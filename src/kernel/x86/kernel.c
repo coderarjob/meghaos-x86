@@ -40,7 +40,7 @@
 #include <drivers/x86/pc/8259_pic.h>
 #include <drivers/x86/pc/8254_pit.h>
 #ifdef GRAPHICS_MODE_ENABLED
-    #include <graphics.h>
+    #include <kgraphics.h>
     #include <compositor.h>
 #endif // GRAPHICS_MODE_ENABLED
 #include <handle.h>

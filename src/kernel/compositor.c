@@ -6,7 +6,7 @@
 
 #include <stdbool.h>
 #include <types.h>
-#include <graphics.h>
+#include <kgraphics.h>
 #include <config.h>
 #include <kernel.h>
 #include <compositor.h>

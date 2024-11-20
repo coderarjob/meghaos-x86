@@ -10,7 +10,7 @@
 #include <vmm.h>
 #include <config.h>
 #ifdef GRAPHICS_MODE_ENABLED
-    #include <graphics.h>
+    #include <kgraphics.h>
 #endif // GRAPHICS_MODE_ENABLED
 
 typedef struct KernelStateInfo {

@@ -12,7 +12,7 @@
 
 #include <kernel.h>
 #include <types.h>
-#include <graphics.h>
+#include <kgraphics.h>
 
 typedef struct Window {
     struct {
