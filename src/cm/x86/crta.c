@@ -5,8 +5,8 @@
  */
 
 #include <types.h>
-#include <applib/osif.h>
-#include <applib/syscall.h>
+#include <cm/osif.h>
+#include <cm/syscall.h>
 #include <kernel.h>
 
 // This is the entry point for all application processes.

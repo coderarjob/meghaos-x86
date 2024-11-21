@@ -17,7 +17,7 @@ link(
     DEPENDS proc1 crta
     FLAGS ${MOS_LINKER_OPTIONS}
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
-    LINK_LIBRARIES app
+    LINK_LIBRARIES cm
     )
 
 # ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ link(
     DEPENDS mpdemo crta
     FLAGS ${MOS_LINKER_OPTIONS}
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
-    LINK_LIBRARIES app
+    LINK_LIBRARIES cm
     )
 
 # ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ link(
     DEPENDS gui0 crta
     FLAGS ${MOS_LINKER_OPTIONS}
     LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
-    LINK_LIBRARIES app
+    LINK_LIBRARIES cm
     )
 
 #---------------------------------------------------------------------------

@@ -12,7 +12,7 @@ set(MOS_USER_GCC_DEFINITIONS
 )
 
 set(MOS_USER_GCC_INCLUDE_DIRS
-    ${PROJECT_SOURCE_DIR}/include/applib
+    ${PROJECT_SOURCE_DIR}/include/cm
 )
 
 set(MOS_USER_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/src/kernel/x86/process.ld)

@@ -109,7 +109,7 @@ if(CMAKE_CROSSCOMPILING)
     #---------------------------------------------------------------------------
     add_subdirectory(src/bootloader/${ARCH})
     add_subdirectory(src/kernel)
-    add_subdirectory(src/apps/applib)
+    add_subdirectory(src/cm)
 
     #---------------------------------------------------------------------------
     # Build & link applications

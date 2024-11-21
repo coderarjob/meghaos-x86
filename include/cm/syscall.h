@@ -11,7 +11,7 @@
 // applications will include this header (either directly or indirectly) the include path will
 // differ, thus this change in the way applib headers are included here.
 #ifdef KERNEL
-    #include <applib/osif.h>
+    #include <cm/osif.h>
 #else
     #include <osif.h>
 #endif

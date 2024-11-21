@@ -6,8 +6,8 @@
 
 #include <kstdlib.h>
 #include <types.h>
-#include <applib/graphics.h>
-#include <applib/app.h>
+#include <cm/graphics.h>
+#include <cm/app.h>
 
 typedef U8 IndexColor8Bit;
 

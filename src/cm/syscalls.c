@@ -14,7 +14,7 @@
  * This library should change with OS in order to shield the applications from the changes.
  */
 
-#include <applib/syscall.h>
+#include <cm/syscall.h>
 #include <config.h>
 #include <kernel.h>
 #include <process.h>

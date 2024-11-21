@@ -1,7 +1,7 @@
 include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
 
 # ------------------------------------------------------------------------
-# CRTA
+# C Runtime Library for Applications
 # Application C Runtime is analogous to the CRT in Linux, it provides prologue & epilogue code for
 # application programs to run and exit gracefully.
 # ------------------------------------------------------------------------
@@ -17,7 +17,7 @@ compile_lib(
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     )
 # ------------------------------------------------------------------------
-# LIBAPP
+# MOS C Library
 # C library to talk to the OS and helpful/common functions for use by application programs.
 # ------------------------------------------------------------------------
 set(APPLIB_SOURCES
@@ -32,7 +32,7 @@ set(APPLIB_SOURCES
     endif()
 
 compile_lib(
-    NAME app
+    NAME cm
     SOURCES ${APPLIB_SOURCES}
     FLAGS ${MOS_KERNEL_GCC_FLAGS}
     DEFINITIONS ${MOS_KERNEL_GCC_DEFINITIONS}
@@ -40,5 +40,5 @@ compile_lib(
     STATIC_LIB
     )
 
-target_link_libraries(app PUBLIC gcc)
+target_link_libraries(cm PUBLIC gcc)
 # ------------------------------------------------------------------------

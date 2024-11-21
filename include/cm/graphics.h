@@ -8,7 +8,7 @@
 
 #include <types.h>
 #ifdef KERNEL
-    #include <applib/osif.h>
+    #include <cm/osif.h>
 #else
     #include <osif.h>
 #endif

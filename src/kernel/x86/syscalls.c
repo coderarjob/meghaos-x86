@@ -16,7 +16,7 @@
 #endif // GRAPHICS_MODE_ENABLED
 #include <handle.h>
 #include <panic.h>
-#include <applib/osif.h>
+#include <cm/osif.h>
 
 typedef struct SystemcallFrame {
     U32 ebp;

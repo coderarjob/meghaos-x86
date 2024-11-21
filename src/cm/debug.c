@@ -9,8 +9,8 @@
  */
 #include <stdarg.h>
 #include <types.h>
-#include <applib/app.h>
-#include <applib/syscall.h>
+#include <cm/app.h>
+#include <cm/syscall.h>
 
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
 
