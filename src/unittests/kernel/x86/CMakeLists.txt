@@ -5,8 +5,7 @@ test(
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/x86/pmm.c
         ${CMAKE_CURRENT_SOURCE_DIR}/pmm_test.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../unittest.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../common.c
+        ${COMMON_KERNEL_UT_SOURCE_FILES}
         # Mock sources
         ${PROJECT_SOURCE_DIR}/src/mock/kernel/kstdlib.c
         ${PROJECT_SOURCE_DIR}/src/mock/kernel/bitmap.c
@@ -20,8 +19,7 @@ test(
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/kernel/x86/paging.c
         ${CMAKE_CURRENT_SOURCE_DIR}/paging_test.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../unittest.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../common.c
+        ${COMMON_KERNEL_UT_SOURCE_FILES}
         # Mock sources
         ${PROJECT_SOURCE_DIR}/src/mock/kernel/kstdlib.c
         ${PROJECT_SOURCE_DIR}/src/mock/kernel/pmm.c
