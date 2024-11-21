@@ -12,8 +12,15 @@
 #include <applib/app.h>
 #include <applib/syscall.h>
 
-#if defined(DEBUG)
-static void s_qemu_debugPutString (const CHAR* string)
+#if defined(DEBUG) && defined(PORT_E9_ENABLED)
+
+    #define ANSI_COL_GRAY   "\x1b[90m"
+    #define ANSI_COL_YELLOW "\x1b[93m"
+    #define ANSI_COL_RED    "\x1b[31m"
+    #define ANSI_COL_GREEN  "\x1b[32m"
+    #define ANSI_COL_RESET  "\x1b[0m"
+
+static void qemu_putString (const CHAR* string)
 {
     CHAR c;
     while ((c = *string++))
@@ -30,28 +37,37 @@ void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, .
 {
     int len = 0;
     char buffer[MAX_PRINTABLE_STRING_LENGTH];
-    UINT tick_count = os_get_tickcount();
+    char* message  = NULL;
+    char* logColor = ANSI_COL_RESET;
 
     switch (type) {
     case DEBUG_LOG_TYPE_INFO: {
-        len = snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[%u][ INFO ]%s %s:%u %s| ",
-                        ANSI_COL_GREEN, tick_count, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
-    } break;
-    case DEBUG_LOG_TYPE_ERROR: {
-        len = snprintf (buffer, ARRAY_LENGTH (buffer), "\n  %s[%u][ ERROR ]%s %s:%u %s| ",
-                        ANSI_COL_RED, tick_count, ANSI_COL_GRAY, func, line, ANSI_COL_RESET);
+        message  = "\n  %s[%u][MLC][ INFO ]%s %s:%u %s|";
+        logColor = ANSI_COL_GREEN;
     } break;
     case DEBUG_LOG_TYPE_FUNC: {
-        len = snprintf (buffer, ARRAY_LENGTH (buffer), "\n%s[%u][ %s:%u ]%s ", ANSI_COL_YELLOW,
-                        tick_count, func, line, ANSI_COL_RESET);
+        message  = "\n%s[%u][MLC]%s[ %s:%u ]%s|";
+        logColor = ANSI_COL_YELLOW;
+    } break;
+    case DEBUG_LOG_TYPE_ERROR: {
+        message  = "\n  %s[%u][MLC][ ERROR ]%s %s:%u %s|";
+        logColor = ANSI_COL_RED;
+    } break;
+    case DEBUG_LOG_TYPE_WARN: {
+        message  = "\n  %s[%u][MLC][ WARN ]%s %s:%u %s|";
+        logColor = ANSI_COL_YELLOW;
     } break;
     }
+
+    UINT tick_count = os_get_tickcount();
+    len = snprintf (buffer, ARRAY_LENGTH (buffer), message, logColor, tick_count, ANSI_COL_GRAY,
+                    func, line, ANSI_COL_RESET);
 
     va_list l;
     va_start (l, fmt);
     vsnprintf (buffer + len, ARRAY_LENGTH (buffer), fmt, l);
     va_end (l);
 
-    s_qemu_debugPutString (buffer);
+    qemu_putString (buffer);
 }
 #endif // DEBUG

@@ -2,6 +2,8 @@
  * ---------------------------------------------------------------------------
  * Megha Operating System V2 - App library - General macros & function declarations
  * ---------------------------------------------------------------------------
+ *
+ *  This file contains Mos-libc macros & definitions for application to use.
  */
 
 #pragma once
@@ -25,38 +27,38 @@
 INT snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
 INT vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
 
-#if defined(DEBUG)
+/********************************************************************
+ * Debug specific. Only available for Debug builds of Mos-libc
+ *******************************************************************/
+#if defined(DEBUG) && defined(PORT_E9_ENABLED)
+    typedef enum DebugLogType {
+        DEBUG_LOG_TYPE_INFO,
+        DEBUG_LOG_TYPE_FUNC,
+        DEBUG_LOG_TYPE_ERROR,
+        DEBUG_LOG_TYPE_WARN,
+    } DebugLogType;
 
-    #define ANSI_COL_GRAY   "\x1b[90m"
-    #define ANSI_COL_YELLOW "\x1b[93m"
-    #define ANSI_COL_RED    "\x1b[31m"
-    #define ANSI_COL_GREEN  "\x1b[32m"
-    #define ANSI_COL_RESET  "\x1b[0m"
+    void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, ...);
 
-typedef enum DebugLogType {
-    DEBUG_LOG_TYPE_INFO,
-    DEBUG_LOG_TYPE_ERROR,
-    DEBUG_LOG_TYPE_FUNC
-} DebugLogType;
-
-void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, ...);
-
-    #define INFO(...)  debug_log_ndu (DEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
-    #define ERROR(...) debug_log_ndu (DEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
-    #define FUNC_ENTRY(...) \
-        debug_log_ndu (DEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "Args: " __VA_ARGS__)
+    #define INFO(...)       debug_log_ndu (DEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
+    #define ERROR(...)      debug_log_ndu (DEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
+    #define FUNC_ENTRY(...) debug_log_ndu (DEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "" __VA_ARGS__)
+    #define WARN(...)       debug_log_ndu (DEBUG_LOG_TYPE_WARN, __func__, __LINE__, __VA_ARGS__)
 #else
     #define INFO(...)       (void)0
     #define ERROR(...)      (void)0
     #define FUNC_ENTRY(...) (void)0
-#endif // DEBUG
+    #define WARN(...)       (void)0
+#endif // PORT_E9_ENABLED
 
-/***************************************************************************************************
- * Magic break point used by bochs emulator
- *
- * @return      Nothing
- **************************************************************************************************/
-#define kbochs_breakpoint() __asm__ volatile("xchg bx, bx")
+#if defined(DEBUG)
+    /***************************************************************************************************
+     * Magic break point used by bochs emulator
+     *
+     * @return      Nothing
+     **************************************************************************************************/
+    #define bochs_breakpoint() __asm__ volatile("xchg bx, bx")
+#endif // DEBUG
 
 /***************************************************************************************************
  * Halts thread for 'ms' miliseconds
