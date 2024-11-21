@@ -1,0 +1,10 @@
+include(${PROJECT_SOURCE_DIR}/src/mock/mockfortests_${ARCH}.cmake)
+
+test(
+    NAME cm_printf_test
+    DEPENDENT_FOR build-all
+    SOURCES
+        ${PROJECT_SOURCE_DIR}/src/cm/printf.c
+        ${PROJECT_SOURCE_DIR}/src/unittests/unittest.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/printf_test.c
+    )

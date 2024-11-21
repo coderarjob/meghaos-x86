@@ -14,6 +14,7 @@
 | [X] unittest.h bug:                                                     |           | 20 JUL 23  |
 | Function under test is called twice when a scalar match fails.          |           |            |
 | [X] Utils unittest                                                      | 09 JAN 24 | 09 JAN 24  |
+| [X] libcm unittest                                                      | Nov 24    | 21 Nov 24  |
 |-------------------------------------------------------------------------|-----------|------------|
 | DOCUMENTATION                                                           |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
@@ -118,9 +119,9 @@
 | [X] k_panic in graphics mode - Need to have very low dependency. May be | 13 Nov 24 | 17 Nov 24  |
 | have to draw directly to video frame buffer                             |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| APP LIB                                                                 |           |            |
+| LIBC MOS                                                                |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] APPLIB is just a terrible name.                                     | 13 Nov 24 |            |
+| [X] APPLIB is just a terrible name.                                     | 13 Nov 24 | 21 Nov 24  |
 |-------------------------------------------------------------------------|-----------|------------|
 | [ ] Process events need to be handled such that no event gets lost.     | 13 Nov 24 |            |
 | Sort of what Windows                                                    |           |            |
