@@ -186,8 +186,8 @@ else()
     #---------------------------------------------------------------------------
 
     add_custom_target(build-all ALL)
-    add_subdirectory(src/unittests)
-    add_subdirectory(src/unittests/${ARCH})
+    add_subdirectory(src/unittests/kernel)
+    add_subdirectory(src/unittests/kernel/${ARCH})
 
     #---------------------------------------------------------------------------
     # Generage unittest coverage report
