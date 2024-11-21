@@ -5,7 +5,7 @@
  */
 
 #include <types.h>
-#include <cm/app.h>
+#include <cm/cm.h>
 #include <cm/syscall.h>
 
 #define OS_MICRODEC_TO_TICK_COUNT(us) ((us) / os_get_tick_period_us())

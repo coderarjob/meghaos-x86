@@ -9,7 +9,7 @@
  */
 #include <stdarg.h>
 #include <types.h>
-#include <cm/app.h>
+#include <cm/cm.h>
 #include <cm/syscall.h>
 
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
