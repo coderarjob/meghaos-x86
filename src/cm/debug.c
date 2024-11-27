@@ -14,11 +14,13 @@
 
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
 
-    #define ANSI_COL_GRAY   "\x1b[90m"
-    #define ANSI_COL_YELLOW "\x1b[93m"
-    #define ANSI_COL_RED    "\x1b[31m"
-    #define ANSI_COL_GREEN  "\x1b[32m"
-    #define ANSI_COL_RESET  "\x1b[0m"
+    #define MAX_PRINTABLE_STRING_LENGTH 100
+
+    #define ANSI_COL_GRAY               "\x1b[90m"
+    #define ANSI_COL_YELLOW             "\x1b[93m"
+    #define ANSI_COL_RED                "\x1b[31m"
+    #define ANSI_COL_GREEN              "\x1b[32m"
+    #define ANSI_COL_RESET              "\x1b[0m"
 
 static void qemu_putString (const CHAR* string)
 {

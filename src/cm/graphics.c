@@ -8,6 +8,7 @@
 #include <types.h>
 #include <cm/graphics.h>
 #include <cm/cm.h>
+#include <cm/debug.h>
 
 typedef U8 IndexColor8Bit;
 
