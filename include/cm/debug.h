@@ -34,5 +34,9 @@
      * @return      Nothing
      **************************************************************************************************/
     #define bochs_breakpoint() __asm__ volatile("xchg bx, bx")
-#endif // DEBUG
 
+    #if ARCH == x86
+        #define x86_outb(p, v) __asm__ volatile("out dx, al;" : : "a"(v), "d"(p))
+        #define x86_inb(p, v)  __asm__ volatile("in al, dx" : "=a"(v) : "d"(p))
+    #endif
+#endif // DEBUG

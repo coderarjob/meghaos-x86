@@ -11,10 +11,12 @@
 #include <types.h>
 #include <cm/cm.h>
 #include <cm/syscall.h>
+#include <cm/debug.h>
 
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
 
     #define MAX_PRINTABLE_STRING_LENGTH 100
+    #define ARRAY_LENGTH(ar)            (sizeof ((ar)) / sizeof ((ar)[0]))
 
     #define ANSI_COL_GRAY               "\x1b[90m"
     #define ANSI_COL_YELLOW             "\x1b[93m"
@@ -25,8 +27,13 @@
 static void qemu_putString (const CHAR* string)
 {
     CHAR c;
-    while ((c = *string++))
-        outb (0xE9, c);
+    while ((c = *string++)) {
+    #if ARCH == x86
+        x86_outb (0xE9, c);
+    #else
+        #error "Not implemented"
+    #endif
+    }
 }
 
 /***************************************************************************************************
@@ -61,7 +68,7 @@ void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, .
     } break;
     }
 
-    UINT tick_count = os_get_tickcount();
+    UINT tick_count = cm_get_tickcount();
     len = snprintf (buffer, ARRAY_LENGTH (buffer), message, logColor, tick_count, ANSI_COL_GRAY,
                     func, line, ANSI_COL_RESET);
 
