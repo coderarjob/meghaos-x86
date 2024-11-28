@@ -11,17 +11,15 @@
 #include <types.h>
 #include <stdarg.h>
 
-
-#define HALT()                      for (;;)
-
+#define INVALID_HANDLE (-1)
+#define HALT()         for (;;)
 
 INT snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
 INT vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
-
 
 /***************************************************************************************************
  * Halts thread for 'ms' miliseconds
  *
  * @return      Nothing
  **************************************************************************************************/
-void delay (UINT ms);
+void cm_delay (UINT ms);

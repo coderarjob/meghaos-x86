@@ -30,7 +30,7 @@ S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
     return retval;
 }
 
-INT os_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode)
+INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode)
 {
     KProcessFlags flags = PROCESS_FLAGS_NONE;
     if (isKernelMode) {
@@ -41,7 +41,7 @@ INT os_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKerne
                     0, 0);
 }
 
-INT os_thread_create (void (*startLocation)(), bool isKernelMode)
+INT cm_thread_create (void (*startLocation)(), bool isKernelMode)
 {
     KProcessFlags flags = PROCESS_FLAGS_THREAD;
     if (isKernelMode) {
@@ -50,14 +50,14 @@ INT os_thread_create (void (*startLocation)(), bool isKernelMode)
     return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
 }
 
-bool os_process_is_yield_requested()
+bool cm_process_is_yield_requested()
 {
     volatile OSIF_ProcessEvent e = { 0 };
-    os_process_pop_event ((OSIF_ProcessEvent*)&e);
+    cm_process_pop_event ((OSIF_ProcessEvent*)&e);
     return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
 }
 
-UINT os_get_tick_period_us()
+UINT cm_get_tick_period_us()
 {
     return CONFIG_TICK_PERIOD_MICROSEC;
 }

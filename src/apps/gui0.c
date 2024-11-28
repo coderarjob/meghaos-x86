@@ -2,6 +2,7 @@
 #include <types.h>
 #include <cm.h>
 #include <graphics.h>
+#include <debug.h>
 
 void thread0();
 void thread1();
@@ -9,14 +10,14 @@ void thread2();
 
 static OSIF_WindowFrameBufferInfo createWindow (const char* const title)
 {
-    Handle h = os_window_create (title);
+    Handle h = cm_window_create (title);
     if (h == INVALID_HANDLE) {
         ERROR ("Window creation failed");
         HALT();
     }
 
     OSIF_WindowFrameBufferInfo fbi;
-    if (!os_window_getFB (h, &fbi)) {
+    if (!cm_window_getFB (h, &fbi)) {
         ERROR ("Window creation failed");
         HALT();
     }
@@ -26,14 +27,14 @@ static OSIF_WindowFrameBufferInfo createWindow (const char* const title)
 
 void proc_main()
 {
-    os_window_flush_graphics();
-    os_thread_create (&thread1, false);
-    os_thread_create (&thread2, false);
-    os_thread_create (&thread0, false);
+    cm_window_flush_graphics();
+    cm_thread_create (&thread1, false);
+    cm_thread_create (&thread2, false);
+    cm_thread_create (&thread0, false);
 
     while (1) {
-        if (os_process_is_yield_requested()) {
-            os_yield();
+        if (cm_process_is_yield_requested()) {
+            cm_process_yield();
         }
     }
 }
@@ -53,8 +54,8 @@ void thread0()
         graphics_rect (&fbi, (UINT)x, 0, (UINT)width, fbi.height_px, color);
         x += width + 3;
 
-        os_window_flush_graphics();
-        delay (500);
+        cm_window_flush_graphics();
+        cm_delay (500);
     }
 }
 
@@ -77,8 +78,8 @@ void thread1()
                 graphics_putpixel (&fbi, x, y, color);
             }
         }
-        os_window_flush_graphics();
-        delay (100);
+        cm_window_flush_graphics();
+        cm_delay (100);
     }
 }
 
@@ -101,7 +102,7 @@ void thread2()
                 graphics_putpixel (&fbi, x, y, color);
             }
         }
-        os_window_flush_graphics();
-        delay (80);
+        cm_window_flush_graphics();
+        cm_delay (80);
     }
 }
