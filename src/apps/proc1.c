@@ -5,28 +5,28 @@ void another_thread();
 
 void proc_main()
 {
-    os_putstr("\n  Process 0 - Running");
-    os_putstr("\n  Process 0 - Creating Thread 1");
-    os_thread_create(another_thread, false);
+    cm_putstr("\n  Process 0 - Running");
+    cm_putstr("\n  Process 0 - Creating Thread 1");
+    cm_thread_create(another_thread, false);
 
     for (int i = 0; i < 2; i++) {
-        os_putstr("\n  Process 0 - Yielding");
-        os_yield();
-        os_putstr("\n  Process 0 - Running");
+        cm_putstr("\n  Process 0 - Yielding");
+        cm_process_yield();
+        cm_putstr("\n  Process 0 - Running");
     }
 
-    os_putstr("\n  Process 0 - Exiting");
-    os_process_kill(1);
-    os_putstr("\n   Process 0 - Not exited. Its is the only one.");
+    cm_putstr("\n  Process 0 - Exiting");
+    cm_process_kill(1);
+    cm_putstr("\n   Process 0 - Not exited. Its is the only one.");
 }
 
 void another_thread()
 {
-    os_putstr("\n  Thread 1 - Running");
-    os_putstr("\n  Thread 1 - Yielding");
-    os_yield();
+    cm_putstr("\n  Thread 1 - Running");
+    cm_putstr("\n  Thread 1 - Yielding");
+    cm_process_yield();
 
-    os_putstr("\n  Thread 1 - Running");
-    os_putstr("\n  Thread 1 - Exiting");
-    os_process_kill(2);
+    cm_putstr("\n  Thread 1 - Running");
+    cm_putstr("\n  Thread 1 - Exiting");
+    cm_process_kill(2);
 }
