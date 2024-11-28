@@ -1,10 +1,15 @@
-# MEGHA OPERATING SYSTEM V2 - x86
+<p align="center">
+    <img src="/docs/images/moslogo.svg"/>
+    <br/>
+    <br/>
+    <img src="https://github.com/coderarjob/meghaos-x86/actions/workflows/utbuild.yaml/badge.svg"/>
+    <img src="https://github.com/coderarjob/meghaos-x86/actions/workflows/osbuild.yaml/badge.svg"/>
+    <br/>
+    <br/>
+    MeghaOS is a 32-bit, graphical, multitasking, operating system for Intel i686 (Pentium) and later processors.
+</p>
 
-32-bit, graphical, multitasking, operating system for Intel i686 (Pentium) and later processors.
-
-![Unittest build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/utbuild.yaml/badge.svg)  ![MOS build status](https://github.com/coderarjob/meghaos-x86/actions/workflows/osbuild.yaml/badge.svg)
-
-## ABOUT
+## About
 
 MeghaOS is written completely from scratch and is primarily a educational project. It does not
 adhere to any particular operating system or philosophy, but includes ideas old and new from many
@@ -14,8 +19,6 @@ I want a system that is stable yet not totally locked down to the programmer. I 
 the ability to play around and explore their computers.
 
 ## Screenshots
-
-![MeghaOS Screenshot](/docs/images/meghaos_vesafb.png)
 
 MeghaOS is primarily a graphical operating system with text mode reserved for debugging &
 development. It supports variety of graphics modes and has 8-bit, 24 & 32-bit color suport.
