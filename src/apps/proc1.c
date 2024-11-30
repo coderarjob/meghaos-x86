@@ -1,5 +1,5 @@
 #include <types.h>
-#include <syscall.h>
+#include <cm.h>
 
 void another_thread();
 
