@@ -36,9 +36,9 @@ static inline uint32_t cm_get_os_error()
 }
 
 /* Can be used to store an error code and return from a function */
-#define CM_RETURN_ERROR__(errno, rval) \
-    do {                               \
-        ERROR ("Error %x.", errno);    \
-        cm_error_num__ = errno;        \
-        return rval;                   \
+#define CM_RETURN_ERROR__(errno, rval)     \
+    do {                                   \
+        CM_DBG_ERROR ("Error %x.", errno); \
+        cm_error_num__ = errno;            \
+        return rval;                       \
     } while (0)

@@ -12,13 +12,13 @@ static OSIF_WindowFrameBufferInfo createWindow (const char* const title)
 {
     Handle h = cm_window_create (title);
     if (h == INVALID_HANDLE) {
-        ERROR ("Window creation failed");
+        CM_DBG_ERROR ("Window creation failed");
         HALT();
     }
 
     OSIF_WindowFrameBufferInfo fbi;
     if (!cm_window_getFB (h, &fbi)) {
-        ERROR ("Window creation failed");
+        CM_DBG_ERROR ("Window creation failed");
         HALT();
     }
 

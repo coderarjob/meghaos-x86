@@ -7,24 +7,28 @@
 #pragma once
 
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
-    typedef enum DebugLogType {
-        DEBUG_LOG_TYPE_INFO,
-        DEBUG_LOG_TYPE_FUNC,
-        DEBUG_LOG_TYPE_ERROR,
-        DEBUG_LOG_TYPE_WARN,
-    } DebugLogType;
+typedef enum CM_DebugLogType {
+    CM_DEBUG_LOG_TYPE_INFO,
+    CM_DEBUG_LOG_TYPE_FUNC,
+    CM_DEBUG_LOG_TYPE_ERROR,
+    CM_DEBUG_LOG_TYPE_WARN,
+} CM_DebugLogType;
 
-    void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, ...);
+void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char* fmt, ...);
 
-    #define INFO(...)       debug_log_ndu (DEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
-    #define ERROR(...)      debug_log_ndu (DEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
-    #define FUNC_ENTRY(...) debug_log_ndu (DEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "" __VA_ARGS__)
-    #define WARN(...)       debug_log_ndu (DEBUG_LOG_TYPE_WARN, __func__, __LINE__, __VA_ARGS__)
+    #define CM_DBG_INFO(...) \
+        cm_debug_log_ndu (CM_DEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)
+    #define CM_DBG_ERROR(...) \
+        cm_debug_log_ndu (CM_DEBUG_LOG_TYPE_ERROR, __func__, __LINE__, __VA_ARGS__)
+    #define CM_DBG_FUNC_ENTRY(...) \
+        cm_debug_log_ndu (CM_DEBUG_LOG_TYPE_FUNC, __func__, __LINE__, "" __VA_ARGS__)
+    #define CM_DBG_WARN(...) \
+        cm_debug_log_ndu (CM_DEBUG_LOG_TYPE_WARN, __func__, __LINE__, __VA_ARGS__)
 #else
-    #define INFO(...)       (void)0
-    #define ERROR(...)      (void)0
-    #define FUNC_ENTRY(...) (void)0
-    #define WARN(...)       (void)0
+    #define CM_DBG_INFO(...)       (void)0
+    #define CM_DBG_ERROR(...)      (void)0
+    #define CM_DBG_FUNC_ENTRY(...) (void)0
+    #define CM_DBG_WARN(...)       (void)0
 #endif // PORT_E9_ENABLED
 
 #if defined(DEBUG)
@@ -33,10 +37,10 @@
      *
      * @return      Nothing
      **************************************************************************************************/
-    #define bochs_breakpoint() __asm__ volatile("xchg bx, bx")
+    #define cm_debug_bochs_breakpoint() __asm__ volatile("xchg bx, bx")
 
     #if ARCH == x86
-        #define x86_outb(p, v) __asm__ volatile("out dx, al;" : : "a"(v), "d"(p))
-        #define x86_inb(p, v)  __asm__ volatile("in al, dx" : "=a"(v) : "d"(p))
+        #define cm_debug_x86_outb(p, v) __asm__ volatile("out dx, al;" : : "a"(v), "d"(p))
+        #define cm_debug_x86_inb(p, v)  __asm__ volatile("in al, dx" : "=a"(v) : "d"(p))
     #endif
 #endif // DEBUG

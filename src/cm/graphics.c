@@ -41,7 +41,7 @@ typedef RGBColor32Bits GxColor;
 
 void graphics_blit (const GraphicsContext* destg, UINT x, UINT y, const GraphicsContext* srcg)
 {
-    FUNC_ENTRY ("area: %px, x: %u, y: %u, src area: %px", destg, x, y, srcg);
+    CM_DBG_FUNC_ENTRY ("area: %px, x: %u, y: %u, src area: %px", destg, x, y, srcg);
 
     // k_assert (destg->bytesPerPixel == srcg->bytesPerPixel, "Graphics area mismatch");
 
@@ -64,7 +64,7 @@ void graphics_blit (const GraphicsContext* destg, UINT x, UINT y, const Graphics
 void graphics_image_ppm (const GraphicsContext* g, UINT x, UINT y, UINT w, UINT h,
                          UINT bytesPerPixel, U8* bytes)
 {
-    FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
+    CM_DBG_FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, bytes: %px", g, x, y, w, h, bytes);
 
     SIZE bytesPerRow = g->bytesPerRow;
     U8* start        = (U8*)g->buffer + (y * bytesPerRow) + (x * g->bytesPerPixel);
@@ -89,7 +89,7 @@ void graphics_image_ppm (const GraphicsContext* g, UINT x, UINT y, UINT w, UINT 
 
 void graphics_putpixel (const GraphicsContext* g, UINT x, UINT y, Color color)
 {
-    FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
+    CM_DBG_FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
 
     GxColor* start = (GxColor*)(g->buffer + (y * g->bytesPerRow) + (x * g->bytesPerPixel));
     GxColor* col   = (GxColor*)&color;
@@ -98,7 +98,7 @@ void graphics_putpixel (const GraphicsContext* g, UINT x, UINT y, Color color)
 
 void graphics_rect (const GraphicsContext* g, UINT x, UINT y, UINT w, UINT h, Color color)
 {
-    FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, color: %x", g, x, y, w, h, color);
+    CM_DBG_FUNC_ENTRY ("area: %px, x: %u, y: %u, w: %u, h: %u, color: %x", g, x, y, w, h, color);
 
     SIZE bytesPerRow = g->bytesPerRow;
     U8* start        = (U8*)g->buffer + (y * bytesPerRow) + (x * g->bytesPerPixel);

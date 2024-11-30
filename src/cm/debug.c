@@ -29,7 +29,7 @@ static void qemu_putString (const CHAR* string)
     CHAR c;
     while ((c = *string++)) {
     #if ARCH == x86
-        x86_outb (0xE9, c);
+        cm_debug_x86_outb (0xE9, c);
     #else
         #error "Not implemented"
     #endif
@@ -42,7 +42,7 @@ static void qemu_putString (const CHAR* string)
  *
  * @return      Nothing
  **************************************************************************************************/
-void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, ...)
+void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char* fmt, ...)
 {
     int len = 0;
     char buffer[MAX_PRINTABLE_STRING_LENGTH];
@@ -50,19 +50,19 @@ void debug_log_ndu (DebugLogType type, const char* func, UINT line, char* fmt, .
     char* logColor = ANSI_COL_RESET;
 
     switch (type) {
-    case DEBUG_LOG_TYPE_INFO: {
+    case CM_DEBUG_LOG_TYPE_INFO: {
         message  = "\n  %s[%u][MLC][ INFO ]%s %s:%u %s|";
         logColor = ANSI_COL_GREEN;
     } break;
-    case DEBUG_LOG_TYPE_FUNC: {
+    case CM_DEBUG_LOG_TYPE_FUNC: {
         message  = "\n%s[%u][MLC]%s[ %s:%u ]%s|";
         logColor = ANSI_COL_YELLOW;
     } break;
-    case DEBUG_LOG_TYPE_ERROR: {
+    case CM_DEBUG_LOG_TYPE_ERROR: {
         message  = "\n  %s[%u][MLC][ ERROR ]%s %s:%u %s|";
         logColor = ANSI_COL_RED;
     } break;
-    case DEBUG_LOG_TYPE_WARN: {
+    case CM_DEBUG_LOG_TYPE_WARN: {
         message  = "\n  %s[%u][MLC][ WARN ]%s %s:%u %s|";
         logColor = ANSI_COL_YELLOW;
     } break;

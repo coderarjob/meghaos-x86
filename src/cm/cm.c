@@ -23,7 +23,7 @@ void event_handler_NDU_()
         cm_process_yield();
         break;
     case OSIF_PROCESS_EVENT_PROCCESS_CHILD_KILLED:
-        INFO ("Child exitted with code: %x", e.data);
+        CM_DBG_INFO ("Child exitted with code: %x", e.data);
         break;
     case OSIF_PROCESS_EVENT_NONE:
         break;
