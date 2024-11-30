@@ -7,7 +7,7 @@
 #pragma once
 
 #include <types.h>
-#ifdef KERNEL
+#if defined(KERNEL) || defined (UNITTEST)
     #include <cm/osif.h>
 #else
     #include <osif.h>

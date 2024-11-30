@@ -7,10 +7,7 @@
 #pragma once
 
 #include <types.h>
-// App library is built with the with Kernel flags and kernel include directories. Whereas when
-// applications will include this header (either directly or indirectly) the include path will
-// differ, thus this change in the way applib headers are included here.
-#ifdef KERNEL
+#if defined(KERNEL) || defined (UNITTEST)
     #include <cm/osif.h>
 #else
     #include <osif.h>

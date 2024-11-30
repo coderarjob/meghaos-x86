@@ -5,7 +5,7 @@
  */
 
 #include <stdint.h>
-#ifdef KERNEL
+#if defined(KERNEL) || defined (UNITTEST)
     #include <cm/debug.h>
     #include <cm/syscall.h>
     #include <cm/osif.h>

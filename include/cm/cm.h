@@ -10,7 +10,7 @@
 
 #include <types.h>
 #include <stdarg.h>
-#ifdef KERNEL
+#if defined(KERNEL) || defined (UNITTEST)
     #include <cm/osif.h>
     #include <cm/syscall.h>
 #else
