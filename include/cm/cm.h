@@ -10,6 +10,13 @@
 
 #include <types.h>
 #include <stdarg.h>
+#ifdef KERNEL
+    #include <cm/osif.h>
+    #include <cm/syscall.h>
+#else
+    #include <osif.h>
+    #include <syscall.h>
+#endif
 
 #define INVALID_HANDLE (-1)
 #define HALT()         for (;;)
@@ -23,3 +30,30 @@ INT vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
  * @return      Nothing
  **************************************************************************************************/
 void cm_delay (UINT ms);
+
+/***************************************************************************************************
+ * Process management
+ ***************************************************************************************************/
+INT cm_thread_create (void (*startLocation)(), bool isKernelMode);
+INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode);
+bool cm_process_is_yield_requested();
+
+static inline void cm_process_yield()
+{
+    syscall (OSIF_SYSCALL_YIELD_PROCESS, 0, 0, 0, 0, 0);
+}
+
+static inline void cm_process_kill (UINT code)
+{
+    syscall (OSIF_SYSCALL_KILL_PROCESS, code, 0, 0, 0, 0);
+}
+
+static inline U32 cm_process_get_pid()
+{
+    return (U32)syscall (OSIF_SYSCALL_PROCESS_GETPID, 0, 0, 0, 0, 0);
+}
+
+static inline void* cm_process_get_datamem_start()
+{
+    return (void*)syscall (OSIF_SYSCALL_PROCESS_GET_DATAMEM_START, 0, 0, 0, 0, 0);
+}

@@ -42,6 +42,7 @@ bool ksys_processPopEvent (SystemcallFrame frame, OSIF_ProcessEvent* const e);
 U32 ksys_process_getPID (SystemcallFrame frame);
 U32 ksys_get_tickcount (SystemcallFrame frame);
 PTR ksys_process_getDataMemoryStart (SystemcallFrame frame);
+U32 sys_get_os_error (SystemcallFrame frame);
 
 #ifdef GRAPHICS_MODE_ENABLED
 Handle ksys_window_createWindow (SystemcallFrame frame, const char* winTitle);
@@ -57,14 +58,17 @@ static INT s_handleInvalidSystemCall();
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 #pragma GCC diagnostic ignored "-Wpedantic"
 void* g_syscall_table[] = {
+    //---------------------------
 #if defined(DEBUG)
     &ksys_console_writeln,            // 0
 #else
     &s_handleInvalidSystemCall,       // 0
 #endif
+    //---------------------------
     &ksys_createProcess,              // 1
     &ksys_yieldProcess,               // 2
     &ksys_killProcess,                // 3
+    //---------------------------
 #if defined(DEBUG) && !defined(GRAPHICS_MODE_ENABLED)
     &ksys_console_setcolor,           // 4
     &ksys_console_setposition,        // 5
@@ -72,10 +76,12 @@ void* g_syscall_table[] = {
     &s_handleInvalidSystemCall,       // 4
     &s_handleInvalidSystemCall,       // 5
 #endif
+    //---------------------------
     &ksys_processPopEvent,            // 6
     &ksys_process_getPID,             // 7
     &ksys_get_tickcount,              // 8
     &ksys_process_getDataMemoryStart, // 9
+    //---------------------------
 #ifdef GRAPHICS_MODE_ENABLED
     &ksys_window_createWindow,        // 10
     &ksys_window_destoryWindow,       // 11
@@ -87,6 +93,8 @@ void* g_syscall_table[] = {
     &s_handleInvalidSystemCall,      // 12
     &s_handleInvalidSystemCall,      // 13
 #endif
+    //---------------------------
+    &sys_get_os_error,               // 14
 };
 #pragma GCC diagnostic pop
 

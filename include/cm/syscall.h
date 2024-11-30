@@ -17,35 +17,16 @@
 #endif
 
 S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5);
-INT cm_thread_create (void (*startLocation)(), bool isKernelMode);
-INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode);
 UINT cm_get_tick_period_us();
-bool cm_process_is_yield_requested();
-bool cm_process_is_child_exited (UINT* exitCode);
 
 static inline UINT cm_tickcount_to_microsec(UINT tick)
 {
     return ((tick)*cm_get_tick_period_us());
 }
 
-static inline void cm_process_yield()
-{
-    syscall (OSIF_SYSCALL_YIELD_PROCESS, 0, 0, 0, 0, 0);
-}
-
-static inline void cm_process_kill(UINT code)
-{
-    syscall (OSIF_SYSCALL_KILL_PROCESS, code, 0, 0, 0, 0);
-}
-
 static inline void cm_putstr (char* text)
 {
     syscall (OSIF_SYSCALL_CONSOLE_WRITELN, (PTR)text, 0, 0, 0, 0);
-}
-
-static inline U32 cm_process_get_pid()
-{
-    return (U32)syscall (OSIF_SYSCALL_PROCESS_GETPID, 0, 0, 0, 0, 0);
 }
 
 static inline U32 cm_get_tickcount()
@@ -61,11 +42,6 @@ static inline Handle cm_window_create (const char* title)
 static inline U32 cm_window_destory (Handle h)
 {
     return (U32)syscall (OSIF_SYSCALL_WINDOW_DESTORY, (U32)h, 0, 0, 0, 0);
-}
-
-static inline void* cm_process_get_datamem_start()
-{
-    return (void*)syscall (OSIF_SYSCALL_PROCESS_GET_DATAMEM_START, 0, 0, 0, 0, 0);
 }
 
 static inline void* cm_window_flush_graphics()

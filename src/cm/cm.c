@@ -9,6 +9,9 @@
 #include <cm/syscall.h>
 #include <cm/debug.h>
 
+/* Variable to store Library error*/
+uint32_t cm_error_num__;
+
 #define cm_MICRODEC_TO_TICK_COUNT(us) ((us) / cm_get_tick_period_us())
 
 void event_handler_NDU_()

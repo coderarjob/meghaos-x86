@@ -21,6 +21,7 @@ compile_lib(
 # C library to talk to the OS and helpful/common functions for use by application programs.
 # ------------------------------------------------------------------------
 set(APPLIB_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/process.c
         ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.c
         ${CMAKE_CURRENT_SOURCE_DIR}/printf.c
         ${CMAKE_CURRENT_SOURCE_DIR}/debug.c

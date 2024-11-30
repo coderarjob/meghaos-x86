@@ -16,8 +16,6 @@
 
 #include <cm/syscall.h>
 #include <config.h>
-#include <kernel.h>
-#include <process.h>
 
 S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 {
@@ -28,33 +26,6 @@ S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
                      : "a"(fn), "b"(arg1), "c"(arg2), "d"(arg3), "S"(arg4), "D"(arg5)
                      :);
     return retval;
-}
-
-INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode)
-{
-    KProcessFlags flags = PROCESS_FLAGS_NONE;
-    if (isKernelMode) {
-        flags |= PROCESS_FLAGS_KERNEL_PROCESS;
-    }
-
-    return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, binaryLengthBytes, (U32)flags,
-                    0, 0);
-}
-
-INT cm_thread_create (void (*startLocation)(), bool isKernelMode)
-{
-    KProcessFlags flags = PROCESS_FLAGS_THREAD;
-    if (isKernelMode) {
-        flags |= PROCESS_FLAGS_KERNEL_PROCESS;
-    }
-    return syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
-}
-
-bool cm_process_is_yield_requested()
-{
-    volatile OSIF_ProcessEvent e = { 0 };
-    cm_process_pop_event ((OSIF_ProcessEvent*)&e);
-    return (e.event == OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ);
 }
 
 UINT cm_get_tick_period_us()

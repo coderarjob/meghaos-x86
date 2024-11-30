@@ -31,6 +31,7 @@ typedef enum OSIF_SYSCALLS {
     OSIF_SYSCALL_WINDOW_DESTORY            = 11,
     OSIF_SYSCALL_WINDOW_GET_WINDOW_FB      = 12,
     OSIF_SYSCALL_WINDOW_FLUSH_GRAPHICS     = 13,
+    OSIF_SYSCALL_GET_OS_ERROR              = 14,
 } OSIF_SYSCALLS;
 
 typedef enum OSIF_ProcessEvents {
