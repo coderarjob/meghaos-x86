@@ -18,6 +18,7 @@
 #if ARCH == x86
     #include <x86/boot.h>
     #include <x86/io.h>
+    #include <drivers/x86/pc/ps2_devices.h>
 #endif
 
 typedef struct GraphicsInfo {
@@ -80,11 +81,17 @@ static void arch_waitForNextVerticalRetrace()
 
 static void draw_cursor (const KGraphicsArea* g)
 {
-    UINT mouse_x = 600; // Some random location at this point
-    UINT mouse_y = 400;
-    kgraphics_rect (g, mouse_x, mouse_y, 10, 10, MOUSE_BG_COLOR);
-    kgraphics_hline (g, mouse_x, mouse_y, 10, 2, MOUSE_FG_COLOR);
-    kgraphics_vline (g, mouse_x, mouse_y, 10, 2, MOUSE_FG_COLOR);
+    MousePositionData mdata = mouse_get_packet();
+
+    INT mouse_y = (INT)g->height_px / 2 - mdata.y;
+    INT mouse_x = (INT)g->width_px / 2 + mdata.x;
+
+    mouse_x = CLAMP (mouse_x, 0, (INT)g->width_px - 10);
+    mouse_y = CLAMP (mouse_y, 0, (INT)g->height_px - 10);
+
+    kgraphics_rect (g, (UINT)mouse_x, (UINT)mouse_y, 10, 10, MOUSE_BG_COLOR);
+    kgraphics_hline (g, (UINT)mouse_x, (UINT)mouse_y, 10, 2, MOUSE_FG_COLOR);
+    kgraphics_vline (g, (UINT)mouse_x, (UINT)mouse_y, 10, 2, MOUSE_FG_COLOR);
 }
 
 void kgraphics_drawstring (const KGraphicsArea* g, UINT x, UINT y, const char* text, Color fg,
