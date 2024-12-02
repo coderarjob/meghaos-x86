@@ -112,8 +112,6 @@ bool ps2_configuration (U8 enabled, U8 disabled, U8* original_config)
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
-    kearly_println ("Config read: %x", config);
-
     // Return the read config if point is not NULL
     if (original_config != NULL) {
         *original_config = config;
@@ -122,8 +120,6 @@ bool ps2_configuration (U8 enabled, U8 disabled, U8* original_config)
     // Change the config as requested
     config &= (U8) ~(disabled);
     config |= (enabled);
-
-    kearly_println ("Config written: %x", config);
 
     // Write back the modified config
     if (!ps2_wait_write (PS2_CMD_PORT, PS2_CMD_WRITE_CONFIGURATION_BYTE)) {

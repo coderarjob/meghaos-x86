@@ -39,6 +39,8 @@
 #include <vmm.h>
 #include <drivers/x86/pc/8259_pic.h>
 #include <drivers/x86/pc/8254_pit.h>
+#include <drivers/x86/pc/8042_ps2.h>
+#include <drivers/x86/pc/ps2_devices.h>
 #ifdef GRAPHICS_MODE_ENABLED
     #include <kgraphics.h>
     #include <compositor.h>
@@ -172,6 +174,12 @@ void kernel_main ()
     int eax = 0;
     __asm__ volatile ("cpuid;":"+eax"(eax):"eax"(0));
     kearly_println ("CPUID [EAX=0]: %x", eax);
+
+    ps2_init();
+
+    if (!ps2mouse_init()) {
+        k_panic ("PS2 Mouse initialization falied");
+    }
 
     run_root_process();
     k_halt();

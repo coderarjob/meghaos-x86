@@ -36,6 +36,8 @@
 
     #define CONFIG_HANDLES_ARRAY_ITEM_COUNT (1000) /* Number of objects stored in handles array */
 
+    #define CONFIG_PS2_MOUSE_SAMPLE_RATE (40)
+
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */
     #define CONFIG_PAGE_FRAME_SIZE_BITS         (31U - CONFIG_PAGE_SIZE_BITS)
