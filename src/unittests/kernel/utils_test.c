@@ -4,6 +4,14 @@
 #include <unittest/unittest.h>
 #include <types.h>
 
+TEST (utils, clamp)
+{
+    EQ_SCALAR (CLAMP (0, 0, 0), 0);
+    EQ_SCALAR (CLAMP (-10, 1, 2), 1);
+    EQ_SCALAR (CLAMP (10, 1, 2), 2);
+    END();
+}
+
 TEST (utils, bit_set)
 {
     EQ_SCALAR (BIT_SET (0x10, 0), 0b00010001);
@@ -196,4 +204,5 @@ int main() {
     bytes_to_pageframes_floor();
     bit_set();
     bit_clear();
+    clamp();
 }

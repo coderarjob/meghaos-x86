@@ -97,3 +97,6 @@
     #define ARCH_ENABLE_INTERRUPTS()  (void)0
     #define ARCH_DISABLE_INTERRUPTS() (void)0
 #endif
+
+// Clamp value to lower & upper bounds
+#define CLAMP(v, l, u) (v < l) ? l : (v >= u) ? u : v
