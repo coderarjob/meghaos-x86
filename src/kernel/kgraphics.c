@@ -81,7 +81,7 @@ static void arch_waitForNextVerticalRetrace()
 
 static void draw_cursor (const KGraphicsArea* g)
 {
-    MousePositionData mdata = mouse_get_packet();
+    MousePositionData mdata = ps2_mouse_get_packet();
 
     INT mouse_y = (INT)g->height_px / 2 - mdata.y;
     INT mouse_x = (INT)g->width_px / 2 + mdata.x;

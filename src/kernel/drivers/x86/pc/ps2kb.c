@@ -38,7 +38,7 @@ static bool iskeyboard()
     return true;
 }
 
-bool ps2kb_init()
+bool ps2_kb_init()
 {
     FUNC_ENTRY();
 
@@ -51,12 +51,12 @@ bool ps2kb_init()
     }
 
     // Set defaults
-    if (!ps2_write_device_cmd (PS2_FIRST_DEVICE, PS2_DEV_CMD_SET_TO_DEFAULT)) {
+    if (!ps2_write_device_data_wait_ack (PS2_FIRST_DEVICE, PS2_DEV_CMD_SET_TO_DEFAULT)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Interrupt when keys are pressed
-    if (!ps2_write_device_cmd (PS2_FIRST_DEVICE, PS2_DEV_CMD_ENABLE_SCANNING)) {
+    if (!ps2_write_device_data_wait_ack (PS2_FIRST_DEVICE, PS2_DEV_CMD_ENABLE_SCANNING)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 

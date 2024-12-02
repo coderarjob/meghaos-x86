@@ -38,6 +38,6 @@ typedef struct MousePositionData {
     bool middle_button;
 } MousePositionData;
 
-bool ps2mouse_init();
-bool ps2kb_init();
-MousePositionData mouse_get_packet();
+bool ps2_mouse_init();
+bool ps2_kb_init();
+MousePositionData ps2_mouse_get_packet();

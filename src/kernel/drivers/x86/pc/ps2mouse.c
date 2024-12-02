@@ -27,7 +27,7 @@ typedef struct MouseStatus {
     U8 sample_rate;
 } MouseStatus;
 
-void mouse_interrupt_asm_handler();
+void ps2_mouse_interrupt_asm_handler();
 static bool ismouse();
 static MouseStatus get_mouse_state();
 
@@ -57,10 +57,10 @@ static MouseStatus get_mouse_state()
 {
     MouseStatus status = { 0 };
 
-    ps2_write_device_cmd (PS2_SECOND_DEVICE, PS2_MOUSE_CMD_GET_ID);
+    ps2_write_device_data_wait_ack (PS2_SECOND_DEVICE, PS2_MOUSE_CMD_GET_ID);
     ps2_wait_read (PS2_DATA_PORT, &status.id);
 
-    ps2_write_device_cmd (PS2_SECOND_DEVICE, PS2_MOUSE_CMD_STATUS_REQ);
+    ps2_write_device_data_wait_ack (PS2_SECOND_DEVICE, PS2_MOUSE_CMD_STATUS_REQ);
     ps2_wait_read (PS2_DATA_PORT, &status.status);
     ps2_wait_read (PS2_DATA_PORT, &status.resolution);
     ps2_wait_read (PS2_DATA_PORT, &status.sample_rate);
@@ -68,7 +68,7 @@ static MouseStatus get_mouse_state()
     return status;
 }
 
-bool ps2mouse_init()
+bool ps2_mouse_init()
 {
     FUNC_ENTRY();
 
@@ -81,20 +81,20 @@ bool ps2mouse_init()
     }
 
     // Set defaults
-    if (!ps2_write_device_cmd (PS2_SECOND_DEVICE, PS2_DEV_CMD_SET_TO_DEFAULT)) {
+    if (!ps2_write_device_data_wait_ack (PS2_SECOND_DEVICE, PS2_DEV_CMD_SET_TO_DEFAULT)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Set sample rate
-    if (!ps2_write_device_cmd (PS2_SECOND_DEVICE, PS2_MOUSE_CMD_SET_SAMPLE_RATE)) {
+    if (!ps2_write_device_data_wait_ack (PS2_SECOND_DEVICE, PS2_MOUSE_CMD_SET_SAMPLE_RATE)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
-    if (!ps2_write_device_cmd (PS2_SECOND_DEVICE, CONFIG_PS2_MOUSE_SAMPLE_RATE)) {
+    if (!ps2_write_device_data_wait_ack (PS2_SECOND_DEVICE, CONFIG_PS2_MOUSE_SAMPLE_RATE)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
     // Enable scanning by the device
-    if (!ps2_write_device_cmd (PS2_SECOND_DEVICE, PS2_DEV_CMD_ENABLE_SCANNING)) {
+    if (!ps2_write_device_data_wait_ack (PS2_SECOND_DEVICE, PS2_DEV_CMD_ENABLE_SCANNING)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, false);
     }
 
@@ -113,7 +113,7 @@ bool ps2mouse_init()
     ps2_configuration (PS2_CONFIG_SECOND_PORT_INTERRUPT_ENABLE, 0, NULL);
 
     // Add handlers for keyboard interrupts
-    kidt_edit (0x2C, mouse_interrupt_asm_handler, GDT_SELECTOR_KCODE,
+    kidt_edit (0x2C, ps2_mouse_interrupt_asm_handler, GDT_SELECTOR_KCODE,
                IDT_DES_TYPE_32_INTERRUPT_GATE, 0);
 
     // Enable Mouse IRQ
@@ -122,13 +122,13 @@ bool ps2mouse_init()
     return true;
 }
 
-MousePositionData mouse_get_packet()
+MousePositionData ps2_mouse_get_packet()
 {
     return mouse_position;
 }
 
-INTERRUPT_HANDLER (mouse_interrupt)
-void mouse_interrupt_handler (InterruptFrame* frame)
+INTERRUPT_HANDLER (ps2_mouse_interrupt)
+void ps2_mouse_interrupt_handler (InterruptFrame* frame)
 {
     (void)frame;
 

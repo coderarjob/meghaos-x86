@@ -55,9 +55,9 @@
 bool ps2_init();
 bool ps2_wait_read (UINT ioport, U8* data);
 bool ps2_wait_write (UINT ioport, U8 data);
-void ps2_write_device_data (UINT device_id, U8 data);
-bool ps2_write_device_cmd (UINT device_id, U8 cmd);
-bool ps2_configuration (U8 enabled, U8 disabled, U8 *original_config);
+void ps2_write_device_data_no_ack (UINT device_id, U8 data);
+bool ps2_write_device_data_wait_ack (UINT device_id, U8 cmd);
+bool ps2_configuration (U8 enabled, U8 disabled, U8* original_config);
 INT ps2_identify_device (UINT device_id);
 
 static inline U8 ps2_no_wait_read (UINT ioport)

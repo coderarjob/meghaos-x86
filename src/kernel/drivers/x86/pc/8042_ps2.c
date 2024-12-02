@@ -69,7 +69,7 @@ bool ps2_wait_write (UINT ioport, U8 data)
     return true;
 }
 
-void ps2_write_device_data (UINT device_id, U8 data)
+void ps2_write_device_data_no_wait (UINT device_id, U8 data)
 {
     k_assert (device_id < DEVICE_COUNT, "Device ID is invalid.");
 
@@ -84,12 +84,12 @@ void ps2_write_device_data (UINT device_id, U8 data)
     ps2_wait_write (PS2_DATA_PORT, data);
 }
 
-bool ps2_write_device_cmd (UINT device_id, U8 cmd)
+bool ps2_write_device_data_wait_ack (UINT device_id, U8 cmd)
 {
     U8 ack, retrycount = 0;
 
     do {
-        ps2_write_device_data (device_id, cmd);
+        ps2_write_device_data_no_wait (device_id, cmd);
         if (!ps2_wait_read (PS2_DATA_PORT, &ack)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, false); // Possible timeout
         }
@@ -142,11 +142,11 @@ INT ps2_identify_device (UINT device_id)
                            PS2_CONFIG_FIRST_PORT_TRANSLATION_ENABLE,
                        &config);
 
-    if (!ps2_write_device_cmd (device_id, PS2_DEV_CMD_DISABLE_SCANNING)) {
+    if (!ps2_write_device_data_wait_ack (device_id, PS2_DEV_CMD_DISABLE_SCANNING)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
     }
 
-    if (!ps2_write_device_cmd (device_id, PS2_DEV_CMD_IDENTIFY)) {
+    if (!ps2_write_device_data_wait_ack (device_id, PS2_DEV_CMD_IDENTIFY)) {
         RETURN_ERROR (ERROR_PASSTHROUGH, KERNEL_EXIT_FAILURE);
     }
 

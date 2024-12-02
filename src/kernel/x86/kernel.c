@@ -177,10 +177,9 @@ void kernel_main ()
 
     ps2_init();
 
-    if (!ps2mouse_init()) {
+    if (!ps2_mouse_init()) {
         k_panic ("PS2 Mouse initialization falied");
     }
-
     run_root_process();
     k_halt();
 }
