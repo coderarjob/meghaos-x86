@@ -18,7 +18,7 @@
 #define IS_READ_READY(status)  (((status)&0x1) == 1)
 #define IS_WRITE_READY(status) (((status)&0x2) == 0)
 
-#define RW_TIMEOUT_ITERATION   (200U)
+#define RW_TIMEOUT_ITERATION   (10000U)
 #define DEVICE_COUNT           (2U)
 
 typedef struct PS2Device {
