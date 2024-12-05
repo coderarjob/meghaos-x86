@@ -8,3 +8,12 @@ test(
         ${PROJECT_SOURCE_DIR}/src/unittests/unittest.c
         ${CMAKE_CURRENT_SOURCE_DIR}/printf_test.c
     )
+
+test(
+    NAME cm_string_test
+    DEPENDENT_FOR build-all
+    SOURCES
+        ${PROJECT_SOURCE_DIR}/src/cm/string.c
+        ${PROJECT_SOURCE_DIR}/src/unittests/unittest.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/string_test.c
+    )

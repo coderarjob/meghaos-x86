@@ -26,6 +26,7 @@ set(APPLIB_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/printf.c
         ${CMAKE_CURRENT_SOURCE_DIR}/debug.c
         ${CMAKE_CURRENT_SOURCE_DIR}/cm.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/string.c
     )
 
     if (MOS_GRAPHICS_ENABLED)

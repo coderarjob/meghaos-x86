@@ -63,3 +63,11 @@ static inline void* cm_process_get_datamem_start()
 typedef void (*cm_event_handler)(OSIF_ProcessEvent const * const);
 bool cm_process_register_event_handler(OSIF_ProcessEvents event, cm_event_handler h);
 bool cm_process_handle_events();
+
+/***************************************************************************************************
+ * String and memory functions
+ ***************************************************************************************************/
+void* cm_memcpy (void* dest, const void* src, size_t n);
+UINT cm_strlen (const char* s);
+char* cm_strncpy (char* d, const char* s, SIZE n);
+void* cm_memset (void* const s, U8 c, size_t n);
