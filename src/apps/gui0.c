@@ -25,12 +25,39 @@ static OSIF_WindowFrameBufferInfo createWindow (const char* const title)
     return fbi;
 }
 
+static void triangle_sum (int* now, int start, int end, int* incby)
+{
+    int l_now = *now;
+
+    l_now += *incby;
+
+    if (l_now >= end) {
+        l_now = end;
+    } else if (l_now <= start) {
+        l_now = start;
+    }
+
+    if (l_now == end || l_now == start) {
+        *incby *= -1;
+    }
+
+    *now = l_now;
+}
+
+static void repaint_on_yield (OSIF_ProcessEvent const* const e)
+{
+    (void)e;
+    cm_window_flush_graphics();
+}
+
 void proc_main()
 {
     cm_window_flush_graphics();
+    cm_thread_create (&thread0, false);
     cm_thread_create (&thread1, false);
     cm_thread_create (&thread2, false);
-    cm_thread_create (&thread0, false);
+
+    cm_process_register_event_handler (OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ, repaint_on_yield);
 
     while (1) {
         cm_process_handle_events();
@@ -39,68 +66,54 @@ void proc_main()
 
 void thread0()
 {
-    UINT color                     = 0x5F9FFF;
-    INT x                          = 0;
-    INT width                      = 20;
-    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 3");
-    graphics_rect (&fbi, 0, 0, fbi.width_px, fbi.height_px, 0x0);
+    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 1");
+    int value                      = 1;
+    int incby                      = 1;
     while (1) {
-        if ((UINT)(x + width) >= fbi.width_px) {
-            x = 0;
-            graphics_rect (&fbi, 0, 0, fbi.width_px, fbi.height_px, 0x0);
-        }
-        graphics_rect (&fbi, (UINT)x, 0, (UINT)width, fbi.height_px, color);
-        x += width + 3;
+        triangle_sum (&value, 1, 10, &incby);
 
-        cm_window_flush_graphics();
-        cm_delay (500);
+        for (unsigned int x = 0; x < fbi.width_px; x++) {
+            for (unsigned int y = 0; y < fbi.height_px; y++) {
+                UINT color = ((x) * (UINT)value & 255) << 0;
+                graphics_putpixel (&fbi, x, y, color);
+            }
+        }
+        cm_delay (50);
     }
 }
 
 void thread1()
 {
-    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 1");
-    int modby                      = 1;
+    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 2");
+    int value                      = 10;
     int incby                      = 1;
     while (1) {
-        if (modby == 10) {
-            incby = -1;
-        } else if (modby == 1) {
-            incby = 1;
-        }
-        modby += incby;
+        triangle_sum (&value, 10, 20, &incby);
 
         for (unsigned int x = 0; x < fbi.width_px; x++) {
             for (unsigned int y = 0; y < fbi.height_px; y++) {
-                UINT color = (20 * (UINT)modby & 255) << 16;
+                UINT color = ((y) * (UINT)value & 255) << 16;
                 graphics_putpixel (&fbi, x, y, color);
             }
         }
-        cm_window_flush_graphics();
-        cm_delay (100);
+        cm_delay (50);
     }
 }
 
 void thread2()
 {
-    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 2");
-    int modby                      = 1;
+    OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 3");
+    int value                      = 1;
     int incby                      = 1;
     while (1) {
-        if (modby == 10) {
-            incby = -1;
-        } else if (modby == 1) {
-            incby = 1;
-        }
-        modby += incby;
+        triangle_sum (&value, 1, 10, &incby);
 
         for (unsigned int x = 0; x < fbi.width_px; x++) {
             for (unsigned int y = 0; y < fbi.height_px; y++) {
-                UINT color = ((x + y) * (UINT)modby & 255) << 8;
+                UINT color = ((x + y) * (UINT)value & 255) << 8;
                 graphics_putpixel (&fbi, x, y, color);
             }
         }
-        cm_window_flush_graphics();
         cm_delay (80);
     }
 }
