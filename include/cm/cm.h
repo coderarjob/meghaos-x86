@@ -10,7 +10,7 @@
 
 #include <types.h>
 #include <stdarg.h>
-#if defined(KERNEL) || defined (UNITTEST)
+#if defined(KERNEL) || defined(UNITTEST)
     #include <cm/osif.h>
     #include <cm/syscall.h>
 #else
@@ -36,7 +36,6 @@ void cm_delay (UINT ms);
  ***************************************************************************************************/
 INT cm_thread_create (void (*startLocation)(), bool isKernelMode);
 INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode);
-bool cm_process_is_yield_requested();
 
 static inline void cm_process_yield()
 {
@@ -57,3 +56,10 @@ static inline void* cm_process_get_datamem_start()
 {
     return (void*)syscall (OSIF_SYSCALL_PROCESS_GET_DATAMEM_START, 0, 0, 0, 0, 0);
 }
+
+/***************************************************************************************************
+ * Handling of process events
+***************************************************************************************************/
+typedef void (*cm_event_handler)(OSIF_ProcessEvent const * const);
+bool cm_process_register_event_handler(OSIF_ProcessEvents event, cm_event_handler h);
+bool cm_process_handle_events();

@@ -33,9 +33,7 @@ void proc_main()
     cm_thread_create (&thread0, false);
 
     while (1) {
-        if (cm_process_is_yield_requested()) {
-            cm_process_yield();
-        }
+        cm_process_handle_events();
     }
 }
 

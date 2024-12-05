@@ -37,7 +37,8 @@ typedef enum OSIF_SYSCALLS {
 typedef enum OSIF_ProcessEvents {
     OSIF_PROCESS_EVENT_NONE                  = 0,
     OSIF_PROCESS_EVENT_PROCCESS_YIELD_REQ    = 1,
-    OSIF_PROCESS_EVENT_PROCCESS_CHILD_KILLED = 2
+    OSIF_PROCESS_EVENT_PROCCESS_CHILD_KILLED = 2,
+    OSIF_PROCESS_EVENTS_COUNT
 } OSIF_ProcessEvents;
 
 typedef struct OSIF_ProcessEvent {

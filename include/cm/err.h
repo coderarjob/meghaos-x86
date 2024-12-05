@@ -19,8 +19,9 @@
 
 typedef enum CMErrors {
     // OS Errors start from 0 and must end before the start of library errors
-    LIBRARY_ERRORS_START = 100,
-    CM_ERR_INVALID_INPUT = 100,
+    LIBRARY_ERRORS_START                    = 100,
+    CM_ERR_INVALID_INPUT                    = 100,
+    CM_ERR_EVENT_HANDLER_ALREADY_REGISTERED = 101,
 } CMErrors;
 
 extern uint32_t cm_error_num__;
