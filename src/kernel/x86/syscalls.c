@@ -17,6 +17,10 @@
 #include <handle.h>
 #include <panic.h>
 #include <cm/osif.h>
+#if ARCH == x86
+    #include <x86/paging.h>
+    #include <x86/boot.h>
+#endif
 
 typedef struct SystemcallFrame {
     U32 ebp;
@@ -50,6 +54,11 @@ bool ksys_window_destoryWindow (SystemcallFrame frame, Handle h);
 bool ksys_getWindowFB (SystemcallFrame frame, Handle h, OSIF_WindowFrameBufferInfo * const wfb);
 void ksys_window_graphics_flush_all (SystemcallFrame frame);
 #endif // GRAPHICS_MODE_ENABLED
+
+#if ARCH == x86
+void ksys_find_bootloaded_file (SystemcallFrame frame, const char* const filename,
+                                OSIF_BootLoadedFiles* const file);
+#endif // ARCH = x86
 
 static U32 s_getSysCallCount();
 static INT s_handleInvalidSystemCall();
@@ -95,6 +104,12 @@ void* g_syscall_table[] = {
 #endif
     //---------------------------
     &sys_get_os_error,               // 14
+    //---------------------------
+#if ARCH == x86
+    &ksys_find_bootloaded_file,      // 15
+#else
+    &s_handleInvalidSystemCall,      // 15
+#endif
 };
 #pragma GCC diagnostic pop
 
@@ -370,3 +385,17 @@ void ksys_window_graphics_flush_all (SystemcallFrame frame)
     kcompose_flush();
 }
 #endif // GRAPHICS_MODE_ENABLED
+
+#if ARCH == x86
+void ksys_find_bootloaded_file (SystemcallFrame frame, const char* const filename,
+                                OSIF_BootLoadedFiles* const file)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x", frame.cs, frame.eip);
+    (void)frame;
+
+    BootFileItem fileinfo = kboot_findBootFileItem (filename);
+    file->length          = fileinfo.length;
+    Physical start        = PHYSICAL (fileinfo.startLocation);
+    file->startLocation   = HIGHER_HALF_KERNEL_TO_VA (start);
+}
+#endif // ARCH = x86

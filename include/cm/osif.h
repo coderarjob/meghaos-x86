@@ -32,6 +32,7 @@ typedef enum OSIF_SYSCALLS {
     OSIF_SYSCALL_WINDOW_GET_WINDOW_FB      = 12,
     OSIF_SYSCALL_WINDOW_FLUSH_GRAPHICS     = 13,
     OSIF_SYSCALL_GET_OS_ERROR              = 14,
+    OSIF_SYSCALL_GET_BOOTLOADED_FILE       = 15,
 } OSIF_SYSCALLS;
 
 typedef enum OSIF_ProcessEvents {
@@ -45,3 +46,8 @@ typedef struct OSIF_ProcessEvent {
     OSIF_ProcessEvents event;
     U64 data;
 } OSIF_ProcessEvent;
+
+typedef struct OSIF_BootLoadedFiles {
+    void* startLocation;
+    U16 length;
+} OSIF_BootLoadedFiles;

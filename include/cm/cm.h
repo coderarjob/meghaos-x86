@@ -25,11 +25,15 @@ INT snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
 INT vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
 
 /***************************************************************************************************
- * Halts thread for 'ms' miliseconds
- *
- * @return      Nothing
- **************************************************************************************************/
+ * Misc functions
+ ***************************************************************************************************/
 void cm_delay (UINT ms);
+
+static inline void cm_get_bootloaded_file (const char* const filename,
+                                           OSIF_BootLoadedFiles* const out)
+{
+    syscall (OSIF_SYSCALL_GET_BOOTLOADED_FILE, (U32)filename, (U32)out, 0, 0, 0);
+}
 
 /***************************************************************************************************
  * Process management
