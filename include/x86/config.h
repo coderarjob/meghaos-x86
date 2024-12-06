@@ -38,6 +38,8 @@
 
     #define CONFIG_PS2_MOUSE_SAMPLE_RATE (40)
 
+    #define CONFIG_BOOT_FILENAME_LEN_CHARS (12) /* Fat12. Zero terminated string */
+
     /** Derived Configs
      * SHOULD NOT BE EDITTED MANUALLY */
     #define CONFIG_PAGE_FRAME_SIZE_BITS         (31U - CONFIG_PAGE_SIZE_BITS)

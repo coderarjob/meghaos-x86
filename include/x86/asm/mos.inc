@@ -90,7 +90,7 @@
 	endstruc
 
 	struc file_des_t
-	    .name          : resb 11
+	    .name          : resb 12 ; (11 + 1) Zero terminated ASCII string
         .StartLocation : resd 1
         .Length        : resw 1
 	endstruc

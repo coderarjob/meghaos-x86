@@ -35,7 +35,7 @@
 ; ******************************************************
 files:       db     KERNEL_FILE     , "KERNEL.FLT",0,0,0
 %ifdef GRAPHICS_MODE_ENABLED
-             db     GUI0_APP_FILE   , "GUI0.RBM",0,0,0,0,0
+             db     GUI0_APP_FILE   , "GUI0.FLT",0,0,0,0,0
              db     MOS_IMAGE_FILE  , "MOS.RBM",0,0,0,0,0,0
 %else
              db     PROC1_FILE      , "PROC1.FLT",0,0,0,0
@@ -281,6 +281,9 @@ __load_kernel_and_ramdisks:
                 lea di, [es:di + file_des_t.name]
                 mov cx, 11
                 rep movsb
+
+                ; Add a zero at the end to form a zero terminated string
+                mov [di], byte 0;
             popa
 
             inc word [es:BOOT_INFO_OFF + boot_info_t.file_count]
