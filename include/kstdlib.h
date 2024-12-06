@@ -28,4 +28,7 @@ char* k_strncpy (char* d, const char* s, SIZE n);
 
 /* Gets lenght of a NULL terminated string.*/
 UINT k_strlen (const char* s);
+
+/* Compares n bytes from src to dest. Output is true if they match exactly. */
+bool k_memcmp (const void* const dest, const void* const src, size_t n);
 #endif // MEM_H

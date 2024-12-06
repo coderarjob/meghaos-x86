@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <types.h>
 #include <kstdlib.h>
 #include <utils.h>
@@ -5,6 +6,42 @@
 #include <mock/kernel/paging.h>
 
 extern bool panic_invoked;
+
+TEST (MEM, memcmp_one_byte)
+{
+    U8 dest[1] = { 10 };
+    U8 src[1]  = { 10 };
+
+    EQ_SCALAR (k_memcmp (dest, src, 1), true);
+    END();
+}
+
+TEST (MEM, memcmp_empty)
+{
+    U8 dest[1] = { 10 };
+    U8 src[1]  = { 11 };
+
+    EQ_SCALAR (k_memcmp (dest, src, 0), true);
+    END();
+}
+
+TEST (MEM, memcmp_mismatch_outside_range)
+{
+    U8 dest[7] = { 1, 2, 3, 4, 5, 1, 2 };
+    U8 src[7]  = { 1, 2, 3, 4, 5, 6, 7 };
+
+    EQ_SCALAR (k_memcmp (dest, src, 5), true);
+    END();
+}
+
+TEST (MEM, memcmp_mismatch_within_range)
+{
+    U8 dest[7] = { 1, 2, 3, 4, 5, 6, 2 };
+    U8 src[7]  = { 1, 2, 3, 4, 5, 6, 7 };
+
+    EQ_SCALAR (k_memcmp (dest, src, 7), false);
+    END();
+}
 
 TEST(MEM, memset_one_byte)
 {
@@ -156,4 +193,8 @@ int main()
     memset_pat4_4_bytes_pat();
     string_length();
     string_copy();
+    memcmp_one_byte();
+    memcmp_empty();
+    memcmp_mismatch_outside_range();
+    memcmp_mismatch_within_range();
 }

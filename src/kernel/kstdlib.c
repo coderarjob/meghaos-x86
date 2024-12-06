@@ -11,6 +11,24 @@
 #include <paging.h>
 
 /***************************************************************************************************
+ * Compares n bytes from src to dest. Output is true if they match exactly.
+ *
+ * @Input dest     Pointer to the destination. Should not be NULL.
+ * @Input src      Pointer to the source. Should not be NULL.
+ * @Input n        Number of bytes to compare.
+ * @return         True if they match exactly. False otherwise.
+***************************************************************************************************/
+bool k_memcmp (const void* const dest, const void* const src, size_t n)
+{
+    U8* cdest = (U8*)dest;
+    U8* csrc  = (U8*)src;
+
+    for (; n > 0 && *cdest == *csrc; cdest++, csrc++, n--)
+        ;
+    return n == 0;
+}
+
+/***************************************************************************************************
  * Copies n bytes from src to dest. Can handle overlaps.
  *
  * @Input dest     Pointer to the destination. Should not be NULL.
