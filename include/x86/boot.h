@@ -31,6 +31,7 @@ typedef struct BootMemoryMapItem {
 } __attribute__ ((packed)) BootMemoryMapItem;
 
 typedef struct BootFileItem {
+    const U8 name[11];
     const U32 startLocation;
     const U16 length;
 } __attribute__ ((packed)) BootFileItem;

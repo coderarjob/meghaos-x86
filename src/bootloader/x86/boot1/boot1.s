@@ -276,6 +276,13 @@ __load_kernel_and_ramdisks:
             mov eax, [.copy_dest_location]
             mov [es:di + file_des_t.StartLocation], eax
 
+            ; --- Copy file name
+            pusha
+                lea di, [es:di + file_des_t.name]
+                mov cx, 11
+                rep movsb
+            popa
+
             inc word [es:BOOT_INFO_OFF + boot_info_t.file_count]
         popa
 

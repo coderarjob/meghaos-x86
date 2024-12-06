@@ -90,6 +90,7 @@
 	endstruc
 
 	struc file_des_t
+	    .name          : resb 11
         .StartLocation : resd 1
         .Length        : resw 1
 	endstruc
