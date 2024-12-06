@@ -221,12 +221,12 @@ static void run_root_process()
     FUNC_ENTRY();
 
 #ifdef GRAPHICS_MODE_ENABLED
-    BootFileItem fileinfo = kboot_getBootFileItem (1);
+    BootFileItem fileinfo = kboot_findBootFileItem("GUI0.FLT");
 #else
     #ifdef MPDEMO
-    BootFileItem fileinfo = kboot_getBootFileItem (2);
+    BootFileItem fileinfo = kboot_findBootFileItem("MPDEMO.FLT");
     #else
-    BootFileItem fileinfo = kboot_getBootFileItem (1);
+    BootFileItem fileinfo = kboot_findBootFileItem("PROC1.FLT");
     #endif // MPDEMO
 #endif     // GRAPHICS_MODE_ENABLED
 

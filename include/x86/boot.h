@@ -49,6 +49,7 @@ typedef struct BootGraphicsModeInfo {
 
 U16 kboot_getBootFileItemCount();
 BootFileItem kboot_getBootFileItem (INT index);
+BootFileItem kboot_findBootFileItem (const CHAR* const filename);
 BootMemoryMapItem kboot_getBootMemoryMapItem (INT index);
 U16 kboot_getBootMemoryMapItemCount();
 ULLONG kboot_calculateInstalledMemory();

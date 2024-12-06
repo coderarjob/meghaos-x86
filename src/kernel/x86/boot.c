@@ -8,12 +8,32 @@
 #include <x86/memloc.h>
 #include <x86/boot_struct.h>
 #include <kdebug.h>
+#include <kstdlib.h>
 
 static BootLoaderInfo* kboot_getCurrentBootLoaderInfo()
 {
     k_assert (MEM_START_BOOT_INFO, "BOOT INFO LOCATION is invalid");
     BootLoaderInfo* mi = (BootLoaderInfo*)MEM_START_BOOT_INFO;
     return mi;
+}
+
+static void convert_to_f12_filename (const char* fn, char* out)
+{
+    int di = 0;
+    for (char c = *fn; c != '\0' && di < 11; di++, c = *(++fn)) {
+        if (c == '.') {
+            for (; di < 8; di++) {
+                *out++ = ' ';
+            }
+            di--;
+        } else {
+            *out++ = c;
+        }
+    }
+
+    while (di++ < 11) {
+        *out++ = ' ';
+    }
 }
 
 U16 kboot_getBootFileItemCount()
@@ -28,6 +48,24 @@ BootFileItem kboot_getBootFileItem (INT index)
     k_assert (index < bli->filecount, "Index invalid");
 
     return bli->files[index];
+}
+
+BootFileItem kboot_findBootFileItem (const CHAR* const filename)
+{
+    CHAR fat12FileName[CONFIG_BOOT_FILENAME_LEN_CHARS] = { 0 };
+    convert_to_f12_filename (filename, fat12FileName);
+    k_assert (k_strlen (fat12FileName) == 11, "Invalid file name");
+
+    const BootFileItem* bfi = NULL;
+    BootLoaderInfo* bli     = kboot_getCurrentBootLoaderInfo();
+    for (int i = 0; i < bli->filecount; i++) {
+        bfi = &bli->files[i];
+        if (k_memcmp (bfi->name, fat12FileName, CONFIG_BOOT_FILENAME_LEN_CHARS)) {
+            return *bfi;
+        }
+    }
+    k_assert (false, "Invalid file name");
+    NORETURN();
 }
 
 U16 kboot_getBootMemoryMapItemCount()
@@ -63,6 +101,7 @@ BootGraphicsModeInfo kboot_getGraphicsModeInfo()
     return kboot_getCurrentBootLoaderInfo()->gxInfo;
 }
 
-const U8* kboot_getFontData() {
+const U8* kboot_getFontData()
+{
     return kboot_getCurrentBootLoaderInfo()->font_data;
 }
