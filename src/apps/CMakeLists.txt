@@ -61,9 +61,31 @@ link(
     LINK_LIBRARIES cm
     )
 
+# ---------------------------------------------------------------------------
+# Program - INIT
+# ---------------------------------------------------------------------------
+compile_lib(
+    NAME init
+    SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/init.c
+    FLAGS ${MOS_USER_GCC_FLAGS}
+    DEFINITIONS ${MOS_USER_GCC_DEFINITIONS} DEBUG PORT_E9_ENABLED
+    INCLUDE_DIRECTORIES ${MOS_USER_GCC_INCLUDE_DIRS}
+    )
+
+link(
+    FLATTEN
+    NAME init.flt
+    DEPENDS init crta
+    FLAGS ${MOS_LINKER_OPTIONS}
+    LINKER_FILE ${MOS_USER_LINKER_SCRIPT_FILE}
+    LINK_LIBRARIES cm
+    )
+
 #---------------------------------------------------------------------------
 # Add to the global 'build-all' target
 #---------------------------------------------------------------------------
+add_dependencies(build-all init.flt)
+
 if (MOS_GRAPHICS_ENABLED)
     add_dependencies(build-all gui0.flt)
 else()

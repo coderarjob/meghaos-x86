@@ -84,8 +84,6 @@ void proc_main()
     wait_for_all_child_exit();
 
     cm_process_kill(1);
-    s_printString (37, 0, BLACK, WHITE,
-                   "Cannot kill process 0. Make kernel thread slower for demo.");
 }
 
 void thread0()

@@ -60,6 +60,7 @@
 
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"
+    %define INIT_FILE       "INIT    FLT"
 %ifdef GRAPHICS_MODE_ENABLED
     %define GUI0_APP_FILE   "GUI0    FLT"
 %else

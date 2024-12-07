@@ -41,6 +41,7 @@ files:       db     KERNEL_FILE     , "KERNEL.FLT",0,0,0
              db     PROC1_FILE      , "PROC1.FLT",0,0,0,0
              db     MPDEMO_FILE     , "MPDEMO.FLT",0,0,0
 %endif
+             db     INIT_FILE       , "INIT.FLT",0,0,0,0,0
              db     0
 
 msg_welcome: db     13,10,OS_NAME,13,10
