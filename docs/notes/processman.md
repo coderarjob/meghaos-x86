@@ -132,7 +132,7 @@ Every process has its own process & thread have individual event queue.
 
 ### Process exit
 
-Exiting threads is the simplest. Since they only have a stack, exiting threads means to only
+Exiting threads are the simplest, since they only have a stack, exiting threads means to only
 deallocate the virtual & physical memory for its stack, and freeing the memory used by process's
 events and removing the thread from the scheduler queue. That is steps 1 to 4 don't happen for
 threads but 5,6 does happen.
@@ -163,6 +163,17 @@ are 8 bit numbers (so it can at most be 255), which are sent to the parent of th
 killed by pushing a `KERNEL_EVENT_PROCCESS_CHILD_KILLED` event.
 
 Through this event the parent can determine if a child process has exited and in what condition.
+
+When a process exits, it must also kill its child threads. Child non-thread processes however are
+not killed and become children of the Root process.
+
+### Abort
+
+Abort is called when there is a serious error or corruption in the application program. For example
+malloc() calls abort when it detects a double free/allocation. The Abort call should kill all
+processes what is using the current memory context, that is threads and the parent process. Child
+non-thread processes however are not killed since they have a different memory context. These
+processes get owned by the Root process.
 
 ------------------------------------------------------------------------------
 

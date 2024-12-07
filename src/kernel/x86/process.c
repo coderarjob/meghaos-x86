@@ -32,6 +32,7 @@
 
 static UINT processCount;
 static KProcessInfo* currentProcess = NULL;
+static KProcessInfo* rootProcess = NULL;
 static ListNode schedulerQueueHead  = { 0 };
 
 static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
@@ -49,6 +50,7 @@ static void s_showQueueItems (ListNode* forward, bool directionForward);
 #else
     #define s_showQueueItems(...) (void)0
 #endif // DEBUG
+static void change_parent_process (KProcessInfo* const p, KProcessInfo* const parent);
 
 __attribute__ ((noreturn)) void jump_to_process (U32 type, x86_CR3 cr3, ProcessRegisterState* regs);
 
@@ -399,6 +401,13 @@ static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* cu
 
     nextProcess->state = PROCESS_STATE_RUNNING;
     currentProcess     = nextProcess;
+
+    // Root process is set at the time of switching and not at creation time to ensure that the
+    // creation of the root process was successful.
+    if (currentProcess->parent == NULL) {
+        rootProcess = currentProcess;
+    }
+
     jump_to_process (nextProcess->flags, cr3, reg);
 
     UNREACHABLE();
@@ -445,12 +454,23 @@ static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode)
             if (!(cpinfo = LIST_ITEM (node, KProcessInfo, childrenListNode))) {
                 FATAL_BUG();
             }
+
             INFO ("Killing child process. PID: %u", cpinfo->processID);
-            if (!kprocess_kill_process (&cpinfo, KPROCESS_EXIT_CODE_FORCE_KILLED)) {
-                FATAL_BUG(); // Under normal condition its not possible for such a failure.
+
+            // Only thread process are killed. Non-thread processes are made child processes of the
+            // Root process.
+            if (BIT_ISUNSET (cpinfo->flags, PROCESS_FLAGS_THREAD)) {
+                INFO ("Non thread process cannot be killed. Being adopted by root process.");
+                change_parent_process(cpinfo, rootProcess);
+                k_assert (cpinfo->parent == rootProcess, "Wrong parent set for process");
+            } else {
+                INFO ("Killing child thread process. PID: %u", cpinfo->processID);
+                if (!kprocess_kill_process (&cpinfo, KPROCESS_EXIT_CODE_FORCE_KILLED)) {
+                    FATAL_BUG(); // Under normal condition its not possible for such a failure.
+                }
             }
         }
-        INFO ("All child processes killed. Now killing parent: %x", l_process->processID);
+        INFO ("All child processes killed/adopted. Now killing parent: %x", l_process->processID);
 
         // If current process is not the process being killed, then there is no need to change
         // Page Directories.
@@ -523,6 +543,20 @@ static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode)
 }
 #pragma GCC diagnostic pop
 
+static void change_parent_process (KProcessInfo* const p, KProcessInfo* const parent)
+{
+    // Root process cannot be child of another process
+    k_assert (p != rootProcess, "Child process cannot be child of another process");
+
+    // Remove the process from the list of its current parent
+    list_remove (&p->childrenListNode);
+
+    // Processes created by threads are owned by its parent process.
+    p->parent = BIT_ISSET (parent->flags, PROCESS_FLAGS_THREAD) ? parent->parent : parent;
+    // Add the process to the list of its new parent.
+    list_add_before (&p->parent->childrenListHead, &p->childrenListNode);
+}
+
 void kprocess_init()
 {
     list_init (&schedulerQueueHead);
@@ -580,18 +614,12 @@ INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFla
     // Root processes does not have a parent.
     pinfo->parent = NULL;
     if (currentProcess == NULL) {
-        // Must be creation of root process. Must not be a flag
-        k_assert (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD), "Orphan thread");
+        // Must be creation of root process. Must not be a thread process.
+        k_assert (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD), "Threads cannot be Root");
         INFO ("Root process creation");
     } else {
-        // Processes created by threads are owned by its parent process.
-        pinfo->parent = BIT_ISSET (currentProcess->flags, PROCESS_FLAGS_THREAD)
-                            ? currentProcess->parent
-                            : currentProcess;
-
+        change_parent_process (pinfo, currentProcess);
         k_assert (pinfo->parent != NULL, "Non-Root processes & Threads must have a parent");
-        // Parent is non-root process
-        list_add_before (&pinfo->parent->childrenListHead, &pinfo->childrenListNode);
     }
 
     INFO ("New process: ID = %u, Parent ID: %u", pinfo->processID, PARENT_PROCESS_ID (pinfo));
