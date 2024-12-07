@@ -68,9 +68,9 @@ bool cm_process_handle_events()
 }
 /**************************************************************************************************/
 
-INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode)
+INT cm_process_create (const char* const filename, bool isKernelMode)
 {
-    if (!startLocation || binaryLengthBytes == 0) {
+    if (filename == NULL) {
         CM_RETURN_ERROR__ (CM_ERR_INVALID_INPUT, CM_FAILURE);
     }
 
@@ -79,7 +79,10 @@ INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKerne
         flags |= PROCESS_FLAGS_KERNEL_PROCESS;
     }
 
-    INT pid = syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, binaryLengthBytes,
+    OSIF_BootLoadedFiles file = { 0 };
+    cm_get_bootloaded_file (filename, &file);
+
+    INT pid = syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)file.startLocation, file.length,
                        (U32)flags, 0, 0);
     if (pid < 0) {
         CM_RETURN_ERROR__ (cm_get_os_error(), CM_FAILURE);

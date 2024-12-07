@@ -39,7 +39,12 @@ static inline void cm_get_bootloaded_file (const char* const filename,
  * Process management
  ***************************************************************************************************/
 INT cm_thread_create (void (*startLocation)(), bool isKernelMode);
-INT cm_process_create (void* startLocation, SIZE binaryLengthBytes, bool isKernelMode);
+INT cm_process_create (const char* const filename, bool isKernelMode);
+
+static inline bool cm_process_pop_event (OSIF_ProcessEvent* e)
+{
+    return syscall (OSIF_SYSCALL_POP_PROCESS_EVENT, (PTR)e, 0, 0, 0, 0);
+}
 
 static inline void cm_process_yield()
 {
