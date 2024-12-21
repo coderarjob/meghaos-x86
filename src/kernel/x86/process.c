@@ -472,11 +472,9 @@ static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode)
         }
         INFO ("All child processes killed/adopted. Now killing parent: %x", l_process->processID);
 
-        // If current process is not the process being killed, then there is no need to change
-        // Page Directories.
-        if (currentProcess != NULL && currentProcess->processID == l_process->processID) {
-            // In order to destroy the PD of the current process, it is required to switch to
-            // the Kernel PD, otherwise we would be killing the PD while using it.
+        // If current process is the process being killed, then it is required to switch to the
+        // Kernel PD, otherwise we would be killing the PD while using it.
+        if (currentProcess != NULL && currentProcess->context == l_process->context) {
             register x86_CR3 cr3 = { 0 };
             cr3.pcd              = x86_PG_DEFAULT_IS_CACHING_DISABLED;
             cr3.pwt              = x86_PG_DEFAULT_IS_WRITE_THROUGH;
