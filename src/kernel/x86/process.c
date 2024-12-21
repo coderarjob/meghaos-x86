@@ -688,13 +688,22 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     return s_switchProcess (pinfo, currentState);
 }
 
-bool kprocess_exit (U8 exitCode)
+bool kprocess_exit (U8 exitCode, bool killBranch)
 {
-    FUNC_ENTRY ("Exit Code: %x", exitCode);
+    FUNC_ENTRY ("Exit Code: %x, killBranch: %x", exitCode, killBranch);
+
+    k_assert(currentProcess != NULL, "Nothing to exit");
 
     UINT ret;
-    UINT flags      = (currentProcess != NULL) ? currentProcess->flags : 0;
+    UINT flags      = currentProcess->flags;
     UINT l_exitCode = (UINT)exitCode;
+    KProcessInfo* process = currentProcess;
+
+    // If parent of the current process is NULL, then the current process is the root process
+    // and branch head. Otherwise its the parent of the current process.
+    if (killBranch && currentProcess->parent != NULL) {
+            process = currentProcess->parent;
+    }
 
     // clang-format off
     // In a Kernel process, no stack switch happens in a system call and the same process stack is
@@ -721,10 +730,9 @@ bool kprocess_exit (U8 exitCode)
                     //////////////////////////////////////////////////////////////////////////////
                     ".cont:;"
                      //////////////////////////////////////////////////////////////////////////////
-                    // Call to kprocess_kill_process to kill 'currentProcess'.
+                    // Call to kprocess_kill_process to kill 'current process'.
                     "   push %2;"  // exit code
-                    "   lea eax, [currentProcess];"
-                    "   push eax;" // &currentProcess
+                    "   push %3;"
                     "   call kprocess_kill_process;"
                     "   add esp, 16;"
                      //////////////////////////////////////////////////////////////////////////////
@@ -734,6 +742,7 @@ bool kprocess_exit (U8 exitCode)
                      //////////////////////////////////////////////////////////////////////////////
                     // Call to kprocess_yield to go to the next process now that the current one is
                     // destoryed.
+                    "   mov DWORD PTR [currentProcess], 0;"
                     "   xor eax, eax;"      //  NULL is passed in the first argument of yeld.
                     "   push eax;"
                     "   call kprocess_yield;"
@@ -747,8 +756,8 @@ bool kprocess_exit (U8 exitCode)
                     "   pop ebp;"
                     //////////////////////////////////////////////////////////////////////////////
                     : "=r"(ret)
-                    : "r"(flags), "r"(l_exitCode)
-                    : // No clobber
+                    : "r"(flags), "r"(l_exitCode), "r"(&process)
+                    : "memory"
     );
     // clang-format on
 

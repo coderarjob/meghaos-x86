@@ -274,7 +274,7 @@ void ksys_killProcess (SystemcallFrame frame, UINT exitCode)
 {
     FUNC_ENTRY ("Frame return address: %x:%x, exit code: %x", frame.cs, frame.eip, exitCode);
     (void)frame;
-    kprocess_exit ((U8)exitCode);
+    kprocess_exit ((U8)exitCode, false);
 }
 
 U32 ksys_process_getPID (SystemcallFrame frame)

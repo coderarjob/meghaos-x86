@@ -70,7 +70,7 @@ typedef struct KProcessInfo {
 void kprocess_init();
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
-bool kprocess_exit (U8 exitCode);
+bool kprocess_exit (U8 exitCode, bool killBranch);
 VMemoryManager* kprocess_getCurrentContext();
 UINT kprocess_getCurrentPID();
 bool kprocess_popEvent (UINT pid, KProcessEvent* ev);
