@@ -448,7 +448,7 @@ static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode)
         INFO ("Killing all child process");
 
         ListNode* node = NULL;
-        ListNode* head = &currentProcess->childrenListHead;
+        ListNode* head = &l_process->childrenListHead;
         for (node = head->next; node != head; node = head->next) {
             KProcessInfo* cpinfo = NULL;
             if (!(cpinfo = LIST_ITEM (node, KProcessInfo, childrenListNode))) {
