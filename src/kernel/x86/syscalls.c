@@ -42,6 +42,7 @@ INT ksys_createProcess (SystemcallFrame frame, void* processStartAddress, SIZE b
                        KProcessFlags flags);
 void ksys_yieldProcess (SystemcallFrame frame, U32 ebx, U32 ecx, U32 edx, U32 esi, U32 edi);
 void ksys_killProcess (SystemcallFrame frame, UINT exitCode);
+void ksys_abortProcess (SystemcallFrame frame, UINT exitCode);
 bool ksys_processPopEvent (SystemcallFrame frame, OSIF_ProcessEvent* const e);
 U32 ksys_process_getPID (SystemcallFrame frame);
 U32 ksys_get_tickcount (SystemcallFrame frame);
@@ -110,6 +111,8 @@ void* g_syscall_table[] = {
 #else
     &s_handleInvalidSystemCall,      // 15
 #endif
+    //---------------------------
+    &ksys_abortProcess,              // 16
 };
 #pragma GCC diagnostic pop
 
@@ -275,6 +278,13 @@ void ksys_killProcess (SystemcallFrame frame, UINT exitCode)
     FUNC_ENTRY ("Frame return address: %x:%x, exit code: %x", frame.cs, frame.eip, exitCode);
     (void)frame;
     kprocess_exit ((U8)exitCode, false);
+}
+
+void ksys_abortProcess (SystemcallFrame frame, UINT exitCode)
+{
+    FUNC_ENTRY ("Frame return address: %x:%x, exit code: %x", frame.cs, frame.eip, exitCode);
+    (void)frame;
+    kprocess_exit ((U8)exitCode, true);
 }
 
 U32 ksys_process_getPID (SystemcallFrame frame)

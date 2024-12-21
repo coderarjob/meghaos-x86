@@ -33,6 +33,7 @@ typedef enum OSIF_SYSCALLS {
     OSIF_SYSCALL_WINDOW_FLUSH_GRAPHICS     = 13,
     OSIF_SYSCALL_GET_OS_ERROR              = 14,
     OSIF_SYSCALL_GET_BOOTLOADED_FILE       = 15,
+    OSIF_SYSCALL_ABORT_PROCESS             = 16,
 } OSIF_SYSCALLS;
 
 typedef enum OSIF_ProcessEvents {

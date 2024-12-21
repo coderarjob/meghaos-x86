@@ -56,6 +56,11 @@ static inline void cm_process_kill (UINT code)
     syscall (OSIF_SYSCALL_KILL_PROCESS, code, 0, 0, 0, 0);
 }
 
+static inline void cm_process_abort (UINT code)
+{
+    syscall (OSIF_SYSCALL_ABORT_PROCESS, code, 0, 0, 0, 0);
+}
+
 static inline U32 cm_process_get_pid()
 {
     return (U32)syscall (OSIF_SYSCALL_PROCESS_GETPID, 0, 0, 0, 0, 0);
