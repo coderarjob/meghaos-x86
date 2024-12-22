@@ -99,3 +99,11 @@ char* cm_strncpy (char* d, const char* s, SIZE n);
 void* cm_memset (void* const s, U8 c, size_t n);
 INT cm_snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
 INT cm_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
+
+/***************************************************************************************************
+ * Heap managemnt
+ ***************************************************************************************************/
+void cm_malloc_init();
+void* cm_malloc (size_t bytes);
+void* cm_calloc (size_t bytes);
+bool cm_free (void* addr);

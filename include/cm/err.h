@@ -22,6 +22,7 @@ typedef enum CMErrors {
     LIBRARY_ERRORS_START                    = 100,
     CM_ERR_INVALID_INPUT                    = 100,
     CM_ERR_EVENT_HANDLER_ALREADY_REGISTERED = 101,
+    CM_ERR_OUT_OF_HEAP_MEM                  = 102,
 } CMErrors;
 
 uint32_t cm_get_lib_error();

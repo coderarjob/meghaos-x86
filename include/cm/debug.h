@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <types.h>
+
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
 typedef enum CM_DebugLogType {
     CM_DEBUG_LOG_TYPE_INFO,
