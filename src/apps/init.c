@@ -20,7 +20,8 @@ void proc_main()
 {
     cm_process_register_event_handler (OSIF_PROCESS_EVENT_PROCCESS_CHILD_KILLED, init_child_killed);
 
-    cm_process_create ("MPDEMO.FLT", false);
+    cm_process_create (INIT_PROG, false);
+
     while (1) {
         cm_process_handle_events();
     }
