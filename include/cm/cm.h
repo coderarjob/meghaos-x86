@@ -18,15 +18,27 @@
     #include <syscall.h>
 #endif
 
-#define INVALID_HANDLE (-1)
-#define HALT()         for (;;)
-
-INT cm_snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
-INT cm_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
+#define INVALID_HANDLE     (-1)
+#define CM_ABORT_EXIT_CODE (127U)
 
 /***************************************************************************************************
  * Misc functions
  ***************************************************************************************************/
+#define HALT()             for (;;)
+
+#define cm_panic()                                            \
+    do {                                                      \
+        CM_DBG_ERROR ("Panic at %s: %u", __FILE__, __LINE__); \
+        cm_process_abort (CM_ABORT_EXIT_CODE);                \
+    } while (0)
+
+#define cm_assert(t)    \
+    do {                \
+        if (!(t)) {     \
+            cm_panic(); \
+        }               \
+    } while (0)
+
 void cm_delay (UINT ms);
 
 static inline void cm_get_bootloaded_file (const char* const filename,
@@ -85,3 +97,5 @@ void* cm_memcpy (void* dest, const void* src, size_t n);
 UINT cm_strlen (const char* s);
 char* cm_strncpy (char* d, const char* s, SIZE n);
 void* cm_memset (void* const s, U8 c, size_t n);
+INT cm_snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
+INT cm_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
