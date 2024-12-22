@@ -21,8 +21,8 @@
 #define INVALID_HANDLE (-1)
 #define HALT()         for (;;)
 
-INT snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
-INT vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
+INT cm_snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...);
+INT cm_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
 
 /***************************************************************************************************
  * Misc functions

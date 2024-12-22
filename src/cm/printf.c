@@ -28,16 +28,16 @@ static U64 s_readint (IntTypes inttype, va_list* l);
  *              Conversion attributes are given in the following format:
  *                  %[ type modifiers : l|ll|p ] [ conversions: u|h|x|o|s|b|%  ]
  *
- *              For format details, see description for `kearly_vsnprintf`.
+ *              For format details, see description for `cm_vsnprintf`.
  * @param ...   Arguments for each conversion specification.
- * @return      For description for `kearly_vsnprintf`.
+ * @return      For description for `cm_vsnprintf`.
  **************************************************************************************************/
-INT snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...)
+INT cm_snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...)
 {
     va_list l;
     va_start (l, fmt);
 
-    INT len = vsnprintf (dest, size, fmt, l);
+    INT len = cm_vsnprintf (dest, size, fmt, l);
     va_end (l);
 
     return len;
@@ -78,7 +78,7 @@ INT snprintf (CHAR* dest, size_t size, const CHAR* fmt, ...)
  *              written  to  the final string if enough space had been available.
  *              A return value of size or more means that the output was truncated
  **************************************************************************************************/
-INT vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l)
+INT cm_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l)
 {
     size_t originalsize = size;
     S64 size_left       = size;

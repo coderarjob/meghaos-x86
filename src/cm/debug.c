@@ -69,12 +69,12 @@ void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char* 
     }
 
     UINT tick_count = cm_get_tickcount();
-    len = snprintf (buffer, ARRAY_LENGTH (buffer), message, logColor, tick_count, ANSI_COL_GRAY,
-                    func, line, ANSI_COL_RESET);
+    len = cm_snprintf (buffer, ARRAY_LENGTH (buffer), message, logColor, tick_count, ANSI_COL_GRAY,
+            func, line, ANSI_COL_RESET);
 
     va_list l;
     va_start (l, fmt);
-    vsnprintf (buffer + len, ARRAY_LENGTH (buffer), fmt, l);
+    cm_vsnprintf (buffer + len, ARRAY_LENGTH (buffer), fmt, l);
     va_end (l);
 
     qemu_putString (buffer);
