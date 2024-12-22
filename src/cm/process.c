@@ -9,6 +9,7 @@
 #include <cm/err.h>
 #include <cm/cm.h>
 #include <stdbool.h>
+#include <kcmlib.h>
 
 /***************************************************************************************************
  * Handling of process events
@@ -25,7 +26,7 @@ static cm_event_handler app_event_handlers[OSIF_PROCESS_EVENTS_COUNT] = { 0 };
 bool cm_process_register_event_handler (OSIF_ProcessEvents e, cm_event_handler h)
 {
     if (app_event_handlers[e] != NULL) {
-        CM_RETURN_ERROR__ (CM_ERR_EVENT_HANDLER_ALREADY_REGISTERED, false);
+        CM_RETURN_ERROR (CM_ERR_EVENT_HANDLER_ALREADY_REGISTERED, false);
     }
 
     app_event_handlers[e] = h;
@@ -43,7 +44,7 @@ bool cm_process_handle_events()
 {
     volatile OSIF_ProcessEvent e = { 0 };
     if (!cm_process_pop_event ((OSIF_ProcessEvent*)&e)) {
-        CM_RETURN_ERROR__ (cm_get_os_error(), false);
+        CM_RETURN_ERROR (cm_get_os_error(), false);
     }
 
     switch (e.event) {
@@ -71,7 +72,7 @@ bool cm_process_handle_events()
 INT cm_process_create (const char* const filename, bool isKernelMode)
 {
     if (filename == NULL) {
-        CM_RETURN_ERROR__ (CM_ERR_INVALID_INPUT, CM_FAILURE);
+        CM_RETURN_ERROR (CM_ERR_INVALID_INPUT, CM_FAILURE);
     }
 
     KProcessFlags flags = PROCESS_FLAGS_NONE;
@@ -85,7 +86,7 @@ INT cm_process_create (const char* const filename, bool isKernelMode)
     INT pid = syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)file.startLocation, file.length,
                        (U32)flags, 0, 0);
     if (pid < 0) {
-        CM_RETURN_ERROR__ (cm_get_os_error(), CM_FAILURE);
+        CM_RETURN_ERROR (cm_get_os_error(), CM_FAILURE);
     }
     return pid;
 }
@@ -93,7 +94,7 @@ INT cm_process_create (const char* const filename, bool isKernelMode)
 INT cm_thread_create (void (*startLocation)(), bool isKernelMode)
 {
     if (!startLocation) {
-        CM_RETURN_ERROR__ (CM_ERR_INVALID_INPUT, CM_FAILURE);
+        CM_RETURN_ERROR (CM_ERR_INVALID_INPUT, CM_FAILURE);
     }
 
     KProcessFlags flags = PROCESS_FLAGS_THREAD;
@@ -103,7 +104,7 @@ INT cm_thread_create (void (*startLocation)(), bool isKernelMode)
 
     INT pid = syscall (OSIF_SYSCALL_CREATE_PROCESS, (U32)startLocation, 0, (U32)flags, 0, 0);
     if (pid < 0) {
-        CM_RETURN_ERROR__ (cm_get_os_error(), CM_FAILURE);
+        CM_RETURN_ERROR (cm_get_os_error(), CM_FAILURE);
     }
     return pid;
 }
