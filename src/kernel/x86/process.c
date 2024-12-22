@@ -702,7 +702,7 @@ bool kprocess_exit (U8 exitCode, bool killBranch)
     // If parent of the current process is NULL, then the current process is the root process
     // and branch head. Otherwise its the parent of the current process.
     if (killBranch && currentProcess->parent != NULL) {
-            process = currentProcess->parent;
+        process = currentProcess->parent;
     }
 
     // clang-format off

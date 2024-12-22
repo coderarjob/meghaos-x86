@@ -31,11 +31,11 @@ static void* s_buffer;
 #ifndef UNITTEST
 ListNode s_freeHead, s_allocHead, s_adjHead;
 #else
-// kmalloc unit test must provide definitions for the list head variables
+// cm_malloc unit test must provide definitions for the list head variables
 #endif
 
 /***************************************************************************************************
- * Initializes virtual & physical memory for kmalloc.
+ * Initializes virtual & physical memory for cm_malloc.
  *
  * @return    None
  **************************************************************************************************/
@@ -58,7 +58,7 @@ void cm_malloc_init()
 }
 
 /***************************************************************************************************
- * Allocates at least 'bytes' number of bytes from the kmalloc memory. If successful then zeros the
+ * Allocates at least 'bytes' number of bytes from the cm_malloc memory. If successful then zeros the
  * memory before returning.
  *
  * @Input   bytes   Number of bytes to allocate.
@@ -76,7 +76,7 @@ void* cm_calloc (size_t bytes)
 }
 
 /***************************************************************************************************
- * Allocates at least 'bytes' number of bytes from the kmalloc memory.
+ * Allocates at least 'bytes' number of bytes from the cm_malloc memory.
  *
  * @Input   bytes   Number of bytes to allocate.
  * @return          Poiter to the start of the allocated memory. Or NULL on failure.
@@ -110,7 +110,7 @@ void* cm_malloc (size_t bytes)
 /***************************************************************************************************
  * Marks previously allocated memory starting at 'addr' as free.
  *
- * @Input   addr    Pointer to start of a kmalloc allocated memory.
+ * @Input   addr    Pointer to start of a cm_malloc allocated memory.
  * @return          True on success. False otherwise.
  * @error           ERR_INVALID_ARGUMENT  - If the input address was not found.
  **************************************************************************************************/
@@ -151,7 +151,7 @@ static void s_combineAdjFreeNodes (CM_MallocHeader* currentNode)
 
     // Next node could be the list head (which is not a CM_MallocHeader). That would mean end of
     // list and is not taken into account (Practically this is not possible as there will always be
-    // one Free section at the end of kmalloc buffer).
+    // one Free section at the end of cm_malloc buffer).
     if (currentNode->adjnode.next != &s_adjHead) {
         next = LIST_ITEM (currentNode->adjnode.next, CM_MallocHeader, adjnode);
     }
@@ -232,7 +232,7 @@ static void s_splitFreeNode (size_t bytes, CM_MallocHeader* freeNodeHdr)
     size_t netAllocSize  = NET_ALLOCATION_SIZE (bytes);
     PTR splitAt          = (PTR)freeNodeHdr + netAllocSize;
     size_t remainingSize = freeNodeHdr->netNodeSize - netAllocSize;
-    cm_assert (remainingSize >= sizeof (CM_MallocHeader)); // Not enough space for kmalloc header
+    cm_assert (remainingSize >= sizeof (CM_MallocHeader)); // Not enough space for cm_malloc header
 
     CM_MallocHeader* newFreeNodeHdr = s_createNewNode ((void*)splitAt, remainingSize);
     freeNodeHdr->netNodeSize        = netAllocSize;
