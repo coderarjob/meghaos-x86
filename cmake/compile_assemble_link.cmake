@@ -4,6 +4,7 @@
 #              [FLAGS <flag> ...]
 #              [DEFINITIONS <compiler macros> ...]
 #              [INCLUDE_DIRECTORIES <paths> ...]
+#              [DEPENDS <target> ...]
 #              [STATIC_LIB])
 #
 # Creates object files or static library with the sources provided. The object files can be accessed
@@ -12,10 +13,21 @@
 # STATIC_LIB
 # Builds STATIC library instead of an OBJECT library.
 #
+# DEPENDS
+# Target which must be build before compiling the source files.
+#
+# FLAGS
+# Compiler flags/options.
+#
+# DEFINITIONS
+# Definitions/macros which are passed to the compiler.
+#
+# INCLUDE_DIRECTORIES
+# List of directories where compiler will look for header files.
 # ==================================================================================================
 function(compile_lib)
     set(oneValueArgs NAME)
-    set(multiValueArgs SOURCES FLAGS DEFINITIONS INCLUDE_DIRECTORIES)
+    set(multiValueArgs DEPENDS SOURCES FLAGS DEFINITIONS INCLUDE_DIRECTORIES)
     set(options STATIC_LIB)
     cmake_parse_arguments(PARSE_ARGV 0 COMPILE "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -42,6 +54,9 @@ function(compile_lib)
         add_library(${COMPILE_NAME} EXCLUDE_FROM_ALL STATIC ${COMPILE_SOURCES})
     else()
         add_library(${COMPILE_NAME} EXCLUDE_FROM_ALL OBJECT ${COMPILE_SOURCES})
+    endif()
+    if (COMPILE_DEPENDS)
+        add_dependencies(${COMPILE_NAME} ${COMPILE_DEPENDS})
     endif()
     target_include_directories(${COMPILE_NAME} PRIVATE ${COMPILE_INCLUDE_DIRECTORIES})
     target_compile_options(${COMPILE_NAME} PRIVATE ${COMPILE_FLAGS})

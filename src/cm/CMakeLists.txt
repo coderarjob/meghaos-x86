@@ -39,10 +39,10 @@ compile_lib(
     SOURCES ${APPLIB_SOURCES}
     FLAGS ${MOS_KERNEL_GCC_FLAGS}
     DEFINITIONS ${MOS_KERNEL_GCC_DEFINITIONS}
+    DEPENDS gen-build-config-header
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     STATIC_LIB
     )
 
-add_dependencies(cm gen-build-config-header)
 target_link_libraries(cm PUBLIC gcc)
 # ------------------------------------------------------------------------
