@@ -14,6 +14,35 @@
 
 ------------------------------------
 
+## GCC definitions for CM and Applications
+categories: note, independent
+22 Dec 2024
+
+CM is build with the same definitions as the Kernel. This is so done to enable/disable features that
+are also present/absent in the Kernel. Applications should be oblivious of these definitions. This
+is trivial knowledge, but what is not trivial are CM header files which are common to both CM and
+applications. Problem arises when we check for a build option in the CM header files. Say for DEBUG
+builds of the kernel, some debug specific function is enabled in the CM library for applications to
+use, but the application should not have to have DEBUG definitions set. In this scenario any `ifdef
+DEBUG` block in a CM header would not be enabled for the application since DEBUG definitions is not
+set for the application.
+
+### Solution 1
+Have CMAKE generate a `cm_build.h` header file which would include the CM build definitions. Every
+header in the CM library would include this `cm_build.h` file and will be able know the definitions
+CM library was build with.
+
+### Solution 2
+Do not have any `ifdef` block in the header so that the type/function definition to be available
+always, but when the build option is not enabled have a dummy function of the same name. The dummy
+function is required because applications cannot know before calling a function if its defined or
+not, since the application would not know the condition for the function to be defined and even if
+it does, it should not depend on them as the condition may change in future.
+
+I think its obvious which solution to go with - Solution 1.
+
+------------------------------------
+
 ## Logging & Debugging a graphical OS
 categories: note, independent
 16 Nov 2024

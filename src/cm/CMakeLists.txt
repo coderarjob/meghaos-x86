@@ -43,5 +43,6 @@ compile_lib(
     STATIC_LIB
     )
 
+add_dependencies(cm gen-build-config-header)
 target_link_libraries(cm PUBLIC gcc)
 # ------------------------------------------------------------------------

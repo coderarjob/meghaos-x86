@@ -1,0 +1,12 @@
+/*
+ * ---------------------------------------------------------------------------
+ * Megha Operating System V2 - Cross Platform Kernel - Kernel build definitions
+ * ---------------------------------------------------------------------------
+ * :::: Auto generated header file template ::::
+ * This file contains compiler definitions used for the build
+ * ---------------------------------------------------------------------------
+ */
+
+#pragma once
+
+@GEN_HEADER_CONTENTS@
