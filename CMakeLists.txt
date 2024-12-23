@@ -99,9 +99,6 @@ if(CMAKE_CROSSCOMPILING)
     set(CREATE_FLOPPY_IMAGE_SCRIPT_PATH       scripts/create-floppyimg.sh)
     set(LINTER_SCRIPT_PATH                    scripts/lint.sh)
     set(MOS_DISKIMAGE_PATH                    ${MOS_DISKIMAGE_DIR}/mos.flp)
-    set(MOS_BUILD_CONFIG_HEADER_FILE          ${PROJECT_SOURCE_DIR}/include/kbuild.h)
-    set(MOS_BUILD_CONFIG_HEADER_TEMPLATE_FILE ${PROJECT_SOURCE_DIR}/include/kbuild.h.in)
-
     #---------------------------------------------------------------------------
     # Components which want to build by default should add themselves to this global target.
     add_custom_target(build-all ALL)

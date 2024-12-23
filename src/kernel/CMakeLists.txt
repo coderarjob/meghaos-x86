@@ -1,19 +1,6 @@
 include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
 
 #---------------------------------------------------------------------------
-# Generate header file
-#---------------------------------------------------------------------------
-add_custom_target(gen-build-config-header
-                  BYPRODUCTS ${MOS_BUILD_CONFIG_HEADER_FILE}
-                  COMMAND ${CMAKE_COMMAND}
-                          -DGenHeader=1
-                          -DDefinitions="${MOS_KERNEL_GCC_DEFINITIONS}"
-                          -DHeaderFileDestinationPath=${MOS_BUILD_CONFIG_HEADER_FILE}
-                          -DHeaderFileTemplatePath=${MOS_BUILD_CONFIG_HEADER_TEMPLATE_FILE}
-                          -P ${PROJECT_SOURCE_DIR}/cmake/GenConfigHeaderFile.cmake
-)
-
-#---------------------------------------------------------------------------
 # Build Arch independent kernel
 #---------------------------------------------------------------------------
 set(KERNEL_SOURCES
