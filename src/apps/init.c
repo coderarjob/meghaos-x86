@@ -25,6 +25,5 @@ void proc_main()
     }
 
     // Should not return!
-    // TODO: Place an assert() or panic() here.
-    CM_DBG_ERROR ("Init process returning");
+    cm_panic();
 }
