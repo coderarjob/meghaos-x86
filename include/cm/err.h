@@ -5,7 +5,7 @@
  */
 
 #include <stdint.h>
-#if defined(KERNEL) || defined (UNITTEST)
+#if defined(LIBCM) || defined (UNITTEST)
     #include <cm/debug.h>
     #include <cm/syscall.h>
     #include <cm/osif.h>

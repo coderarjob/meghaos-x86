@@ -6,14 +6,12 @@
 
 #include <cm.h>
 #include <debug.h>
+#include <err.h>
 
 static void init_child_killed (OSIF_ProcessEvent const* const e)
 {
-#if defined(DEBUG) && defined(PORT_E9_ENABLED)
     CM_DBG_INFO ("Child process exited. Code: %x", e->data);
-#else
     (void)e;
-#endif
 }
 
 void proc_main()

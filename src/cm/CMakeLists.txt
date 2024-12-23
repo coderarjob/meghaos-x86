@@ -1,6 +1,16 @@
 include(${PROJECT_SOURCE_DIR}/cmake/${ARCH}/kernelflags.cmake)
 
 #---------------------------------------------------------------------------
+# LIBCM macro is only present when building libcm, and absent when building applications. Thus this
+# macro can be used by a libcm header to determine if its being included by an application or by CM
+# library.
+#---------------------------------------------------------------------------
+set(MOS_LIBCM_GCC_DEFINITIONS
+    ${MOS_KERNEL_GCC_DEFINITIONS}
+    LIBCM
+)
+
+#---------------------------------------------------------------------------
 # Generate header file
 #---------------------------------------------------------------------------
 set(LIBCM_BUILD_CONFIG_HEADER_FILE          ${PROJECT_SOURCE_DIR}/include/cm/cmbuild.h)
@@ -29,13 +39,14 @@ compile_lib(
     NAME crta
     SOURCES ${APPS_CRT_SOURCES}
     FLAGS ${MOS_KERNEL_GCC_FLAGS}
-    DEFINITIONS ${MOS_KERNEL_GCC_DEFINITIONS}
+    DEFINITIONS ${MOS_LIBCM_GCC_DEFINITIONS}
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     )
 # ------------------------------------------------------------------------
 # MOS C Library
 # C library to talk to the OS and helpful/common functions for use by application programs.
 # ------------------------------------------------------------------------
+
 set(APPLIB_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/process.c
         ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.c
@@ -54,7 +65,7 @@ compile_lib(
     NAME cm
     SOURCES ${APPLIB_SOURCES}
     FLAGS ${MOS_KERNEL_GCC_FLAGS}
-    DEFINITIONS ${MOS_KERNEL_GCC_DEFINITIONS}
+    DEFINITIONS ${MOS_LIBCM_GCC_DEFINITIONS}
     DEPENDS gen-build-config-header
     INCLUDE_DIRECTORIES ${MOS_KERNEL_GCC_INCLUDE_DIRS}
     STATIC_LIB

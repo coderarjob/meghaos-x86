@@ -7,6 +7,9 @@
 #pragma once
 
 #include <types.h>
+#ifndef LIBCM
+    #include <cmbuild.h>
+#endif
 
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
 typedef enum CM_DebugLogType {

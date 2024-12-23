@@ -10,7 +10,7 @@
 
 #include <types.h>
 #include <stdarg.h>
-#if defined(KERNEL) || defined(UNITTEST)
+#if defined(LIBCM) || defined(UNITTEST)
     #include <cm/osif.h>
     #include <cm/syscall.h>
 #else
