@@ -688,9 +688,9 @@ bool kprocess_yield (ProcessRegisterState* currentState)
     return s_switchProcess (pinfo, currentState);
 }
 
-bool kprocess_exit (U8 exitCode, bool killBranch)
+bool kprocess_exit (U8 exitCode, bool destroyContext)
 {
-    FUNC_ENTRY ("Exit Code: %x, killBranch: %x", exitCode, killBranch);
+    FUNC_ENTRY ("Exit Code: %x, destroyContext: %x", exitCode, destroyContext);
 
     k_assert(currentProcess != NULL, "Nothing to exit");
 
@@ -699,9 +699,12 @@ bool kprocess_exit (U8 exitCode, bool killBranch)
     UINT l_exitCode = (UINT)exitCode;
     KProcessInfo* process = currentProcess;
 
-    // If parent of the current process is NULL, then the current process is the root process
-    // and branch head. Otherwise its the parent of the current process.
-    if (killBranch && currentProcess->parent != NULL) {
+    // Context is destroyed when the process owning it is killed. For thread processes its their
+    // parent (non-thread) process who owns the shared context. For non-thread processes the context
+    // is own by themselves, so nothing special needs to be done. Context owned by Root process
+    // cannot be destroyed.
+    if (destroyContext && currentProcess->parent != NULL &&
+        BIT_ISSET (currentProcess->flags, PROCESS_FLAGS_THREAD)) {
         process = currentProcess->parent;
     }
 
@@ -741,9 +744,9 @@ bool kprocess_exit (U8 exitCode, bool killBranch)
                     "   jz .fin;"
                      //////////////////////////////////////////////////////////////////////////////
                     // Call to kprocess_yield to go to the next process now that the current one is
-                    // destoryed.
+                    // destroyed.
                     "   mov DWORD PTR [currentProcess], 0;"
-                    "   xor eax, eax;"      //  NULL is passed in the first argument of yeld.
+                    "   xor eax, eax;"      //  NULL is passed in the first argument of yield.
                     "   push eax;"
                     "   call kprocess_yield;"
                     "   add esp, 4;"
