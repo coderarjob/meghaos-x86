@@ -76,3 +76,4 @@ UINT kprocess_getCurrentPID();
 bool kprocess_popEvent (UINT pid, KProcessEvent* ev);
 bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData);
 KProcessSections* kprocess_getCurrentProcessDataSection();
+void kprocess_syncPD();

@@ -188,7 +188,7 @@ static VMemoryAddressSpace* find_vas (VMemoryManager const* const vmm, PTR start
     return NULL;
 }
 
-static bool commitVirtualPages (VMemoryManager const* const vmm, PTR vaStart,
+static bool commitVirtualPages (VMemoryManager* const vmm, PTR vaStart,
                                 Physical const* const paStart, SIZE numPages,
                                 const VMemoryAddressSpace* const vas, Physical* const outPA)
 {
@@ -223,6 +223,7 @@ static bool commitVirtualPages (VMemoryManager const* const vmm, PTR vaStart,
     }
 
     kpg_temporaryUnmap();
+    vmm->isPageDirectoryDirty = true; // PD has changed.
     return true;
 }
 
@@ -503,11 +504,21 @@ bool kvmm_commitPage (VMemoryManager* vmm, PTR va)
     return true;
 }
 
-Physical kvmm_getPageDirectory (const VMemoryManager* vmm)
+Physical kvmm_getPageDirectory (const VMemoryManager* const vmm)
 {
     FUNC_ENTRY ("vmm: %x", vmm);
 
     k_assert (vmm != NULL, "VMM not provided");
 
     return vmm->parentProcessPD;
+}
+
+bool kvmm_isPageDirectoryDirty (VMemoryManager* const vmm)
+{
+    FUNC_ENTRY ("vmm: %x", vmm);
+    k_assert (vmm != NULL, "VMM not provided");
+
+    bool isDirty   = vmm->isPageDirectoryDirty;
+    vmm->isPageDirectoryDirty = false;
+    return isDirty;
 }

@@ -32,6 +32,7 @@ PTR kvmm_findFree (VMemoryManager* vmm, SIZE szPages);
 PTR kvmm_memmap (VMemoryManager* vmm, PTR va, Physical const* const pa, SIZE szPages,
                  VMemoryMemMapFlags flags, Physical* const outPA);
 bool kvmm_checkbounds (VMemoryManager* vmm, PTR addr);
+bool kvmm_isPageDirectoryDirty (VMemoryManager* const vmm);
 
 #if defined(DEBUG) && defined(PORT_E9_ENABLED)
 void kvmm_printVASList (VMemoryManager* vmm);

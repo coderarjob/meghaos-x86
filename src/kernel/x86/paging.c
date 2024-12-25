@@ -425,35 +425,52 @@ bool kpg_doesMappingExists (PageDirectory pd, PTR va, Physical* pa)
  * @Input   flags       Flags that determine the setup of the Page directory.
  * @return              True if success, false otherwise.
  **************************************************************************************************/
-bool kpg_createNewPageDirectory (Physical* newPD, PagingOperationFlags flags)
+bool kpg_setupPageDirectory (Physical* const pd, PagingOperationFlags flags,
+                             Physical const* const kernelPD)
 {
-    FUNC_ENTRY ("newPD return addr: %px, Flags: %x", newPD, flags);
+    FUNC_ENTRY ("PD addr: %px, Flags: %x, kernel PD: %px", pd, flags, kernelPD);
 
-    if (kpmm_alloc (newPD, 1, PMM_REGION_ANY) == false) {
-        RETURN_ERROR (ERROR_PASSTHROUGH, false); // PMM alloc failure
+    k_assert (pd != NULL, "Invalid address.");
+
+    PageDirectory l_pd = NULL;
+    // ---------------------------------------------------------------
+    // Create a new, empty Page Directory.
+    // ---------------------------------------------------------------
+    if (BIT_ISSET (flags, PG_NEWPD_FLAG_CREATE_NEW)) {
+        if (kpmm_alloc (pd, 1, PMM_REGION_ANY) == false) {
+            RETURN_ERROR (ERROR_PASSTHROUGH, false); // PMM alloc failure
+        }
+        INFO ("New PD physical location: %px", pd->val);
+
+        l_pd = s_internal_temporaryMap (*pd);
+        k_memset (l_pd, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
+    } else {
+        l_pd = s_internal_temporaryMap (*pd);
     }
 
-    INFO ("New PD physical location: %px", newPD->val);
-
-    PageDirectory pd = s_internal_temporaryMap (*newPD);
-    k_memset (pd, 0, CONFIG_PAGE_FRAME_SIZE_BYTES);
-
-    // Temporary map this PD and copy kernel page table entries
+    // ---------------------------------------------------------------
+    // Copy kernel pages tables to the provided PD.
+    // ---------------------------------------------------------------
     if (BIT_ISSET (flags, PG_NEWPD_FLAG_COPY_KERNEL_PAGES)) {
-        PageDirectory currentPD = kpg_getcurrentpd();
+        k_assert (kernelPD != NULL, "Invalid address.");
+
+        PageDirectory l_kernelPD = kpg_temporaryMap (*kernelPD);
         for (UINT pdi = KERNEL_PDE_INDEX; pdi < 1024; pdi++) {
-            pd[pdi] = currentPD[pdi];
+            l_pd[pdi] = l_kernelPD[pdi];
         }
-
-        if (BIT_ISSET (flags, PG_NEWPD_FLAG_RECURSIVE_MAP)) {
-            pd[RECURSIVE_PDE_INDEX].pageTableFrame = PHYSICAL_TO_PAGEFRAME (newPD->val);
-        }
+        kpg_temporaryUnmap();
     }
+
+    // ---------------------------------------------------------------
+    // Recursive map
+    // ---------------------------------------------------------------
+    if (BIT_ISSET (flags, PG_NEWPD_FLAG_RECURSIVE_MAP)) {
+        l_pd[RECURSIVE_PDE_INDEX].pageTableFrame = PHYSICAL_TO_PAGEFRAME (pd->val);
+    }
+
     s_internal_temporaryUnmap();
-
-    return true; // Success
+    return true;
 }
-
 /***************************************************************************************************
  * Deletes a Page Directory and its Page tables.
  *

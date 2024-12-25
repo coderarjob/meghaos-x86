@@ -208,8 +208,11 @@ static bool s_createProcessPageDirectory (KProcessInfo* pinfo)
     if (BIT_ISUNSET (pinfo->flags, PROCESS_FLAGS_THREAD)) {
         // Create physical memory for Page directory of the new non-thread process
         Physical newPD;
-        if (!kpg_createNewPageDirectory (&newPD, PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
-                                                     PG_NEWPD_FLAG_RECURSIVE_MAP)) {
+        Physical kernelPD = kvmm_getPageDirectory (g_kstate.context);
+        if (!kpg_setupPageDirectory (&newPD,
+                                     PG_NEWPD_FLAG_CREATE_NEW | PG_NEWPD_FLAG_COPY_KERNEL_PAGES |
+                                         PG_NEWPD_FLAG_RECURSIVE_MAP,
+                                     &kernelPD)) {
             RETURN_ERROR (ERROR_PASSTHROUGH, false); // Cannot create new process.
         }
 
@@ -828,4 +831,28 @@ bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData)
 
     enqueue (&pinfo->eventsQueueHead, &e->eventQueueNode);
     return true;
+}
+
+void kprocess_syncPD()
+{
+    FUNC_ENTRY();
+
+    if (!KERNEL_PHASE_CHECK (KERNEL_PHASE_STATE_KERNEL_READY)) {
+        return;
+    }
+
+    Physical kernelPD = kvmm_getPageDirectory (g_kstate.context);
+
+    ListNode* node  = NULL;
+    KProcessInfo* p = NULL;
+    list_for_each (&schedulerQueueHead, node)
+    {
+        p           = LIST_ITEM (node, KProcessInfo, schedulerQueueNode);
+        Physical pd = kvmm_getPageDirectory (p->context);
+        if (!kpg_setupPageDirectory (&pd,
+                                     PG_NEWPD_FLAG_COPY_KERNEL_PAGES | PG_NEWPD_FLAG_RECURSIVE_MAP,
+                                     &kernelPD)) {
+            FATAL_BUG(); // No reason it should fail.
+        }
+    }
 }

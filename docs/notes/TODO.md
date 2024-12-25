@@ -156,13 +156,13 @@
 | ::: unittests how are we going to mock, so for unittests something else |           |            |
 | ::: need to be done.                                                    |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
-| [ ] Process management                                                  | 11 Apr 24 |            |
+| [X] Process management                                                  | 11 Apr 24 |            |
 | ::: [X] Process Killing: Need a way to pass exit code to parent process | 21 Apr 24 | 11 Nov 24  |
 | Possible solution.                                                      |           |            |
 | When a process ending it would add SIGCHILD signal for its parent       | 21 Apr 24 |            |
 | and the scheduler will make sure that the parent gets the message.      |           |            |
 | Need a way to avoid creation of ZOMBIE processes.                       |           |            |
-| ::: [ ] Process Exit: Copy the Kernel PDEs from PD of the process to    | 27 Apr 24 |            |
+| ::: [X] Process Exit: Copy the Kernel PDEs from PD of the process to    | 27 Apr 24 | 26 Dec 24  |
 | ::: PD of the Kernel. At the start we copy the Kernel PDEs but are not  |           |            |
 | ::: copying it back. The Kernel memory mapping might have changed by    |           |            |
 | ::: now, so this copying is needed.                                     |           |            |

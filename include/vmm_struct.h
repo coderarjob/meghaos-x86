@@ -22,6 +22,7 @@ struct VMemoryManager {
     PTR end;
     bool isStaticAllocated;
     Physical parentProcessPD;
+    bool isPageDirectoryDirty; // Process's PageDirectory has changed. Will be reset once read.
     KernelPhysicalMemoryRegions physicalRegion;
     ListNode head;
 };

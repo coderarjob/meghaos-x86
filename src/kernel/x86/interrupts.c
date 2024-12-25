@@ -139,11 +139,25 @@ void page_fault_handler (InterruptFrame *frame, UINT errorcode)
 
     // Page faults can occur for various reasons, it could be permissions or if page frame is not
     // present. Commit a physical page only it there is not one already allocated.
-    VMemoryManager* context = kvmm_checkbounds (g_kstate.context, fault_addr)
-                                  ? g_kstate.context
-                                  : kprocess_getCurrentContext();
+    VMemoryManager* context = kprocess_getCurrentContext();
+    if (kvmm_checkbounds (g_kstate.context, fault_addr)) {
+        context = g_kstate.context;
 
+        // Attempt 1: Check if Kernel PD has changed and a sync is pending.
+        if (kvmm_isPageDirectoryDirty (context)) {
+            INFO ("Kernel and Process PD out of sync. Syncing..");
+            kprocess_syncPD();
+            return; // then retry.
+        }
+    }
+
+    // Attempt 2 : Process PD is sync with the Kernel PD. Actually commit the faulting virtual
+    // address.
     if (err->Present == false && kvmm_commitPage (context, fault_addr)) {
+        // Kernel PD has changed. Sync all Page Directories to it.
+        if (context == g_kstate.context) {
+            kprocess_syncPD();
+        }
         return; // then retry
     }
 
