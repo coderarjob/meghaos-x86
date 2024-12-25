@@ -32,6 +32,7 @@ typedef struct SystemcallFrame {
 } __attribute__ ((packed)) SystemcallFrame;
 
 #if defined(DEBUG)
+void ksys_test (SystemcallFrame frame, U8 a, U8 b, U8 c, U8 d);
 void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text);
 #if !defined(GRAPHICS_MODE_ENABLED)
 void ksys_console_setcolor (SystemcallFrame frame, U8 bg, U8 fg);
@@ -113,6 +114,12 @@ void* g_syscall_table[] = {
 #endif
     //---------------------------
     &ksys_abortProcess,              // 16
+    //---------------------------
+#ifdef DEBUG
+    &ksys_test,                      // 17
+#else
+    &s_handleInvalidSystemCall,      // 17
+#endif
 };
 #pragma GCC diagnostic pop
 
@@ -218,6 +225,18 @@ static INT s_handleInvalidSystemCall()
 #pragma GCC diagnostic pop
 
 #if defined(DEBUG)
+void ksys_test (SystemcallFrame frame, U8 a, U8 b, U8 c, U8 d)
+{
+    FUNC_ENTRY ("Frame return address: %x:%px, a, b, c, d: {%x, %x, %x, %x}", frame.cs, frame.eip,
+                a, b, c, d);
+    (void)frame;
+    (void)a;
+    (void)b;
+    (void)c;
+    (void)d;
+
+}
+
 void ksys_console_writeln (SystemcallFrame frame, char* fmt, char* text)
 {
     FUNC_ENTRY ("Frame return address: %x:%px, fmt: %px text: %px", frame.cs, frame.eip, fmt, text);
