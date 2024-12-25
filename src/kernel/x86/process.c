@@ -262,7 +262,7 @@ static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengt
     kvmm_setAddressSpaceMetadata (pinfo->context, pinfo->binary.virtualMemoryStart, "proc bin",
                                   &pinfo->processID);
 
-    k_memcpyToPhyMem (pa, (PTR)processStartAddress, binLengthBytes);
+    k_memcpyToPhyMem (pa, (PTR)processStartAddress, 0, 0, binLengthBytes);
     return true;
 }
 

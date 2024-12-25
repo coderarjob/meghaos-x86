@@ -113,19 +113,21 @@ void* k_memset (void* const s, U8 c, size_t n)
  * @Input n        Number of bytes to copy.
  * @return         Pointer to the start of the destination.
 ***************************************************************************************************/
-void k_memcpyToPhyMem (Physical dest, PTR src, SIZE n)
+void k_memcpyToPhyMem (Physical dest, PTR src, UINT destOffset, UINT srcOffset, SIZE n)
 {
     FUNC_ENTRY ("Dest: %px, Src: %px, Len: %x bytes", dest.val, (PTR)src, n);
 
     KERNEL_PHASE_VALIDATE (KERNEL_PHASE_STATE_VMM_READY);
 
     Physical l_dest = dest;
-    PTR l_src       = src;
+    PTR l_src       = src + srcOffset;
     SIZE remBytes   = n;
 
     // Copy whole pages worth of bytes
     while (remBytes >= CONFIG_PAGE_FRAME_SIZE_BYTES) {
-        k_memcpy (kpg_temporaryMap (l_dest), (void*)l_src, CONFIG_PAGE_FRAME_SIZE_BYTES);
+        PTR dest_va = (PTR)kpg_temporaryMap (l_dest) + destOffset;
+        destOffset  = 0; // No offset from the 2nd iteration.
+        k_memcpy ((void*)dest_va, (void*)l_src, CONFIG_PAGE_FRAME_SIZE_BYTES);
         kpg_temporaryUnmap();
         remBytes -= CONFIG_PAGE_FRAME_SIZE_BYTES;
         l_dest.val += CONFIG_PAGE_FRAME_SIZE_BYTES;
@@ -133,8 +135,8 @@ void k_memcpyToPhyMem (Physical dest, PTR src, SIZE n)
     }
 
     // Copy remaining bytes
-    void* bin_va = kpg_temporaryMap (l_dest);
-    k_memcpy (bin_va, (void*)l_src, remBytes);
+    PTR dest_va = (PTR)kpg_temporaryMap (l_dest) + destOffset;
+    k_memcpy ((void*)dest_va, (void*)l_src, remBytes);
     kpg_temporaryUnmap();
 }
 
