@@ -153,9 +153,24 @@
 
 Not seen with a later commit 12aef3e
 
-[-] Triple fault when multithread_demo_kernel_thread starts mpdemo in kernel mode.
+[ ] Triple fault when multithread_demo_kernel_thread starts mpdemo in kernel mode.
 
-Not seen with a later commit 12aef3e
+When a Kernel processes makes a system call no stack switch occurs, thus it keep using its process
+stack. At the time of yielding and switching to another process, we change to the next process's CR3
+thus changing all memory mapping. Since the old process's stack is not mapped here and ESP, EBP
+registers still have locations of the old process, any stack operation causes a page fault.
+
+Calling page fault handler also fails since there is no stack at this point (ESP is pointing to
+invalid memory), thus ultimately causing a Tripple fault.
+
+This does not occur for non-kernel processes, since at the time any system call (yield in this case)
+stack gets switched to use the Kernel stack. Page fault does not occur because whole of the Kenrel
+address space is present in every process.
+
+    Solution:
+    ==========
+    1. Change to use the new process's stack after change of CR3.
+    2. Force switch to use the Kernel stack even when a Kernel process is making a system call.
 
 [X] os_process_is_yield_requested not working properly if defined in applib/syscall.c
 Cause: Compiler optimization.

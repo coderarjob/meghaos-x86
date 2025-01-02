@@ -224,6 +224,7 @@ static bool commitVirtualPages (VMemoryManager* const vmm, PTR vaStart,
 
     kpg_temporaryUnmap();
     vmm->isPageDirectoryDirty = true; // PD has changed.
+    INFO("Free physical memory: %x bytes", kpmm_getFreeMemorySize());
     return true;
 }
 

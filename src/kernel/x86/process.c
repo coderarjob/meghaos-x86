@@ -399,8 +399,8 @@ static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* cu
 
     INFO ("Is context switch required: Yes");
     INFO ("Kernel process: %x", BIT_ISSET (nextProcess->flags, PROCESS_FLAGS_KERNEL_PROCESS));
-    INFO ("Process (PID: %u) starting. ss:esp =  %x:%x, cs:eip = %x:%x, eflags: %x",
-          nextProcess->processID, reg->ds, reg->esp, reg->cs, reg->eip, reg->eflags);
+    INFO ("Process (PID: %u) starting. cr3: %x, ss:esp =  %x:%x, cs:eip = %x:%x, eflags: %x",
+          nextProcess->processID, cr3, reg->ds, reg->esp, reg->cs, reg->eip, reg->eflags);
 
     nextProcess->state = PROCESS_STATE_RUNNING;
     currentProcess     = nextProcess;
