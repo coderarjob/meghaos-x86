@@ -44,20 +44,20 @@ char kmalloc_buffer[UT_KMALLOC_SIZE_BYTES];
 
 static inline size_t getNodeSize (size_t usableSize)
 {
-    return sizeof (MallocHeader) + usableSize;
+    return sizeof (KMallocHeader) + usableSize;
 }
 
-static inline MallocHeader* calculateHeaderLocation (void* usableAddrStart)
+static inline KMallocHeader* calculateHeaderLocation (void* usableAddrStart)
 {
-    return usableAddrStart - sizeof (MallocHeader);
+    return usableAddrStart - sizeof (KMallocHeader);
 }
 
-static inline void* calculateUsableAddressStart (MallocHeader* headerAddr)
+static inline void* calculateUsableAddressStart (KMallocHeader* headerAddr)
 {
-    return (void*)headerAddr + sizeof (MallocHeader);
+    return (void*)headerAddr + sizeof (KMallocHeader);
 }
 
-static MallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node);
+static KMallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node);
 static bool isAddressFoundInList (void* addr, MallocLists list);
 static size_t getCapacity (MallocLists list);
 static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, size_t count);
@@ -225,12 +225,12 @@ TEST (kmalloc_getUsedMemory, used_memory_test)
 static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, size_t count)
 {
     ListNode* node       = NULL;
-    MallocHeader* header = NULL;
+    KMallocHeader* header = NULL;
     int i                = 0;
     list_for_each (&s_adjHead, node)
     {
         assert (i < count);
-        header = LIST_ITEM (node, MallocHeader, adjnode);
+        header = LIST_ITEM (node, KMallocHeader, adjnode);
         EQ_SCALAR (header->netNodeSize, secAttrs[i].nodeSize);
         EQ_SCALAR (header->isAllocated, secAttrs[i].isAllocated);
         i++;
@@ -249,15 +249,15 @@ static ListNode* getListHead (MallocLists list)
     };
 }
 
-static MallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node)
+static KMallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node)
 {
     switch (list) {
     case FREE_LIST:
-        return LIST_ITEM (node, MallocHeader, freenode);
+        return LIST_ITEM (node, KMallocHeader, freenode);
     case ALLOC_LIST:
-        return LIST_ITEM (node, MallocHeader, allocnode);
+        return LIST_ITEM (node, KMallocHeader, allocnode);
     case ADJ_LIST:
-        return LIST_ITEM (node, MallocHeader, adjnode);
+        return LIST_ITEM (node, KMallocHeader, adjnode);
     };
 }
 
@@ -268,7 +268,7 @@ static bool isAddressFoundInList (void* addr, MallocLists list)
 
     list_for_each (head, node)
     {
-        MallocHeader* header = getMallocHeaderFromList (list, node);
+        KMallocHeader* header = getMallocHeaderFromList (list, node);
         if ((PTR)header == (PTR)calculateHeaderLocation (addr))
             return true;
     }

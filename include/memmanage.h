@@ -14,14 +14,14 @@
 #define SALLOC_GRANUALITY   (8 * Byte)
 #define KMALLOC_GRANULARITY (16 * bytes)
 
-typedef struct MallocHeader
+typedef struct KMallocHeader
 {
     size_t netNodeSize; /// Size of a region together with the header size.
     bool isAllocated;   /// Is the region allocated or free.
     ListNode adjnode;   /// A node in the Adjacent list.
     ListNode freenode;  /// A node in the Free list.
     ListNode allocnode; /// A node in the Allocation list
-} MallocHeader;
+} KMallocHeader;
 
 void ksalloc_init();
 void* ksalloc (UINT bytes);
