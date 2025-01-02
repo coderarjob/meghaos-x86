@@ -26,18 +26,42 @@
  ***************************************************************************************************/
 #define HALT()             for (;;)
 
-#define cm_panic()                                            \
-    do {                                                      \
-        CM_DBG_ERROR ("Panic at %s: %u", __FILE__, __LINE__); \
-        cm_process_abort (CM_ABORT_EXIT_CODE);                \
-    } while (0)
+#ifndef UNITTEST
+    #define cm_panic()                                            \
+        do {                                                      \
+            CM_DBG_ERROR ("Panic at %s: %u", __FILE__, __LINE__); \
+            cm_process_abort (CM_ABORT_EXIT_CODE);                \
+        } while (0)
+#else // UNITTEST
+    void cm_unittest_panic_handler();
+    extern bool cm_panic_invoked;
 
-#define cm_assert(t)    \
-    do {                \
-        if (!(t)) {     \
-            cm_panic(); \
-        }               \
-    } while (0)
+    /* Returns from the 'function under testing', when an assert/panic is hit.
+     *
+     * There is x86 assembly hard coded in an arch independent header, however this corresponds to
+     * the host (not the target) arch. Which implies that unittests can only be built & run on an
+     * x86 machine.
+     *
+     * TODO: Find some way to make this host independent.
+     * NOTE: EAX is not preserved by GCC. So there is not point adding it to the clobber list.
+     */
+    #define cm_panic()                                                      \
+        do {                                                                \
+            cm_unittest_panic_handler();                                    \
+            __asm__ volatile("mov esp, ebp; pop ebp; mov eax, 0; ret;" ::); \
+        } while (0)
+#endif // UNITTEST
+
+#if defined(DEBUG)
+    #define cm_assert(t)    \
+        do {                \
+            if (!(t)) {     \
+                cm_panic(); \
+            }               \
+        } while (0)
+#else
+    #define cm_assert(...) (void)0
+#endif // DEBUG
 
 void cm_delay (UINT ms);
 

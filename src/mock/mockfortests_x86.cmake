@@ -19,3 +19,7 @@ set(kstdlib_mock_sources
 set(handles_mock_sources
     ${PROJECT_SOURCE_DIR}/src/mock/kernel/salloc.c
     )
+
+set(cm_malloc_mock_sources
+    ${PROJECT_SOURCE_DIR}/src/mock/cm/cm.c
+    )

@@ -5,10 +5,10 @@
  * Types and function declarations defined here are private to the CM library and should not be
  * exposed to the applications.
  */
+#pragma once
+
 #include <intrusive_list.h>
 #include <memloc.h>
-
-#pragma once
 
 typedef struct CM_MallocHeader
 {
@@ -19,7 +19,11 @@ typedef struct CM_MallocHeader
     ListNode allocnode; /// A node in the Allocation list
 } CM_MallocHeader;
 
-#define CM_MALLOC_MEM_SIZE_BYTES (ARCH_MEM_LEN_BYTES_PROCESS_DATA / 2)
+#if defined(UNITTEST)
+    #define CM_MALLOC_MEM_SIZE_BYTES MOCK_THIS_MACRO_USING (cm_arch_mem_len_bytes_malloc)
+#else
+    #define CM_MALLOC_MEM_SIZE_BYTES (ARCH_MEM_LEN_BYTES_PROCESS_DATA / 2)
+#endif
 
 extern uint32_t cm_error_num;
 
