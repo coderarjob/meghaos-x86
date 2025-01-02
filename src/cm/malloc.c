@@ -5,7 +5,6 @@
  */
 #include <intrusive_list.h>
 #include <cm/err.h>
-#include <kcmlib.h>
 #include <types.h>
 #include <utils.h>
 #include <cm/debug.h>
@@ -174,7 +173,7 @@ static void s_combineAdjFreeNodes (CM_MallocHeader* currentNode)
 static CM_MallocHeader* s_createNewNode (void* at, size_t netSize)
 {
     // Node netSize too large. Not possible.
-    cm_assert (((PTR)at + netSize - 1) < ((PTR)s_buffer + ARCH_MEM_LEN_BYTES_KMALLOC));
+    cm_assert (((PTR)at + netSize - 1) < ((PTR)s_buffer + CM_MALLOC_MEM_SIZE_BYTES));
 
     CM_MallocHeader* newH = at;
     newH->netNodeSize     = netSize;
