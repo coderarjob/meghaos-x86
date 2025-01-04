@@ -15,6 +15,10 @@ replace_text_in_file()
 
     # Sed will not work in this case because it cannot handle newlines in the
     # replacement text.
+    #
+    # AWK Manpage: An & in the replacement text is replaced with the text that
+    # was actually matched. Use \& to get a literal &.
+    replacement=${replacement//'&'/'\\&'} 
     awk -v MD="$replacement" '{sub(/'$pattern'/, MD); print;}' \
         $template_file > $outfile
 }

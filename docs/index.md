@@ -43,7 +43,9 @@
 
 ------------------------------------------------
 ### Notes
-- [Logging %{note independent}% Debugging a graphical OS](notes/Scratch.md#Logging-%{note independent}%-Debugging-a-graphical-OS)
+- [Test for checking Kernel & process PDs getting sync properly](notes/Scratch.md#Test-for-checking-Kernel-&-process-PDs-getting-sync-properly)
+- [GCC definitions for CM and Applications](notes/Scratch.md#GCC-definitions-for-CM-and-Applications)
+- [Logging & Debugging a graphical OS](notes/Scratch.md#Logging-&-Debugging-a-graphical-OS)
 - [GUI basics in MeghaOS](notes/Scratch.md#GUI-basics-in-MeghaOS)
 - [Application standard library](notes/Scratch.md#Application-standard-library)
 - [New Git workflow](notes/Scratch.md#New-Git-workflow)
@@ -90,7 +92,7 @@
 - [System call frame and signature](notes/abi.md#System-call-frame-and-signature)
 
 ### Obsolete Notes
-- [Logging %{note independent obsolete}% Debugging a graphical OS](notes/Scratch.md#Logging-%{note independent obsolete}%-Debugging-a-graphical-OS)
+- [Logging & Debugging a graphical OS](notes/Scratch.md#Logging-&-Debugging-a-graphical-OS)
 - [Application and kernel mode standard library](notes/Scratch.md#Application-and-kernel-mode-standard-library)
 - [Different ways to handle error/invalid input in Kernel](notes/when-to-assert.md#Different-ways-to-handle-error/invalid-input-in-Kernel)
 - [Asserts and Panics in Unittests in MeghaOS](notes/assert-panic-in-meghaos.md#Asserts-and-Panics-in-Unittests-in-MeghaOS)

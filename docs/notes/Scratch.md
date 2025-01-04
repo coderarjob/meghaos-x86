@@ -110,9 +110,18 @@ As with `kdisp_importantPrint`, its of no use. `kpanic` will
 * DEBUG & Graphical  -> + `kdebug_printf`
 * DEBUG & Text       -> Print panic text to `kdebug_printf` + `kearly_printf`.
 
+#### Unittests
+
 Also note that these above rules & build options are not for Unittests. It is required to test even
 the debug components, so the `ifdef` guards for debug specific components must allow when building
 unittests.
+
+#### Applications
+
+Since AppLib is built along with the Kenrel, it can make graphical functions not defined for
+non-graphical Kernel and VGA Text function not defined for graphical Kernel.
+
+Applications can ask AppLib to check graphical mode is available and take suitable steps.
 
 ------------------------------------
 
