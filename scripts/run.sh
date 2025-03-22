@@ -28,11 +28,11 @@ function fatal()
     USAGE="\nRuns either the MOS diskimage or one or all unittests.\n"
     USAGE+="Usage:\n"
     USAGE+="* To run disk image in qemu:\n"
-    USAGE+="\t$0 -img=<path to image> -report-out=<report file path> "
+    USAGE+="\t$0 --img <path to image> --report-out <report file path> "
     USAGE+="[-- <args to qemu>] "
 
     USAGE+="\n* To run one or all unittests:\n"
-    USAGE+="\t$0 -test-dir=<path to test bins > [-name=<test name>]."
+    USAGE+="\t$0 --test-dir <path to test bins> [--name <test name>]."
     USAGE+="\n\tOnly runs [test name] if provided."
 
     echo -e $USAGE
