@@ -5,12 +5,16 @@
 #include <config.h>
 #include <handle.h>
 #include <kerror.h>
+#include <stdlib.h>
 
-static void* ut_handles[CONFIG_HANDLES_ARRAY_ITEM_COUNT];
+#define HANDLES_ARRAY_COUNT 100
+#define HANDLES_ARRAY_SIZE_BYTES (sizeof(void*) * HANDLES_ARRAY_COUNT)
+static void* ut_handles;
 #define FIRST_HANDLE 0
+#define LAST_HANDLE HANDLES_ARRAY_COUNT - 1
 
 /*
- * | TEST CASES                                              | TEST FUNCTION                 |
+ * | TEST CASES                                            | TEST FUNCTION                 |
  * |-------------------------------------------------------|-------------------------------|
  * | Handle init failed                                    | init_faliure                  |
  * | Create Handle to NULL object pointer                  | add_null_obj_inadd_failure    |
@@ -49,7 +53,6 @@ TEST (handles, add_get_first_success)
 
     int obj1  = 0xAAFFBB00;
     Handle h1 = khandle_createHandle (&obj1);
-    NEQ_SCALAR (h1, INVALID_HANDLE);
     EQ_SCALAR (h1, FIRST_HANDLE);
 
     EQ_SCALAR ((PTR)khandle_getObject (h1), (PTR)&obj1);
@@ -63,13 +66,12 @@ TEST (handles, add_get_last_success)
     // Pre setup:
     // Fill all but the last item of the handles array will non NULL value.
     // ------------------
-    memset (ut_handles, 0x1, sizeof (ut_handles) - sizeof (void*));
+    memset (ut_handles, 0x1, HANDLES_ARRAY_SIZE_BYTES - sizeof (void*));
     // ------------------
 
     int obj1  = 0xAAFFBB00;
     Handle h1 = khandle_createHandle (&obj1);
-    NEQ_SCALAR (h1, INVALID_HANDLE);
-    NEQ_SCALAR (h1, FIRST_HANDLE);
+    EQ_SCALAR (h1, LAST_HANDLE);
 
     EQ_SCALAR ((PTR)khandle_getObject (h1), (PTR)&obj1);
     EQ_SCALAR (*(int*)khandle_getObject (h1), obj1);
@@ -94,7 +96,7 @@ TEST (handles, add_oom_failure)
     // Pre setup:
     // Fill the handles array will non NULL value to simulate handles array full scenario.
     // ------------------
-    memset (ut_handles, 0x1, sizeof (ut_handles));
+    memset (ut_handles, 0x1, HANDLES_ARRAY_SIZE_BYTES);
     // ------------------
 
     int obj1 = 0xAAFFBB00;
@@ -114,7 +116,7 @@ TEST (handles, get_invalid_handle_failure)
     // ------------------
 
     // Invalid handle 1: Exceeds the Max count
-    EQ_SCALAR ((PTR)khandle_getObject (CONFIG_PAGE_FRAME_SIZE_BYTES), (PTR)NULL);
+    EQ_SCALAR ((PTR)khandle_getObject (HANDLES_ARRAY_COUNT), (PTR)NULL);
     EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_HANDLE);
 
     // Invalid handle 1: Handle that points to NULL object
@@ -134,7 +136,7 @@ TEST (handles, remove_invalid_handle_failure)
     // ------------------
 
     // Invalid handle 1: Exceeds the Max count
-    EQ_SCALAR ((PTR)khandle_freeHandle (CONFIG_PAGE_FRAME_SIZE_BYTES), (PTR)NULL);
+    EQ_SCALAR ((PTR)khandle_freeHandle (HANDLES_ARRAY_COUNT), (PTR)NULL);
     EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_HANDLE);
 
     // Invalid handle 1: Handle that points to NULL object
@@ -167,7 +169,7 @@ TEST (handles, remove_object_success)
 
 void reset()
 {
-    memset (ut_handles, 0x0, sizeof (ut_handles));
+    memset (ut_handles, 0x0, HANDLES_ARRAY_SIZE_BYTES);
     reset_sallocFake();
     kscalloc_fake.ret = ut_handles;
     khandle_init();
@@ -175,11 +177,14 @@ void reset()
 
 int main()
 {
+    g_utmm.config_handles_array_item_count = HANDLES_ARRAY_COUNT;
+    ut_handles = malloc(HANDLES_ARRAY_SIZE_BYTES);
+
     init_failure();
     add_null_obj_inadd_failure();
+    add_oom_failure();
     add_get_first_success();
     add_get_last_success();
-    add_oom_failure();
     get_invalid_handle_failure();
     remove_object_success();
     remove_invalid_handle_failure();

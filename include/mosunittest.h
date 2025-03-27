@@ -20,6 +20,7 @@ typedef struct MockedMacro {
     uintptr_t arch_mem_start_salloc;
     size_t arch_mem_len_bytes_salloc;
     size_t arch_mem_len_bytes_kmalloc;
+    size_t config_handles_array_item_count;
     // LibCM
     size_t cm_arch_mem_len_bytes_malloc;
 } MockedMacro;

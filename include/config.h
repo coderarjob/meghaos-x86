@@ -13,4 +13,10 @@
     #include <x86/config.h>
 #endif
 
+#if defined(UNITTEST)
+    #include <mosunittest.h>
+    #undef CONFIG_HANDLES_ARRAY_ITEM_COUNT
+    #define CONFIG_HANDLES_ARRAY_ITEM_COUNT MOCK_THIS_MACRO_USING (config_handles_array_item_count)
+#endif
+
 #endif // MOS_CONFIG_H
