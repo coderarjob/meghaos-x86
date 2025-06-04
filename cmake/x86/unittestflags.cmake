@@ -1,9 +1,10 @@
 set(MOS_UNITTESTS_GCC_WARN_FLAGS
-    -wall
-    -wextra
+    -Wall
+    -Wextra
     )
 
 set(MOS_UNITTESTS_GCC_FLAGS
+    ${MOS_UNITTESTS_GCC_WARN_FLAGS}
     ${MOS_UNITTESTS_GCC_FLAGS}
     -std=c99
     -g
