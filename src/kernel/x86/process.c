@@ -36,8 +36,8 @@ static KProcessInfo* rootProcess = NULL;
 static ListNode schedulerQueueHead  = { 0 };
 
 static bool s_switchProcess (KProcessInfo* nextProcess, ProcessRegisterState* currentProcessState);
-static KProcessInfo* s_processInfo_malloc();
-static KProcessInfo* s_dequeue();
+static KProcessInfo* s_processInfo_malloc (KProcessFlags flags);
+static KProcessInfo* s_dequeue(void);
 static bool s_enqueue (KProcessInfo* p);
 static bool s_createProcessPageDirectory (KProcessInfo* pinfo);
 static bool s_setupProcessBinaryMemory (void* processStartAddress, SIZE binLengthBytes,
@@ -537,7 +537,7 @@ static bool kprocess_kill_process (KProcessInfo** process, U8 exitCode)
     // Now the process item can be freed.
     INFO ("Process removed from scheduler queue. Freeeing process item");
     kfree (l_process);
-    *process = NULL;
+    *process = NULL; // Fix: Causes page fault when killing kernel process!
     processCount--;
 
     return true;
