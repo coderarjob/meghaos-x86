@@ -1,7 +1,9 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <types.h>
 #include <paging.h>
 #include <x86/paging.h>
-#include <unittest/unittest.h>
 #include <mock/kernel/kstdlib.h>
 #include <mock/kernel/x86/paging.h>
 #include <mock/kernel/pmm.h>
@@ -45,9 +47,9 @@ TEST (paging, temporary_map_success)
     kpg_temporaryMap (pa);
 
     EQ_SCALAR ((U32)pte.pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
-    EQ_SCALAR ((U32)pte.present, 1);
-    EQ_SCALAR ((U32)pte.write_allowed, 1);
-    EQ_SCALAR ((U32)pte.user_accessable, 0);
+    EQ_SCALAR ((U32)pte.present, 1U);
+    EQ_SCALAR ((U32)pte.write_allowed, 1U);
+    EQ_SCALAR ((U32)pte.user_accessable, 0U);
 
     END();
 }
@@ -72,7 +74,7 @@ TEST (paging, temporary_map_failure_input_not_aligned)
 
     Physical pa = PHYSICAL (0x12); // Address is not page aligned.
     EQ_SCALAR ((PTR)NULL, (PTR)kpg_temporaryMap (pa));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -128,7 +130,7 @@ TEST (paging, map_failure_double_allocate)
 
     EQ_SCALAR (kpg_map (pd, va, pa, PG_MAP_FLAG_KERNEL), false);
 
-    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_ALLOC);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_DOUBLE_ALLOC);
 
     END();
 }
@@ -142,12 +144,6 @@ TEST (paging, map_failure_new_page_table_creation_failed)
 
     PTR      va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
     Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
-
-    // Page Table requires at-least two entries.
-    __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
-        { .present = 0 }, // Not used.
-        { .present = 0 }  // PDE which changes as result of map.
-    };
 
     // Page directory with three entries. As per the choice of virtual address here (value in 'va')
     // entry at index 1 is required to have the following setup:
@@ -175,7 +171,7 @@ TEST (paging, map_failure_va_not_aligned)
 
     EQ_SCALAR (kpg_map (&pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
 
-    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -188,7 +184,7 @@ TEST (paging, map_failure_pa_not_aligned)
 
     EQ_SCALAR (kpg_map (&pd, va, pa, UNITTEST_PG_MAP_DONT_CARE), false);
 
-    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -199,6 +195,10 @@ TEST (paging, map_failure_pa_not_aligned)
 bool kpmm_alloc_handler_map_success_page_table_not_present (Physical* address, UINT pageCount,
                                                             KernelPhysicalMemoryRegions reg)
 {
+    // Unused
+    (void)pageCount;
+    (void)reg;
+
     address->val = 0x13000; // Can be Page aligned any  number.
     return true;
 }
@@ -250,19 +250,19 @@ TEST (paging, map_success_page_table_not_present)
     // 1. Preset bit is set.
     // 2. Page frame should point to the physical address of the new page table. That in this case
     // will be equal to the value in the PT entry used for temporary map.
-    EQ_SCALAR ((U32)pd[1].present, 1);
+    EQ_SCALAR ((U32)pd[1].present, 1U);
     EQ_SCALAR ((U32)pd[1].pageTableFrame, (U32)pt[2].pageFrame);
-    EQ_SCALAR ((U32)pd[1].write_allowed, 1);
-    EQ_SCALAR ((U32)pd[1].user_accessable, 0);
-    EQ_SCALAR ((U32)pd[1].cache_disabled, 0);
+    EQ_SCALAR ((U32)pd[1].write_allowed, 1U);
+    EQ_SCALAR ((U32)pd[1].user_accessable, 0U);
+    EQ_SCALAR ((U32)pd[1].cache_disabled, 0U);
 
     // After kpg_map, the entry at index 1 should have the Page frame of the physical address
     // (here value in 'pa') and the present bit set.
-    EQ_SCALAR ((U32)pt[1].present, 1);
+    EQ_SCALAR ((U32)pt[1].present, 1U);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
-    EQ_SCALAR ((U32)pt[1].write_allowed, 1);
-    EQ_SCALAR ((U32)pt[1].user_accessable, 0);
-    EQ_SCALAR ((U32)pt[1].cache_disabled, 0);
+    EQ_SCALAR ((U32)pt[1].write_allowed, 1U);
+    EQ_SCALAR ((U32)pt[1].user_accessable, 0U);
+    EQ_SCALAR ((U32)pt[1].cache_disabled, 0U);
     END();
 }
 
@@ -304,11 +304,11 @@ TEST (paging, map_success_page_table_present)
 
     // After kpg_map, the entry at index 1 should have the Page frame of the physical address
     // (here value in 'pa') and the present bit set.
-    EQ_SCALAR ((U32)pt[1].present, 1);
+    EQ_SCALAR ((U32)pt[1].present, 1U);
     EQ_SCALAR ((U32)pt[1].pageFrame, PHYSICAL_TO_PAGEFRAME (pa.val));
-    EQ_SCALAR ((U32)pt[1].write_allowed, 1);
-    EQ_SCALAR ((U32)pt[1].user_accessable, 1);
-    EQ_SCALAR ((U32)pt[1].cache_disabled, 1);
+    EQ_SCALAR ((U32)pt[1].write_allowed, 1U);
+    EQ_SCALAR ((U32)pt[1].user_accessable, 1U);
+    EQ_SCALAR ((U32)pt[1].cache_disabled, 1U);
     END();
 }
 
@@ -351,7 +351,7 @@ TEST (paging, unmap_success)
     EQ_SCALAR (kpg_unmap (pd, va), true);
 
     // After the unmap the present bit should get unset.
-    EQ_SCALAR ((U32)pt[1].present, 0);
+    EQ_SCALAR ((U32)pt[1].present, 0U);
 
     END();
 }
@@ -359,13 +359,6 @@ TEST (paging, unmap_success)
 TEST (paging, unmap_failure_page_table_not_present)
 {
     PTR      va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
-    Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
-
-    // Page Table requires at-least two entries.
-    __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
-        { .present = 0 }, // Not used.
-        { .present = 0 }  // PDE already unmapped.
-    };
 
     // Page directory with two entries. As per the choice of virtual address here (value in 'va')
     // entry at index 1 is required to have the following setup:
@@ -377,7 +370,7 @@ TEST (paging, unmap_failure_page_table_not_present)
 
     EQ_SCALAR (kpg_unmap (pd, va), false);
 
-    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_FREE);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_DOUBLE_FREE);
 
     END();
 }
@@ -385,7 +378,6 @@ TEST (paging, unmap_failure_page_table_not_present)
 TEST (paging, unmap_failure_double_unmap)
 {
     PTR      va = (0x1 << PDE_SHIFT) | (0x1 << PTE_SHIFT); // PD[1] & PT[1] will be used.
-    Physical pa = PHYSICAL (0x12000);                      // Any Page Aligned number will work.
 
     // Page Table requires at-least two entries.
     __attribute__ ((aligned (4096))) ArchPageTableEntry pt[] = {
@@ -416,7 +408,7 @@ TEST (paging, unmap_failure_double_unmap)
     EQ_SCALAR (kpg_unmap (pd, va), false);
 
     // After the unmap the present bit should get unset.
-    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_FREE);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_DOUBLE_FREE);
 
     END();
 }
@@ -428,7 +420,7 @@ TEST (paging, unmap_failure_va_not_aligned)
 
     EQ_SCALAR (kpg_unmap (&pd, va), false);
 
-    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -437,7 +429,7 @@ TEST (paging, unmap_failure_va_not_aligned)
 
 void* k_memcpy_handler_fn (void* dest, const void* src, size_t n) { return memcpy (dest, src, n); }
 
-void reset()
+void yt_reset()
 {
     panic_invoked = false;
     resetPagingFake();
@@ -449,6 +441,8 @@ void reset()
 
 int main()
 {
+    YT_INIT();
+
     temporary_unmap_success();
     temporary_unmap_failure_already_unmapped();
 
@@ -470,5 +464,5 @@ int main()
     unmap_failure_double_unmap();
     unmap_failure_page_table_not_present();
 
-    return 0;
+    RETURN_WITH_REPORT();
 }

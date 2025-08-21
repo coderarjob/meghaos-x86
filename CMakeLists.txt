@@ -185,7 +185,7 @@ else()
     #---------------------------------------------------------------------------
 
     add_custom_target(build-all ALL)
-    #add_subdirectory(src/unittests/kernel)
+    add_subdirectory(src/unittests/kernel)
     add_subdirectory(src/unittests/cm)
 
     #---------------------------------------------------------------------------
