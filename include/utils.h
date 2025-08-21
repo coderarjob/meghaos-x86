@@ -42,7 +42,7 @@
 
 /** Bit mask
  * Example: BIT_MASK(19, 1) = 0xFFFFE */
-#define BIT_MASK(l, r) (((1U << ((l) - (r) + 1U)) - 1U) << r)
+#define BIT_MASK(l, r) ((((1U << ((l) - (r))) << 1U) - 1U) << r)
 
 /**Bit test
  * Checks is bit s (represented by the shifted value) is set in w.
