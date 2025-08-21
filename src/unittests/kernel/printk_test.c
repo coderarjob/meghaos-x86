@@ -213,6 +213,7 @@ void yt_reset()
 
 int main()
 {
+    YT_INIT();
     no_vargs();
     unsigned_int_hex_format();
     unsigned_int_hex_format_without_base_identifier();

@@ -209,6 +209,7 @@ void yt_reset()
 
 int main()
 {
+    YT_INIT();
     memset_one_byte();
     memset_normal();
     memcpy_normal();
