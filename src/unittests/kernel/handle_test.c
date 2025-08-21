@@ -90,7 +90,7 @@ TEST (handles, add_null_obj_inadd_failure)
     // ------------------
 
     EQ_SCALAR (khandle_createHandle (NULL), INVALID_HANDLE);
-    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_ARGUMENT);
     END();
 }
 
@@ -104,7 +104,7 @@ TEST (handles, add_oom_failure)
 
     int obj1 = 0xAAFFBB00;
     EQ_SCALAR (khandle_createHandle (&obj1), INVALID_HANDLE);
-    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_OUT_OF_MEM);
     END();
 }
 
@@ -120,11 +120,11 @@ TEST (handles, get_invalid_handle_failure)
 
     // Invalid handle 1: Exceeds the Max count
     EQ_SCALAR ((PTR)khandle_getObject (HANDLES_ARRAY_COUNT), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_HANDLE);
 
     // Invalid handle 1: Handle that points to NULL object
     EQ_SCALAR ((PTR)khandle_getObject (h1 + 1), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_HANDLE);
     END();
 }
 
@@ -140,11 +140,11 @@ TEST (handles, remove_invalid_handle_failure)
 
     // Invalid handle 1: Exceeds the Max count
     EQ_SCALAR ((PTR)khandle_freeHandle (HANDLES_ARRAY_COUNT), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_HANDLE);
 
     // Invalid handle 1: Handle that points to NULL object
     EQ_SCALAR ((PTR)khandle_freeHandle (h1 + 1), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_HANDLE);
     END();
 }
 

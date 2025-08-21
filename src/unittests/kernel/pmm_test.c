@@ -11,7 +11,6 @@
 #include <paging.h>
 #include <kerror.h>
 #include <pmm.h>
-#include <math.h>
 #include <panic.h>
 #include <kernel.h>
 #include <mosunittest.h>

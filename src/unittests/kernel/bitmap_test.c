@@ -2,12 +2,10 @@
 #define YUKTI_TEST_IMPLEMENTATION
 #include <unittest/yukti.h>
 #include <bitmap.h>
-#include <stdio.h>
 #include <string.h>
 #include <types.h>
 #include <utils.h>
 #include <kerror.h>
-#include <math.h>
 #include <panic.h>
 
 /* Using fake functions to implement isValid gives better control when its behaviour can vary from

@@ -83,8 +83,8 @@ static bool isAddressFoundInList (void* addr, MallocLists list);
 static size_t getCapacity (MallocLists list);
 static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, size_t count);
 
-#define EQ_ADDRESS(a, b)  EQ_SCALAR ((uintptr_t)(a), (uintptr_t)(b))
-#define NEQ_ADDRESS(a, b) NEQ_SCALAR ((uintptr_t)(a), (uintptr_t)(b))
+#define EQ_ADDRESS(a, b)  EQ_SCALAR ((PTR)(a), (PTR)(b))
+#define NEQ_ADDRESS(a, b) NEQ_SCALAR ((PTR)(a), (PTR)(b))
 
 TEST (kmallocz, zero_fill_allocation)
 {
@@ -133,7 +133,7 @@ TEST (kmalloc, allocation_space_unavailable)
 #ifdef LIBCM
     EQ_SCALAR (cm_error_num, (uint32_t)CM_ERR_OUT_OF_HEAP_MEM);
 #else
-    EQ_SCALAR (g_kstate.errorNumber, (uint32_t)ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_OUT_OF_MEM);
 #endif
 
     // Alloc, Free list sizes must not change.
@@ -227,7 +227,7 @@ TEST (kfree, free_wrong_input)
 #ifdef LIBCM
     EQ_SCALAR (cm_panic_invoked, true);
 #else
-    EQ_SCALAR (g_kstate.errorNumber, (uint32_t)ERR_DOUBLE_FREE);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_DOUBLE_FREE);
 #endif
     END();
 }
