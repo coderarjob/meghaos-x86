@@ -913,8 +913,8 @@ static bool yt__approxeq (bool is_abs, double a, double b, double epsilon)
 
     #define YT__TEST_MEM(a, o, b, sz)                                                           \
         do {                                                                                    \
-            AUTOTYPE ut_a = (a);                                                                \
-            AUTOTYPE ut_b = (b);                                                                \
+            uint8_t* ut_a = (uint8_t*)(a);                                                      \
+            uint8_t* ut_b = (uint8_t*)(b);                                                      \
             YT__current_testrecord->total_exp_count++;                                          \
             int i;                                                                              \
             if (!(YT__equal_mem (ut_a, ut_b, sz, &i) o 1))                                      \
