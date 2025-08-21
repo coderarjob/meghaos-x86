@@ -1,15 +1,16 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <bitmap.h>
 #include <stdio.h>
 #include <string.h>
 #include <types.h>
-#include <unittest/unittest.h>
 #include <utils.h>
 #include <kerror.h>
-#include <unittest/fake.h>
 #include <math.h>
 #include <panic.h>
 
-/* Using fake functions to implement isValid gives better control when its behaviour can varry from
+/* Using fake functions to implement isValid gives better control when its behaviour can vary from
  * one test case to another.*/
 DECLARE_FUNC(bool, isValid, UINT, BitmapState, BitmapState);
 DEFINE_FUNC(bool, isValid, UINT, BitmapState, BitmapState);
@@ -63,93 +64,6 @@ typedef enum States
 } States;
 
 /**************************************************************************************************
- * Bitmap bits per state must be a factor of 8.
- * 3 is not a factor of 8, so must hit assert.
-**************************************************************************************************/
-TEST(bitmap, bitmap_bitsPerState_invalid_mustfail) {
-  Bitmap b = {bitmap, sizeof(bitmap), 3, isValid};
-
-  bitmap_setContinous(&b, 0, 1, 1);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_get(&b, 0);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinous(&b, STATE_1, 1);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinousAt(&b, STATE_1, 1, 0);
-  EQ_SCALAR(panic_invoked, true);
-
-  END();
-}
-
-/**************************************************************************************************
- * Bitmap = NULL  passed
-**************************************************************************************************/
-TEST(bitmap, bitmap_null_mustfail) {
-  bitmap_setContinous(NULL, 0, 1, 1);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_get(NULL, 0);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinous(NULL, STATE_1, 1);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinousAt(NULL, STATE_1, 1, 0);
-  EQ_SCALAR(panic_invoked, true);
-
-  END();
-}
-
-/**************************************************************************************************
- * Sets invalid set to bitmap.
-**************************************************************************************************/
-TEST(bitmap, invalid_state_mustfail) {
-  isValid_fake.ret = true;
-
-  bitmap_setContinous(&b, 0, 1, STATE_5);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinous(&b, STATE_5, 1);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinousAt(&b, STATE_5, 1, 0);
-  EQ_SCALAR(panic_invoked, true);
-
-  END();
-}
-
-/**************************************************************************************************
- * Lengh = 0
-**************************************************************************************************/
-TEST(bitmap, zero_length_mustfail) {
-  isValid_fake.ret = true;
-
-  bitmap_setContinous(&b, 0, 0, STATE_3);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinous(&b, STATE_3, 0);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_findContinousAt(&b, STATE_3, 0, 0);
-  EQ_SCALAR(panic_invoked, true);
-
-  END();
-}
-
-/**************************************************************************************************
  * No change must be make to bitmap if 'allow` function returns false.
 **************************************************************************************************/
 TEST(bitmap, set_not_allowed_mustfail) {
@@ -161,40 +75,6 @@ TEST(bitmap, set_not_allowed_mustfail) {
   EQ_MEM(bitmap,final, sizeof(bitmap));
   END();
 }
-
-/**************************************************************************************************
- * Allow function is not set in bitmap.
-**************************************************************************************************/
-TEST(bitmap, set_allow_null_mustfail) {
-  Bitmap b = {bitmap, sizeof(bitmap), 2, NULL};
-  isValid_fake.ret = true;
-
-  bitmap_setContinous(&b, 5, 1, 1);
-  EQ_SCALAR(panic_invoked, true);
-
-  END();
-}
-
-/**************************************************************************************************
- * Invalid state index. Index > Count
-**************************************************************************************************/
-TEST(bitmap, set_large_index_mustfail) {
-  isValid_fake.ret = true;
-
-  bitmap_setContinous(&b, BITMAP_CAPACITY(&b), 1, STATE_1);
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  bitmap_get(&b, BITMAP_CAPACITY(&b));
-  EQ_SCALAR(panic_invoked, true);
-
-  panic_invoked = false;
-  EQ_SCALAR(false, bitmap_findContinousAt(&b, STATE_1, BITMAP_CAPACITY(&b) + 1, 0));
-  EQ_SCALAR(panic_invoked, false);
-
-  END();
-}
-
 /**************************************************************************************************
  * Sets all valid states to bitmap
 **************************************************************************************************/
@@ -345,6 +225,128 @@ TEST(bitmap, bitmap_splited_mustpass)
     END();
 }
 
+#ifdef DEBUG
+/**************************************************************************************************
+ * Bitmap bits per state must be a factor of 8.
+ * 3 is not a factor of 8, so must hit assert.
+**************************************************************************************************/
+TEST(bitmap, bitmap_bitsPerState_invalid_mustfail) {
+  Bitmap b = {bitmap, sizeof(bitmap), 3, isValid};
+
+  bitmap_setContinous(&b, 0, 1, 1);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_get(&b, 0);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinous(&b, STATE_1, 1);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinousAt(&b, STATE_1, 1, 0);
+  EQ_SCALAR(panic_invoked, true);
+
+  END();
+}
+
+/**************************************************************************************************
+ * Bitmap = NULL  passed
+**************************************************************************************************/
+TEST(bitmap, bitmap_null_mustfail) {
+  bitmap_setContinous(NULL, 0, 1, 1);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_get(NULL, 0);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinous(NULL, STATE_1, 1);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinousAt(NULL, STATE_1, 1, 0);
+  EQ_SCALAR(panic_invoked, true);
+
+  END();
+}
+
+/**************************************************************************************************
+ * Sets invalid set to bitmap.
+**************************************************************************************************/
+TEST(bitmap, invalid_state_mustfail) {
+  isValid_fake.ret = true;
+
+  bitmap_setContinous(&b, 0, 1, STATE_5);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinous(&b, STATE_5, 1);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinousAt(&b, STATE_5, 1, 0);
+  EQ_SCALAR(panic_invoked, true);
+
+  END();
+}
+
+
+/**************************************************************************************************
+ * Lengh = 0
+**************************************************************************************************/
+TEST(bitmap, zero_length_mustfail) {
+  isValid_fake.ret = true;
+
+  bitmap_setContinous(&b, 0, 0, STATE_3);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinous(&b, STATE_3, 0);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_findContinousAt(&b, STATE_3, 0, 0);
+  EQ_SCALAR(panic_invoked, true);
+
+  END();
+}
+
+/**************************************************************************************************
+ * Allow function is not set in bitmap.
+**************************************************************************************************/
+TEST(bitmap, set_allow_null_mustfail) {
+  Bitmap b = {bitmap, sizeof(bitmap), 2, NULL};
+  isValid_fake.ret = true;
+
+  bitmap_setContinous(&b, 5, 1, 1);
+  EQ_SCALAR(panic_invoked, true);
+
+  END();
+}
+
+/**************************************************************************************************
+ * Invalid state index. Index > Count
+**************************************************************************************************/
+TEST(bitmap, set_large_index_mustfail) {
+  isValid_fake.ret = true;
+
+  bitmap_setContinous(&b, BITMAP_CAPACITY(&b), 1, STATE_1);
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  bitmap_get(&b, BITMAP_CAPACITY(&b));
+  EQ_SCALAR(panic_invoked, true);
+
+  panic_invoked = false;
+  EQ_SCALAR(false, bitmap_findContinousAt(&b, STATE_1, BITMAP_CAPACITY(&b) + 1, 0));
+  EQ_SCALAR(panic_invoked, false);
+
+  END();
+}
+
 /**************************************************************************************************
  * One bitmap memory used by two Bitmap objects
 **************************************************************************************************/
@@ -354,14 +356,14 @@ TEST(bitmap, bitmap_splited_mustfail)
     Bitmap high = {&bitmap[1], 2 /*byte*/, 2, isValid};
 
     // Being 1 byte, low has a capacity of 4 states (0 to 3).
-    EQ_SCALAR(4, BITMAP_CAPACITY(&low));
+    EQ_SCALAR(4U, BITMAP_CAPACITY(&low));
 
     panic_invoked = false;
     bitmap_setContinous(&low, 4, 1, STATE_1);
     EQ_SCALAR(panic_invoked, true);
 
     // Being 2 byte, high has a capacity of 8 states (0 to 7).
-    EQ_SCALAR(8, BITMAP_CAPACITY(&high));
+    EQ_SCALAR(8U, BITMAP_CAPACITY(&high));
 
     panic_invoked = false;
     bitmap_setContinous(&high, 8, 1, STATE_1);
@@ -370,12 +372,16 @@ TEST(bitmap, bitmap_splited_mustfail)
     END();
 }
 
-void reset() {
+#endif // DEBUG
+
+void yt_reset() {
     memset(bitmap, 0xFF, sizeof(bitmap));
     panic_invoked = false;
 }
 
 int main() {
+    YT_INIT();
+
 #ifdef DEBUG
     bitmap_bitsPerState_invalid_mustfail();
     bitmap_null_mustfail();
@@ -394,4 +400,5 @@ int main() {
     findContinousAt_mustpass();
     get_mustpass();
     bitmap_splited_mustpass();
+    RETURN_WITH_REPORT();
 }

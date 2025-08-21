@@ -1,7 +1,9 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <stdint.h>
 #include <utils.h>
 #include <stddef.h>
-#include <unittest/unittest.h>
 #include <types.h>
 
 TEST (utils, clamp)
@@ -14,28 +16,28 @@ TEST (utils, clamp)
 
 TEST (utils, bit_set)
 {
-    EQ_SCALAR (BIT_SET (0x10, 0), 0b00010001);
-    EQ_SCALAR (BIT_SET (0x10, 7), 0b10010000);
-    EQ_SCALAR (BIT_SET (0x10, 6) | BIT_SET (0x10, 3), 0b01011000);
-    EQ_SCALAR (BIT_SET (0x10, 4), 0x10);
+    EQ_SCALAR (BIT_SET (0x10, 0), 0b00010001U);
+    EQ_SCALAR (BIT_SET (0x10, 7), 0b10010000U);
+    EQ_SCALAR (BIT_SET (0x10, 6) | BIT_SET (0x10, 3), 0b01011000U);
+    EQ_SCALAR (BIT_SET (0x10, 4), 0x10U);
 
     size_t b = (sizeof (unsigned int) * 8) - 1;
-    EQ_SCALAR (BIT_SET (0x0, b), (1 << b));
+    EQ_SCALAR (BIT_SET (0x0, b), (UINT)(1 << b));
 
     END();
 }
 
 TEST (utils, bit_clear)
 {
-    EQ_SCALAR (BIT_CLEAR (0x10, 4), 0b00000000);
-    EQ_SCALAR (BIT_CLEAR (0x10, 0), 0x10);
+    EQ_SCALAR (BIT_CLEAR (0x10, 4), 0b00000000U);
+    EQ_SCALAR (BIT_CLEAR (0x10, 0), 0x10U);
 
-    EQ_SCALAR (BIT_CLEAR (0xFF, 7), 0b01111111);
-    EQ_SCALAR (BIT_CLEAR (0xFF, 0), 0b11111110);
-    EQ_SCALAR (BIT_CLEAR (0xFF, 6) & BIT_CLEAR (0xFF, 3), 0b10110111);
+    EQ_SCALAR (BIT_CLEAR (0xFF, 7), 0b01111111U);
+    EQ_SCALAR (BIT_CLEAR (0xFF, 0), 0b11111110U);
+    EQ_SCALAR (BIT_CLEAR (0xFF, 6) & BIT_CLEAR (0xFF, 3), 0b10110111U);
 
     size_t b = (sizeof (unsigned int) * 8) - 1;
-    EQ_SCALAR (BIT_CLEAR (0xFFFFFFFF, b), 0x7FFFFFFF);
+    EQ_SCALAR (BIT_CLEAR (0xFFFFFFFF, b), 0x7FFFFFFFU);
 
     END();
 }
@@ -46,7 +48,7 @@ TEST (utils, OffsetOf)
     {
         UINT uint_a;
         U16 uint_b;
-    } struct_var;
+    };
 
     EQ_SCALAR (offsetof (struct TestStruct, uint_a), offsetOf (struct TestStruct, uint_a));
     EQ_SCALAR (offsetof (struct TestStruct, uint_b), offsetOf (struct TestStruct, uint_b));
@@ -56,7 +58,7 @@ TEST (utils, OffsetOf)
 TEST (utils, ArrayLength) {
     U32 some_array[10];
 
-    EQ_SCALAR(ARRAY_LENGTH(some_array), 10);
+    EQ_SCALAR(ARRAY_LENGTH(some_array), 10U);
 
     END();
 }
@@ -108,14 +110,14 @@ TEST (utils, Minimum) {
 }
 
 TEST (utils, Bitmask) {
-    EQ_SCALAR(BIT_MASK(0, 0), 0x1);
-    EQ_SCALAR(BIT_MASK(2, 1), 0x6);
+    EQ_SCALAR(BIT_MASK(0, 0), 0x1U);
+    EQ_SCALAR(BIT_MASK(2, 1), 0x6U);
 
-    EQ_SCALAR(BIT_MASK(11, 8), 0xF00);
-    EQ_SCALAR(BIT_MASK(12, 8), 0x1F00);
+    EQ_SCALAR(BIT_MASK(11, 8), 0xF00U);
+    EQ_SCALAR(BIT_MASK(12, 8), 0x1F00U);
 
-    EQ_SCALAR(BIT_MASK(19, 0), 0xFFFFF);
-    EQ_SCALAR(BIT_MASK(31, 0), 0xFFFFFFFF);
+    EQ_SCALAR(BIT_MASK(19, 0), 0xFFFFFU);
+    EQ_SCALAR(BIT_MASK(31, 0), 0xFFFFFFFFU);
     END();
 }
 
@@ -160,33 +162,34 @@ TEST (utils, bit_isset) {
 }
 
 TEST (utils, bytes_to_pageframes_floor) {
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(0x1), 0x0);
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4095), 0x0);
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4096), 0x1);
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4097), 0x1);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(0x1), 0x0U);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4095), 0x0U);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4096), 0x1U);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_FLOOR(4097), 0x1U);
     END();
 }
 
 TEST (utils, bytes_to_pageframes_ceiling) {
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(0x1), 0x1);
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4095), 0x1);
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4096), 0x1);
-    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4097), 0x2);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(0x1), 0x1U);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4095), 0x1U);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4096), 0x1U);
+    EQ_SCALAR(BYTES_TO_PAGEFRAMES_CEILING(4097), 0x2U);
 
     END();
 }
 
 TEST (utils, pageframes_to_bytes) {
-    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x0), 0x0);
-    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x1), CONFIG_PAGE_FRAME_SIZE_BYTES);
-    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x5), 5 * CONFIG_PAGE_FRAME_SIZE_BYTES);
+    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x0), 0x0U);
+    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x1), (UINT)CONFIG_PAGE_FRAME_SIZE_BYTES);
+    EQ_SCALAR(PAGEFRAMES_TO_BYTES(0x5), (UINT)(5 * CONFIG_PAGE_FRAME_SIZE_BYTES));
 
     END();
 }
 
-void reset() {}
+void yt_reset() {}
 
 int main() {
+    YT_INIT();
     Stringfy();
     PowerOfTwo();
     Bitmask();
@@ -205,4 +208,5 @@ int main() {
     bit_set();
     bit_clear();
     clamp();
+    RETURN_WITH_REPORT();
 }
