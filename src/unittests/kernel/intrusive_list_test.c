@@ -1,5 +1,7 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <intrusive_list.h>
-#include <unittest/unittest.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -327,10 +329,11 @@ TEST (LIST, list_item_retrival)
     END();
 }
 
-void reset() {}
+void yt_reset() {}
 
 int main()
 {
+    YT_INIT();
     single_node();
     three_nodes();
     insert_after();
@@ -341,5 +344,5 @@ int main()
     list_position_independence();
     list_item_retrival();
     is_empty();
-    return 0;
+    RETURN_WITH_REPORT();
 }
