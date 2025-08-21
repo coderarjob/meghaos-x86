@@ -133,7 +133,7 @@ TEST (kmalloc, allocation_space_unavailable)
 #ifdef LIBCM
     EQ_SCALAR (cm_error_num, (uint32_t)CM_ERR_OUT_OF_HEAP_MEM);
 #else
-    EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, (uint32_t)ERR_OUT_OF_MEM);
 #endif
 
     // Alloc, Free list sizes must not change.
@@ -227,7 +227,7 @@ TEST (kfree, free_wrong_input)
 #ifdef LIBCM
     EQ_SCALAR (cm_panic_invoked, true);
 #else
-    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_FREE);
+    EQ_SCALAR (g_kstate.errorNumber, (uint32_t)ERR_DOUBLE_FREE);
 #endif
     END();
 }

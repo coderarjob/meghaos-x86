@@ -1,7 +1,8 @@
 #ifndef MEM_FAKE_H
 #define MEM_FAKE_H
 
-#include <unittest/fake.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <types.h>
 
 DECLARE_FUNC(void *, k_memcpy, void *, const void *, size_t);

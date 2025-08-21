@@ -1,4 +1,5 @@
-#include <unittest/unittest.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <mock/kernel/vmm.h>
 
 DEFINE_FUNC (PTR, kvmm_memmap, VMemoryManager* , PTR , Physical const* const, SIZE,
@@ -6,5 +7,5 @@ DEFINE_FUNC (PTR, kvmm_memmap, VMemoryManager* , PTR , Physical const* const, SI
 
 void resetVMMFake()
 {
-    RESET_FAKE(kvmm_memmap);
+    RESET_MOCK(kvmm_memmap);
 }

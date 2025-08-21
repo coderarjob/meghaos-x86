@@ -1,6 +1,7 @@
 #pragma once
 
-#include <unittest/fake.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <types.h>
 #include <vmm.h>
 
