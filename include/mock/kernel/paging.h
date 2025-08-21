@@ -1,6 +1,7 @@
 #pragma once
 
-#include <unittest/fake.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <paging.h>
 
 DECLARE_FUNC (void *, kpg_temporaryMap, Physical);

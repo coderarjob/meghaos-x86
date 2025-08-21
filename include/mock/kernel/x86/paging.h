@@ -1,7 +1,8 @@
 #ifndef PAGING_FAKE_X86_H
 #define PAGING_FAKE_X86_H
 
-#include <unittest/fake.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <paging.h>
 
 DECLARE_FUNC(ArchPageDirectoryEntry*, s_getPdeFromCurrentPd, UINT);
