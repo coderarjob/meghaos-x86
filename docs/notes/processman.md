@@ -8,7 +8,7 @@ categories: feature, independent
 
 A process is instance of runnable code in the context of an Operating System. They does not
 necessarily correlate one to one with executable files. A process can also create "light-weight"
-processes called threads that run independently by share code & data with the parent process. These
+processes called threads that run independently but share code & data with the parent process. These
 are the two types of processes - 'Threads' & 'Non-thread' processes aka just 'Process'.
 
 Both these types of processes can be run in either Ring 3 or Ring 0, the later is called Kernel
@@ -34,7 +34,7 @@ commercial Operating System will allow this easily.
 ```
 
 The 'Run Level' is the privilege levels for code & data in a process while its running. If it tries
-to access memory for which it does not have permission, CPU will through an exception. Ring 0 is the
+to access memory for which it does not have permission, CPU will throw an exception. Ring 0 is the
 most privileged, so a process running in Ring 3 cannot have execute Ring 0 specific instructions &
 memory pages. Megha OS however allows any process/thread to run in the most privileged, Ring 0 mode
 allowing it to access hardware and memory locations for playing around and experimenting.
@@ -68,10 +68,10 @@ their size is shown in the table below.
 The VAS for each process starts from `ARCH_MEM_START_PROCESS_MEMORY` (4 KB) and ends at
 `ARCH_MEM_END_PROCESS_MEMORY` (3GB). The Kernel VAS is from 3GB to 4 GB.
 
-As the table above shows Threads run the same memory context as its parent, it shares the Physical
-memory pages and Virtual Memory addresses. Threads do however have separate Stacks.
+As the table above shows Threads run within the same memory context as its parent, it shares the
+Physical memory pages and Virtual Memory addresses. Threads do however have separate Stacks.
 
-Processes (non threads) programs must be linked properly so that the entry point is at the expected
+Processes (non threads) must be linked properly so that the entry point is at the expected
 location in the binary. Memory for Stack & Data heap gets allocated dynamically but always have a
 fixed maximum size.
 
@@ -97,7 +97,7 @@ kill/adopt their child processes. Note that threads can still create other proce
 just don't own them.
 
 Another restriction on threads is that they can never be the 'Root' process. Threads must always
-have a parent. This restriction exits just to keep the process hierarchy always have one single
+have a parent. This restriction exists in order for the process hierarchy to always have one single
 root.
 
 Furthermore to have a single root process, there is another restriction. 'Root' process can only be
@@ -128,16 +128,16 @@ state change. For instance when timer wants the current process to yield it adds
 
 Each event item contains two fields: Event ID and Event Data.
 
-Every process has its own process & thread have individual event queue.
+Every process & thread have separate events queue.
 
 ### Process exit
 
 Exiting threads are the simplest, since they only have a stack, exiting threads means to only
-deallocate the virtual & physical memory for its stack, and freeing the memory used by process's
-events and removing the thread from the scheduler queue. That is steps 1 to 4 don't happen for
-threads but 5,6 does happen.
+deallocate the virtual & physical memory for its stack, and freeing the memory used by the thread's
+events and removing it from the scheduler queue. That is steps 1 to 4 don't happen for threads but
+5,6 does happen.
 
-Exiting process is little bit extended. Its done in the following flow.
+Exiting a non-thread process is little bit extended. Its done in the following flow.
 
 1. Recursively exit all its child processes (threads & otherwise).
 2. If current process is being killed, then we first switch to use the Kernel Page Directory so that
@@ -154,9 +154,10 @@ kernel process makes a system call. This however causes a problem when a killing
 Specifically after virtual memory for its stack gets unmapped it becomes impossible for the function
 to return back to complete the rest of the exit process. To kill a Kernel process (thread or
 otherwise) there is one additional step that happens before the start of the exit process, that is
-before step 1. Since the problem happens only using a different stack would be sufficient, here we
-switch to use the Kernel Stack (which is separate from the process's stack). This again works
-because the page mapping for the Kernel Stack is already present in every process.
+before step 1. Since the problem happens only for deallocating stack memory, using a different stack
+would be sufficient, so here we switch to use the Kernel Stack (which is separate from the process's
+stack). This again works because the page mapping for the Kernel Stack is already present in every
+process.
 
 When process exits it passes along a 'exit code', corresponding to the its state. These exit codes
 are 8 bit numbers (so it can at most be 255), which are sent to the parent of the process being
@@ -170,10 +171,10 @@ not killed and become children of the Root process.
 ### Abort
 
 Abort is called when there is a serious error or corruption in the application program. For example
-malloc() calls abort when it detects a double free/allocation. The Abort call should kill all
-processes what is using the current memory context, that is threads and the parent process. Child
-non-thread processes however are not killed since they have a different memory context. These
-processes get owned by the Root process.
+`cm_free` calls abort when it detects a double free. The Abort call should kill all processes what
+is using the current memory context, that is threads and the parent process. Child non-thread
+processes however are not killed since they have a different memory context. These processes get
+owned by the Root process.
 
 ------------------------------------------------------------------------------
 
