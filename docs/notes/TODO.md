@@ -18,6 +18,8 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | DOCUMENTATION                                                           |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] PMM: Minimum memory required needs to take into account             | 15 Feb 24 |            |
+| ::: current graphics modes                                              |           |            |
 | [ ] Document BOOTINFO struct                                            |           |            |
 | [ ] There is a need to document the types declared for MeghaOS like     |           |            |
 | INT, LONG etc. These do need to conform with C99, but can be different  |           |            |
@@ -107,6 +109,7 @@
 |-------------------------------------------------------------------------|-----------|------------|
 | GRAPHICS                                                                |           |            |
 |-------------------------------------------------------------------------|-----------|------------|
+| [ ] Minimum memory required needs to take into account graphics mode    | 15 Feb 24 |            |
 | [X] kearly_printf, kdebug_printf should be debug specific funcitons.    | 16 Nov 24 | 17 Nov 24  |
 | Implementation:                                                         |           |            |
 | * `kearly_printf` is now a DEBUG specific function.                     |           |            |

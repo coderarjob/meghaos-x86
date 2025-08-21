@@ -14,6 +14,78 @@
 
 ------------------------------------
 
+## Test for checking Kernel & process PDs getting sync properly
+categories: note, independent
+22 Dec 2024
+
+### init
+
+```c
+static void init_child_killed (OSIF_ProcessEvent const* const e)
+{
+    CM_DBG_INFO ("Child process exited. Code: %x", e->data);
+    syscall(OSIF_SYSCALL_TEST, 2, 0, 0 ,0 ,0);
+    (void)e;
+}
+```
+
+### proc1
+
+```c
+void proc_main()
+{
+    syscall(OSIF_SYSCALL_TEST, 1, 0, 0 ,0 ,0);
+    // rest of the things
+}
+```
+
+### syscall
+
+```c
+void ksys_test (SystemcallFrame frame, U8 a, U8 b, U8 c, U8 d)
+{
+    FUNC_ENTRY ("Frame return address: %x:%px, a, b, c, d: {%x, %x, %x, %x}", frame.cs, frame.eip,
+                a, b, c, d);
+    (void)frame;
+    (void)b;
+    (void)c;
+    (void)d;
+    
+    const PTR va = 0xC0800000;
+    if (a == 1) {
+        // Allocate a new page of memeory in the Kernel space such that a new page table is created.
+        // I know that 0xC0800000 is free, will use that to test.
+        UINT* d = NULL;
+        // This is the first case - Kernel PD changed outside of page fault handler.
+        if (!(d = (UINT*)kvmm_memmap (g_kstate.context, va, NULL, 1,
+                                      VMM_MEMMAP_FLAG_KERNEL_PAGE | VMM_MEMMAP_FLAG_IMMCOMMIT,
+                                      NULL))) {
+            k_panicOnError();
+        }
+        // This is the second case - Kernel PD changed inside of page fault handler.
+        // To check this case uncomment the below code & comment the above one.
+        //if (!(d = (UINT*)kvmm_memmap (g_kstate.context, va, NULL, 1,
+        //                              VMM_MEMMAP_FLAG_KERNEL_PAGE,
+        //                              NULL))) {
+        //    k_panicOnError();
+        //}
+
+        INFO("Hello");
+        k_assert ((PTR)d == va, "Cannot differ");
+
+        *d       = 0xDEAD34;
+        *(d + 1) = 0xDEAD35;
+    } else {
+        UINT* d = (UINT*)va;
+        INFO ("Reading from %px, %px: %x, %x", d, d + 1, *d, *(d + 1));
+        (void)d;
+    }
+    
+}
+```
+
+------------------------------------
+
 ## GCC definitions for CM and Applications
 categories: note, independent
 22 Dec 2024
