@@ -1,5 +1,6 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <mock/kernel/bitmap.h>
-#include <unittest/fake.h>
 
 DEFINE_FUNC(BitmapState, bitmap_get, Bitmap*, UINT);
 DEFINE_FUNC(bool, bitmap_setContinous, Bitmap *, UINT, UINT, BitmapState);
@@ -8,8 +9,8 @@ DEFINE_FUNC(bool, bitmap_findContinousAt, Bitmap *, BitmapState, UINT, UINT);
 
 void resetBitmapFake()
 {
-    RESET_FAKE(bitmap_get);
-    RESET_FAKE(bitmap_setContinous);
-    RESET_FAKE(bitmap_findContinous);
-    RESET_FAKE(bitmap_findContinousAt);
+    RESET_MOCK(bitmap_get);
+    RESET_MOCK(bitmap_setContinous);
+    RESET_MOCK(bitmap_findContinous);
+    RESET_MOCK(bitmap_findContinousAt);
 }

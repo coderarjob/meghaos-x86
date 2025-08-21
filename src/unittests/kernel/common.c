@@ -4,12 +4,14 @@
  * ----------------------------------------------------------------------------
  */
 
-#include <unittest/unittest.h>
 #include <stdio.h>
 #include <types.h>
 #include <stdarg.h>
 #include <kernel.h>
 #include <mosunittest.h>
+
+#define COL_GRAY      "\x1b[90m"
+#define COL_RESET     "\x1b[0m"
 
 /* MOS Unittest Macro mock global structure */
 MockedMacro g_utmm = { 0 };
