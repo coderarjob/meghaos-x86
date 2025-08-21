@@ -1,7 +1,9 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <stdint.h>
 #include <utils.h>
 #include <string.h>
-#include <unittest/unittest.h>
 #include <types.h>
 #include <memmanage.h>
 #include <kerror.h>
@@ -45,7 +47,7 @@ TEST (ksalloc, salloc_out_of_memory)
 {
     EQ_SCALAR ((PTR)ksalloc (UT_SALLOC_SIZE_BYTES), (PTR)salloc_buffer);
     EQ_SCALAR ((PTR)ksalloc (1), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_OUT_OF_MEM);
     END();
 }
 
@@ -66,12 +68,12 @@ TEST (ksalloc, invalid_inputs)
     SIZE invalid_inputs[] = { 0, UT_SALLOC_SIZE_BYTES + 1 };
 
     for (int i = 0; i < 2; i++) {
-        EQ_SCALAR ((PTR)kscalloc (invalid_inputs[i]), 0);
-        EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_RANGE);
+        EQ_SCALAR ((PTR)kscalloc (invalid_inputs[i]), 0U);
+        EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_RANGE);
         g_kstate.errorNumber = ERR_NONE;
 
-        EQ_SCALAR ((PTR)ksalloc (invalid_inputs[i]), 0);
-        EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_RANGE);
+        EQ_SCALAR ((PTR)ksalloc (invalid_inputs[i]), 0U);
+        EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_RANGE);
         g_kstate.errorNumber = ERR_NONE;
     }
 
@@ -86,14 +88,14 @@ TEST (ksalloc, get_used_memory)
     // When some memory is used.
     SIZE sizes[] = { ALIGNED_SIZE (UT_SALLOC_SIZE_BYTES / 2),
                      ALIGNED_SIZE (UT_SALLOC_SIZE_BYTES / 3) };
-    NEQ_SCALAR (ksalloc (sizes[0]), NULL);
-    NEQ_SCALAR (ksalloc (sizes[1]), NULL);
+    NEQ_SCALAR ((PTR)ksalloc (sizes[0]), (PTR)NULL);
+    NEQ_SCALAR ((PTR)ksalloc (sizes[1]), (PTR)NULL);
 
     EQ_SCALAR (ksalloc_getUsedMemory(), (sizes[0] + sizes[1]));
     END();
 }
 
-void reset()
+void yt_reset()
 {
     g_kstate.errorNumber = ERR_NONE;
 
@@ -104,10 +106,12 @@ void reset()
 
 int main()
 {
+    YT_INIT();
     small_allocations_success();
     large_allocations_success();
     invalid_inputs();
     salloc_alignments();
     salloc_out_of_memory();
     get_used_memory();
+    RETURN_WITH_REPORT();
 }
