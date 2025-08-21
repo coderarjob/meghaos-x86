@@ -1,11 +1,12 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <utils.h>
 #include <mosunittest.h>
-#include <intrusive_list.h>
-#include <unittest/unittest.h>
-#include <unittest/fake.h>
+//#include <intrusive_list.h>
 #ifdef LIBCM
     #include <kcmlib.h>
     #include <cm/cm.h>
@@ -85,25 +86,14 @@ static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, siz
 
 TEST (kmallocz, zero_fill_allocation)
 {
-    // Pre-Condition: Prefill the kmalloc array with non-zeros to check if kmallocz worked.
-    memset (malloc_buffer, 0xFF, UT_MALLOC_SIZE_BYTES);
-
-    // Need to re-init kmalloc buffer since we have overriden initial headers with the previous
-    // memset.
-    MALLOC_INIT_FN_UNDER_TEST();
-
-    // Not an exact match, but will do for now. Ideally we could have used EXPECT_CALL macro to
-    // check if k_memset is called with the expected arguments.
 #ifdef LIBCM
-    cm_memset_fake.handler = memset;
+    MUST_CALL_ANY_ORDER(cm_memset, _, V(0), V(10));
 #else
-    k_memset_fake.handler = memset;
+    MUST_CALL_ANY_ORDER(k_memset, _, V(0), V(10));
 #endif
-    // ------------------------------------------------------------------------------------------
-    U8* addr1       = MALLOCZ_FN_UNDER_TEST (10);
-    U8 expected[10] = { 0 };
 
-    EQ_MEM (addr1, expected, 10);
+    // ------------------------------------------------------------------------------------------
+    MALLOCZ_FN_UNDER_TEST (10);
 
     END();
 }
@@ -334,7 +324,7 @@ S32 syscall_handler (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U
 {
     switch (fn) {
     case OSIF_SYSCALL_PROCESS_GET_DATAMEM_START:
-        return malloc_buffer;
+        return (S32)malloc_buffer;
         break;
     default:
         assert (false);
@@ -344,7 +334,7 @@ S32 syscall_handler (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U
 }
 #endif
 
-void reset()
+void yt_reset()
 {
 #ifdef LIBCM
     syscall_fake.handler                = syscall_handler;
@@ -359,6 +349,7 @@ void reset()
 
 int main()
 {
+    YT_INIT();
     allocation_space_available();
     allocation_space_uavailable();
     free_success();
@@ -370,5 +361,5 @@ int main()
 #endif
     zero_fill_allocation();
 
-    return 0;
+    RETURN_WITH_REPORT();
 }

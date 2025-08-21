@@ -1,4 +1,6 @@
-#include <unittest/unittest.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <types.h>
 #include <string.h>
 #include <utils.h>
@@ -204,7 +206,7 @@ TEST(snprintf, pointer_literal)
     END();
 }
 
-void reset()
+void yt_reset()
 {
 }
 
@@ -229,4 +231,5 @@ int main()
     limit_check_at_edge();
     memory_overlap();
     pointer_literal();
+    RETURN_WITH_REPORT();
 }
