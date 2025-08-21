@@ -1,5 +1,7 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <types.h>
-#include <unittest/unittest.h>
 
 TEST(types.h, size_t_conformance)
 {
@@ -15,23 +17,26 @@ TEST(types.h, size_t_conformance)
 
 TEST(types.h, type_sizes)
 {
-    EQ_SCALAR(sizeof(U8), 1);
-    EQ_SCALAR(sizeof(U16), 2);
-    EQ_SCALAR(sizeof(U32), 4);
-    EQ_SCALAR(sizeof(U64), 8);
-
-    EQ_SCALAR(sizeof(S32), 4);
-    EQ_SCALAR(sizeof(S64), 8);
+    EQ_SCALAR(sizeof(U8),  1U);
+    EQ_SCALAR(sizeof(U16), 2U);
+    EQ_SCALAR(sizeof(U32), 4U);
+    EQ_SCALAR(sizeof(U64), 8U);
+    EQ_SCALAR(sizeof(S32), 4U);
+    EQ_SCALAR(sizeof(S64), 8U);
 
     END();
 }
 
-void reset()
+void yt_reset()
 {
 }
 
 int main()
 {
+    YT_INIT();
+
     type_sizes();
     size_t_conformance();
+
+    RETURN_WITH_REPORT();
 }

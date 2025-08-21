@@ -1,7 +1,9 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <stdbool.h>
 #include <types.h>
 #include <utils.h>
-#include <unittest/unittest.h>
 
 #ifdef LIBCM
     #include <cm/cm.h>
@@ -109,9 +111,9 @@ TEST(MEM, memset_one_byte)
 
 TEST(STRING, string_length)
 {
-    EQ_SCALAR(STRLEN_FN_UNDER_TEST(""), 0);
-    EQ_SCALAR(STRLEN_FN_UNDER_TEST("ABCD"), 4);
-    EQ_SCALAR(STRLEN_FN_UNDER_TEST("A\n\tB"), 4);
+    EQ_SCALAR(STRLEN_FN_UNDER_TEST(""), 0U);
+    EQ_SCALAR(STRLEN_FN_UNDER_TEST("ABCD"), 4U);
+    EQ_SCALAR(STRLEN_FN_UNDER_TEST("A\n\tB"), 4U);
     END();
 }
 
@@ -156,18 +158,18 @@ TEST(MEM, memcpy_overlap)
     //           1 2 3 4 5 6  7  8  9  10  <dest contents after copy]
     // 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14   < byte indices]
 
-    U8 memory[15] = {1,2,3,4,5,6,7,8,9,10};
+    CHAR memory[15] = {1,2,3,4,5,6,7,8,9,10};
     CHAR *src = &memory[0];
     CHAR *dest = &memory[5];
 
     EQ_SCALAR((PTR)MEMCPY_FN_UNDER_TEST (dest, src, 10), (PTR)dest);
 
-    for (int i = 0; i < 10; i++)
-        EQ_SCALAR(dest[i], i + 1);              // Dest[0 to 9] has 1 to 10
+    for (size_t i = 0; i < 10; i++)
+        EQ_SCALAR(dest[i], (CHAR)i + 1);              // Dest[0 to 9] has 1 to 10
 
-    for (int i = 0; i < 5; i++) {
-        EQ_SCALAR(src[i], i + 1);              // Src[0 to 4]  has 1 to 5
-        EQ_SCALAR(src[i + 5], i + 1);          // Src[5 to 9]  has 1 to 5
+    for (size_t i = 0; i < 5; i++) {
+        EQ_SCALAR(src[i], (CHAR)i + 1);              // Src[0 to 4]  has 1 to 5
+        EQ_SCALAR(src[i + 5], (CHAR)i + 1);          // Src[5 to 9]  has 1 to 5
     }
 
     END();
@@ -180,7 +182,7 @@ TEST(MEM, memcpy_normal)
 
     EQ_SCALAR((PTR)MEMCPY_FN_UNDER_TEST (dest, src, ARRAY_LENGTH(dest)), (PTR)&dest);
 
-    for (int i = 0; i < ARRAY_LENGTH(dest); i++)
+    for (size_t i = 0; i < ARRAY_LENGTH(dest); i++)
         EQ_SCALAR(dest[i], src[i]);
 
     END();
@@ -192,13 +194,13 @@ TEST(MEM, memset_normal)
 
     EQ_SCALAR((PTR)MEMSET_FN_UNDER_TEST (dest, 0x1A, ARRAY_LENGTH(dest)), (PTR)&dest);
 
-    for (int i = 0; i < ARRAY_LENGTH(dest); i++)
+    for (size_t i = 0; i < ARRAY_LENGTH(dest); i++)
         EQ_SCALAR(dest[i], 0x1A);
 
     END();
 }
 
-void reset()
+void yt_reset()
 {
 #ifndef LIBCM
     resetPagingFake();
@@ -207,6 +209,7 @@ void reset()
 
 int main()
 {
+    YT_INIT();
     memset_one_byte();
     memset_normal();
     memcpy_normal();
@@ -222,4 +225,5 @@ int main()
 #endif
     string_length();
     string_copy();
+    RETURN_WITH_REPORT();
 }

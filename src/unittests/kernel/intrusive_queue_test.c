@@ -1,9 +1,11 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <intrusive_list.h>
 #include <intrusive_queue.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unittest/unittest.h>
 
 ListNode head;
 
@@ -12,10 +14,13 @@ typedef struct Queue {
     ListNode runlist;
 } Queue;
 
+#define EQ_ADDRESS(a, b)  EQ_SCALAR ((uintptr_t)(a), (uintptr_t)(b))
+#define NEQ_ADDRESS(a, b) NEQ_SCALAR ((uintptr_t)(a), (uintptr_t)(b))
+
 TEST (queue, dequeue_empty_queue)
 {
-    EQ_SCALAR (dequeue (&head), NULL);
-    EQ_SCALAR (dequeue_back (&head), NULL);
+    EQ_ADDRESS (dequeue (&head), NULL);
+    EQ_ADDRESS (dequeue_back (&head), NULL);
 
     END();
 }
@@ -29,8 +34,8 @@ TEST (queue, enqueue_backward_dequeue_forward_success)
     enqueue (&head, &node1);
     enqueue (&head, &node2);
 
-    EQ_SCALAR (dequeue (&head), &node1);
-    EQ_SCALAR (dequeue (&head), &node2);
+    EQ_ADDRESS (dequeue (&head), &node1);
+    EQ_ADDRESS (dequeue (&head), &node2);
 
     END();
 }
@@ -44,8 +49,8 @@ TEST (queue, enqueue_forward_dequeue_backward_success)
     enqueue_front (&head, &node1);
     enqueue_front (&head, &node2);
 
-    EQ_SCALAR (dequeue_back (&head), &node1);
-    EQ_SCALAR (dequeue_back (&head), &node2);
+    EQ_ADDRESS (dequeue_back (&head), &node1);
+    EQ_ADDRESS (dequeue_back (&head), &node2);
 
     END();
 }
@@ -59,10 +64,10 @@ TEST (queue, dequeue_forward_excess)
     enqueue (&head, &node1);
     enqueue (&head, &node2);
 
-    EQ_SCALAR (dequeue (&head), &node1);
-    EQ_SCALAR (dequeue (&head), &node2);
-    EQ_SCALAR (dequeue (&head), NULL);
-    EQ_SCALAR (dequeue (&head), NULL);
+    EQ_ADDRESS (dequeue (&head), &node1);
+    EQ_ADDRESS (dequeue (&head), &node2);
+    EQ_ADDRESS (dequeue (&head), NULL);
+    EQ_ADDRESS (dequeue (&head), NULL);
     END();
 }
 
@@ -75,10 +80,10 @@ TEST (queue, dequeue_backward_excess)
     enqueue_front (&head, &node1);
     enqueue_front (&head, &node2);
 
-    EQ_SCALAR (dequeue_back (&head), &node1);
-    EQ_SCALAR (dequeue_back (&head), &node2);
-    EQ_SCALAR (dequeue_back (&head), NULL);
-    EQ_SCALAR (dequeue_back (&head), NULL);
+    EQ_ADDRESS (dequeue_back (&head), &node1);
+    EQ_ADDRESS (dequeue_back (&head), &node2);
+    EQ_ADDRESS (dequeue_back (&head), NULL);
+    EQ_ADDRESS (dequeue_back (&head), NULL);
     END();
 }
 
@@ -95,9 +100,9 @@ TEST (queue, item_removal_success)
 
     queue_remove (&node3);
 
-    EQ_SCALAR (dequeue_back (&head), &node1);
-    EQ_SCALAR (dequeue_back (&head), &node2);
-    EQ_SCALAR (dequeue_back (&head), NULL);
+    EQ_ADDRESS (dequeue_back (&head), &node1);
+    EQ_ADDRESS (dequeue_back (&head), &node2);
+    EQ_ADDRESS (dequeue_back (&head), NULL);
     END();
 }
 
@@ -118,19 +123,20 @@ TEST (queue, enqueue_dequeue_object)
     int i          = 0;
     while ((item = dequeue (&head)) != NULL) {
         Queue* q = (Queue*)LIST_ITEM (item, Queue, runlist);
-        EQ_SCALAR (q, &queue[i++]);
+        EQ_ADDRESS (q, &queue[i++]);
     }
 
     END();
 }
 
-void reset()
+void yt_reset()
 {
     list_init (&head);
 }
 
 int main()
 {
+    YT_INIT();
     dequeue_empty_queue();
     enqueue_backward_dequeue_forward_success();
     enqueue_forward_dequeue_backward_success();
@@ -138,6 +144,5 @@ int main()
     dequeue_backward_excess();
     enqueue_dequeue_object();
     item_removal_success();
-
-    return 0;
+    RETURN_WITH_REPORT();
 }

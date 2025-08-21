@@ -1,7 +1,8 @@
 #ifndef BOOT_FAKE_X86_H
 #define BOOT_FAKE_X86_H
 
-#include <unittest/fake.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <x86/boot.h>
 
 DECLARE_FUNC (U16, kboot_getBootFileItemCount);

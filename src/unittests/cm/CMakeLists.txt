@@ -6,7 +6,6 @@ test(
     DEFINITIONS LIBCM
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/cm/printf.c
-        ${PROJECT_SOURCE_DIR}/src/unittests/unittest.c
         ${CMAKE_CURRENT_SOURCE_DIR}/printf_test.c
     )
 
@@ -16,7 +15,6 @@ test(
     DEFINITIONS LIBCM
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/cm/string.c
-        ${PROJECT_SOURCE_DIR}/src/unittests/unittest.c
         ${CMAKE_CURRENT_SOURCE_DIR}/string_test.c
     )
 
@@ -27,7 +25,6 @@ test(
     SOURCES
         ${PROJECT_SOURCE_DIR}/src/cm/malloc.c
         ${CMAKE_CURRENT_SOURCE_DIR}/malloc_test.c
-        ${PROJECT_SOURCE_DIR}/src/unittests/unittest.c
         ${CMAKE_CURRENT_SOURCE_DIR}/common.c
         ${cm_malloc_mock_sources}
     )

@@ -1,6 +1,9 @@
+#include <stdint.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <stdio.h>
 #include <string.h>
-#include <unittest/unittest.h>
 #include <mock/kernel/salloc.h>
 #include <config.h>
 #include <handle.h>
@@ -87,7 +90,7 @@ TEST (handles, add_null_obj_inadd_failure)
     // ------------------
 
     EQ_SCALAR (khandle_createHandle (NULL), INVALID_HANDLE);
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_ARGUMENT);
     END();
 }
 
@@ -101,7 +104,7 @@ TEST (handles, add_oom_failure)
 
     int obj1 = 0xAAFFBB00;
     EQ_SCALAR (khandle_createHandle (&obj1), INVALID_HANDLE);
-    EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_OUT_OF_MEM);
     END();
 }
 
@@ -117,11 +120,11 @@ TEST (handles, get_invalid_handle_failure)
 
     // Invalid handle 1: Exceeds the Max count
     EQ_SCALAR ((PTR)khandle_getObject (HANDLES_ARRAY_COUNT), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
 
     // Invalid handle 1: Handle that points to NULL object
     EQ_SCALAR ((PTR)khandle_getObject (h1 + 1), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
     END();
 }
 
@@ -137,11 +140,11 @@ TEST (handles, remove_invalid_handle_failure)
 
     // Invalid handle 1: Exceeds the Max count
     EQ_SCALAR ((PTR)khandle_freeHandle (HANDLES_ARRAY_COUNT), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
 
     // Invalid handle 1: Handle that points to NULL object
     EQ_SCALAR ((PTR)khandle_freeHandle (h1 + 1), (PTR)NULL);
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_HANDLE);
+    EQ_SCALAR (g_kstate.errorNumber, (uintptr_t)ERR_INVALID_HANDLE);
     END();
 }
 
@@ -167,7 +170,7 @@ TEST (handles, remove_object_success)
     END();
 }
 
-void reset()
+void yt_reset()
 {
     memset (ut_handles, 0x0, HANDLES_ARRAY_SIZE_BYTES);
     reset_sallocFake();
@@ -177,6 +180,7 @@ void reset()
 
 int main()
 {
+    YT_INIT();
     g_utmm.config_handles_array_item_count = HANDLES_ARRAY_COUNT;
     ut_handles = malloc(HANDLES_ARRAY_SIZE_BYTES);
 
@@ -188,4 +192,5 @@ int main()
     get_invalid_handle_failure();
     remove_object_success();
     remove_invalid_handle_failure();
+    RETURN_WITH_REPORT();
 }

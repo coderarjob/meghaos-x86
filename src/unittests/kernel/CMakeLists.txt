@@ -2,7 +2,6 @@
 include(${PROJECT_SOURCE_DIR}/src/mock/mockfortests_${ARCH}.cmake)
 
 set(COMMON_KERNEL_UT_SOURCE_FILES
-    ${PROJECT_SOURCE_DIR}/src/unittests/unittest.c
     ${CMAKE_CURRENT_SOURCE_DIR}/common.c
 )
 

@@ -1,5 +1,8 @@
+#include <stddef.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <stdint.h>
-#include <unittest/unittest.h>
 #include <mock/kernel/kstdlib.h>
 #include <mock/kernel/x86/pmm.h>
 #include <string.h>
@@ -64,13 +67,13 @@ TEST (PMM, zero_page_count)
 {
     Physical addr = createPhysical (CONFIG_PAGE_FRAME_SIZE_BYTES);
     EQ_SCALAR (false, kpmm_free (addr, 0));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_ARGUMENT);
 
     EQ_SCALAR (false, kpmm_allocAt (addr, 0, PMM_REGION_ANY));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_ARGUMENT);
 
     EQ_SCALAR (false, kpmm_alloc (&addr, 0, PMM_REGION_ANY));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_INVALID_ARGUMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_INVALID_ARGUMENT);
     END();
 }
 
@@ -78,10 +81,10 @@ TEST (PMM, free_allocat_misaligned)
 {
     Physical addr = createPhysical (CONFIG_PAGE_FRAME_SIZE_BYTES + 1);
     EQ_SCALAR (false, kpmm_free (addr, 1));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_WRONG_ALIGNMENT);
 
     EQ_SCALAR (false, kpmm_allocAt (addr, 1, PMM_REGION_ANY));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_WRONG_ALIGNMENT);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_WRONG_ALIGNMENT);
 
     END();
 }
@@ -98,16 +101,16 @@ TEST (PMM, free_allocat_outsideRange)
         { createPhysical (ACTUAL_MEMORY_SIZE - CONFIG_PAGE_FRAME_SIZE_BYTES), 2 },
     };
 
-    for (int i = 0; i < ARRAY_LENGTH (failureCases); i++)
+    for (size_t i = 0; i < ARRAY_LENGTH (failureCases); i++)
     {
         struct tuple *t = &failureCases[i];
 
         printf ("\n:: With address %x, page count: %d", t->addr.val, t->pageCount);
         EQ_SCALAR (false, kpmm_free (t->addr, t->pageCount));
-        EQ_SCALAR (g_kstate.errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
+        EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_OUTSIDE_ADDRESSABLE_RANGE);
 
         EQ_SCALAR (false, kpmm_allocAt (t->addr, t->pageCount, PMM_REGION_ANY));
-        EQ_SCALAR (g_kstate.errorNumber, ERR_OUTSIDE_ADDRESSABLE_RANGE);
+        EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_OUTSIDE_ADDRESSABLE_RANGE);
     }
 
     END();
@@ -121,7 +124,7 @@ TEST (PMM, allocat_success)
     };
 
     // Allocates two consecutive addresses
-    for (int i = 0; i < ARRAY_LENGTH (addresses); i++)
+    for (size_t i = 0; i < ARRAY_LENGTH (addresses); i++)
     {
         Physical addr = addresses[i];
         printf ("\n:: Allocating x:%x, %x", addr.val, addr.val + CONFIG_PAGE_FRAME_SIZE_BYTES);
@@ -142,10 +145,10 @@ TEST (PMM, alloc_allocAt_outOfMem)
 
     Physical addr = createPhysical (0);
     EQ_SCALAR (false, kpmm_alloc (&addr, 2, PMM_REGION_ANY));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_OUT_OF_MEM);
 
     EQ_SCALAR (false, kpmm_allocAt (addr, 2, PMM_REGION_ANY));
-    EQ_SCALAR (g_kstate.errorNumber, ERR_DOUBLE_ALLOC);
+    EQ_SCALAR (g_kstate.errorNumber, (UINT)ERR_DOUBLE_ALLOC);
     END();
 }
 
@@ -161,7 +164,7 @@ TEST (PMM, alloc_success)
         createPhysical (ACTUAL_MEMORY_SIZE - 2 * CONFIG_PAGE_FRAME_SIZE_BYTES),
     };
 
-    for (int i = 0; i < ARRAY_LENGTH (expectedAddrs); i++)
+    for (size_t i = 0; i < ARRAY_LENGTH (expectedAddrs); i++)
     {
         Physical expAddr = expectedAddrs[i];
         printf ("\n:: Should allocate x:%x, %x", expAddr.val,
@@ -210,7 +213,7 @@ TEST (PMM, free_success)
     set_pab (pab, 0, MAX_ACTUAL_PAGE_COUNT, PMM_STATE_USED);
 
     // Frees two consecutive pages.
-    for (int i = 0; i < ARRAY_LENGTH (addresses); i++)
+    for (size_t i = 0; i < ARRAY_LENGTH (addresses); i++)
     {
         Physical addr = addresses[i];
         printf ("\n:: Freeing x:%x, %x", addr.val, addr.val + CONFIG_PAGE_FRAME_SIZE_BYTES);
@@ -228,7 +231,7 @@ TEST (PMM, memSize_zerofree)
     // Set every page in PAB.
     set_pab (pab, 0, MAX_ACTUAL_PAGE_COUNT, PMM_STATE_USED);
     size_t freeMemSize = kpmm_getFreeMemorySize();
-    EQ_SCALAR (freeMemSize, 0);
+    EQ_SCALAR (freeMemSize, 0U);
 
     END();
 }
@@ -244,7 +247,7 @@ TEST (PMM, memSize_somefree)
     EQ_SCALAR (true, kpmm_free (startAddress, 2));
 
     size_t freeMemSize = kpmm_getFreeMemorySize();
-    EQ_SCALAR (freeMemSize, 4096 * 2);
+    EQ_SCALAR (freeMemSize, (size_t)4096 * 2);
 
     END();
 }
@@ -268,10 +271,10 @@ static void validate_pab (const U8 *pab, USYSINT addr, KernelPhysicalMemoryState
     UINT byte         = PAB_BYTE (pageIndex);
     UINT bit          = PAB_BIT (pageIndex);
 
-    EQ_SCALAR (state, (pab[byte] & (1 << bit)) >> bit);
+    EQ_SCALAR (state, (pab[byte] & (1U << bit)) >> bit);
 }
 
-void reset()
+void yt_reset()
 {
     panic_invoked = false;
     g_kstate.errorNumber = ERR_NONE;
@@ -285,6 +288,7 @@ void reset()
 
 int main()
 {
+    YT_INIT();
     // Will just set pointer `s_pab` to point to `pab` buffer defined here. No allocation or
     // deallocation will take place as memory map count and files count are not set and will be at
     // default zero.
@@ -303,4 +307,5 @@ int main()
     free_reservePages();
     memSize_zerofree();
     memSize_somefree();
+    RETURN_WITH_REPORT();
 }

@@ -1,7 +1,8 @@
 #ifndef PMM_FAKE_H
 #define PMM_FAKE_H
 
-#include <unittest/fake.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <types.h>
 #include <pmm.h>
 

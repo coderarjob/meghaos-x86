@@ -1,7 +1,8 @@
 #ifndef BITMAP_FAKE_H
 #define BITMAP_FAKE_H
 
-#include <unittest/fake.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <bitmap.h>
 
 DECLARE_FUNC(BitmapState, bitmap_get, Bitmap *, UINT);

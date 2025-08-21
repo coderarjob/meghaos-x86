@@ -1,7 +1,10 @@
-#include <unittest/unittest.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <types.h>
 #include <string.h>
 #include <utils.h>
+#include <stddef.h>
 
 #ifdef LIBCM
     #define SNPRINT_FN_UNDER_TEST cm_snprintf
@@ -17,8 +20,8 @@ TEST(snprintf, no_vargs)
 {
 #define MESSAGE "Hello world"
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
-    INT ret = SNPRINT_FN_UNDER_TEST (d, ARRAY_LENGTH(d), MESSAGE);
-    EQ_SCALAR(ret, 11);
+    size_t ret = (size_t)SNPRINT_FN_UNDER_TEST (d, ARRAY_LENGTH(d), MESSAGE);
+    EQ_SCALAR(ret, 11U);
     EQ_SCALAR(ret, strlen(MESSAGE));
     EQ_STRING(d, MESSAGE);
     END();
@@ -204,12 +207,13 @@ TEST(snprintf, pointer_literal)
     END();
 }
 
-void reset()
+void yt_reset()
 {
 }
 
 int main()
 {
+    YT_INIT();
     no_vargs();
     unsigned_int_hex_format();
     unsigned_int_hex_format_without_base_identifier();
@@ -229,4 +233,5 @@ int main()
     limit_check_at_edge();
     memory_overlap();
     pointer_literal();
+    RETURN_WITH_REPORT();
 }

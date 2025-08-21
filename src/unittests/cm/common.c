@@ -4,8 +4,6 @@
  * ----------------------------------------------------------------------------
  */
 
-#include <unittest/unittest.h>
-#include <stdio.h>
 #include <types.h>
 #include <stdarg.h>
 #include <kernel.h>
