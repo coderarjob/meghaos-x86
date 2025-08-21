@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <utils.h>
 #include <mosunittest.h>
-//#include <intrusive_list.h>
 #ifdef LIBCM
     #include <kcmlib.h>
     #include <cm/cm.h>
@@ -84,12 +83,15 @@ static bool isAddressFoundInList (void* addr, MallocLists list);
 static size_t getCapacity (MallocLists list);
 static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, size_t count);
 
+#define EQ_ADDRESS(a, b)  EQ_SCALAR ((uintptr_t)(a), (uintptr_t)(b))
+#define NEQ_ADDRESS(a, b) NEQ_SCALAR ((uintptr_t)(a), (uintptr_t)(b))
+
 TEST (kmallocz, zero_fill_allocation)
 {
 #ifdef LIBCM
-    MUST_CALL_ANY_ORDER(cm_memset, _, V(0), V(10));
+    MUST_CALL_ANY_ORDER (cm_memset, _, V (0), V (10));
 #else
-    MUST_CALL_ANY_ORDER(k_memset, _, V(0), V(10));
+    MUST_CALL_ANY_ORDER (k_memset, _, V (0), V (10));
 #endif
 
     // ------------------------------------------------------------------------------------------
@@ -106,7 +108,7 @@ TEST (kmalloc, allocation_space_available)
     void* addr2 = MALLOC_FN_UNDER_TEST (UT_MALLOC_SIZE_BYTES / 4);
 
     // Two addresses must be different.
-    NEQ_SCALAR (addr2, addr1);
+    NEQ_ADDRESS (addr2, addr1);
 
     // Free list must not contain these addresses.
     EQ_SCALAR (false, isAddressFoundInList (addr1, FREE_LIST));
@@ -119,7 +121,7 @@ TEST (kmalloc, allocation_space_available)
     END();
 }
 
-TEST (kmalloc, allocation_space_uavailable)
+TEST (kmalloc, allocation_space_unavailable)
 {
     // Pre-condition: Nothing
     size_t freeListCapPrev  = getCapacity (FREE_LIST);
@@ -127,9 +129,9 @@ TEST (kmalloc, allocation_space_uavailable)
     // ------------------------------------------------------------------------------------------
 
     // Allocation fails because there is not enough space.
-    EQ_SCALAR (MALLOC_FN_UNDER_TEST (UT_MALLOC_SIZE_BYTES), NULL);
+    EQ_ADDRESS (MALLOC_FN_UNDER_TEST (UT_MALLOC_SIZE_BYTES), NULL);
 #ifdef LIBCM
-    EQ_SCALAR (cm_error_num, CM_ERR_OUT_OF_HEAP_MEM);
+    EQ_SCALAR (cm_error_num, (uint32_t)CM_ERR_OUT_OF_HEAP_MEM);
 #else
     EQ_SCALAR (g_kstate.errorNumber, ERR_OUT_OF_MEM);
 #endif
@@ -144,10 +146,10 @@ TEST (kfree, free_combining_next_adj_nodes)
 {
     // Pre-condition: A number of successful allocations and freeing such that the left
     void *addr1, *addr2;
-    NEQ_SCALAR ((addr1 = MALLOC_FN_UNDER_TEST (100)), NULL);
-    NEQ_SCALAR ((addr2 = MALLOC_FN_UNDER_TEST (50)), NULL);
-    NEQ_SCALAR (MALLOC_FN_UNDER_TEST (50), NULL); //[A,A,A,F]
-    EQ_SCALAR (FREE_FN_UNDER_TEST (addr2), true); //[A,F,A,F]
+    NEQ_ADDRESS ((addr1 = MALLOC_FN_UNDER_TEST (100)), NULL);
+    NEQ_ADDRESS ((addr2 = MALLOC_FN_UNDER_TEST (50)), NULL);
+    NEQ_ADDRESS (MALLOC_FN_UNDER_TEST (50), NULL); //[A,A,A,F]
+    EQ_SCALAR (FREE_FN_UNDER_TEST (addr2), true);  //[A,F,A,F]
     // ------------------------------------------------------------------------------------------
     EQ_SCALAR (FREE_FN_UNDER_TEST (addr1), true); //[F][A][F]
 
@@ -166,10 +168,10 @@ TEST (kfree, free_combining_prev_adj_nodes)
 {
     // Pre-condition: A number of successful allocations and freeing such that the left
     void *addr1, *addr2;
-    NEQ_SCALAR ((addr1 = MALLOC_FN_UNDER_TEST (100)), NULL);
-    NEQ_SCALAR ((addr2 = MALLOC_FN_UNDER_TEST (50)), NULL);
-    NEQ_SCALAR (MALLOC_FN_UNDER_TEST (50), NULL); //[A][A][A][F]
-    EQ_SCALAR (FREE_FN_UNDER_TEST (addr1), true); //[F][A][A][F]
+    NEQ_ADDRESS ((addr1 = MALLOC_FN_UNDER_TEST (100)), NULL);
+    NEQ_ADDRESS ((addr2 = MALLOC_FN_UNDER_TEST (50)), NULL);
+    NEQ_ADDRESS (MALLOC_FN_UNDER_TEST (50), NULL); //[A][A][A][F]
+    EQ_SCALAR (FREE_FN_UNDER_TEST (addr1), true);  //[F][A][A][F]
     // ------------------------------------------------------------------------------------------
 
     EQ_SCALAR (FREE_FN_UNDER_TEST (addr2), true); //[F][A][F]
@@ -194,9 +196,9 @@ TEST (kfree, free_success)
     void* addr2 = MALLOC_FN_UNDER_TEST (UT_MALLOC_SIZE_BYTES / 4);
     void* addr3 = MALLOC_FN_UNDER_TEST (UT_MALLOC_SIZE_BYTES / 7);
 
-    NEQ_SCALAR (addr1, NULL);
-    NEQ_SCALAR (addr2, NULL);
-    NEQ_SCALAR (addr3, NULL);
+    NEQ_ADDRESS (addr1, NULL);
+    NEQ_ADDRESS (addr2, NULL);
+    NEQ_ADDRESS (addr3, NULL);
     // ------------------------------------------------------------------------------------------
 
     EQ_SCALAR (true, FREE_FN_UNDER_TEST (addr2));
@@ -238,8 +240,8 @@ TEST (kmalloc_getUsedMemory, used_memory_test)
     EQ_SCALAR (kmalloc_getUsedMemory(), 0U);
 
     // When some amount of memory is allocated.
-    NEQ_SCALAR (MALLOC_FN_UNDER_TEST (100), NULL);
-    NEQ_SCALAR (MALLOC_FN_UNDER_TEST (50), NULL);
+    NEQ_ADDRESS (MALLOC_FN_UNDER_TEST (100), NULL);
+    NEQ_ADDRESS (MALLOC_FN_UNDER_TEST (50), NULL);
 
     EQ_SCALAR (kmalloc_getUsedMemory(), getNodeSize (100) + getNodeSize (50));
     END();
@@ -252,7 +254,7 @@ static void matchSectionPlacementAndAttributes (SectionAttributes* secAttrs, siz
 {
     ListNode* node       = NULL;
     MallocHeader* header = NULL;
-    int i                = 0;
+    size_t i             = 0;
     list_for_each (&s_adjHead, node)
     {
         assert (i < count);
@@ -272,6 +274,8 @@ static ListNode* getListHead (MallocLists list)
         return &s_allocHead;
     case ADJ_LIST:
         return &s_adjHead;
+    default:
+        assert (false); // Unreachable
     };
 }
 
@@ -284,6 +288,8 @@ static MallocHeader* getMallocHeaderFromList (MallocLists list, ListNode* node)
         return LIST_ITEM (node, MallocHeader, allocnode);
     case ADJ_LIST:
         return LIST_ITEM (node, MallocHeader, adjnode);
+    default:
+        assert (false); // Unreachable
     };
 }
 
@@ -322,6 +328,13 @@ static size_t getCapacity (MallocLists list)
 // the syscall function.
 S32 syscall_handler (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
 {
+    // Unused parameters
+    (void)arg1;
+    (void)arg2;
+    (void)arg3;
+    (void)arg4;
+    (void)arg5;
+
     switch (fn) {
     case OSIF_SYSCALL_PROCESS_GET_DATAMEM_START:
         return (S32)malloc_buffer;
@@ -351,7 +364,7 @@ int main()
 {
     YT_INIT();
     allocation_space_available();
-    allocation_space_uavailable();
+    allocation_space_unavailable();
     free_success();
     free_combining_prev_adj_nodes();
     free_combining_next_adj_nodes();

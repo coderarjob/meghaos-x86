@@ -4,6 +4,7 @@
 #include <types.h>
 #include <string.h>
 #include <utils.h>
+#include <stddef.h>
 
 #ifdef LIBCM
     #define SNPRINT_FN_UNDER_TEST cm_snprintf
@@ -19,8 +20,8 @@ TEST(snprintf, no_vargs)
 {
 #define MESSAGE "Hello world"
     CHAR d[MAX_PRINTABLE_STRING_LENGTH];
-    INT ret = SNPRINT_FN_UNDER_TEST (d, ARRAY_LENGTH(d), MESSAGE);
-    EQ_SCALAR(ret, 11);
+    size_t ret = (size_t)SNPRINT_FN_UNDER_TEST (d, ARRAY_LENGTH(d), MESSAGE);
+    EQ_SCALAR(ret, 11U);
     EQ_SCALAR(ret, strlen(MESSAGE));
     EQ_STRING(d, MESSAGE);
     END();
