@@ -1019,14 +1019,14 @@ static int YT__equal_mem (const void* a, const void* b, unsigned long size, int*
     #define YT__TESTP_DEFINE_TEST_FUNC(tf, fn, ...)                                             \
         static void YT__##fn##_test (size_t count, size_t tn, YT__FUNC_PARAMS_X (__VA_ARGS__))  \
         {                                                                                       \
-            printf ("%s %s [%lu/%lu] %s:%s %s", YT__COL_BLUE_HIGHLIGHT_DARK, YT__COL_WHITE, tn, \
+            printf ("%s %s [%zu/%zu] %s:%s %s", YT__COL_BLUE_HIGHLIGHT_DARK, YT__COL_WHITE, tn, \
                     count, #tf, #fn, YT__COL_RESET);                                            \
             YT__TEST_IMPL_BODY (tf, fn, count, tn)
 
     #define YT__TESTP_DEFINE_TEST_WRAPPER_FUNC(tf, fn, ...)                                        \
         static void fn (size_t count, YT__FUNC_PARAMS_ARRAY_X (__VA_ARGS__))                       \
         {                                                                                          \
-            printf ("%s %s %s:%s %s [%lu tests] %s\n", YT__COL_BLUE_HIGHLIGHT, YT__COL_BOLD_WHITE, \
+            printf ("%s %s %s:%s %s [%zu tests] %s\n", YT__COL_BLUE_HIGHLIGHT, YT__COL_BOLD_WHITE, \
                     #tf, #fn, YT__COL_YELLOW, count, YT__COL_RESET);                               \
             for (unsigned i = 0; i < count; i++) {                                                 \
                 YT__##fn##_test (count, i + 1, YT__FCALL_ARGS_ARRAY_X (i, __VA_ARGS__));           \
