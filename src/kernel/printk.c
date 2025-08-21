@@ -99,7 +99,7 @@ INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
  * @param sz    Size of the string in bytes.
  * @param fmt   Pointer to a string, with or without conversion attributes for the arguments.
  *              Conversion attributes are given in the following format:
- *                  %[ type modifiers : l|ll|p ] [ conversions: u|h|x|o|s|b|%  ]
+ *                  %[ type modifiers : l|ll|p ] [ conversions: u|h|x|o|s|b|% ]
  *
  *              Type Modifiers   Function
  *              ---------------  -----------------------------------------------------------
@@ -124,7 +124,7 @@ INT kearly_snprintf (CHAR *dest, size_t size, const CHAR *fmt, ...)
  *              (excluding the null byte used to end output to strings).
  * @return      If the output was truncated due to the size (sz) limit, then the return value is
  *              the number of characters (excluding the terminating null byte) which would have been
- *              written  to  the final string if enough space had been available.
+ *              written to the final string if enough space had been available.
  *              A return value of size or more means that the output was truncated
  **************************************************************************************************/
 INT kearly_vsnprintf (CHAR *dest, size_t size, const CHAR *fmt, va_list l)
