@@ -1,4 +1,8 @@
+/* YUKTI_TEST_NO_MUST_CALL is required because MUST_CALL_* only works for functions with integer
+ * parameters. Here kpmm_free, kpmm_alloc, kpmm_allocAt takes Physical argument which causes build
+ * failure if YUKTI_TEST_NO_MUST_CALL is not defined.*/
 #define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_NO_MUST_CALL
 #include <unittest/yukti.h>
 #include <mock/kernel/pmm.h>
 

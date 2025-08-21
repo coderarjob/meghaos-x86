@@ -1,5 +1,6 @@
+#define YUKTI_TEST_STRIP_PREFIX
+#include <unittest/yukti.h>
 #include <mock/kernel/x86/boot.h>
-#include <unittest/fake.h>
 
 DEFINE_FUNC (U16,kboot_getBootFileItemCount);
 DEFINE_FUNC (BootFileItem,kboot_getBootFileItem, INT);
@@ -10,10 +11,10 @@ DEFINE_FUNC (BootGraphicsModeInfo,kboot_getGraphicsModeInfo);
 
 void resetBootFake()
 {
-    RESET_FAKE (kboot_getBootFileItemCount);
-    RESET_FAKE (kboot_getBootFileItem);
-    RESET_FAKE (kboot_getBootMemoryMapItem);
-    RESET_FAKE (kboot_getBootMemoryMapItemCount);
-    RESET_FAKE (kboot_calculateInstalledMemory);
-    RESET_FAKE (kboot_getGraphicsModeInfo);
+    RESET_MOCK (kboot_getBootFileItemCount);
+    RESET_MOCK (kboot_getBootFileItem);
+    RESET_MOCK (kboot_getBootMemoryMapItem);
+    RESET_MOCK (kboot_getBootMemoryMapItemCount);
+    RESET_MOCK (kboot_calculateInstalledMemory);
+    RESET_MOCK (kboot_getGraphicsModeInfo);
 }

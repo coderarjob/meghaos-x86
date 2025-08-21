@@ -1,4 +1,6 @@
-#include <unittest/unittest.h>
+#define YUKTI_TEST_STRIP_PREFIX
+#define YUKTI_TEST_IMPLEMENTATION
+#include <unittest/yukti.h>
 #include <mock/kernel/x86/boot.h>
 #include <moslimits.h>
 #include <pmm.h>
@@ -17,12 +19,14 @@ TEST(PMM, actual_accessable_ram)
     END();
 }
 
-void reset()
+void yt_reset()
 {
     resetBootFake();
 }
 
 int main()
 {
+    YT_INIT();
     actual_accessable_ram();
+    RETURN_WITH_REPORT();
 }
