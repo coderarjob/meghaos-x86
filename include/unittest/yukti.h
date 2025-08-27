@@ -243,6 +243,8 @@ typedef struct YT__Arg {
     uintptr_t val; // A type large enough to hold both integers & addresses
 } YT__Arg;
 
+    #define YT__ARG_FIELDS_COUNT 2
+
     #define YT__RECORD_CALL_X(...) YT__FCALL_WRAP_ARGS_X (YT_V, ##__VA_ARGS__)
 
     #define YT_V(v)                               \
@@ -283,10 +285,18 @@ void yt_reset(); // MUST BE DEFINED BY THE USER OF THIS HEADER FILE.
     YT__DEFINE_FUNC_STRUCT (f);     \
     YT__DEFINE_FUNC_BODY_VOID (YT__COUNT_ARGS (__VA_ARGS__), f, __VA_ARGS__)
 
+#define YT_DEFINE_FUNC_VOID_FALLBACK(f, ...) \
+    YT__DEFINE_FUNC_STRUCT (f);              \
+    YT__DEFINE_FUNC_BODY_VOID_FALLBACK (YT__COUNT_ARGS (__VA_ARGS__), f, __VA_ARGS__)
+
 // ----
 #define YT_DEFINE_FUNC(rt, f, ...) \
     YT__DEFINE_FUNC_STRUCT (f);    \
     YT__DEFINE_FUNC_BODY (YT__COUNT_ARGS (__VA_ARGS__), rt, f, __VA_ARGS__)
+
+#define YT_DEFINE_FUNC_FALLBACK(rt, f, ...) \
+    YT__DEFINE_FUNC_STRUCT (f);             \
+    YT__DEFINE_FUNC_BODY_FALLBACK (YT__COUNT_ARGS (__VA_ARGS__), rt, f, __VA_ARGS__)
 
 // ----
 
@@ -308,12 +318,26 @@ void yt_reset(); // MUST BE DEFINED BY THE USER OF THIS HEADER FILE.
         YT__RETURN_VOID (f, __VA_ARGS__);    \
     }
 
+#define YT__DEFINE_FUNC_BODY_VOID_FALLBACK(n, f, ...) \
+    void f (YT__FUNC_PARAMS_X (__VA_ARGS__))          \
+    {                                                 \
+        YT__STRUCT_VAR (f).invokeCount++;             \
+        YT__RETURN_VOID (f, __VA_ARGS__);             \
+    }
+
 #define YT__DEFINE_FUNC_BODY(n, rt, f, ...)  \
     rt f (YT__FUNC_PARAMS_X (__VA_ARGS__))   \
     {                                        \
         YT__RECORD_CALL (n, f, __VA_ARGS__); \
         YT__STRUCT_VAR (f).invokeCount++;    \
         YT__RETURN (f, __VA_ARGS__);         \
+    }
+
+#define YT__DEFINE_FUNC_BODY_FALLBACK(n, rt, f, ...) \
+    rt f (YT__FUNC_PARAMS_X (__VA_ARGS__))           \
+    {                                                \
+        YT__STRUCT_VAR (f).invokeCount++;            \
+        YT__RETURN (f, __VA_ARGS__);                 \
     }
 
 #define YT__RETURN_VOID(f, ...)                                      \
@@ -469,18 +493,20 @@ static void YT__free_testRecord (YT__TestRecord* trecord)
     #else
         #define YT_IN_SEQUENCE(n) for (int i = 0; i < (n); i++)
 
-        #define YT_MUST_NEVER_CALL(f, ...)                                                  \
-            do {                                                                            \
-                YT__current_testrecord->total_exp_count++;                                  \
-                YT__add_callrecord (&YT__neverCallExceptationsListHead, __LINE__, __FILE__, \
-                                    YT__COUNT_ARGS (__VA_ARGS__) / 2, #f, ##__VA_ARGS__);   \
+        #define YT_MUST_NEVER_CALL(f, ...)                                                   \
+            do {                                                                             \
+                YT__current_testrecord->total_exp_count++;                                   \
+                YT__add_callrecord (&YT__neverCallExceptationsListHead, __LINE__, __FILE__,  \
+                                    YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
+                                    ##__VA_ARGS__);                                          \
             } while (0)
 
-        #define YT_MUST_CALL_IN_ORDER(f, ...)                                             \
-            do {                                                                          \
-                YT__current_testrecord->total_exp_count++;                                \
-                YT__add_callrecord (&YT__orderedExceptationListHead, __LINE__, __FILE__,  \
-                                    YT__COUNT_ARGS (__VA_ARGS__) / 2, #f, ##__VA_ARGS__); \
+        #define YT_MUST_CALL_IN_ORDER(f, ...)                                                \
+            do {                                                                             \
+                YT__current_testrecord->total_exp_count++;                                   \
+                YT__add_callrecord (&YT__orderedExceptationListHead, __LINE__, __FILE__,     \
+                                    YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
+                                    ##__VA_ARGS__);                                          \
             } while (0)
 
         #define YT_MUST_CALL_IN_ORDER_ATLEAST_TIMES(n, f, ...) \
@@ -488,11 +514,12 @@ static void YT__free_testRecord (YT__TestRecord* trecord)
                 YT_MUST_CALL_IN_ORDER (f, ##__VA_ARGS__);      \
             }
 
-        #define YT_MUST_CALL_ANY_ORDER(f, ...)                                            \
-            do {                                                                          \
-                YT__current_testrecord->total_exp_count++;                                \
-                YT__add_callrecord (&YT__globalExceptationListHead, __LINE__, __FILE__,   \
-                                    YT__COUNT_ARGS (__VA_ARGS__) / 2, #f, ##__VA_ARGS__); \
+        #define YT_MUST_CALL_ANY_ORDER(f, ...)                                               \
+            do {                                                                             \
+                YT__current_testrecord->total_exp_count++;                                   \
+                YT__add_callrecord (&YT__globalExceptationListHead, __LINE__, __FILE__,      \
+                                    YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
+                                    ##__VA_ARGS__);                                          \
             } while (0)
 
         #define YT_MUST_CALL_ANY_ORDER_ATLEAST_TIMES(n, f, ...) \
@@ -1117,7 +1144,9 @@ static double yt__test_elapsed_time_ms()
     #define END                               YT_END
     #define V                                 YT_V
     #define DEFINE_FUNC_VOID                  YT_DEFINE_FUNC_VOID
+    #define DEFINE_FUNC_VOID_FALLBACK         YT_DEFINE_FUNC_VOID_FALLBACK
     #define DEFINE_FUNC                       YT_DEFINE_FUNC
+    #define DEFINE_FUNC_FALLBACK              YT_DEFINE_FUNC_FALLBACK
     #define DECLARE_FUNC_VOID                 YT_DECLARE_FUNC_VOID
     #define DECLARE_FUNC                      YT_DECLARE_FUNC
     #define RESET_MOCK                        YT_RESET_MOCK
