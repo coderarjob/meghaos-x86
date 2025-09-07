@@ -67,7 +67,7 @@ link(
 # Program - INIT
 # ---------------------------------------------------------------------------
 set(MOS_INIT_PROGRAM \"MPDEMO.FLT\" CACHE STRING "Program which the init starts first.")
-set(MOS_INIT_PROGRAMS \"MPDEMO.FLT\" \"PROC1.FLT\" \"GUI0.FLT\")
+set(MOS_INIT_PROGRAMS \"MPDEMO.FLT\" \"PROC1.FLT\" \"GUI0.FLT\" \"HELLO.FLT\")
 set_property(CACHE MOS_INIT_PROGRAM PROPERTY STRINGS ${MOS_INIT_PROGRAMS})
 
 compile_lib(
