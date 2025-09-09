@@ -191,6 +191,22 @@ void div_zero_handler (InterruptFrame *frame)
     NORETURN();
 }
 
+#ifdef DEBUG
+EXCEPTION_HANDLER (invalid_opcode)
+__attribute__ ((noreturn)) void invalid_opcode_handler (InterruptFrame* frame)
+{
+    s_callPanic (frame, "%s", "Invalid opcode detected");
+    NORETURN();
+}
+
+EXCEPTION_HANDLER (breakpoint)
+__attribute__ ((noreturn)) void breakpoint_handler (InterruptFrame* frame)
+{
+    s_callPanic (frame, "%s", "Breakpoint triggered");
+    NORETURN();
+}
+#endif // DEBUG
+
 __attribute__ ((noreturn))
 static void s_callPanic(InterruptFrame *frame, char *fmt, ...)
 {
