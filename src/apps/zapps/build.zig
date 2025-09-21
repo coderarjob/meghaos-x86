@@ -1,11 +1,14 @@
 const std = @import("std");
 const Model = std.Target.Cpu.Model;
 
-const linker_script_path = "../../../src/kernel/x86/process.ld";
-const libcm_path = "../../../build-os/src/cm";
-const include_path = "../../../include/cm";
+pub fn build(b: *std.Build) !void {
+    const linker_script_path = b.option([]const u8, "LinkerScriptPath", "Absolute path to linker script") orelse ""; // Must provide 'LinkerScriptPath'
+    const libcm_path = b.option([]const u8, "LibCMPath", "Absolute path to libcm library") orelse ""; // Must provide 'LibCMPath'
+    const crt_path = b.option([]const u8, "CRTPath", "Absolute path to crt.o") orelse ""; // Must provide 'CRTPath'
+    const include_path = b.option([]const u8, "CInludePath", "Absolute path to C include root dir") orelse ""; // Must provide 'CInludePath'
 
-pub fn build(b: *std.Build) void {
+    // TODO: Check if the options were provided. If not fail the build.
+
     const i686_cpu_model = Model{
         .name = "i686",
         .llvm_name = "",
@@ -36,7 +39,7 @@ pub fn build(b: *std.Build) void {
 
     hello_exe.root_module.addLibraryPath(b.path(libcm_path));
     hello_exe.root_module.linkSystemLibrary("cm", .{});
-    hello_exe.addObjectFile(b.path("crta.o"));
+    hello_exe.addObjectFile(b.path(crt_path));
     hello_exe.addIncludePath(b.path(include_path));
 
     hello_exe.linker_script = b.path(linker_script_path);
@@ -45,4 +48,16 @@ pub fn build(b: *std.Build) void {
     hello_exe.entry = .{ .symbol_name = "proc_start" };
 
     b.installArtifact(hello_exe);
+
+    const output_path = try std.fs.path.join(b.allocator, &.{ b.install_path, "hello.flt" });
+    defer b.allocator.free(output_path);
+
+    const objcopy_run = b.addSystemCommand(&.{"objcopy"});
+    objcopy_run.addArg("-O");
+    objcopy_run.addArg("binary");
+    objcopy_run.addArg(b.getInstallPath(.bin, hello_exe.name));
+    objcopy_run.addArg(output_path);
+
+    objcopy_run.step.dependOn(b.getInstallStep());
+    b.default_step = &objcopy_run.step;
 }
