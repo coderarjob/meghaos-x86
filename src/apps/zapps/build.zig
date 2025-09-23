@@ -9,6 +9,11 @@ pub fn build(b: *std.Build) !void {
 
     // TODO: Check if the options were provided. If not fail the build.
 
+    const linker_script_rel_path = try std.fs.path.relative(b.allocator, ".", linker_script_path);
+    const libcm_rel_path = try std.fs.path.relative(b.allocator, ".", libcm_path);
+    const crt_rel_path = try std.fs.path.relative(b.allocator, ".", crt_path);
+    const include_rel_path = try std.fs.path.relative(b.allocator, ".", include_path);
+
     const i686_cpu_model = Model{
         .name = "i686",
         .llvm_name = "",
@@ -37,12 +42,12 @@ pub fn build(b: *std.Build) !void {
         }),
     });
 
-    hello_exe.root_module.addLibraryPath(b.path(libcm_path));
+    hello_exe.root_module.addLibraryPath(b.path(libcm_rel_path));
     hello_exe.root_module.linkSystemLibrary("cm", .{});
-    hello_exe.addObjectFile(b.path(crt_path));
-    hello_exe.addIncludePath(b.path(include_path));
+    hello_exe.addObjectFile(b.path(crt_rel_path));
+    hello_exe.addIncludePath(b.path(include_rel_path));
 
-    hello_exe.linker_script = b.path(linker_script_path);
+    hello_exe.linker_script = b.path(linker_script_rel_path);
     hello_exe.link_gc_sections = true;
     hello_exe.link_eh_frame_hdr = false;
     hello_exe.entry = .{ .symbol_name = "proc_start" };

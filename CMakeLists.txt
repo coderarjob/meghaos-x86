@@ -10,6 +10,7 @@ set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS ${CMAKE_ASM_NASM_SOURCE_FILE_EXTENSION
 #---------------------------------------------------------------------------
 
 project(MeghaOS-V2 C ASM_NASM)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if(CMAKE_CROSSCOMPILING)
     # Build options does not apply to Unittests. It enables/disables build options depending on the
