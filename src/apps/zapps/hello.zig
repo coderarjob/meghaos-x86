@@ -1,12 +1,12 @@
 const std = @import("std");
-const builtin = std.builtin;
 const cm = @cImport({
     @cInclude("cm.h");
 });
+pub const panic = std.debug.FullPanic(crash);
 
 const text = "Test application";
 
-pub fn panic(_: []const u8, _: ?*builtin.StackTrace, _: ?usize) noreturn {
+fn crash(_: []const u8, _: ?usize) noreturn {
     cm.cm_process_abort(cm.CM_ABORT_EXIT_CODE);
     while(true) {}
 }
