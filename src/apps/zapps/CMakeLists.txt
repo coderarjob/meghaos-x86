@@ -10,6 +10,7 @@ set(ZIG_BUILD_DEFINES
     -DLibCMPath=$<TARGET_FILE_DIR:cm>
     -DCRTPath=$<TARGET_OBJECTS:crta>
     -DCInludePath=${MOS_USER_GCC_INCLUDE_DIRS}
+    -DEntryPoint=${MOS_USER_APP_ENTRY_POINT}
 )
 
 add_custom_command(
@@ -21,7 +22,7 @@ add_custom_command(
         ${CMAKE_CURRENT_LIST_DIR}/zig-out/hello.flt
     COMMAND ${ZIG_EXECUTABLE} build ${ZIG_BUILD_OPTIONS} ${ZIG_BUILD_DEFINES}
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/zig-out/bin/hello ${MOS_OBJ_DIR}
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/zig-out/hello.flt ${MOS_BIN_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/zig-out/bin/hello.flt ${MOS_BIN_DIR}
     DEPENDS
         ${CMAKE_CURRENT_LIST_DIR}/hello.zig
         ${CMAKE_CURRENT_LIST_DIR}/build.zig

@@ -16,3 +16,4 @@ set(MOS_USER_GCC_INCLUDE_DIRS
 )
 
 set(MOS_USER_LINKER_SCRIPT_FILE ${PROJECT_SOURCE_DIR}/src/kernel/x86/process.ld)
+set(MOS_USER_APP_ENTRY_POINT proc_main)
