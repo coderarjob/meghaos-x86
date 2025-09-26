@@ -58,6 +58,7 @@ endif()
 #---------------------------------------------------------------------------
 
 include(cmake/compile_assemble_link.cmake)
+include(cmake/BuildZig.cmake)
 
 set(MOS_BIN_DIR                    ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR                    ${CMAKE_BINARY_DIR}/obj)
