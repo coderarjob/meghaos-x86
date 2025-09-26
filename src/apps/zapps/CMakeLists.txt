@@ -1,11 +1,15 @@
 find_package(Zig 0.15.1 EXACT REQUIRED)
 
+set(ZIG_COMMON_SOURCE_FILES
+    ${CMAKE_CURRENT_LIST_DIR}/build.zig
+    ${CMAKE_CURRENT_LIST_DIR}/mos_build.zig
+)
+
 add_zig_build(
     NAME hello
     OUTPUTS hello
     SOURCES
-        ${CMAKE_CURRENT_LIST_DIR}/build.zig
-        ${CMAKE_CURRENT_LIST_DIR}/MosBuild.zig
+        ${ZIG_COMMON_SOURCE_FILES}
         ${CMAKE_CURRENT_LIST_DIR}/hello.zig
     DEPENDS
         cm
