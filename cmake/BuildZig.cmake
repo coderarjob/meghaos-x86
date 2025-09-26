@@ -1,24 +1,23 @@
 # ==================================================================================================
 # add_zig_build (NAME name
-#              ZIG_BUILD_BIN_DIR <path>
-#              OUT_BIN_DIR       <path>
-#              OUT_OBJ_DIR       <path>
-#              OUTPUTS <output> [<outputs> ...]
 #              SOURCES <source> [<source> ...]
+#              OUTPUT  <zig build output file>    COPY_TO <copy output to this directory>
+#              [OUTPUT <zig build output file>    COPY_TO <copy output to this directory>]
 #              [DEPENDS <target> ...]
 #              [FLAGS <flag> ...]
-#              [DEFINITIONS <compiler macros> ...])
+#              [DEFINITIONS <compiler macros> ...]
+#              [WORKING_DIRECTORY <dir>])
 #
-# Invokes Zig build command build of output artifacts. These can be copied to some destination path.
+# Invokes `zig build` command to build output artifacts. These are then copied to some destination
+# directory. 
 #
-# ZIG_BUILD_BIN_DIR
-# Directory where zig builds the binaries.
+# OUTPUT
+# A file that the zig build generates. A matching `COPY_TO <dir>` will copy this file to `<dir>`
+# directory.
 # 
-# OUT_BIN_DIR
-# Destination directory where the FLT output file will be copied to.
-#
-# OUT_OBJ_DIR
-# Destination directory where the ELF output file will be copied to.
+# COPY_TO
+# Destination directory where the corresponding `OUTPUT` <file> will be copied to. Since each OUTPUT
+# and COPY_TO arguments are linked, their count must match.
 #
 # SOURCES
 # Zig source files which this build depends on. Zig build is triggered if any of these files is
@@ -32,10 +31,13 @@
 #
 # DEFINITIONS
 # Definitions/macros which are passed to the compiler.
+#
+# WORKING_DIRECTORY
+# Changes to the provided directory before `zig build` is run.
 # ==================================================================================================
 function(add_zig_build)
-    set(oneValueArgs NAME ZIG_BUILD_BIN_DIR OUT_BIN_DIR OUT_OBJ_DIR)
-    set(multiValueArgs OUTPUTS DEPENDS SOURCES FLAGS DEFINITIONS)
+    set(oneValueArgs NAME WORKING_DIRECTORY)
+    set(multiValueArgs OUTPUT COPY_TO DEPENDS SOURCES FLAGS DEFINITIONS)
     set(options)
 
     cmake_parse_arguments(PARSE_ARGV 0 ZBUILD "${options}" "${oneValueArgs}" "${multiValueArgs}")
@@ -51,64 +53,56 @@ function(add_zig_build)
         message(FATAL_ERROR "Name must be given.")
     endif()
 
-    if (NOT ZBUILD_ZIG_BUILD_BIN_DIR)
-        message(FATAL_ERROR "Output path for Zig build must be given.")
-    endif()
-
-    if (NOT ZBUILD_OUT_BIN_DIR)
-        message(FATAL_ERROR "Destination path where .flt files will get copied to must be given.")
-    endif()
-
-    if (NOT ZBUILD_OUT_OBJ_DIR)
-        message(FATAL_ERROR "Destination path where ELF files will get copied to must be given.")
-    endif()
-
     list(LENGTH ZBUILD_SOURCES SOURCE_LEN)
     if (NOT SOURCE_LEN)
         message(FATAL_ERROR "There must be at least one source file.")
     endif()
 
-    list(LENGTH ZBUILD_OUTPUTS OUTPUTS_LEN)
-    if (NOT OUTPUTS_LEN)
+    list(LENGTH ZBUILD_OUTPUT OUTPUT_LEN)
+    if (NOT OUTPUT_LEN)
         message(FATAL_ERROR "There must be at least one output file.")
     endif()
 
-    # -------------------------------------------------------------------------------------------
-    # Build the output list of destination files and source binary files
-    # -------------------------------------------------------------------------------------------
-    foreach(output IN LISTS ZBUILD_OUTPUTS)
-        list(APPEND DEST_OBJS ${ZBUILD_OUT_OBJ_DIR}/${output})
-        list(APPEND DEST_FLTS ${ZBUILD_OUT_BIN_DIR}/${output}.flt)
-        list(APPEND SRC_OBJS ${ZBUILD_ZIG_BUILD_BIN_DIR}/${output})
-        list(APPEND SRC_FLTS ${ZBUILD_ZIG_BUILD_BIN_DIR}/${output}.flt)
-    endforeach()
+    list(LENGTH ZBUILD_COPY_TO COPY_TO_LEN)
+    if (NOT COPY_TO_LEN EQUAL OUTPUT_LEN)
+        message(
+            FATAL_ERROR
+            "There must be as many COPY_TO arguments as there are OUTPUT arguments.")
+    endif()
 
+    if (NOT ZBUILD_WORKING_DIRECTORY)
+        set(ZBUILD_WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+    endif()
     # -------------------------------------------------------------------------------------------
-    # Command ot build the executable and copy to destination folders
+    # Command to build the executable and copy to destination folders
     # -------------------------------------------------------------------------------------------
     add_custom_command(
-        OUTPUT 
-            ${DEST_OBJS}
-            ${DEST_FLTS}
-        BYPRODUCTS
-            ${SRC_OBJS}
-            ${SRC_FLTS}
+        OUTPUT ${ZBUILD_OUTPUT}
         COMMAND ${ZIG_EXECUTABLE} build ${ZBUILD_FLAGS} ${ZBUILD_DEFINITIONS}
-        COMMAND ${CMAKE_COMMAND} -E copy ${SRC_OBJS} ${ZBUILD_OUT_OBJ_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy ${SRC_FLTS} ${ZBUILD_OUT_BIN_DIR}
         DEPENDS ${ZBUILD_SOURCES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        WORKING_DIRECTORY ${ZBUILD_WORKING_DIRECTORY}
     )
+
+    foreach(path IN ZIP_LISTS ZBUILD_OUTPUT ZBUILD_COPY_TO)
+        set(src_output_file ${path_0})
+        set(dest_output_dir ${path_1})
+
+        get_filename_component(src_output_filetitle ${src_output_file} NAME)
+        set(dest_output_file ${dest_output_dir}/${src_output_filetitle})
+
+        list(APPEND DESTINATION_OUTPUT_FILES ${dest_output_file})
+
+        add_custom_command(
+            OUTPUT ${dest_output_file}
+            COMMAND ${CMAKE_COMMAND} -E copy ${src_output_file} ${dest_output_file}
+            DEPENDS ${src_output_file}
+        )
+    endforeach()
 
     # -------------------------------------------------------------------------------------------
     # Custom target for other targets to depend on
     # -------------------------------------------------------------------------------------------
-    add_custom_target(
-        ${ZBUILD_NAME}
-        SOURCES
-            ${DEST_OBJS}
-            ${DEST_FLTS}
-    )
+    add_custom_target(${ZBUILD_NAME} SOURCES ${DESTINATION_OUTPUT_FILES})
 
     # -------------------------------------------------------------------------------------------
     # Add dependencies. So that they get build first
