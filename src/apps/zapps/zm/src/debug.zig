@@ -4,6 +4,6 @@ const cm = @cImport({
     @cInclude("debug.h");
 });
 
-pub fn console_writeline(msg: [*:0]const u8) void {
+pub inline fn console_writeline(msg: [*:0]const u8) void {
     cm.cm_putstr(@constCast(msg));
 }
