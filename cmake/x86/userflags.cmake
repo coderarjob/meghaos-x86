@@ -25,11 +25,8 @@ set(MOS_ZIG_BUILD_OPTIONS
     --prominent-compile-errors
 )
 
-if (MOS_BUILD_MODE STREQUAL "DEBUG")
-    list(APPEND MOS_ZIG_BUILD_OPTIONS -Doptimize=Debug)
-else()
-    list(APPEND MOS_ZIG_BUILD_OPTIONS -Doptimize=ReleaseSafe)
-endif()
+# Debug build fails because it produces an binary > 64k
+list(APPEND MOS_ZIG_BUILD_OPTIONS -Doptimize=ReleaseSafe)
 
 # ----------------------------------------------------
 # Zig Compiler Definitions
