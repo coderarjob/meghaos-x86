@@ -5,7 +5,7 @@
 DEFINE_FUNC_VOID(kpmm_arch_init, Bitmap *);
 DEFINE_FUNC(U64, kpmm_arch_getInstalledMemoryByteCount);
 
-void resetX86Pmm()
+void resetX86Pmm(void)
 {
     RESET_MOCK(kpmm_arch_init);
     RESET_MOCK(kpmm_arch_getInstalledMemoryByteCount);

@@ -15,9 +15,9 @@
 #include <x86/io.h>
 #include <utils.h>
 
-void kb_interrupt_asm_handler();
+void kb_interrupt_asm_handler(void);
 
-static bool iskeyboard()
+static bool iskeyboard(void)
 {
     INT type = 0;
     if ((type = ps2_identify_device (PS2_FIRST_DEVICE)) < 0) {
@@ -38,7 +38,7 @@ static bool iskeyboard()
     return true;
 }
 
-bool ps2_kb_init()
+bool ps2_kb_init(void)
 {
     FUNC_ENTRY();
 

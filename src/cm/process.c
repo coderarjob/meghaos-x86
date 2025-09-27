@@ -40,7 +40,7 @@ bool cm_process_register_event_handler (OSIF_ProcessEvents e, cm_event_handler h
 * Since its upto each process to read their events queue and handle them,
 * it is important that cm_process_handle_events() gets called regularly.
 **************************************************************************************************/
-bool cm_process_handle_events()
+bool cm_process_handle_events(void)
 {
     volatile OSIF_ProcessEvent e = { 0 };
     if (!cm_process_pop_event ((OSIF_ProcessEvent*)&e)) {
@@ -91,7 +91,7 @@ INT cm_process_create (const char* const filename, bool isKernelMode)
     return pid;
 }
 
-INT cm_thread_create (void (*startLocation)(), bool isKernelMode)
+INT cm_thread_create (void (*startLocation)(void), bool isKernelMode)
 {
     if (!startLocation) {
         CM_RETURN_ERROR (CM_ERR_INVALID_INPUT, CM_FAILURE);

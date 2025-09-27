@@ -9,5 +9,5 @@
 #include <types.h>
 
 void pcspeaker_set_freq (UINT freq);
-void pcspeaker_turnon();
-void pcspeaker_turnoff();
+void pcspeaker_turnon(void);
+void pcspeaker_turnoff(void);

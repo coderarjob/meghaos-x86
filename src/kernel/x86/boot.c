@@ -10,7 +10,7 @@
 #include <kdebug.h>
 #include <kstdlib.h>
 
-static BootLoaderInfo* kboot_getCurrentBootLoaderInfo()
+static BootLoaderInfo* kboot_getCurrentBootLoaderInfo(void)
 {
     k_assert (MEM_START_BOOT_INFO, "BOOT INFO LOCATION is invalid");
     BootLoaderInfo* mi = (BootLoaderInfo*)MEM_START_BOOT_INFO;
@@ -36,7 +36,7 @@ static void convert_to_f12_filename (const char* fn, char* out)
     }
 }
 
-U16 kboot_getBootFileItemCount()
+U16 kboot_getBootFileItemCount(void)
 {
     return kboot_getCurrentBootLoaderInfo()->filecount;
 }
@@ -68,7 +68,7 @@ BootFileItem kboot_findBootFileItem (const CHAR* const filename)
     NORETURN();
 }
 
-U16 kboot_getBootMemoryMapItemCount()
+U16 kboot_getBootMemoryMapItemCount(void)
 {
     return kboot_getCurrentBootLoaderInfo()->count;
 }
@@ -83,7 +83,7 @@ BootMemoryMapItem kboot_getBootMemoryMapItem (INT index)
     return bli->items[index];
 }
 
-ULLONG kboot_calculateInstalledMemory()
+ULLONG kboot_calculateInstalledMemory(void)
 {
     BootLoaderInfo* bli = kboot_getCurrentBootLoaderInfo();
 
@@ -96,12 +96,12 @@ ULLONG kboot_calculateInstalledMemory()
     return length_bytes;
 }
 
-BootGraphicsModeInfo kboot_getGraphicsModeInfo()
+BootGraphicsModeInfo kboot_getGraphicsModeInfo(void)
 {
     return kboot_getCurrentBootLoaderInfo()->gxInfo;
 }
 
-const U8* kboot_getFontData()
+const U8* kboot_getFontData(void)
 {
     return kboot_getCurrentBootLoaderInfo()->font_data;
 }

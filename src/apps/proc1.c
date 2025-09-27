@@ -1,9 +1,9 @@
 #include <types.h>
 #include <cm.h>
 
-void another_thread();
+void another_thread(void);
 
-void proc_main()
+void proc_main(void)
 {
     cm_putstr("\n  Process 0 - Running");
     cm_putstr("\n  Process 0 - Creating Thread 1");
@@ -20,7 +20,7 @@ void proc_main()
     cm_putstr("\n   Process 0 - Not exited. Its is the only one.");
 }
 
-void another_thread()
+void another_thread(void)
 {
     cm_putstr("\n  Thread 1 - Running");
     cm_putstr("\n  Thread 1 - Yielding");

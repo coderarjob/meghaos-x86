@@ -6,7 +6,7 @@ DEFINE_FUNC (ArchPageDirectoryEntry *, s_getPdeFromCurrentPd, UINT);
 DEFINE_FUNC (ArchPageTableEntry *, s_getPteFromCurrentPd, UINT);
 DEFINE_FUNC (void *, s_getLinearAddress, UINT, UINT, UINT);
 
-void resetPagingFake()
+void resetPagingFake(void)
 {
     RESET_MOCK (s_getPteFromCurrentPd);
     RESET_MOCK (s_getPdeFromCurrentPd);

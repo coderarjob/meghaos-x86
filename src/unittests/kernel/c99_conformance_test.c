@@ -27,11 +27,11 @@ TEST(types.h, type_sizes)
     END();
 }
 
-void yt_reset()
+void yt_reset(void)
 {
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
 

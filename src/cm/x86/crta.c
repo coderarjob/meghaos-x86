@@ -11,7 +11,7 @@
 
 // This is the entry point for all application processes.
 __attribute__ ((section (".entry.text")))
-void proc_start()
+void proc_start(void)
 {
     __asm__("call proc_main;");
     while (1)

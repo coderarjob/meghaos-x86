@@ -8,7 +8,7 @@
 DEFINE_FUNC_FALLBACK (void *, kpg_temporaryMap, Physical);
 DEFINE_FUNC_VOID (kpg_temporaryUnmap);
 
-void resetPagingFake()
+void resetPagingFake(void)
 {
     RESET_MOCK (kpg_temporaryMap);
     RESET_MOCK (kpg_temporaryUnmap);

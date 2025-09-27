@@ -164,7 +164,7 @@ static void s_showQueueItems (ListNode* forward, bool directionForward)
 }
 #endif // DEBUG && PORT_E9_ENABLED
 
-static KProcessInfo* s_dequeue()
+static KProcessInfo* s_dequeue(void)
 {
     s_showQueueItems (&schedulerQueueHead, false);
 
@@ -558,7 +558,7 @@ static void change_parent_process (KProcessInfo* const p, KProcessInfo* const pa
     list_add_before (&p->parent->childrenListHead, &p->childrenListNode);
 }
 
-void kprocess_init()
+void kprocess_init(void)
 {
     list_init (&schedulerQueueHead);
 }
@@ -770,17 +770,17 @@ bool kprocess_exit (U8 exitCode, bool destroyContext)
     return (ret == true);
 }
 
-VMemoryManager* kprocess_getCurrentContext()
+VMemoryManager* kprocess_getCurrentContext(void)
 {
     return (currentProcess == NULL) ? g_kstate.context : currentProcess->context;
 }
 
-UINT kprocess_getCurrentPID()
+UINT kprocess_getCurrentPID(void)
 {
     return (currentProcess == NULL) ? PROCESS_ID_KERNEL : currentProcess->processID;
 }
 
-KProcessSections* kprocess_getCurrentProcessDataSection()
+KProcessSections* kprocess_getCurrentProcessDataSection(void)
 {
     return (currentProcess == NULL) ? NULL : &currentProcess->data;
 }
@@ -833,7 +833,7 @@ bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData)
     return true;
 }
 
-void kprocess_syncPD()
+void kprocess_syncPD(void)
 {
     FUNC_ENTRY();
 

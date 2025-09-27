@@ -24,12 +24,12 @@ static IdtDescriptor *s_idt;
 
 /* -------------------------------------------------------------------------*/
 /* Local Function */
-static void s_idt_write ();
+static void s_idt_write (void);
 /* -------------------------------------------------------------------------*/
 
 /* Set all bytes to zero, for all the 256 IDT entries */
 void
-kidt_init ()
+kidt_init (void)
 {
     FUNC_ENTRY();
 
@@ -43,7 +43,7 @@ kidt_init ()
 /* Edits an IDT descriptor */
 void
 kidt_edit (INT                index,
-           void             (*func)(),
+           void             (*func)(void),
            U16                seg_selector,
            IDTDescriptorTypes type,
            U8                 dpl)
@@ -64,7 +64,7 @@ kidt_edit (INT                index,
 
 /* Writes the IDT structure address and length to the IDTR register.  */
 static void
-s_idt_write ()
+s_idt_write (void)
 {
     volatile IdtMeta idt_size_and_loc =
     {

@@ -47,12 +47,12 @@ typedef struct BootGraphicsModeInfo {
     const U16 bytesPerScanLine;
 } __attribute__ ((packed)) BootGraphicsModeInfo;
 
-U16 kboot_getBootFileItemCount();
+U16 kboot_getBootFileItemCount(void);
 BootFileItem kboot_getBootFileItem (INT index);
 BootFileItem kboot_findBootFileItem (const CHAR* const filename);
 BootMemoryMapItem kboot_getBootMemoryMapItem (INT index);
-U16 kboot_getBootMemoryMapItemCount();
-ULLONG kboot_calculateInstalledMemory();
+U16 kboot_getBootMemoryMapItemCount(void);
+ULLONG kboot_calculateInstalledMemory(void);
 
-BootGraphicsModeInfo kboot_getGraphicsModeInfo();
-const U8* kboot_getFontData();
+BootGraphicsModeInfo kboot_getGraphicsModeInfo(void);
+const U8* kboot_getFontData(void);

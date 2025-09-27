@@ -58,9 +58,9 @@ void kgraphics_image_raw (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h
                          U8* bytes);
 void kgraphics_drawfont (const KGraphicsArea* g, UINT x, UINT y, UCHAR a, Color fg, Color bg);
 void kgraphics_putpixel (const KGraphicsArea* g, UINT x, UINT y, Color color);
-void kgraphis_flush();
+void kgraphis_flush(void);
 void kgraphics_blit (const KGraphicsArea* destg, UINT x, UINT y, const KGraphicsArea* srcg);
-bool kgraphics_init();
+bool kgraphics_init(void);
 void kgraphics_drawstring (const KGraphicsArea* g, UINT x, UINT y, const char* text, Color fg,
                            Color bg);
 

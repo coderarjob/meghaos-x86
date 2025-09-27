@@ -44,7 +44,7 @@
 static UINT row, column, crtc_flags, text_attr;
 static U16 *vgab;
 
-static void s_updateCursor ();
+static void s_updateCursor (void);
 
 /***************************************************************************************************
  * Sets or gets display attributes.
@@ -104,7 +104,7 @@ error_invalid_range:
  *
  * @returns     Nothing
  **************************************************************************************************/
-void kdisp_init ()
+void kdisp_init (void)
 { 
     vgab = (U16 *)MEM_START_VGA_TEXT;
     // ------------------------------------------------------------
@@ -153,7 +153,7 @@ void kdisp_init ()
  *
  * @returns     Nothing
  **************************************************************************************************/
-void kdisp_scrollDown ()
+void kdisp_scrollDown (void)
 {
     // Copy 2nd line to the 1st line and so on until the 2nd last line.
     U16 *p = vgab,                           // Word copied to
@@ -179,7 +179,7 @@ void kdisp_scrollDown ()
  * Updates VGA text mode cursor depending on the global row and column variables.
  * @returns     Nothing
  **************************************************************************************************/
-static void s_updateCursor ()
+static void s_updateCursor (void)
 {
     // Set the cursor location.
     UINT index = row * VGA_COLUMNS + column;

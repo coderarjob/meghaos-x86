@@ -62,8 +62,8 @@ void ksys_find_bootloaded_file (SystemcallFrame frame, const char* const filenam
                                 OSIF_BootLoadedFiles* const file);
 #endif // ARCH = x86
 
-static U32 s_getSysCallCount();
-static INT s_handleInvalidSystemCall();
+static U32 s_getSysCallCount(void);
+static INT s_handleInvalidSystemCall(void);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
@@ -214,11 +214,11 @@ __asm__(
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
-static U32 s_getSysCallCount()
+static U32 s_getSysCallCount(void)
 {
     return ARRAY_LENGTH (g_syscall_table);
 }
-static INT s_handleInvalidSystemCall()
+static INT s_handleInvalidSystemCall(void)
 {
     RETURN_ERROR (ERR_INVALID_SYSCALL, KERNEL_EXIT_FAILURE);
 }

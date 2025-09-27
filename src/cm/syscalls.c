@@ -28,7 +28,7 @@ S32 syscall (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U32 arg5)
     return retval;
 }
 
-UINT cm_get_tick_period_us()
+UINT cm_get_tick_period_us(void)
 {
     return CONFIG_TICK_PERIOD_MICROSEC;
 }

@@ -9,7 +9,7 @@ DEFINE_FUNC (U16,kboot_getBootMemoryMapItemCount);
 DEFINE_FUNC (ULLONG,kboot_calculateInstalledMemory);
 DEFINE_FUNC (BootGraphicsModeInfo,kboot_getGraphicsModeInfo);
 
-void resetBootFake()
+void resetBootFake(void)
 {
     RESET_MOCK (kboot_getBootFileItemCount);
     RESET_MOCK (kboot_getBootFileItem);

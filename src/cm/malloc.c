@@ -38,7 +38,7 @@ ListNode s_freeHead, s_allocHead, s_adjHead;
  *
  * @return    None
  **************************************************************************************************/
-void cm_malloc_init()
+void cm_malloc_init(void)
 {
     CM_DBG_FUNC_ENTRY();
 

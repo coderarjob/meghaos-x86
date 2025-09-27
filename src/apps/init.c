@@ -14,7 +14,7 @@ static void init_child_killed (OSIF_ProcessEvent const* const e)
     (void)e;
 }
 
-void proc_main()
+void proc_main(void)
 {
     cm_process_register_event_handler (OSIF_PROCESS_EVENT_PROCCESS_CHILD_KILLED, init_child_killed);
 

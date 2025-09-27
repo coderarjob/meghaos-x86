@@ -200,14 +200,14 @@ TEST(MEM, memset_normal)
     END();
 }
 
-void yt_reset()
+void yt_reset(void)
 {
 #ifndef LIBCM
     resetPagingFake();
 #endif
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     memset_one_byte();

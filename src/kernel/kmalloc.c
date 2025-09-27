@@ -45,7 +45,7 @@ ListNode s_freeHead, s_allocHead, s_adjHead;
  *
  * @return    None
  **************************************************************************************************/
-void kmalloc_init()
+void kmalloc_init(void)
 {
     FUNC_ENTRY();
 
@@ -158,7 +158,7 @@ bool kfree (void* addr)
  *
  * @return          Amount of allocated memory in bytes.
  **************************************************************************************************/
-SIZE kmalloc_getUsedMemory()
+SIZE kmalloc_getUsedMemory(void)
 {
     FUNC_ENTRY();
 

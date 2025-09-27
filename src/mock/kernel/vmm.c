@@ -5,7 +5,7 @@
 DEFINE_FUNC (PTR, kvmm_memmap, VMemoryManager* , PTR , Physical const* const, SIZE,
                  VMemoryMemMapFlags , Physical* const );
 
-void resetVMMFake()
+void resetVMMFake(void)
 {
     RESET_MOCK(kvmm_memmap);
 }

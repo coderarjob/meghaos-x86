@@ -85,7 +85,7 @@ static void s_markFreeMemory (Bitmap *bitmap)
  *
  * @return          Amount of installed RAM size in bytes.
  **************************************************************************************************/
-U64 kpmm_arch_getInstalledMemoryByteCount ()
+U64 kpmm_arch_getInstalledMemoryByteCount (void)
 {
     FUNC_ENTRY();
 

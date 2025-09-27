@@ -37,7 +37,7 @@ void cm_delay (UINT ms)
  *
  * @return      Last libcm error
  **************************************************************************************************/
-uint32_t cm_get_lib_error()
+uint32_t cm_get_lib_error(void)
 {
     return cm_error_num;
 }

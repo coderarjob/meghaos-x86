@@ -52,14 +52,14 @@ typedef enum PagingOperationFlags {
 // A linear address to corresponding number of page frames.
 #define PHYSICAL_TO_PAGEFRAME(addr) (BYTES_TO_PAGEFRAMES_FLOOR (addr))
 
-PageDirectory kpg_getcurrentpd();
+PageDirectory kpg_getcurrentpd(void);
 bool kpg_mapContinous (PageDirectory pd, PTR vaStart, Physical paStart, SIZE numPages,
                        PagingMapFlags flags);
 bool kpg_map (PageDirectory pd, PTR va, Physical pa, PagingMapFlags flags);
 bool kpg_unmapContinous (PageDirectory pd, PTR vaStart, SIZE numPages);
 bool kpg_unmap (PageDirectory pd, PTR va);
 void* kpg_temporaryMap (Physical pa);
-void kpg_temporaryUnmap();
+void kpg_temporaryUnmap(void);
 bool kpg_doesMappingExists (PageDirectory pd, PTR va, Physical* pa);
 bool kpg_setupPageDirectory (Physical* const pd, PagingOperationFlags flags,
                              Physical const* const kernelPD);

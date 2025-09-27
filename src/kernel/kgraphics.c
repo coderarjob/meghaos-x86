@@ -33,10 +33,10 @@ typedef struct GraphicsInfo {
 static GraphicsInfo gxi;
 static PTR framebuffer;
 
-static GraphicsInfo arch_getGraphicsModeInfo();
+static GraphicsInfo arch_getGraphicsModeInfo(void);
 static void draw_cursor (const KGraphicsArea* g);
 #if ARCH == x86
-static void arch_waitForNextVerticalRetrace();
+static void arch_waitForNextVerticalRetrace(void);
 #endif
 
 #if CONFIG_GXMODE_FONT_WIDTH == 8
@@ -45,7 +45,7 @@ U32 glyph_mask[] = { 1 << 7, 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 2, 1 << 1, 1 <
 #endif
 
 #if ARCH == x86
-static GraphicsInfo arch_getGraphicsModeInfo()
+static GraphicsInfo arch_getGraphicsModeInfo(void)
 {
     FUNC_ENTRY();
     BootGraphicsModeInfo gmi = kboot_getGraphicsModeInfo();
@@ -67,7 +67,7 @@ static GraphicsInfo arch_getGraphicsModeInfo()
     return gxi;
 }
 
-static void arch_waitForNextVerticalRetrace()
+static void arch_waitForNextVerticalRetrace(void)
 {
     // Wait for the ongoing Vertical Retrace to end.
     while (ioread (0x3DA) & 0x8)
@@ -205,7 +205,7 @@ void kgraphics_rect (const KGraphicsArea* g, UINT x, UINT y, UINT w, UINT h, Col
     }
 }
 
-bool kgraphics_init()
+bool kgraphics_init(void)
 {
     FUNC_ENTRY();
 
@@ -247,7 +247,7 @@ bool kgraphics_init()
     return true;
 }
 
-void kgraphis_flush()
+void kgraphis_flush(void)
 {
     if (g_kstate.phase < KERNEL_PHASE_STATE_GRAPHICS_READY) {
         return; // Graphics mode is not ready

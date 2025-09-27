@@ -48,8 +48,8 @@ typedef enum KernelDebugLogType {
         } DisplayControls;
 
         INT kdisp_ioctl (INT request, ...);
-        void kdisp_scrollDown();
-        void kdisp_init();
+        void kdisp_scrollDown(void);
+        void kdisp_init(void);
         void kdisp_putc (CHAR c);
     #endif
     INT kearly_printf (const CHAR* fmt, ...);

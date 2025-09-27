@@ -27,14 +27,14 @@ typedef struct MouseStatus {
     U8 sample_rate;
 } MouseStatus;
 
-void ps2_mouse_interrupt_asm_handler();
-static bool ismouse();
-static MouseStatus get_mouse_state();
+void ps2_mouse_interrupt_asm_handler(void);
+static bool ismouse(void);
+static MouseStatus get_mouse_state(void);
 
 static MousePositionData mouse_position  = { 0 };
 static MouseStatus mouse_status_original = { 0 };
 
-static bool ismouse()
+static bool ismouse(void)
 {
     INT type = 0;
     if ((type = ps2_identify_device (PS2_SECOND_DEVICE)) < 0) {
@@ -53,7 +53,7 @@ static bool ismouse()
     return true;
 }
 
-static MouseStatus get_mouse_state()
+static MouseStatus get_mouse_state(void)
 {
     MouseStatus status = { 0 };
 
@@ -68,7 +68,7 @@ static MouseStatus get_mouse_state()
     return status;
 }
 
-bool ps2_mouse_init()
+bool ps2_mouse_init(void)
 {
     FUNC_ENTRY();
 
@@ -122,7 +122,7 @@ bool ps2_mouse_init()
     return true;
 }
 
-MousePositionData ps2_mouse_get_packet()
+MousePositionData ps2_mouse_get_packet(void)
 {
     return mouse_position;
 }

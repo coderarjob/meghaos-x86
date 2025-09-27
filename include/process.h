@@ -67,13 +67,13 @@ typedef struct KProcessInfo {
     ProcessRegisterState* registerStates;
 } KProcessInfo;
 
-void kprocess_init();
+void kprocess_init(void);
 INT kprocess_create (void* processStartAddress, SIZE binLengthBytes, KProcessFlags flags);
 bool kprocess_yield (ProcessRegisterState* currentState);
 bool kprocess_exit (U8 exitCode, bool destroyContext);
-VMemoryManager* kprocess_getCurrentContext();
-UINT kprocess_getCurrentPID();
+VMemoryManager* kprocess_getCurrentContext(void);
+UINT kprocess_getCurrentPID(void);
 bool kprocess_popEvent (UINT pid, KProcessEvent* ev);
 bool kprocess_pushEvent (UINT pid, UINT eventID, UINT eventData);
-KProcessSections* kprocess_getCurrentProcessDataSection();
-void kprocess_syncPD();
+KProcessSections* kprocess_getCurrentProcessDataSection(void);
+void kprocess_syncPD(void);

@@ -4,9 +4,9 @@
 #include <graphics.h>
 #include <debug.h>
 
-void thread0();
-void thread1();
-void thread2();
+void thread0(void);
+void thread1(void);
+void thread2(void);
 
 static OSIF_WindowFrameBufferInfo createWindow (const char* const title)
 {
@@ -50,7 +50,7 @@ static void repaint_on_yield (OSIF_ProcessEvent const* const e)
     cm_window_flush_graphics();
 }
 
-void proc_main()
+void proc_main(void)
 {
     cm_window_flush_graphics();
     cm_thread_create (&thread0, false);
@@ -64,7 +64,7 @@ void proc_main()
     }
 }
 
-void thread0()
+void thread0(void)
 {
     OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 1");
     int value                      = 1;
@@ -82,7 +82,7 @@ void thread0()
     }
 }
 
-void thread1()
+void thread1(void)
 {
     OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 2");
     int value                      = 10;
@@ -100,7 +100,7 @@ void thread1()
     }
 }
 
-void thread2()
+void thread2(void)
 {
     OSIF_WindowFrameBufferInfo fbi = createWindow ("gui0 - Window 3");
     int value                      = 1;

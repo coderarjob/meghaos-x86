@@ -52,7 +52,7 @@
 #define PS2_FIRST_DEVICE                         (0U)
 #define PS2_SECOND_DEVICE                        (1U)
 
-bool ps2_init();
+bool ps2_init(void);
 bool ps2_wait_read (UINT ioport, U8* data);
 bool ps2_wait_write (UINT ioport, U8 data);
 void ps2_write_device_data_no_ack (UINT device_id, U8 data);

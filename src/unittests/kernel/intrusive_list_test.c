@@ -329,9 +329,9 @@ TEST (LIST, list_item_retrival)
     END();
 }
 
-void yt_reset() {}
+void yt_reset(void) {}
 
-int main()
+int main(void)
 {
     YT_INIT();
     single_node();

@@ -17,7 +17,7 @@ uint32_t cm_error_num;
 
 /* Panic handler */
 bool cm_panic_invoked;
-void cm_unittest_panic_handler()
+void cm_unittest_panic_handler(void)
 {
     cm_panic_invoked = true;
 }

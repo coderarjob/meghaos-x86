@@ -7,7 +7,7 @@ DEFINE_FUNC(bool, bitmap_setContinous, Bitmap *, UINT, UINT, BitmapState);
 DEFINE_FUNC(INT, bitmap_findContinous, Bitmap *, BitmapState, UINT);
 DEFINE_FUNC(bool, bitmap_findContinousAt, Bitmap *, BitmapState, UINT, UINT);
 
-void resetBitmapFake()
+void resetBitmapFake(void)
 {
     RESET_MOCK(bitmap_get);
     RESET_MOCK(bitmap_setContinous);

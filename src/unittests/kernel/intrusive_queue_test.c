@@ -129,12 +129,12 @@ TEST (queue, enqueue_dequeue_object)
     END();
 }
 
-void yt_reset()
+void yt_reset(void)
 {
     list_init (&head);
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     dequeue_empty_queue();

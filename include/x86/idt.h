@@ -23,11 +23,11 @@ typedef struct IdtDescriptor IdtDescriptor;
 typedef struct IdtMeta IdtMeta;
 
 /* Fills the IDT table with zeros, and setup the IDTR register */
-void kidt_init ();
+void kidt_init (void);
 
 /* Edits an IDT descriptor */
 void kidt_edit (INT                index,
-                void             (*func)(),
+                void             (*func)(void),
                 U16                seg_selector,
                 IDTDescriptorTypes type,
                 U8                 dpl);

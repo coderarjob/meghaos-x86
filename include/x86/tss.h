@@ -10,6 +10,6 @@
 #include <buildcheck.h>
 
 /* Initializes the tss_entry structure, installs a tss segment in GDT */
-void ktss_init  ();
+void ktss_init  (void);
 
 #endif // TSS_H_X86
