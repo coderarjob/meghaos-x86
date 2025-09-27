@@ -19,12 +19,12 @@ TEST(PMM, actual_accessable_ram)
     END();
 }
 
-void yt_reset()
+void yt_reset(void)
 {
     resetBootFake();
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     actual_accessable_ram();

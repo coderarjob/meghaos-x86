@@ -33,7 +33,7 @@ static void** getObjectPtr (Handle h)
     return &handles[h];
 }
 
-void khandle_init()
+void khandle_init(void)
 {
     FUNC_ENTRY();
 

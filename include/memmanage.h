@@ -23,15 +23,15 @@ typedef struct KMallocHeader
     ListNode allocnode; /// A node in the Allocation list
 } KMallocHeader;
 
-void ksalloc_init();
+void ksalloc_init(void);
 void* ksalloc (UINT bytes);
 void* kscalloc (UINT bytes);
-SIZE ksalloc_getUsedMemory();
+SIZE ksalloc_getUsedMemory(void);
 
 void* kmalloc (size_t bytes);
 void* kmallocz (size_t bytes);
 bool kfree (void* addr);
-void kmalloc_init();
-SIZE kmalloc_getUsedMemory();
+void kmalloc_init(void);
+SIZE kmalloc_getUsedMemory(void);
 
 #endif // MEMMANAGE_H

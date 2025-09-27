@@ -12,7 +12,7 @@ DEFINE_FUNC_FALLBACK(bool, kpmm_allocAt, Physical, UINT, KernelPhysicalMemoryReg
 DEFINE_FUNC(size_t,  kpmm_getFreeMemorySize);
 DEFINE_FUNC(USYSINT, kpmm_getUsableMemorySize, KernelPhysicalMemoryRegions);
 
-void resetPmm()
+void resetPmm(void)
 {
     RESET_MOCK(kpmm_init);
     RESET_MOCK(kpmm_free);

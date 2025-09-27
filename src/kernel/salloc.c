@@ -25,7 +25,7 @@ static PTR s_start  = 0;    // Points to the start salloc buffer.
  *
  * @return    None
  **************************************************************************************************/
-void ksalloc_init()
+void ksalloc_init(void)
 {
     FUNC_ENTRY();
     s_start = (PTR)ARCH_MEM_START_SALLOC;
@@ -103,7 +103,7 @@ void* kscalloc (UINT bytes)
  *
  * @return          Amount of allocated memory in bytes.
  **************************************************************************************************/
-SIZE ksalloc_getUsedMemory()
+SIZE ksalloc_getUsedMemory(void)
 {
     FUNC_ENTRY();
 

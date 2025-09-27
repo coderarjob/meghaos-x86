@@ -61,4 +61,4 @@ typedef enum KernelEvents {
 #define KERNEL_TICK_COUNT_TO_MICROSEC(tick) ((U64)(tick) * (U64)CONFIG_TICK_PERIOD_MICROSEC)
 
 void k_delay (UINT ms);
-void keventmanager_invoke();
+void keventmanager_invoke(void);

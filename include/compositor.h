@@ -43,7 +43,7 @@ typedef struct Window {
 // Window grid coordiate of rows and columns to Window grid index
 #define WINMAN_WININDEX_FROM_CELL_POS(r, c) (r * WINMAN_GRID_COLS_MAX + c)
 
-void kcompose_init();
-void kcompose_flush();
+void kcompose_init(void);
+void kcompose_flush(void);
 Window* kcompose_createWindow (const char* const title);
 bool kcompose_destroyWindow (Window* win);

@@ -29,7 +29,7 @@ static          U16            s_gdt_count = MIN_GDT_INDEX;
 
 /* Writes the GDT structure address and length to the GDTR register.  */
 void
-kgdt_write ()
+kgdt_write (void)
 {
     FUNC_ENTRY();
 

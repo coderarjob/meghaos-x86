@@ -30,8 +30,8 @@ bool all_child_exited = false;
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text);
 static void s_progressbar (UINT iterPerStep, char* title, UINT row, UINT color);
-static void thread0();
-static void thread1();
+static void thread0(void);
+static void thread1(void);
 
 static void s_printString (U32 row, U32 col, U32 bgcolor, U32 fgcolor, char* text)
 {
@@ -64,14 +64,14 @@ static void count_child_exits (OSIF_ProcessEvent const* const e)
     }
 }
 
-static void wait_for_all_child_exit()
+static void wait_for_all_child_exit(void)
 {
     while (!all_child_exited) {
         cm_process_handle_events();
     }
 }
 
-void proc_main()
+void proc_main(void)
 {
     cm_thread_create (thread0, false);
     cm_thread_create (thread1, false);
@@ -86,13 +86,13 @@ void proc_main()
     cm_process_kill(1);
 }
 
-void thread0()
+void thread0(void)
 {
     s_progressbar (10, "Thread 0:\n", 30, GREEN);
     cm_process_kill(2);
 }
 
-void thread1()
+void thread1(void)
 {
     s_progressbar (2, "Thread 1:\n", 34, YELLOW);
     cm_process_kill(3);

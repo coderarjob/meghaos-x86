@@ -95,16 +95,16 @@ extern void *g_syscall_table[];
             "add esp, 4\n"                                                \
             "iret\n");
 
-void sys_dummy_asm_handler ();
-void page_fault_asm_handler ();
-void page_fault_asm_handler ();
-void double_fault_asm_handler();
-void general_protection_fault_asm_handler ();
-void div_zero_asm_handler ();
-void syscall_asm_despatcher ();
-void timer_interrupt_asm_handler();
-void irq_7_asm_handler();
-void irq_15_asm_handler();
+void sys_dummy_asm_handler (void);
+void page_fault_asm_handler (void);
+void page_fault_asm_handler (void);
+void double_fault_asm_handler(void);
+void general_protection_fault_asm_handler (void);
+void div_zero_asm_handler (void);
+void syscall_asm_despatcher (void);
+void timer_interrupt_asm_handler(void);
+void irq_7_asm_handler(void);
+void irq_15_asm_handler(void);
 #ifdef DEBUG
 void invalid_opcode_asm_handler(void);
 void breakpoint_asm_handler(void);

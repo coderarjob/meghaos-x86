@@ -58,7 +58,7 @@ static struct tss *tss_entry = NULL;
 
 /* Initializes the tss_entry structure, 
  * installs a tss segment in GDT and writes to the Task Register*/
-void ktss_init ()
+void ktss_init (void)
 {
     FUNC_ENTRY();
 

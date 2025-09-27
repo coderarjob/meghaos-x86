@@ -26,15 +26,15 @@ typedef enum KernelPhysicalMemoryStates {
     PMM_STATE_INVALID
 } KernelPhysicalMemoryStates;
 
-void kpmm_init ();
+void kpmm_init (void);
 void kpmm_arch_init (Bitmap *bitmap);
 
 bool kpmm_free (Physical startAddress, UINT pageCount);
 bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions reg);
 bool kpmm_allocAt (Physical start, UINT pageCount, KernelPhysicalMemoryRegions reg);
 
-size_t kpmm_getFreeMemorySize ();
-U64 kpmm_arch_getInstalledMemoryByteCount ();
+size_t kpmm_getFreeMemorySize (void);
+U64 kpmm_arch_getInstalledMemoryByteCount (void);
 USYSINT kpmm_getUsableMemorySize (KernelPhysicalMemoryRegions reg);
 KernelPhysicalMemoryStates kpmm_getPageStatus(Physical phy);
 #endif // PMM_H_X86

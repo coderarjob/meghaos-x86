@@ -25,9 +25,9 @@ typedef enum CMErrors {
     CM_ERR_OUT_OF_HEAP_MEM                  = 102,
 } CMErrors;
 
-uint32_t cm_get_lib_error();
+uint32_t cm_get_lib_error(void);
 
-static inline uint32_t cm_get_os_error()
+static inline uint32_t cm_get_os_error(void)
 {
     return (uint32_t)syscall (OSIF_SYSCALL_GET_OS_ERROR, 0, 0, 0, 0, 0);
 }

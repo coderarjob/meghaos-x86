@@ -55,7 +55,7 @@ static void set_pab (U8 *const pab, USYSINT start, UINT pgCount, KernelPhysicalM
  * 4. Some pages are free                | Success                      | allocAt_success
  */
 
-static void init_pab()
+static void init_pab(void)
 {
     // Clear PAB.
     set_pab (pab, 0, MAX_PAB_ADDRESSABLE_PAGE_COUNT, PMM_STATE_INVALID);
@@ -273,7 +273,7 @@ static void validate_pab (const U8 *pab, USYSINT addr, KernelPhysicalMemoryState
     EQ_SCALAR (state, (pab[byte] & (1U << bit)) >> bit);
 }
 
-void yt_reset()
+void yt_reset(void)
 {
     panic_invoked = false;
     g_kstate.errorNumber = ERR_NONE;
@@ -285,7 +285,7 @@ void yt_reset()
     init_pab();
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     // Will just set pointer `s_pab` to point to `pab` buffer defined here. No allocation or

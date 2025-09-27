@@ -16,7 +16,7 @@ void pcspeaker_set_freq (UINT freq)
     pit_set_speaker_counter (freq);
 }
 
-void pcspeaker_turnon()
+void pcspeaker_turnon(void)
 {
     FUNC_ENTRY();
 
@@ -25,7 +25,7 @@ void pcspeaker_turnon()
     ps2_wait_write (PS2_SPEAKER_PORT, data);
 }
 
-void pcspeaker_turnoff()
+void pcspeaker_turnoff(void)
 {
     FUNC_ENTRY();
     U8 data = ps2_no_wait_read (PS2_SPEAKER_PORT);

@@ -34,7 +34,7 @@
     (wa->height_px - (WINDOW_TITLE_BAR_HEIGHT_PX + WINDOW_BORDER_WIDTH_PX))
 #define WINDOW_WORKING_AREA_WIDTH_PX(wa) (wa->width_px - (2 * WINDOW_BORDER_WIDTH_PX))
 
-static SIZE getWindowAreaSizeBytes()
+static SIZE getWindowAreaSizeBytes(void)
 {
     return WINMAN_GRID_CELL_WIDTH_PX() * WINMAN_GRID_CELL_HEIGHT_PX() *
            g_kstate.gx_backfb.bytesPerPixel;
@@ -147,7 +147,7 @@ static void destory_window (Window* win)
     }
 }
 
-void kcompose_init()
+void kcompose_init(void)
 {
     FUNC_ENTRY();
 
@@ -203,7 +203,7 @@ Window* kcompose_createWindow (const char* const title)
     return newwin;
 }
 
-void kcompose_flush()
+void kcompose_flush(void)
 {
     FUNC_ENTRY();
 

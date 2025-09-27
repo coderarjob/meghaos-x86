@@ -87,7 +87,7 @@ static UINT kpmm_getUsableMemoryPagesCount(KernelPhysicalMemoryRegions reg)
  * @return nothing
  * @error   Panics if called after initialization.
  **************************************************************************************************/
-void kpmm_init ()
+void kpmm_init (void)
 {
     FUNC_ENTRY();
 
@@ -251,7 +251,7 @@ bool kpmm_alloc (Physical *address, UINT pageCount, KernelPhysicalMemoryRegions 
  * @return      Free memory size in bytes.
  * @error       Panics if called before initialization.
  **************************************************************************************************/
-size_t kpmm_getFreeMemorySize ()
+size_t kpmm_getFreeMemorySize (void)
 {
     FUNC_ENTRY();
 

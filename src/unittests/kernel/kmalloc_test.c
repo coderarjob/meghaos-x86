@@ -347,7 +347,7 @@ S32 syscall_handler (OSIF_SYSCALLS fn, U32 arg1, U32 arg2, U32 arg3, U32 arg4, U
 }
 #endif
 
-void yt_reset()
+void yt_reset(void)
 {
 #ifdef LIBCM
     syscall_fake.handler                = syscall_handler;
@@ -360,7 +360,7 @@ void yt_reset()
     MALLOC_INIT_FN_UNDER_TEST();
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     allocation_space_available();

@@ -13,7 +13,7 @@
 
 #define INVALID_HANDLE KERNEL_EXIT_FAILURE
 
-void khandle_init();
+void khandle_init(void);
 Handle khandle_createHandle (void* obj);
 bool khandle_freeHandle (Handle h);
 void* khandle_getObject (Handle h);

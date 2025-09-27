@@ -41,6 +41,6 @@ typedef struct GdtMeta GdtMeta;
 void kgdt_edit (U16 gdt_index, U32 base, U32 limit, U8  access, U8  flags);
 
 /* Writes the GDT structure address and length to the GDTR register.  */
-void kgdt_write ();
+void kgdt_write (void);
 
 #endif // GDT_H_X86

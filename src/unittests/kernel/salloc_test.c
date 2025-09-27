@@ -95,7 +95,7 @@ TEST (ksalloc, get_used_memory)
     END();
 }
 
-void yt_reset()
+void yt_reset(void)
 {
     g_kstate.errorNumber = ERR_NONE;
 
@@ -104,7 +104,7 @@ void yt_reset()
     ksalloc_init();
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     small_allocations_success();

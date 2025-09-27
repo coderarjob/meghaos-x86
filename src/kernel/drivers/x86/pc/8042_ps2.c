@@ -28,7 +28,7 @@ typedef struct PS2Device {
 
 PS2Device devices[DEVICE_COUNT];
 
-static bool ps2_canRead()
+static bool ps2_canRead(void)
 {
     // Wait for data to be in
     UINT i = 0, status = 0;
@@ -169,7 +169,7 @@ INT ps2_identify_device (UINT device_id)
     return (byte1 << 8U) | byte0;
 }
 
-bool ps2_init()
+bool ps2_init(void)
 {
     FUNC_ENTRY();
 

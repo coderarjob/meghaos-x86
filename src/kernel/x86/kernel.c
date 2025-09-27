@@ -49,16 +49,16 @@
 
 #define MPDEMO
 
-static void display_system_info ();
-static void s_initializeMemoryManagers ();
+static void display_system_info (void);
+static void s_initializeMemoryManagers (void);
 static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end);
-static void run_root_process();
+static void run_root_process(void);
 
 /* Kernel state global variable */
 volatile KernelStateInfo g_kstate;
 
 __attribute__ ((noreturn))
-void kernel_main ()
+void kernel_main (void)
 {
     FUNC_ENTRY();
 
@@ -188,7 +188,7 @@ void kernel_main ()
     k_halt();
 }
 
-void keventmanager_invoke()
+void keventmanager_invoke(void)
 {
     U64 us = KERNEL_TICK_COUNT_TO_MICROSEC (g_kstate.tick_count);
 
@@ -220,7 +220,7 @@ void k_delay (UINT ms)
         ;
 }
 
-static void run_root_process()
+static void run_root_process(void)
 {
     FUNC_ENTRY();
 
@@ -246,7 +246,7 @@ static void run_root_process()
     k_halt();
 }
 
-void display_system_info()
+void display_system_info(void)
 {
     FUNC_ENTRY();
 
@@ -322,7 +322,7 @@ static SIZE s_getPhysicalBlockPageCount (Physical pa, Physical end)
  * @return nothing
  * @error   On failure, processor is halted.
  **************************************************************************************************/
-static void s_initializeMemoryManagers()
+static void s_initializeMemoryManagers(void)
 {
     FUNC_ENTRY();
 

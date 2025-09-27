@@ -207,11 +207,11 @@ TEST(snprintf, pointer_literal)
     END();
 }
 
-void yt_reset()
+void yt_reset(void)
 {
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     no_vargs();

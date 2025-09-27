@@ -4,7 +4,7 @@
 
 DEFINE_FUNC(void*, ksalloc,UINT);
 DEFINE_FUNC(void*, kscalloc,UINT);
-void reset_sallocFake()
+void reset_sallocFake(void)
 {
     RESET_MOCK(ksalloc);
     RESET_MOCK(kscalloc);

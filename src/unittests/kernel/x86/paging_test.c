@@ -429,7 +429,7 @@ TEST (paging, unmap_failure_va_not_aligned)
 
 void* k_memcpy_handler_fn (void* dest, const void* src, size_t n) { return memcpy (dest, src, n); }
 
-void yt_reset()
+void yt_reset(void)
 {
     panic_invoked = false;
     resetPagingFake();
@@ -439,7 +439,7 @@ void yt_reset()
     k_memcpy_fake.handler = k_memcpy_handler_fn;
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
 

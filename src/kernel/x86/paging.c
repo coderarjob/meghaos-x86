@@ -37,7 +37,7 @@ static void s_setupPDE (PTR associatedVA, ArchPageDirectoryEntry* pde, Physical 
 static void* s_temporaryMap (Physical pa, U32 pte_index);
 static void* s_internal_temporaryMap (Physical pa);
 static void s_temporaryUnmap (U32 pte_index);
-static void s_internal_temporaryUnmap();
+static void s_internal_temporaryUnmap(void);
 
 #ifndef UNITTEST
 // TODO: Functions whose both declaration and its implementation are arch dependent can be named
@@ -121,7 +121,7 @@ static inline void* s_internal_temporaryMap (Physical pa)
     return s_temporaryMap (pa, TEMPORARY_PTE_INDEX_INTERNAL);
 }
 
-static inline void s_internal_temporaryUnmap()
+static inline void s_internal_temporaryUnmap(void)
 {
     s_temporaryUnmap (TEMPORARY_PTE_INDEX_INTERNAL);
 }
@@ -185,7 +185,7 @@ static void s_temporaryUnmap (U32 pte_index)
  * @return          Nothing
  * @error           See internal implementation.
  **************************************************************************************************/
-void kpg_temporaryUnmap()
+void kpg_temporaryUnmap(void)
 {
     FUNC_ENTRY();
     s_temporaryUnmap (TEMPORARY_PTE_INDEX_EXTERN);
@@ -212,7 +212,7 @@ void* kpg_temporaryMap (Physical pa)
  *
  * @return          Pointer to the Page Directory of the current process.
  **************************************************************************************************/
-PageDirectory kpg_getcurrentpd()
+PageDirectory kpg_getcurrentpd(void)
 {
     FUNC_ENTRY();
 

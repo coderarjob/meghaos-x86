@@ -170,7 +170,7 @@ TEST (handles, remove_object_success)
     END();
 }
 
-void yt_reset()
+void yt_reset(void)
 {
     memset (ut_handles, 0x0, HANDLES_ARRAY_SIZE_BYTES);
     reset_sallocFake();
@@ -178,7 +178,7 @@ void yt_reset()
     khandle_init();
 }
 
-int main()
+int main(void)
 {
     YT_INIT();
     g_utmm.config_handles_array_item_count = HANDLES_ARRAY_COUNT;

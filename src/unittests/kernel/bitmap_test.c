@@ -372,12 +372,12 @@ TEST(bitmap, bitmap_splited_mustfail)
 
 #endif // DEBUG
 
-void yt_reset() {
+void yt_reset(void) {
     memset(bitmap, 0xFF, sizeof(bitmap));
     panic_invoked = false;
 }
 
-int main() {
+int main(void) {
     YT_INIT();
 
 #ifdef DEBUG

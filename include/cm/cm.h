@@ -74,7 +74,7 @@ static inline void cm_get_bootloaded_file (const char* const filename,
 /***************************************************************************************************
  * Process management
  ***************************************************************************************************/
-INT cm_thread_create (void (*startLocation)(), bool isKernelMode);
+INT cm_thread_create (void (*startLocation)(void), bool isKernelMode);
 INT cm_process_create (const char* const filename, bool isKernelMode);
 
 static inline bool cm_process_pop_event (OSIF_ProcessEvent* e)
@@ -82,7 +82,7 @@ static inline bool cm_process_pop_event (OSIF_ProcessEvent* e)
     return syscall (OSIF_SYSCALL_POP_PROCESS_EVENT, (PTR)e, 0, 0, 0, 0);
 }
 
-static inline void cm_process_yield()
+static inline void cm_process_yield(void)
 {
     syscall (OSIF_SYSCALL_YIELD_PROCESS, 0, 0, 0, 0, 0);
 }
@@ -97,12 +97,12 @@ static inline void cm_process_abort (UINT code)
     syscall (OSIF_SYSCALL_ABORT_PROCESS, code, 0, 0, 0, 0);
 }
 
-static inline U32 cm_process_get_pid()
+static inline U32 cm_process_get_pid(void)
 {
     return (U32)syscall (OSIF_SYSCALL_PROCESS_GETPID, 0, 0, 0, 0, 0);
 }
 
-static inline void* cm_process_get_datamem_start()
+static inline void* cm_process_get_datamem_start(void)
 {
     return (void*)syscall (OSIF_SYSCALL_PROCESS_GET_DATAMEM_START, 0, 0, 0, 0, 0);
 }
@@ -112,7 +112,7 @@ static inline void* cm_process_get_datamem_start()
 ***************************************************************************************************/
 typedef void (*cm_event_handler)(OSIF_ProcessEvent const * const);
 bool cm_process_register_event_handler(OSIF_ProcessEvents event, cm_event_handler h);
-bool cm_process_handle_events();
+bool cm_process_handle_events(void);
 
 /***************************************************************************************************
  * String and memory functions
@@ -127,7 +127,7 @@ INT cm_vsnprintf (CHAR* dest, size_t size, const CHAR* fmt, va_list l);
 /***************************************************************************************************
  * Heap managemnt
  ***************************************************************************************************/
-void cm_malloc_init();
+void cm_malloc_init(void);
 void* cm_malloc (size_t bytes);
 void* cm_calloc (size_t bytes);
 bool cm_free (void* addr);
