@@ -9,5 +9,5 @@ pub fn build(b: *std.Build) !void {
         .options = try mos.addDefaultOptions(b),
         .target = b.resolveTargetQuery(mos.i686_target_query),
     });
-    b.getInstallStep().dependOn(exe);
+    b.getInstallStep().dependOn(exe.root_step);
 }

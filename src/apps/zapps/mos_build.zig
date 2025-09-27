@@ -24,11 +24,16 @@ pub const i686_target_query = Target.Query{
     .os_tag = .freestanding,
 };
 
-const ExecutableOptions = struct {
+const DefaultBuildOptions = struct {
     options: BuildOptions,
     root_src_file: []const u8,
     target: Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
+};
+
+const BuildSteps = struct {
+    root_step: *Step,
+    compilation_step: *Step.Compile,
 };
 
 pub fn addDefaultOptions(b: *Build) !BuildOptions {
@@ -67,7 +72,7 @@ pub fn addDefaultOptions(b: *Build) !BuildOptions {
     };
 }
 
-pub fn addExecutable(b: *Build, comptime name: []const u8, options: ExecutableOptions) *Step {
+pub fn addExecutable(b: *Build, comptime name: []const u8, options: DefaultBuildOptions) BuildSteps {
     // 1. Compilation and installation of the generated binary
     const exe = elf_compilation(b, name, &options);
     const exe_install = b.addInstallArtifact(exe, .{});
@@ -87,10 +92,14 @@ pub fn addExecutable(b: *Build, comptime name: []const u8, options: ExecutableOp
     // to build one particular target.
     const root = b.step(name, "Builds '" ++ name ++ "' target.");
     root.dependOn(&flatten_install.step);
-    return root;
+
+    return .{
+        .root_step = root,
+        .compilation_step = exe,
+    };
 }
 
-fn elf_compilation(b: *Build, comptime name: []const u8, options: *const ExecutableOptions) *Step.Compile {
+fn elf_compilation(b: *Build, comptime name: []const u8, options: *const DefaultBuildOptions) *Step.Compile {
     const exe = b.addExecutable(.{
         .name = name,
         .root_module = b.createModule(.{
