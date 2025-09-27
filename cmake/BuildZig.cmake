@@ -1,5 +1,7 @@
 # ==================================================================================================
-# add_zig_build (NAME name
+# add_zig_build (
+#              NAME name
+#              [ZIG_TARGET_NAME <target name>]
 #              SOURCES <source> [<source> ...]
 #              OUTPUT  <zig build output file>    COPY_TO <copy output to this directory>
 #              [OUTPUT <zig build output file>    COPY_TO <copy output to this directory>]
@@ -10,6 +12,14 @@
 #
 # Invokes `zig build` command to build output artifacts. These are then copied to some destination
 # directory. 
+#
+# NAME
+# Name of the CMake target that will be created.
+#
+# ZIG_TARGET_NAME
+# Overrides the default name of the Zig build target that gets passed to `zig build` command. This
+# can also be set to a blank string to invoke `zig build` without any target name. Default is same
+# as the NAME argument.
 #
 # OUTPUT
 # A file that the zig build generates. A matching `COPY_TO <dir>` will copy this file to `<dir>`
@@ -36,7 +46,7 @@
 # Changes to the provided directory before `zig build` is run.
 # ==================================================================================================
 function(add_zig_build)
-    set(oneValueArgs NAME WORKING_DIRECTORY)
+    set(oneValueArgs NAME ZIG_TARGET_NAME WORKING_DIRECTORY)
     set(multiValueArgs OUTPUT COPY_TO DEPENDS SOURCES FLAGS DEFINITIONS)
     set(options)
 
@@ -73,12 +83,16 @@ function(add_zig_build)
     if (NOT ZBUILD_WORKING_DIRECTORY)
         set(ZBUILD_WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
     endif()
+
+    if (NOT ZBUILD_ZIG_TARGET_NAME)
+        set(ZBUILD_ZIG_TARGET_NAME ${ZBUILD_NAME})
+    endif()
     # -------------------------------------------------------------------------------------------
     # Command to build the executable and copy to destination folders
     # -------------------------------------------------------------------------------------------
     add_custom_command(
         OUTPUT ${ZBUILD_OUTPUT}
-        COMMAND ${ZIG_EXECUTABLE} build ${ZBUILD_FLAGS} ${ZBUILD_DEFINITIONS}
+        COMMAND ${ZIG_EXECUTABLE} build ${ZBUILD_ZIG_TARGET_NAME} ${ZBUILD_FLAGS} ${ZBUILD_DEFINITIONS}
         DEPENDS ${ZBUILD_SOURCES}
         WORKING_DIRECTORY ${ZBUILD_WORKING_DIRECTORY}
     )

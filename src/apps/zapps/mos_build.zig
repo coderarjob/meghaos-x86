@@ -68,18 +68,26 @@ pub fn addDefaultOptions(b: *Build) !BuildOptions {
 }
 
 pub fn addExecutable(b: *Build, comptime name: []const u8, options: ExecutableOptions) *Step {
+    // 1. Compilation and installation of the generated binary
     const exe = elf_compilation(b, name, &options);
     const exe_install = b.addInstallArtifact(exe, .{});
 
-    const flatten_output_file = name ++ ".flt";
+    // 2. Run objcopy on the compiler output (generated from above step) and install the output into
+    // the 'bin' folder.
     const objcopy_run = b.addSystemCommand(&.{ "objcopy", "-O", "binary" });
+    objcopy_run.step.dependOn(&exe_install.step);
+
+    const flatten_output_file = name ++ ".flt";
     objcopy_run.addArg(b.getInstallPath(.bin, exe.name));
     const flatten_output_path = objcopy_run.addOutputFileArg(flatten_output_file);
 
     const flatten_install = b.addInstallFileWithDir(flatten_output_path, .bin, flatten_output_file);
 
-    objcopy_run.step.dependOn(&exe_install.step);
-    return &flatten_install.step;
+    // 3. A Root target for the above steps. This was added so that 'zig build <name>' can be used
+    // to build one particular target.
+    const root = b.step(name, "Builds '" ++ name ++ "' target.");
+    root.dependOn(&flatten_install.step);
+    return root;
 }
 
 fn elf_compilation(b: *Build, comptime name: []const u8, options: *const ExecutableOptions) *Step.Compile {
