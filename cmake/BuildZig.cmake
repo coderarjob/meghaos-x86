@@ -3,8 +3,8 @@
 #              NAME name
 #              [ZIG_TARGET_NAME <target name>]
 #              SOURCES <source> [<source> ...]
-#              OUTPUT  <zig build output file>    COPY_TO <copy output to this directory>
-#              [OUTPUT <zig build output file>    COPY_TO <copy output to this directory>]
+#              OUTPUT  <zig build output file>   [COPY_TO <copy output to this directory>]
+#              [OUTPUT <zig build output file>   [COPY_TO <copy output to this directory>]]
 #              [DEPENDS <target> ...]
 #              [FLAGS <flag> ...]
 #              [DEFINITIONS <compiler macros> ...]
@@ -26,8 +26,10 @@
 # directory.
 # 
 # COPY_TO
-# Destination directory where the corresponding `OUTPUT` <file> will be copied to. Since each OUTPUT
-# and COPY_TO arguments are linked, their count must match.
+# Destination directory where the corresponding `OUTPUT` <file> will be copied to. This is optional
+# when no output need to be copied. But if at least one output needs to be copied, then COPY_TO must
+# be provided for all the outputs. This is because once COPY_TO is provided, each OUTPUT and COPY_TO
+# arguments gets linked, their count must match.
 #
 # SOURCES
 # Zig source files which this build depends on. Zig build is triggered if any of these files is
@@ -73,15 +75,17 @@ function(add_zig_build)
         message(FATAL_ERROR "There must be at least one output file.")
     endif()
 
-    list(LENGTH ZBUILD_COPY_TO COPY_TO_LEN)
-    if (NOT COPY_TO_LEN EQUAL OUTPUT_LEN)
-        message(
-            FATAL_ERROR
-            "There must be as many COPY_TO arguments as there are OUTPUT arguments.")
+    if (ZBUILD_COPY_TO)
+        list(LENGTH ZBUILD_COPY_TO COPY_TO_LEN)
+        if (NOT COPY_TO_LEN EQUAL OUTPUT_LEN)
+            message(
+                FATAL_ERROR
+                "There must be as many COPY_TO arguments as there are OUTPUT arguments.")
+        endif()
     endif()
 
     if (NOT ZBUILD_WORKING_DIRECTORY)
-        set(ZBUILD_WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+        set(ZBUILD_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endif()
 
     if (NOT ZBUILD_ZIG_TARGET_NAME)
@@ -97,21 +101,25 @@ function(add_zig_build)
         WORKING_DIRECTORY ${ZBUILD_WORKING_DIRECTORY}
     )
 
-    foreach(path IN ZIP_LISTS ZBUILD_OUTPUT ZBUILD_COPY_TO)
-        set(src_output_file ${path_0})
-        set(dest_output_dir ${path_1})
+    if (ZBUILD_COPY_TO)
+        foreach(path IN ZIP_LISTS ZBUILD_OUTPUT ZBUILD_COPY_TO)
+            set(src_output_file ${path_0})
+            set(dest_output_dir ${path_1})
 
-        get_filename_component(src_output_filetitle ${src_output_file} NAME)
-        set(dest_output_file ${dest_output_dir}/${src_output_filetitle})
+            get_filename_component(src_output_filetitle ${src_output_file} NAME)
+            set(dest_output_file ${dest_output_dir}/${src_output_filetitle})
 
-        list(APPEND DESTINATION_OUTPUT_FILES ${dest_output_file})
+            list(APPEND DESTINATION_OUTPUT_FILES ${dest_output_file})
 
-        add_custom_command(
-            OUTPUT ${dest_output_file}
-            COMMAND ${CMAKE_COMMAND} -E copy ${src_output_file} ${dest_output_file}
-            DEPENDS ${src_output_file}
-        )
-    endforeach()
+            add_custom_command(
+                OUTPUT ${dest_output_file}
+                COMMAND ${CMAKE_COMMAND} -E copy ${src_output_file} ${dest_output_file}
+                DEPENDS ${src_output_file}
+            )
+        endforeach()
+    else()
+        list(APPEND DESTINATION_OUTPUT_FILES ${ZBUILD_OUTPUT})
+    endif()
 
     # -------------------------------------------------------------------------------------------
     # Custom target for other targets to depend on
