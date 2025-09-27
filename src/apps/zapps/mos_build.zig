@@ -74,7 +74,7 @@ pub fn addDefaultOptions(b: *Build) !BuildOptions {
 
 pub fn addExecutable(b: *Build, comptime name: []const u8, options: DefaultBuildOptions) BuildSteps {
     // 1. Compilation and installation of the generated binary
-    const exe = elf_compilation(b, name, &options);
+    const exe = elf_executable(b, name, &options);
     const exe_install = b.addInstallArtifact(exe, .{});
 
     // 2. Run objcopy on the compiler output (generated from above step) and install the output into
@@ -99,7 +99,7 @@ pub fn addExecutable(b: *Build, comptime name: []const u8, options: DefaultBuild
     };
 }
 
-fn elf_compilation(b: *Build, comptime name: []const u8, options: *const DefaultBuildOptions) *Step.Compile {
+fn elf_executable(b: *Build, comptime name: []const u8, options: *const DefaultBuildOptions) *Step.Compile {
     const exe = b.addExecutable(.{
         .name = name,
         .root_module = b.createModule(.{
@@ -126,4 +126,66 @@ fn elf_compilation(b: *Build, comptime name: []const u8, options: *const Default
     exe.entry = .{ .symbol_name = options.options.entry_point };
 
     return exe;
+}
+
+pub fn addLibrary(b: *Build, comptime name: []const u8, options: DefaultBuildOptions) BuildSteps {
+    // 1. Compilation and installation of the generated binary
+    const lib = elf_library(b, name, &options);
+    const lib_install = b.addInstallArtifact(lib, .{});
+
+    // 3. A Root target for the above steps. This was added so that 'zig build <name>' can be used
+    // to build one particular target.
+    const root = b.step(name, "Builds '" ++ name ++ "' target.");
+    root.dependOn(&lib_install.step);
+
+    return .{
+        .root_step = root,
+        .compilation_step = lib,
+    };
+}
+
+fn elf_library(b: *Build, comptime name: []const u8, options: *const DefaultBuildOptions) *Step.Compile {
+    const lib = b.addLibrary(.{
+        .name = name,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path(options.root_src_file),
+            .target = options.target,
+            .optimize = options.optimize,
+            .omit_frame_pointer = false,
+            .red_zone = false,
+            .unwind_tables = .none,
+            .stack_protector = false,
+            .single_threaded = true,
+            .pic = false,
+        }),
+    });
+
+    lib.root_module.addLibraryPath(b.path(options.options.libcm_rel_path));
+    lib.root_module.linkSystemLibrary("cm", .{});
+    lib.addObjectFile(b.path(options.options.crta_rel_path));
+    lib.addIncludePath(b.path(options.options.include_rel_path));
+
+    return lib;
+}
+
+pub fn addModule(b: *Build, comptime name: []const u8, options: DefaultBuildOptions) *Build.Module {
+    const mod = b.addModule(name, .{
+        .root_source_file = b.path(options.root_src_file),
+        .target = options.target,
+        .optimize = options.optimize,
+        .omit_frame_pointer = false,
+        .red_zone = false,
+        .unwind_tables = .none,
+        .stack_protector = false,
+        .single_threaded = true,
+        .pic = false,
+    });
+
+    return mod;
+}
+
+pub fn addDefaultDependencies(b: *Build, mod: *Build.Module, options: BuildOptions) void {
+    mod.addLibraryPath(b.path(options.libcm_rel_path));
+    mod.linkSystemLibrary("cm", .{});
+    mod.addIncludePath(b.path(options.include_rel_path));
 }
