@@ -12,6 +12,7 @@ add_zig_build(
         ${zig_common_source_files}
         ${source_dir}/main.zig
         ${source_dir}/build.zig
+        ${source_dir}/build.zig.zon
     DEPENDS
         cm
         crta

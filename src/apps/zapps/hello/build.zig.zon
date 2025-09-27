@@ -4,4 +4,9 @@
     .minimum_zig_version = "0.15.1",
     .paths = .{""},
     .fingerprint = 0x4418ae358de5fcb4,
+    .dependencies = .{
+        .zm = .{
+            .path = "../zm",
+        },
+    },
 }
