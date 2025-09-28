@@ -6,6 +6,12 @@ pub const graphics = @import("graphics.zig");
 
 pub const MosApplicationPanic = @import("std").debug.FullPanic(crash);
 
-fn crash(_: []const u8, _: ?usize) noreturn {
+fn crash(msg: []const u8, addr: ?usize) noreturn {
+    debug.log(
+        .ERROR,
+        @src(),
+        "crashed!! {s}. At location 0x{x}",
+        .{ msg, addr orelse @returnAddress() },
+    );
     process.abort(process.abort_exit_code);
 }
