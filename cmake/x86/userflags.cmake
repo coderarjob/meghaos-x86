@@ -37,4 +37,8 @@ set(MOS_ZIG_BUILD_REQUIRED_DEFINES
     -DCRTPath=$<TARGET_OBJECTS:crta>
     -DCInludePath=${MOS_USER_GCC_INCLUDE_DIRS}
     -DEntryPoint=${MOS_USER_APP_ENTRY_POINT}
+    # Build options/variables
+    -DBuildMode=${MOS_BUILD_MODE}
+    -DGraphicsEnabled=${MOS_GRAPHICS_ENABLED}
+    -DPortE9Enabled=${MOS_PORT_E9_ENABLED}
 )

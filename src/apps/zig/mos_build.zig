@@ -3,12 +3,36 @@ const Build = std.Build;
 const Step = Build.Step;
 const Target = std.Target;
 
+const CMakeBuildModes = enum {
+    DEBUG,
+    NDEBUG,
+
+    fn from(mode: []const u8) @This() {
+        return std.meta.stringToEnum(CMakeBuildModes, mode) orelse @panic("Invalid Build Mode");
+    }
+};
+const CMakeBoolean = enum {
+    ON,
+    OFF,
+
+    fn from(b: []const u8) @This() {
+        return std.meta.stringToEnum(CMakeBoolean, b) orelse @panic("Invalid Boolean");
+    }
+};
+
+const CMakeBuildVariables = struct {
+    build_mode: CMakeBuildModes,
+    graphics_enabled: CMakeBoolean,
+    port_e9_enabled: CMakeBoolean,
+};
+
 const CMakeExports = struct {
     linker_script_rel_path: []const u8,
     libcm_rel_path: []const u8,
     crta_rel_path: []const u8,
     include_rel_path: []const u8,
     entry_point: []const u8,
+    variables: CMakeBuildVariables,
 };
 
 pub const i686_target_query = Target.Query{
@@ -63,12 +87,33 @@ pub fn addCMakeExportOptions(b: *Build) !CMakeExports {
         "Entry point of user application",
     ) orelse ""; // Must provide 'EntryPoint'
 
+    const build_mode = b.option(
+        []const u8,
+        "BuildMode",
+        "Build mode (DEBUG, NDEBUG)",
+    ) orelse "DEBUG";
+    const graphics_enabled = b.option(
+        []const u8,
+        "GraphicsEnabled",
+        "Is graphics enabled",
+    ) orelse "OFF";
+    const port_e9_enabled = b.option(
+        []const u8,
+        "PortE9Enabled",
+        "Is port 0xE9 printing enabled",
+    ) orelse "OFF";
+
     return .{
         .crta_rel_path = try std.fs.path.relative(b.allocator, ".", crt_path),
         .include_rel_path = try std.fs.path.relative(b.allocator, ".", include_path),
         .libcm_rel_path = try std.fs.path.relative(b.allocator, ".", libcm_path),
         .linker_script_rel_path = try std.fs.path.relative(b.allocator, ".", linker_script_path),
         .entry_point = entry_point,
+        .variables = .{
+            .build_mode = .from(build_mode),
+            .graphics_enabled = .from(graphics_enabled),
+            .port_e9_enabled = .from(port_e9_enabled),
+        },
     };
 }
 
@@ -171,4 +216,11 @@ pub fn setCMakeExportOptions(b: *Build, mod: *Build.Module, options: CMakeExport
     mod.addLibraryPath(b.path(options.libcm_rel_path));
     mod.linkSystemLibrary("cm", .{});
     mod.addIncludePath(b.path(options.include_rel_path));
+
+    const cmake_build_variables = b.addOptions();
+    cmake_build_variables.addOption(CMakeBuildModes, "build_mode", options.variables.build_mode);
+    cmake_build_variables.addOption(CMakeBoolean, "graphics_enabled", options.variables.graphics_enabled);
+    cmake_build_variables.addOption(CMakeBoolean, "port_e9_enabled", options.variables.port_e9_enabled);
+
+    mod.addOptions("config", cmake_build_variables);
 }
