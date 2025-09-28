@@ -42,7 +42,8 @@ static void qemu_putString (const CHAR* string)
  *
  * @return      Nothing
  **************************************************************************************************/
-void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char* fmt, ...)
+void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char const* const fmt,
+                       ...)
 {
     int len = 0;
     char buffer[MAX_PRINTABLE_STRING_LENGTH];
@@ -70,7 +71,7 @@ void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char* 
 
     UINT tick_count = cm_get_tickcount();
     len = cm_snprintf (buffer, ARRAY_LENGTH (buffer), message, logColor, tick_count, ANSI_COL_GRAY,
-            func, line, ANSI_COL_RESET);
+                       func, line, ANSI_COL_RESET);
 
     va_list l;
     va_start (l, fmt);
