@@ -41,9 +41,9 @@ static inline U32 cm_window_destory (Handle h)
     return (U32)syscall (OSIF_SYSCALL_WINDOW_DESTORY, (U32)h, 0, 0, 0, 0);
 }
 
-static inline void* cm_window_flush_graphics(void)
+static inline void cm_window_flush_graphics(void)
 {
-    return (void*)syscall (OSIF_SYSCALL_WINDOW_FLUSH_GRAPHICS, 0, 0, 0, 0, 0);
+    syscall (OSIF_SYSCALL_WINDOW_FLUSH_GRAPHICS, 0, 0, 0, 0, 0);
 }
 
 static inline bool cm_window_getFB (Handle h, OSIF_WindowFrameBufferInfo* wfb)
