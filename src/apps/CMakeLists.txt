@@ -92,7 +92,7 @@ link(
 # Add zig programs
 # ---------------------------------------------------------------------------
 if (MOS_ENABLE_ZIG_SUPPORT)
-    add_subdirectory(zapps)
+    add_subdirectory(zig)
 endif()
 
 #---------------------------------------------------------------------------
