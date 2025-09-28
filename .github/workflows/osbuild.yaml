@@ -14,6 +14,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: mlugg/setup-zig@v2
+      with:
+        version: 0.15.1
 
     # --------------------------------------------------------------------------
     # Setup GitHub Actions Cache
@@ -92,4 +95,12 @@ jobs:
         BUILD_DIR: ${{github.workspace}}/build-5
       run: |
         cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_PORT_E9_ENABLED=OFF -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=NDEBUG -DMOS_GRAPHICS_ENABLED=ON
+        cmake --build $BUILD_DIR
+
+    # --------------------------------------------------------------------------
+    - name: Build (Debug, Non Graphics, Logs, Zig Support)
+      env: 
+        BUILD_DIR: ${{github.workspace}}/build-6
+      run: |
+        cmake -B $BUILD_DIR -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE -DMOS_PORT_E9_ENABLED=ON -DCMAKE_PREFIX_PATH=$CROSS_GCC_INSTALL_DIR -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED=OFF -DMOS_ENABLE_ZIG_SUPPORT=ON
         cmake --build $BUILD_DIR
