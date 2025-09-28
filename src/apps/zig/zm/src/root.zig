@@ -6,7 +6,7 @@ pub const graphics = @import("graphics.zig");
 
 pub const MosApplicationPanic = @import("std").debug.FullPanic(crash);
 
-fn crash(msg: []const u8, addr: ?usize) noreturn {
+noinline fn crash(msg: []const u8, addr: ?usize) noreturn {
     debug.log(
         .ERROR,
         @src(),
