@@ -3,7 +3,7 @@ const Build = std.Build;
 const Step = Build.Step;
 const Target = std.Target;
 
-const BuildOptions = struct {
+const CMakeExports = struct {
     linker_script_rel_path: []const u8,
     libcm_rel_path: []const u8,
     crta_rel_path: []const u8,
@@ -24,8 +24,8 @@ pub const i686_target_query = Target.Query{
     .os_tag = .freestanding,
 };
 
-const DefaultBuildOptions = struct {
-    options: BuildOptions,
+const BuildOptions = struct {
+    options: CMakeExports,
     root_src_file: []const u8,
     target: Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
@@ -36,7 +36,7 @@ const BuildSteps = struct {
     compilation_step: *Step.Compile,
 };
 
-pub fn addDefaultOptions(b: *Build) !BuildOptions {
+pub fn addCMakeExportOptions(b: *Build) !CMakeExports {
     const linker_script_path = b.option(
         []const u8,
         "LinkerScriptPath",
@@ -72,7 +72,7 @@ pub fn addDefaultOptions(b: *Build) !BuildOptions {
     };
 }
 
-pub fn addExecutable(b: *Build, comptime name: []const u8, options: DefaultBuildOptions) BuildSteps {
+pub fn addExecutable(b: *Build, comptime name: []const u8, options: BuildOptions) BuildSteps {
     // 1. Compilation and installation of the generated binary
     const exe = elf_executable(b, name, &options);
     const exe_install = b.addInstallArtifact(exe, .{});
@@ -99,7 +99,7 @@ pub fn addExecutable(b: *Build, comptime name: []const u8, options: DefaultBuild
     };
 }
 
-fn elf_executable(b: *Build, comptime name: []const u8, options: *const DefaultBuildOptions) *Step.Compile {
+fn elf_executable(b: *Build, comptime name: []const u8, options: *const BuildOptions) *Step.Compile {
     const exe = b.addExecutable(.{
         .name = name,
         .root_module = b.createModule(.{
@@ -128,7 +128,7 @@ fn elf_executable(b: *Build, comptime name: []const u8, options: *const DefaultB
     return exe;
 }
 
-pub fn addLibrary(b: *Build, comptime name: []const u8, options: DefaultBuildOptions) BuildSteps {
+pub fn addLibrary(b: *Build, comptime name: []const u8, options: BuildOptions) BuildSteps {
     // 1. Compilation and installation of the generated binary
     const lib = elf_library(b, name, &options);
     const lib_install = b.addInstallArtifact(lib, .{});
@@ -144,7 +144,7 @@ pub fn addLibrary(b: *Build, comptime name: []const u8, options: DefaultBuildOpt
     };
 }
 
-fn elf_library(b: *Build, comptime name: []const u8, options: *const DefaultBuildOptions) *Step.Compile {
+fn elf_library(b: *Build, comptime name: []const u8, options: *const BuildOptions) *Step.Compile {
     const lib = b.addLibrary(.{
         .name = name,
         .root_module = b.createModule(.{
@@ -168,7 +168,7 @@ fn elf_library(b: *Build, comptime name: []const u8, options: *const DefaultBuil
     return lib;
 }
 
-pub fn addModule(b: *Build, comptime name: []const u8, options: DefaultBuildOptions) *Build.Module {
+pub fn addModule(b: *Build, comptime name: []const u8, options: BuildOptions) *Build.Module {
     const mod = b.addModule(name, .{
         .root_source_file = b.path(options.root_src_file),
         .target = options.target,
@@ -180,11 +180,10 @@ pub fn addModule(b: *Build, comptime name: []const u8, options: DefaultBuildOpti
         .single_threaded = true,
         .pic = false,
     });
-
     return mod;
 }
 
-pub fn addDefaultDependencies(b: *Build, mod: *Build.Module, options: BuildOptions) void {
+pub fn setCMakeExportOptions(b: *Build, mod: *Build.Module, options: CMakeExports) void {
     mod.addLibraryPath(b.path(options.libcm_rel_path));
     mod.linkSystemLibrary("cm", .{});
     mod.addIncludePath(b.path(options.include_rel_path));
