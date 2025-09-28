@@ -91,8 +91,9 @@ link(
 # ---------------------------------------------------------------------------
 # Add zig programs
 # ---------------------------------------------------------------------------
-# TODO: Enable once CI has zig compiler. Do enable it when testing locally
-# add_subdirectory(zapps)
+if (MOS_ENABLE_ZIG_SUPPORT)
+    add_subdirectory(zapps)
+endif()
 
 #---------------------------------------------------------------------------
 # Add to the global 'build-all' target
