@@ -8,6 +8,7 @@ const osif = @cImport({
 
 pub const ProcessEvent = osif.OSIF_ProcessEvent;
 pub const event_handler = *const fn (*const ProcessEvent) callconv(.c) void;
+pub const abort_exit_code = cm.CM_ABORT_EXIT_CODE;
 
 pub const ProcessEvents = enum(c_uint) {
     NONE = osif.OSIF_PROCESS_EVENT_NONE,
@@ -39,8 +40,12 @@ pub inline fn handle_events() bool {
     return cm.cm_process_handle_events();
 }
 
-pub inline fn exit(code: u16) void {
+pub inline fn exit(code: u16) noreturn {
     cm.cm_process_kill(code);
+}
+
+pub inline fn abort(code: u16) noreturn {
+    cm.cm_process_abort(code);
 }
 
 pub inline fn register_event_handler(e: ProcessEvents, h: event_handler) bool {

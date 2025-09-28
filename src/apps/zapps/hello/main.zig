@@ -1,6 +1,8 @@
 const std = @import("std");
 const zm = @import("zm");
 
+pub const panic = zm.MosApplicationPanic;
+
 const ProcessEvent = zm.process.ProcessEvent;
 
 var child_count: u32 = 0;
