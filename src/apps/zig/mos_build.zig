@@ -99,20 +99,24 @@ pub fn addExecutable(b: *Build, comptime name: []const u8, options: BuildOptions
     };
 }
 
+fn MosModuleCreateOptions(b: *Build, options: *const BuildOptions) Build.Module.CreateOptions {
+    return .{
+        .root_source_file = b.path(options.root_src_file),
+        .target = options.target,
+        .optimize = options.optimize,
+        .omit_frame_pointer = false,
+        .red_zone = false,
+        .unwind_tables = .none,
+        .stack_protector = false,
+        .single_threaded = true,
+        .pic = false,
+    };
+}
+
 fn elf_executable(b: *Build, comptime name: []const u8, options: *const BuildOptions) *Step.Compile {
     const exe = b.addExecutable(.{
         .name = name,
-        .root_module = b.createModule(.{
-            .root_source_file = b.path(options.root_src_file),
-            .target = options.target,
-            .optimize = options.optimize,
-            .omit_frame_pointer = false,
-            .red_zone = false,
-            .unwind_tables = .none,
-            .stack_protector = false,
-            .single_threaded = true,
-            .pic = false,
-        }),
+        .root_module = b.createModule(MosModuleCreateOptions(b, options)),
     });
 
     exe.root_module.addLibraryPath(b.path(options.options.libcm_rel_path));
@@ -147,17 +151,7 @@ pub fn addLibrary(b: *Build, comptime name: []const u8, options: BuildOptions) B
 fn elf_library(b: *Build, comptime name: []const u8, options: *const BuildOptions) *Step.Compile {
     const lib = b.addLibrary(.{
         .name = name,
-        .root_module = b.createModule(.{
-            .root_source_file = b.path(options.root_src_file),
-            .target = options.target,
-            .optimize = options.optimize,
-            .omit_frame_pointer = false,
-            .red_zone = false,
-            .unwind_tables = .none,
-            .stack_protector = false,
-            .single_threaded = true,
-            .pic = false,
-        }),
+        .root_module = b.createModule(MosModuleCreateOptions(b, options)),
     });
 
     lib.root_module.addLibraryPath(b.path(options.options.libcm_rel_path));
@@ -169,17 +163,7 @@ fn elf_library(b: *Build, comptime name: []const u8, options: *const BuildOption
 }
 
 pub fn addModule(b: *Build, comptime name: []const u8, options: BuildOptions) *Build.Module {
-    const mod = b.addModule(name, .{
-        .root_source_file = b.path(options.root_src_file),
-        .target = options.target,
-        .optimize = options.optimize,
-        .omit_frame_pointer = false,
-        .red_zone = false,
-        .unwind_tables = .none,
-        .stack_protector = false,
-        .single_threaded = true,
-        .pic = false,
-    });
+    const mod = b.addModule(name, MosModuleCreateOptions(b, &options));
     return mod;
 }
 
