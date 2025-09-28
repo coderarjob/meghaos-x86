@@ -14,7 +14,11 @@ export fn proc_main() void {
 
     _ = zm.process.register_event_handler(.PROCCESS_CHILD_KILLED, &child_exit_event_handler);
 
+    zm.debug.log(.INFO, @src(), "Starting application", .{});
+
     wait_for_all_child_exit();
+
+    zm.debug.log(.INFO, @src(), "Ending application", .{});
     zm.process.exit(3);
 }
 
