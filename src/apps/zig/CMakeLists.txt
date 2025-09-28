@@ -9,8 +9,8 @@ set(zig_common_source_files
     ${CMAKE_CURRENT_LIST_DIR}/zm/build.zig.zon
 )
 
-set(source_dir ${CMAKE_CURRENT_LIST_DIR}/hello)
-set(name hello)
+set(source_dir ${CMAKE_CURRENT_LIST_DIR}/zello)
+set(name zello)
 add_zig_build(
     NAME ${name}
     SOURCES
@@ -28,4 +28,4 @@ add_zig_build(
     WORKING_DIRECTORY ${source_dir}
 )
 
-add_dependencies(build-all hello)
+add_dependencies(build-all zello)
