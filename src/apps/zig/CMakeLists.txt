@@ -5,6 +5,9 @@ set(zig_common_source_files
     ${CMAKE_CURRENT_LIST_DIR}/zm/src/debug.zig
     ${CMAKE_CURRENT_LIST_DIR}/zm/src/root.zig
     ${CMAKE_CURRENT_LIST_DIR}/zm/src/process.zig
+    ${CMAKE_CURRENT_LIST_DIR}/zm/src/syscalls.zig
+    ${CMAKE_CURRENT_LIST_DIR}/zm/src/window.zig
+    ${CMAKE_CURRENT_LIST_DIR}/zm/src/graphics.zig
     ${CMAKE_CURRENT_LIST_DIR}/zm/build.zig
     ${CMAKE_CURRENT_LIST_DIR}/zm/build.zig.zon
 )
