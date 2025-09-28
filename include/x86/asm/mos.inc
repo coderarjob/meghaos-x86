@@ -61,12 +61,12 @@
     %define BOOT1_FILE      "BOOT1   FLT"
     %define KERNEL_FILE     "KERNEL  FLT"
     %define INIT_FILE       "INIT    FLT"
-    %define ZELLO_FILE      "ZELLO   FLT"
 %ifdef GRAPHICS_MODE_ENABLED
     %define GUI0_APP_FILE   "GUI0    FLT"
 %else
     %define PROC1_FILE      "PROC1   FLT"
     %define MPDEMO_FILE     "MPDEMO  FLT"
+    %define ZELLO_FILE      "ZELLO   FLT"
 %endif
     %define MOS_IMAGE_FILE  "MOS     RBM"
 
