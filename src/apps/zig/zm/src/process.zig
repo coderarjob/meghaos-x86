@@ -51,3 +51,11 @@ pub inline fn abort(code: u16) noreturn {
 pub inline fn register_event_handler(e: ProcessEvents, h: event_handler) bool {
     return cm.cm_process_register_event_handler(e.toC(), @ptrCast(h));
 }
+
+pub inline fn cm_process_get_pid() u32 {
+    return cm.cm_process_get_pid();
+}
+
+pub inline fn delay(ms: u32) void {
+    cm.cm_delay(ms);
+}
