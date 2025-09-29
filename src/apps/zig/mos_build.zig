@@ -39,13 +39,16 @@ pub const i686_target_query = Target.Query{
     .abi = .none,
     .cpu_arch = .x86,
     .cpu_model = .{
-        .explicit = &.{
-            .name = "i686",
-            .llvm_name = "",
-            .features = .empty,
-        },
+        .explicit = &std.Target.x86.cpu.i686,
     },
     .os_tag = .freestanding,
+    .cpu_features_sub = std.Target.x86.featureSet(&.{
+        .sse, .sse2, .sse3, .ssse3, .sse4_1, .sse4_2,
+        .avx, .avx2, .fma,  .mmx,   .x87,
+    }),
+    .cpu_features_add = std.Target.x86.featureSet(&.{
+        .soft_float,
+    }),
 };
 
 const BuildOptions = struct {
