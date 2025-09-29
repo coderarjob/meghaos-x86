@@ -26,7 +26,11 @@ set(MOS_ZIG_BUILD_OPTIONS
 )
 
 # Debug build fails because it produces an binary > 64k
-list(APPEND MOS_ZIG_BUILD_OPTIONS -Doptimize=ReleaseSafe)
+if (MOS_BUILD_MODE STREQUAL "DEBUG")
+    list(APPEND MOS_ZIG_BUILD_OPTIONS -Doptimize=ReleaseSafe)
+else()
+    list(APPEND MOS_ZIG_BUILD_OPTIONS -Doptimize=ReleaseSmall)
+endif()
 
 # ----------------------------------------------------
 # Zig Compiler Definitions
