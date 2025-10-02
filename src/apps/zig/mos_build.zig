@@ -131,7 +131,7 @@ fn addObjCopy(b: *Build, exe: *Step.Compile, comptime output_file_name: []const 
 pub fn addExecutable(b: *Build, comptime name: []const u8, options: BuildOptions) BuildSteps {
     // 1. Compilation and installation of the generated binary
     const exe = elf_executable(b, name, &options);
-    // Note: The below addInstallArtifact call and its associated dependOn call may be redundent,
+    // Note: The below addInstallArtifact call and its associated dependOn call may be redundant,
     // but without it build does not install the elf executable at this time. Could be a bug or some
     // gap in my understanding.
     const exe_install = b.addInstallArtifact(exe, .{});
