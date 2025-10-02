@@ -120,14 +120,10 @@ pub fn addCMakeExportOptions(b: *Build) !CMakeExports {
     };
 }
 
-fn addObjCopy(b: *Build, exe_install: *Step.InstallArtifact, comptime output_file_name: []const u8) Build.LazyPath {
-    const exe = exe_install.artifact;
+fn addObjCopy(b: *Build, exe: *Step.Compile, comptime output_file_name: []const u8) Build.LazyPath {
     const objcopy_run = b.addSystemCommand(&.{ "objcopy", "-O", "binary" });
-    objcopy_run.addArg(b.getInstallPath(.bin, exe.name));
+    objcopy_run.addFileArg(exe.getEmittedBin());
     const bin_output_path = objcopy_run.addOutputFileArg(output_file_name);
-
-    objcopy_run.step.dependOn(&exe_install.step);
-    objcopy_run.addFileInput(exe.getEmittedBin());
 
     return bin_output_path;
 }
@@ -135,18 +131,22 @@ fn addObjCopy(b: *Build, exe_install: *Step.InstallArtifact, comptime output_fil
 pub fn addExecutable(b: *Build, comptime name: []const u8, options: BuildOptions) BuildSteps {
     // 1. Compilation and installation of the generated binary
     const exe = elf_executable(b, name, &options);
+    // Note: The below addInstallArtifact call and its associated dependOn call may be redundent,
+    // but without it build does not install the elf executable at this time. Could be a bug or some
+    // gap in my understanding.
     const exe_install = b.addInstallArtifact(exe, .{});
 
     // 2. Run objcopy on the compiler output (generated from above step) and install the output into
     // the 'bin' folder.
     const bin_output_file = name ++ ".flt";
-    const output_path = addObjCopy(b, exe_install, bin_output_file);
+    const output_path = addObjCopy(b, exe, bin_output_file);
     const bin_install = b.addInstallFileWithDir(output_path, .bin, bin_output_file);
 
     // 3. A Root target for the above steps. This was added so that 'zig build <name>' can be used
     // to build one particular target.
     const root = b.step(name, "Builds '" ++ name ++ "' target.");
     root.dependOn(&bin_install.step);
+    root.dependOn(&exe_install.step);
 
     return .{
         .root_step = root,
