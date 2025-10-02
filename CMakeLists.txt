@@ -10,6 +10,7 @@ set(CMAKE_ASM_NASM_SOURCE_FILE_EXTENSIONS ${CMAKE_ASM_NASM_SOURCE_FILE_EXTENSION
 #---------------------------------------------------------------------------
 
 project(MeghaOS-V2 C ASM_NASM)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if(CMAKE_CROSSCOMPILING)
     # Build options does not apply to Unittests. It enables/disables build options depending on the
@@ -18,6 +19,7 @@ if(CMAKE_CROSSCOMPILING)
     set(MOS_PORT_E9_ENABLED No CACHE BOOL "Enable printing using Port E9")
     set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
     set(MOS_GRAPHICS_BPP "32" CACHE STRING "Graphics mode: bits per pixel")
+    set(MOS_ENABLE_ZIG_SUPPORT No CACHE BOOL "Enables Zig language support")
 
     set(MOS_GRAPHICS_BPPS "8" "24" "32")
     set_property(CACHE MOS_GRAPHICS_BPP PROPERTY STRINGS ${MOS_GRAPHICS_BPPS})
@@ -57,6 +59,9 @@ endif()
 #---------------------------------------------------------------------------
 
 include(cmake/compile_assemble_link.cmake)
+if (MOS_ENABLE_ZIG_SUPPORT)
+    include(cmake/BuildZig.cmake)
+endif()
 
 set(MOS_BIN_DIR                    ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR                    ${CMAKE_BINARY_DIR}/obj)
@@ -81,6 +86,7 @@ add_custom_target(show-info ALL
     COMMAND ${CMAKE_COMMAND} -E echo "- E9 ENABLED      : ${MOS_PORT_E9_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS MODE   : ${MOS_GRAPHICS_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS BPP    : ${MOS_GRAPHICS_BPP}"
+    COMMAND ${CMAKE_COMMAND} -E echo "- ZIG SUPPORT     : ${MOS_ENABLE_ZIG_SUPPORT}"
     COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"
     )
 #---------------------------------------------------------------------------

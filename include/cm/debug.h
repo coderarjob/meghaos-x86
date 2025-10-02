@@ -19,7 +19,8 @@ typedef enum CM_DebugLogType {
     CM_DEBUG_LOG_TYPE_WARN,
 } CM_DebugLogType;
 
-void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char* fmt, ...);
+void cm_debug_log_ndu (CM_DebugLogType type, const char* func, UINT line, char const* const fmt,
+                       ...);
 
     #define CM_DBG_INFO(...) \
         cm_debug_log_ndu (CM_DEBUG_LOG_TYPE_INFO, __func__, __LINE__, __VA_ARGS__)

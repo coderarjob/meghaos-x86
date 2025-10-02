@@ -75,6 +75,7 @@ used by another.
 3. nasm assembler version 2.15.05 or higher.
 4. Cmake version >= 3.15
 5. `dosfstools` for creation of disk image.
+6. Zig compiler 0.15.1 to write applications in Zig (Optional & non-default).
 
 ### Building
 
@@ -87,6 +88,7 @@ used by another.
     variable does not include it.
 * `MOS_GRAPHICS_ENABLED` (Defaults to No) - Enables/disables VESA graphics.
 * `MOS_GRAPHICS_BPP` (Defaults to 32) - Graphics bits per pixel. Valid values are 8, 24, 32.
+* `MOS_ENABLE_ZIG_SUPPORT` (Defaults to No) - Enables Zig language support for applications.
 
 Generate the build system and then start the build:
 ```
@@ -101,6 +103,11 @@ $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
 
 $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
         -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED='Yes' -B build-os
+
+# Example 3: DEBUG mode build with Graphics mode and Zig support.
+
+$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
+        -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED='Yes'        \
 ```
 
 ```

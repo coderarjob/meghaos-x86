@@ -105,5 +105,9 @@ void syscall_asm_despatcher (void);
 void timer_interrupt_asm_handler(void);
 void irq_7_asm_handler(void);
 void irq_15_asm_handler(void);
+#ifdef DEBUG
+void invalid_opcode_asm_handler(void);
+void breakpoint_asm_handler(void);
+#endif // DEBUG
 
 #endif // INTERRUPT_H_x86

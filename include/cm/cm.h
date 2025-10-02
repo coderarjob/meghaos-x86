@@ -25,6 +25,7 @@
  * Misc functions
  ***************************************************************************************************/
 #define HALT()             for (;;)
+#define NORETURN()         __builtin_unreachable()
 
 #ifndef UNITTEST
     #define cm_panic()                                            \
@@ -87,14 +88,18 @@ static inline void cm_process_yield(void)
     syscall (OSIF_SYSCALL_YIELD_PROCESS, 0, 0, 0, 0, 0);
 }
 
+__attribute__ ((noreturn))
 static inline void cm_process_kill (UINT code)
 {
     syscall (OSIF_SYSCALL_KILL_PROCESS, code, 0, 0, 0, 0);
+    NORETURN();
 }
 
+__attribute__ ((noreturn))
 static inline void cm_process_abort (UINT code)
 {
     syscall (OSIF_SYSCALL_ABORT_PROCESS, code, 0, 0, 0, 0);
+    NORETURN();
 }
 
 static inline U32 cm_process_get_pid(void)

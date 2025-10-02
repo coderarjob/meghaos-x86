@@ -1,0 +1,12 @@
+.{
+    .name = .zello,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.15.1",
+    .fingerprint = 0x2c30626483af6e47,
+    .paths = .{""},
+    .dependencies = .{
+        .zm = .{
+            .path = "../zm",
+        },
+    },
+}

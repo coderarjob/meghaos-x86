@@ -89,7 +89,7 @@ void graphics_image_ppm (const GraphicsContext* g, UINT x, UINT y, UINT w, UINT 
 
 void graphics_putpixel (const GraphicsContext* g, UINT x, UINT y, Color color)
 {
-    CM_DBG_FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
+    //CM_DBG_FUNC_ENTRY ("area: %px, x: %u, y: %u, color: %x", g, x, y, color);
 
     GxColor* start = (GxColor*)(g->buffer + (y * g->bytesPerRow) + (x * g->bytesPerPixel));
     GxColor* col   = (GxColor*)&color;

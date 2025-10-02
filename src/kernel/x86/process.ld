@@ -25,7 +25,7 @@ SECTIONS
 
     /DISCARD/ : 
     {
-        *(.eh_frame);
+        *(.eh_frame*);
         *(.comment);
     }
 }
