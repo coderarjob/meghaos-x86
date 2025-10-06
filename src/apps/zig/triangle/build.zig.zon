@@ -1,0 +1,12 @@
+.{
+    .name = .tri,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.15.1",
+    .fingerprint = 0x85dedb16ede558ee,
+    .paths = .{""},
+    .dependencies = .{
+        .zm = .{
+            .path = "../zm",
+        },
+    },
+}

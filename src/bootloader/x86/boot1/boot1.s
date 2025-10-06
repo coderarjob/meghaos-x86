@@ -36,6 +36,7 @@
 files:       db     KERNEL_FILE     , "KERNEL.FLT",0,0,0
 %ifdef GRAPHICS_MODE_ENABLED
              db     GUI0_APP_FILE   , "GUI0.FLT",0,0,0,0,0
+             db     TRI_APP_FILE    , "TRI.FLT",0,0,0,0,0,0
              db     MOS_IMAGE_FILE  , "MOS.RBM",0,0,0,0,0,0
 %else
              db     PROC1_FILE      , "PROC1.FLT",0,0,0,0

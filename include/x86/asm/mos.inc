@@ -63,6 +63,7 @@
     %define INIT_FILE       "INIT    FLT"
 %ifdef GRAPHICS_MODE_ENABLED
     %define GUI0_APP_FILE   "GUI0    FLT"
+    %define TRI_APP_FILE    "TRI     FLT"
 %else
     %define PROC1_FILE      "PROC1   FLT"
     %define MPDEMO_FILE     "MPDEMO  FLT"

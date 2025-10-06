@@ -31,4 +31,27 @@ add_zig_build(
     WORKING_DIRECTORY ${source_dir}
 )
 
-add_dependencies(build-all zello)
+set(source_dir ${CMAKE_CURRENT_LIST_DIR}/triangle)
+set(name tri)
+add_zig_build(
+    NAME ${name}
+    SOURCES
+        ${zig_common_source_files}
+        ${source_dir}/main.zig
+        ${source_dir}/build.zig
+        ${source_dir}/build.zig.zon
+    DEPENDS
+        cm
+        crta
+    FLAGS ${MOS_ZIG_BUILD_OPTIONS}
+    DEFINITIONS ${MOS_ZIG_BUILD_REQUIRED_DEFINES}
+    OUTPUT ${source_dir}/zig-out/bin/${name}          COPY_TO ${MOS_OBJ_DIR}
+    OUTPUT ${source_dir}/zig-out/bin/${name}.flt      COPY_TO ${MOS_BIN_DIR}
+    WORKING_DIRECTORY ${source_dir}
+)
+
+if (MOS_GRAPHICS_ENABLED)
+    add_dependencies(build-all tri)
+else()
+    add_dependencies(build-all zello)
+endif()
