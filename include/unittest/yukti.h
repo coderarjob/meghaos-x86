@@ -231,8 +231,6 @@ static inline void acl_list_remove (ACL_ListNode* item)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-#ifndef YUKTI_TEST_NO_MUST_CALL
-
 void YT__add_callrecord (ACL_ListNode* head, int sourceLineNumber, const char* const sourceFileName,
                          int n, const char* const fn, ...);
 
@@ -243,26 +241,23 @@ typedef struct YT__Arg {
     uintptr_t val; // A type large enough to hold both integers & addresses
 } YT__Arg;
 
-    #define YT__ARG_FIELDS_COUNT 2
+#define YT__ARG_FIELDS_COUNT 2
 
-    #define YT__RECORD_CALL_X(...) YT__FCALL_WRAP_ARGS_X (YT_V, ##__VA_ARGS__)
+#define YT__RECORD_CALL_X(...) YT__FCALL_WRAP_ARGS_X (YT_V, ##__VA_ARGS__)
 
-    #define YT_V(v)                               \
-        (YT__Arg)                                 \
-        {                                         \
-            .isOpt = false, .val = (uintptr_t)(v) \
-        }
-    #define _ (YT__Arg){ .isOpt = true, .val = 0 }
+#define YT_V(v)                               \
+    (YT__Arg)                                 \
+    {                                         \
+        .isOpt = false, .val = (uintptr_t)(v) \
+    }
+#define _ (YT__Arg){ .isOpt = true, .val = 0 }
 
-    #define YT__RECORD_CALL(n, f, ...)                                              \
-        do {                                                                        \
-            YT__add_callrecord (&YT__actualCallListHead, __LINE__, __FILE__,        \
-                                YT__COUNT_ARGS (__VA_ARGS__),                       \
-                                #f __VA_OPT__ (, YT__RECORD_CALL_X (__VA_ARGS__))); \
-        } while (0)
-#else
-    #define YT__RECORD_CALL(...) (void)0
-#endif /* YUKTI_TEST_NO_MUST_CALL */
+#define YT__RECORD_CALL(n, f, ...)                                              \
+    do {                                                                        \
+        YT__add_callrecord (&YT__actualCallListHead, __LINE__, __FILE__,        \
+                            YT__COUNT_ARGS (__VA_ARGS__),                       \
+                            #f __VA_OPT__ (, YT__RECORD_CALL_X (__VA_ARGS__))); \
+    } while (0)
 
 /*
  * ========================================================================================
@@ -445,16 +440,17 @@ static void YT__free_testRecord (YT__TestRecord* trecord)
     #define YT_INIT()                                 \
         do {                                          \
             acl_list_init (&YT__failedTestsListHead); \
+            acl_list_init (&YT__actualCallListHead);  \
             YT__total_test_count = 0;                 \
         } while (0)
 
     #define YT_RETURN_WITH_REPORT()                                                    \
         do {                                                                           \
             if (YT__failed_test_count == 0) {                                          \
-                printf ("\n%sAll tests passed [0 of %d failed]%s\n", YT__COL_GREEN,    \
+                printf ("\n%sAll tests passed [0/%d failed]%s\n", YT__COL_GREEN,       \
                         YT__total_test_count, YT__COL_RESET);                          \
             } else {                                                                   \
-                printf ("\n%sNot all tests passed [%d of %d failed]%s", YT__COL_RED,   \
+                printf ("\n%sNot all tests passed [%d/%d failed]%s", YT__COL_RED,      \
                         YT__failed_test_count, YT__total_test_count, YT__COL_RESET);   \
                 ACL_ListNode* node;                                                    \
                 acl_list_for_each (&YT__failedTestsListHead, node)                     \
@@ -477,60 +473,46 @@ static void YT__free_testRecord (YT__TestRecord* trecord)
      * 2.2: FUNCTION & MACROS TO TEST EXPECTATIONS ON FUNCTION CALLS
      * ========================================================================================
      * */
-    #ifdef YUKTI_TEST_NO_MUST_CALL
-        // Compilation will fail since the these macros will expand to invalid C code.
-        #define YT__ERROR_MESSAGE Invalid when YUKTI_TEST_NO_MUST_CALL is defined
+    #define YT_IN_SEQUENCE(n) for (int i = 0; i < (n); i++)
 
-        #define YT_IN_SEQUENCE(n)                         YT__ERROR_MESSAGE
-        #define YT_MUST_CALL_IN_ORDER(...)                YT__ERROR_MESSAGE
-        #define YT_MUST_CALL_IN_ORDER_ATLEAST_TIMES(...)  YT__ERROR_MESSAGE
-        #define YT_MUST_CALL_ANY_ORDER(...)               YT__ERROR_MESSAGE
-        #define YT_MUST_CALL_ANY_ORDER_ATLEAST_TIMES(...) YT__ERROR_MESSAGE
+    #define YT_MUST_NEVER_CALL(f, ...)                                                   \
+        do {                                                                             \
+            YT__current_testrecord->total_exp_count++;                                   \
+            YT__add_callrecord (&YT__neverCallExceptationsListHead, __LINE__, __FILE__,  \
+                                YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
+                                ##__VA_ARGS__);                                          \
+        } while (0)
 
-        #define YT__validate_expectations() (void)0
-        #define YT__teardown()              (void)0
-        #define YT__ec_init()               (void)0
-    #else
-        #define YT_IN_SEQUENCE(n) for (int i = 0; i < (n); i++)
+    #define YT_MUST_CALL_IN_ORDER(f, ...)                                                \
+        do {                                                                             \
+            YT__current_testrecord->total_exp_count++;                                   \
+            YT__add_callrecord (&YT__orderedExceptationListHead, __LINE__, __FILE__,     \
+                                YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
+                                ##__VA_ARGS__);                                          \
+        } while (0)
 
-        #define YT_MUST_NEVER_CALL(f, ...)                                                   \
-            do {                                                                             \
-                YT__current_testrecord->total_exp_count++;                                   \
-                YT__add_callrecord (&YT__neverCallExceptationsListHead, __LINE__, __FILE__,  \
-                                    YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
-                                    ##__VA_ARGS__);                                          \
-            } while (0)
+    #define YT_MUST_CALL_IN_ORDER_ATLEAST_TIMES(n, f, ...) \
+        for (int i = n; i; i--) {                          \
+            YT_MUST_CALL_IN_ORDER (f, ##__VA_ARGS__);      \
+        }
 
-        #define YT_MUST_CALL_IN_ORDER(f, ...)                                                \
-            do {                                                                             \
-                YT__current_testrecord->total_exp_count++;                                   \
-                YT__add_callrecord (&YT__orderedExceptationListHead, __LINE__, __FILE__,     \
-                                    YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
-                                    ##__VA_ARGS__);                                          \
-            } while (0)
+    #define YT_MUST_CALL_ANY_ORDER(f, ...)                                               \
+        do {                                                                             \
+            YT__current_testrecord->total_exp_count++;                                   \
+            YT__add_callrecord (&YT__globalExceptationListHead, __LINE__, __FILE__,      \
+                                YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
+                                ##__VA_ARGS__);                                          \
+        } while (0)
 
-        #define YT_MUST_CALL_IN_ORDER_ATLEAST_TIMES(n, f, ...) \
-            for (int i = n; i; i--) {                          \
-                YT_MUST_CALL_IN_ORDER (f, ##__VA_ARGS__);      \
-            }
+    #define YT_MUST_CALL_ANY_ORDER_ATLEAST_TIMES(n, f, ...) \
+        for (int i = n; i; i--) {                           \
+            YT_MUST_CALL_ANY_ORDER (f, ##__VA_ARGS__);      \
+        }
 
-        #define YT_MUST_CALL_ANY_ORDER(f, ...)                                               \
-            do {                                                                             \
-                YT__current_testrecord->total_exp_count++;                                   \
-                YT__add_callrecord (&YT__globalExceptationListHead, __LINE__, __FILE__,      \
-                                    YT__COUNT_ARGS (__VA_ARGS__) / YT__ARG_FIELDS_COUNT, #f, \
-                                    ##__VA_ARGS__);                                          \
-            } while (0)
-
-        #define YT_MUST_CALL_ANY_ORDER_ATLEAST_TIMES(n, f, ...) \
-            for (int i = n; i; i--) {                           \
-                YT_MUST_CALL_ANY_ORDER (f, ##__VA_ARGS__);      \
-            }
-
-        #define YT__MAX_CALLSTRING_SIZE      250
-        #define YT__MAX_SOURCE_FILE_NAME_LEN 250
-        #define YT__ARG_OPTIONAL_CHAR        '!'
-        #define YT__ARG_SEPARATOR_CHAR       ','
+    #define YT__MAX_CALLSTRING_SIZE      250
+    #define YT__MAX_SOURCE_FILE_NAME_LEN 250
+    #define YT__ARG_OPTIONAL_CHAR        '!'
+    #define YT__ARG_SEPARATOR_CHAR       ','
 
 typedef enum YT__CallRecordTypes {
     YT__CALLRECORD_TYPE_ORDERED_EXPECTATION,
@@ -551,13 +533,13 @@ static bool YT__match_call_strings (const char* exp, const char* actual);
 static void YT__string_append (char* str, size_t size, const char* const fmt, ...);
 static void YT__call_record_free (YT__CallRecord* node);
 static void YT__free_call_list (ACL_ListNode* head);
-        #ifdef YUKTI_TEST_DEBUG
+    #ifdef YUKTI_TEST_DEBUG
 static void YT__create_call_string (ACL_ListNode* head, char* buffer, size_t buffer_size, int n,
                                     const char* const fn, va_list l);
-        #else
+    #else
 static void YT__create_call_string (char* buffer, size_t buffer_size, int n, const char* const fn,
                                     va_list l);
-        #endif /* YUKTI_TEST_DEBUG */
+    #endif /* YUKTI_TEST_DEBUG */
 
 static void YT__print_unmet_expectations();
 static void YT__validate_expectations();
@@ -641,13 +623,13 @@ static void YT__call_record_free (YT__CallRecord* node)
     free (node);
 }
 
-        #ifdef YUKTI_TEST_DEBUG
+    #ifdef YUKTI_TEST_DEBUG
 void YT__create_call_string (ACL_ListNode* head, char* buffer, size_t buffer_size, int n,
                              const char* const fn, va_list l)
-        #else
+    #else
 void YT__create_call_string (char* buffer, size_t buffer_size, int n, const char* const fn,
                              va_list l)
-        #endif /* YUKTI_TEST_DEBUG */
+    #endif /* YUKTI_TEST_DEBUG */
 {
     // Expectation: Input pointers are not NULL and Buffer size > 0. They are not user facing!
     assert (buffer != NULL && fn != NULL && buffer_size > 0);
@@ -659,10 +641,10 @@ void YT__create_call_string (char* buffer, size_t buffer_size, int n, const char
         char separator = (i == 0) ? ' ' : YT__ARG_SEPARATOR_CHAR;
 
         if (item.isOpt) {
-        #ifdef YUKTI_TEST_DEBUG
+    #ifdef YUKTI_TEST_DEBUG
             // Expectation: Actual call list must not have optional arguments
             assert (head != &YT__actualCallListHead);
-        #endif /* YUKTI_TEST_DEBUG */
+    #endif /* YUKTI_TEST_DEBUG */
             YT__string_append (buffer, buffer_size, "%c%c", separator, YT__ARG_OPTIONAL_CHAR);
         } else {
             YT__string_append (buffer, buffer_size, "%c%d", separator, item.val);
@@ -705,11 +687,11 @@ void YT__add_callrecord (ACL_ListNode* head, int sourceLineNumber, const char* c
 
     va_list l;
     va_start (l, fn);
-        #ifdef YUKTI_TEST_DEBUG
+    #ifdef YUKTI_TEST_DEBUG
     YT__create_call_string (head, newrec->callString, sizeof (newrec->callString), n, fn, l);
-        #else
+    #else
     YT__create_call_string (newrec->callString, sizeof (newrec->callString), n, fn, l);
-        #endif /* YUKTI_TEST_DEBUG */
+    #endif /* YUKTI_TEST_DEBUG */
     va_end (l);
 }
 
@@ -754,7 +736,7 @@ void YT__print_unmet_expectations (ACL_ListNode* neverCallExpectationFailedListH
         }
     }
 
-        #ifdef YUKTI_TEST_DEBUG
+    #ifdef YUKTI_TEST_DEBUG
     printf ("\n  Actual order of functions calls was the following:\n");
     acl_list_for_each (&YT__actualCallListHead, node)
     {
@@ -765,7 +747,7 @@ void YT__print_unmet_expectations (ACL_ListNode* neverCallExpectationFailedListH
 
         printf ("    * %s\n", item->callString);
     }
-        #endif /* YUKTI_TEST_DEBUG */
+    #endif /* YUKTI_TEST_DEBUG */
 }
 
 void YT__validate_expectations()
@@ -841,7 +823,6 @@ static void YT__teardown()
     YT__free_call_list (&YT__neverCallExceptationsListHead);
     YT__free_call_list (&YT__globalExceptationListHead);
     YT__free_call_list (&YT__orderedExceptationListHead);
-    YT__free_call_list (&YT__actualCallListHead);
 }
 
 static void YT__ec_init()
@@ -849,10 +830,9 @@ static void YT__ec_init()
     acl_list_init (&YT__neverCallExceptationsListHead);
     acl_list_init (&YT__globalExceptationListHead);
     acl_list_init (&YT__orderedExceptationListHead);
-    acl_list_init (&YT__actualCallListHead);
+    YT__free_call_list (&YT__actualCallListHead); // Free up the 'Acutal Call' list for new tests
 }
-    #endif     /* YUKTI_TEST_NO_MUST_CALL */
-#endif         /* YUKTI_TEST_IMPLEMENTATION */
+#endif /* YUKTI_TEST_IMPLEMENTATION */
 
 /*
  * ========================================================================================
@@ -1093,21 +1073,20 @@ static double yt__test_elapsed_time_ms()
 
         #define YT__PRINT_FAILURE_MESSAGE()                                                  \
             do {                                                                             \
-                printf ("\n  %s%d of %d failed [%1.4f ms]%s", YT__COL_RED,                   \
+                printf ("\n  %s%d/%d expectations failed [%1.4f ms]%s", YT__COL_RED,         \
                         YT__current_testrecord->failed_exp_count,                            \
                         YT__current_testrecord->total_exp_count, yt__test_elapsed_time_ms(), \
                         YT__COL_RESET);                                                      \
             } while (0)
     #else
-        #define YT__PRINT_SUCCESS_MESSAGE()                                      \
-            do {                                                                 \
-                printf ("  %sOK [0 of %d failed]%s", YT__COL_GREEN,              \
-                        YT__current_testrecord->total_exp_count, YT__COL_RESET); \
+        #define YT__PRINT_SUCCESS_MESSAGE()                        \
+            do {                                                   \
+                printf ("  %sOK%s", YT__COL_GREEN, YT__COL_RESET); \
             } while (0)
 
         #define YT__PRINT_FAILURE_MESSAGE()                                      \
             do {                                                                 \
-                printf ("\n  %s%d of %d failed%s", YT__COL_RED,                  \
+                printf ("\n  %s%d/%d expectations failed%s", YT__COL_RED,        \
                         YT__current_testrecord->failed_exp_count,                \
                         YT__current_testrecord->total_exp_count, YT__COL_RESET); \
             } while (0)
@@ -1115,6 +1094,8 @@ static double yt__test_elapsed_time_ms()
 
     // clang-format off
     #define YT_END()                                                           \
+        /* the following '}' is for closing YT_TEST's do loop */               \
+        } while (0);                                                           \
         YT__validate_expectations();                                           \
         YT__teardown();                                                        \
         if (YT__current_testrecord->failed_exp_count != 0) {                   \
@@ -1128,8 +1109,6 @@ static double yt__test_elapsed_time_ms()
             YT__free_testRecord (YT__current_testrecord);                      \
         }                                                                      \
         YT__current_testrecord = NULL;                                         \
-        /* following '}' is for closing YT_TEST's do loop */                   \
-        } while (0);                                                           \
         printf ("\n");
     // clang-format on
 
