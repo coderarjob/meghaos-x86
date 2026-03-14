@@ -1,4 +1,4 @@
-find_package(Zig 0.15.1 EXACT REQUIRED)
+find_package(Zig 0.15.2 EXACT REQUIRED)
 
 set(zig_common_source_files
     ${CMAKE_CURRENT_LIST_DIR}/mos_build.zig
