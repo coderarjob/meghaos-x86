@@ -33,17 +33,17 @@
 ; ******************************************************
 ; DATA
 ; ******************************************************
-files:       db     KERNEL_FILE     , "KERNEL.FLT",0,0,0
+files:       db     "KERNEL  FLT", "KERNEL.FLT",0,0,0
 %ifdef GRAPHICS_MODE_ENABLED
-             db     GUI0_APP_FILE   , "GUI0.FLT",0,0,0,0,0
-             db     TRI_APP_FILE    , "TRI.FLT",0,0,0,0,0,0
-             db     MOS_IMAGE_FILE  , "MOS.RBM",0,0,0,0,0,0
+             db     "GUI0    FLT", "GUI0.FLT",0,0,0,0,0
+             db     "TRI     FLT", "TRI.FLT",0,0,0,0,0,0
+             db     "MOS     RBM", "MOS.RBM",0,0,0,0,0,0
 %else
-             db     PROC1_FILE      , "PROC1.FLT",0,0,0,0
-             db     MPDEMO_FILE     , "MPDEMO.FLT",0,0,0
-             db     ZELLO_FILE      , "ZELLO.FLT",0,0,0,0
+             db     "PROC1   FLT", "PROC1.FLT",0,0,0,0
+             db     "MPDEMO  FLT", "MPDEMO.FLT",0,0,0
+             db     "ZELLO   FLT", "ZELLO.FLT",0,0,0,0
 %endif
-             db     INIT_FILE       , "INIT.FLT",0,0,0,0,0
+             db     "INIT    FLT", "INIT.FLT",0,0,0,0,0
              db     0
 
 msg_welcome: db     13,10,OS_NAME,13,10

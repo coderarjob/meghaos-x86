@@ -59,17 +59,6 @@
     MIN_MEM_REQ:        EQU     2 * 1024 * 1024 ; 2 MB RAM required mininum.
 
     %define BOOT1_FILE      "BOOT1   FLT"
-    %define KERNEL_FILE     "KERNEL  FLT"
-    %define INIT_FILE       "INIT    FLT"
-%ifdef GRAPHICS_MODE_ENABLED
-    %define GUI0_APP_FILE   "GUI0    FLT"
-    %define TRI_APP_FILE    "TRI     FLT"
-%else
-    %define PROC1_FILE      "PROC1   FLT"
-    %define MPDEMO_FILE     "MPDEMO  FLT"
-    %define ZELLO_FILE      "ZELLO   FLT"
-%endif
-    %define MOS_IMAGE_FILE  "MOS     RBM"
 
     %define GXMODE_XRESOLUTION 800
     %define GXMODE_YRESOLUTION 600
