@@ -226,10 +226,8 @@ static void run_root_process(void)
 
     BootFileItem fileinfo = kboot_findBootFileItem("INIT.FLT");
 
-    Physical startAddress = PHYSICAL (fileinfo.startLocation);
     SIZE lengthBytes      = (SIZE)fileinfo.length;
-
-    void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (startAddress);
+    void* startAddress_va = HIGHER_HALF_KERNEL_TO_VA (fileinfo.startLocation);
     INT processID         = kprocess_create (startAddress_va, lengthBytes, PROCESS_FLAGS_NONE);
     if (processID < 0) {
         FATAL_BUG();
@@ -256,7 +254,7 @@ void display_system_info(void)
     INFO ("Loaded kernel files:");
     for (INT i = 0; i < loadedFilesCount; i++) {
         BootFileItem file  = kboot_getBootFileItem (i);
-        UINT startLocation = (UINT)file.startLocation;
+        UINT startLocation = (UINT)file.startLocation.val;
         UINT length_bytes  = (UINT)file.length;
 
         INFO ("* file: Start = %x, Length = %u bytes", startLocation, length_bytes);
@@ -342,9 +340,9 @@ static void s_initializeMemoryManagers(void)
 
     BootFileItem firstFile      = kboot_getBootFileItem (0);
     BootFileItem lastFile       = kboot_getBootFileItem (filesCount - 1);
-    Physical first_startAddress = PHYSICAL (firstFile.startLocation);
+    Physical first_startAddress = firstFile.startLocation;
 
-    Physical last_startAddress   = PHYSICAL (lastFile.startLocation);
+    Physical last_startAddress   = lastFile.startLocation;
     SIZE last_lengthBytes        = (USYSINT)lastFile.length;
     SIZE totalModulesLengthBytes = (last_startAddress.val - first_startAddress.val) +
                                    last_lengthBytes;

@@ -424,7 +424,6 @@ void ksys_find_bootloaded_file (SystemcallFrame frame, const char* const filenam
 
     BootFileItem fileinfo = kboot_findBootFileItem (filename);
     file->length          = fileinfo.length;
-    Physical start        = PHYSICAL (fileinfo.startLocation);
-    file->startLocation   = HIGHER_HALF_KERNEL_TO_VA (start);
+    file->startLocation   = HIGHER_HALF_KERNEL_TO_VA (fileinfo.startLocation);
 }
 #endif // ARCH = x86
