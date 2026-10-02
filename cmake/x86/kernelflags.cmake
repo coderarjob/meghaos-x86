@@ -65,6 +65,15 @@ If (MOS_GRAPHICS_ENABLED)
     )
 endif()
 
+If (MOS_ENABLE_ZIG_SUPPORT)
+    list(APPEND MOS_KERNEL_GCC_DEFINITIONS
+        ZIG_SUPPORT_ENABLED
+    )
+
+    list(APPEND MOS_KERNEL_NASM_DEFINITIONS
+        ZIG_SUPPORT_ENABLED
+    )
+endif()
 
 # ----------------------------------------------------
 # LINKER
