@@ -20,12 +20,22 @@ if(CMAKE_CROSSCOMPILING)
     set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
     set(MOS_GRAPHICS_BPP "32" CACHE STRING "Graphics mode: bits per pixel")
     set(MOS_ENABLE_ZIG_SUPPORT No CACHE BOOL "Enables Zig language support")
+    set(MOS_INIT_PROGRAM "" CACHE STRING "Program which the init starts first.")
 
     set(MOS_GRAPHICS_BPPS "8" "24" "32")
     set_property(CACHE MOS_GRAPHICS_BPP PROPERTY STRINGS ${MOS_GRAPHICS_BPPS})
 
     set(MOS_BUILD_MODES "DEBUG" "NDEBUG")
     set_property(CACHE MOS_BUILD_MODE PROPERTY STRINGS ${MOS_BUILD_MODES})
+
+    set(MOS_INIT_PROGRAMS
+        "MPDEMO.FLT"
+        "PROC1.FLT"
+        "ZELLO.FLT"
+        "TRI.FLT"
+        "GUIT.FLT"
+    )
+    set_property(CACHE MOS_INIT_PROGRAM PROPERTY STRINGS ${MOS_INIT_PROGRAMS})
 endif()
 
 #---------------------------------------------------------------------------
@@ -47,6 +57,11 @@ if(CMAKE_CROSSCOMPILING)
     if (MOS_BUILD_MODE STREQUAL "NDEBUG" AND NOT MOS_GRAPHICS_ENABLED)
         message(FATAL_ERROR "NDEBUG build must have Graphics enabled.")
     endif()
+
+    if (NOT MOS_INIT_PROGRAM IN_LIST MOS_INIT_PROGRAMS)
+        message(FATAL_ERROR "${MOS_INIT_PROGRAM} is not a valid init program.")
+    endif()
+
 endif()
 
 if (CMAKE_BUILD_TYPE)

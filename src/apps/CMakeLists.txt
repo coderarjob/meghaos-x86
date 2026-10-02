@@ -45,21 +45,12 @@ link(
 # ---------------------------------------------------------------------------
 # Program - INIT
 # ---------------------------------------------------------------------------
-set(MOS_INIT_PROGRAM \"MPDEMO.FLT\" CACHE STRING "Program which the init starts first.")
-set(MOS_INIT_PROGRAMS \"MPDEMO.FLT\"
-                      \"PROC1.FLT\"
-                      \"ZELLO.FLT\"
-                      \"TRI.FLT\"
-                      \"GUIT.FLT\"
-                  )
-set_property(CACHE MOS_INIT_PROGRAM PROPERTY STRINGS ${MOS_INIT_PROGRAMS})
-
 compile_lib(
     NAME init
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/init.c
     FLAGS ${MOS_USER_GCC_FLAGS}
     DEPENDS cm
-    DEFINITIONS ${MOS_USER_GCC_DEFINITIONS} INIT_PROG=${MOS_INIT_PROGRAM}
+    DEFINITIONS ${MOS_USER_GCC_DEFINITIONS} INIT_PROG="${MOS_INIT_PROGRAM}"
     INCLUDE_DIRECTORIES ${MOS_USER_GCC_INCLUDE_DIRS}
     )
 
