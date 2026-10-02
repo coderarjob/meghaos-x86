@@ -16,7 +16,13 @@ const CMakeBoolean = enum {
     OFF,
 
     fn from(b: []const u8) @This() {
-        return std.meta.stringToEnum(CMakeBoolean, b) orelse @panic("Invalid Boolean");
+        if (std.ascii.eqlIgnoreCase(b, "on") or std.ascii.eqlIgnoreCase(b, "yes")) {
+            return .ON;
+        } else if (std.ascii.eqlIgnoreCase(b, "off") or std.ascii.eqlIgnoreCase(b, "no")) {
+            return .OFF;
+        } else {
+            @panic("Invalid Boolean");
+        }
     }
 };
 
