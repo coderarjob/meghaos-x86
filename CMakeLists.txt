@@ -87,6 +87,7 @@ add_custom_target(show-info ALL
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS MODE   : ${MOS_GRAPHICS_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS BPP    : ${MOS_GRAPHICS_BPP}"
     COMMAND ${CMAKE_COMMAND} -E echo "- ZIG SUPPORT     : ${MOS_ENABLE_ZIG_SUPPORT}"
+    COMMAND ${CMAKE_COMMAND} -E echo "- INIT PROGRAM    : ${MOS_INIT_PROGRAM}"
     COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"
     )
 #---------------------------------------------------------------------------
