@@ -38,6 +38,7 @@ files:       db     "KERNEL  FLT", "KERNEL.FLT",0,0,0
              db     "GUI0    FLT", "GUI0.FLT",0,0,0,0,0
              db     "TRI     FLT", "TRI.FLT",0,0,0,0,0,0
              db     "MOS     RBM", "MOS.RBM",0,0,0,0,0,0
+             db     "GUIT    FLT", "GUIT.FLT",0,0,0,0,0
 %else
              db     "PROC1   FLT", "PROC1.FLT",0,0,0,0
              db     "MPDEMO  FLT", "MPDEMO.FLT",0,0,0
