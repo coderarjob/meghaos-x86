@@ -35,17 +35,11 @@
 ; ******************************************************
 files:       db     "KERNEL  FLT", "KERNEL.FLT",0,0,0
 %ifdef GRAPHICS_MODE_ENABLED
-    %ifdef ZIG_SUPPORT_ENABLED
-             db     "TRI     FLT", "TRI.FLT",0,0,0,0,0,0
-    %endif
              db     "MOS     RBM", "MOS.RBM",0,0,0,0,0,0
              db     "GUIT    FLT", "GUIT.FLT",0,0,0,0,0
 %else
              db     "PROC1   FLT", "PROC1.FLT",0,0,0,0
              db     "MPDEMO  FLT", "MPDEMO.FLT",0,0,0
-    %ifdef ZIG_SUPPORT_ENABLED
-             db     "ZELLO   FLT", "ZELLO.FLT",0,0,0,0
-    %endif
 %endif
              db     "INIT    FLT", "INIT.FLT",0,0,0,0,0
              db     0

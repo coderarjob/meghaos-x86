@@ -19,7 +19,6 @@ if(CMAKE_CROSSCOMPILING)
     set(MOS_PORT_E9_ENABLED No CACHE BOOL "Enable printing using Port E9")
     set(MOS_GRAPHICS_ENABLED No CACHE BOOL "Is Graphics enabled")
     set(MOS_GRAPHICS_BPP "32" CACHE STRING "Graphics mode: bits per pixel")
-    set(MOS_ENABLE_ZIG_SUPPORT No CACHE BOOL "Enables Zig language support")
     set(MOS_INIT_PROGRAM "" CACHE STRING "Program which the init starts first.")
 
     set(MOS_GRAPHICS_BPPS "8" "24" "32")
@@ -31,8 +30,6 @@ if(CMAKE_CROSSCOMPILING)
     set(MOS_INIT_PROGRAMS
         "MPDEMO.FLT"
         "PROC1.FLT"
-        "ZELLO.FLT"
-        "TRI.FLT"
         "GUIT.FLT"
     )
     set_property(CACHE MOS_INIT_PROGRAM PROPERTY STRINGS ${MOS_INIT_PROGRAMS})
@@ -74,9 +71,6 @@ endif()
 #---------------------------------------------------------------------------
 
 include(cmake/compile_assemble_link.cmake)
-if (MOS_ENABLE_ZIG_SUPPORT)
-    include(cmake/BuildZig.cmake)
-endif()
 
 set(MOS_BIN_DIR                    ${CMAKE_BINARY_DIR}/bin)
 set(MOS_OBJ_DIR                    ${CMAKE_BINARY_DIR}/obj)
@@ -101,7 +95,6 @@ add_custom_target(show-info ALL
     COMMAND ${CMAKE_COMMAND} -E echo "- E9 ENABLED      : ${MOS_PORT_E9_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS MODE   : ${MOS_GRAPHICS_ENABLED}"
     COMMAND ${CMAKE_COMMAND} -E echo "- GRAPHICS BPP    : ${MOS_GRAPHICS_BPP}"
-    COMMAND ${CMAKE_COMMAND} -E echo "- ZIG SUPPORT     : ${MOS_ENABLE_ZIG_SUPPORT}"
     COMMAND ${CMAKE_COMMAND} -E echo "- INIT PROGRAM    : ${MOS_INIT_PROGRAM}"
     COMMAND ${CMAKE_COMMAND} -E echo "----------------------------"
     )

@@ -75,7 +75,9 @@ used by another.
 3. nasm assembler version 2.15.05 or higher.
 4. Cmake version >= 3.15
 5. `dosfstools` for creation of disk image.
-6. Zig compiler 0.15.1 to write applications in Zig (Optional & non-default).
+
+> [!NOTE]
+> There is Zig language support for writing user applications with examples in [feature/zig-language-support](https://github.com/coderarjob/meghaos-x86/tree/feature/zig-language-support) branch. This feature was removed from `master` to keep direction of the project more focused.
 
 ### Building
 
@@ -88,7 +90,6 @@ used by another.
     variable does not include it.
 * `MOS_GRAPHICS_ENABLED` (Defaults to No) - Enables/disables VESA graphics.
 * `MOS_GRAPHICS_BPP` (Defaults to 32) - Graphics bits per pixel. Valid values are 8, 24, 32.
-* `MOS_ENABLE_ZIG_SUPPORT` (Defaults to No) - Enables Zig language support for applications.
 * `MOS_INIT_PROGRAM` (Required) - Program filename that the kernel runs on startup. Eventually there
   will be a default but for now this is required to be provided (as its the only way to run user
   programs). Options available out of the box are following:
@@ -97,10 +98,6 @@ used by another.
 | ------------     | ------------                         | ----------------------------------------------- |
 | MPDEMO.FLT       | Multitasking demo (text)             | MOS_BUILD_MODE=DEBUG, MOS_GRAPHICS_ENABLED=No   |
 | PROC1.FLT        | Basic process creation               | MOS_BUILD_MODE=DEBUG, MOS_GRAPHICS_ENABLED=No   |
-| ZELLO.FLT        | Hello world (Zig)                    | MOS_BUILD_MODE=DEBUG, MOS_GRAPHICS_ENABLED=No   |
-|                  |                                      | MOS_ENABLE_ZIG_SUPPORT=Yes                      |
-| TRI.FLT          | Graphics demo (Zig)                  | MOS_BUILD_MODE=DEBUG, MOS_GRAPHICS_ENABLED=Yes  |
-|                  |                                      | MOS_ENABLE_ZIG_SUPPORT=Yes                      |
 | GUIT.FLT         | Graphics and multithreading demo (C) | MOS_BUILD_MODE=DEBUG, MOS_GRAPHICS_ENABLED=Yes  |
 
 *Note*
@@ -123,15 +120,6 @@ $ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake  \
         -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross                 \
         -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED='Yes'         \
         -DMOS_INIT_PROGRAM="GUIT.FLT"                               \
-        -B build-os
-
-# Example 3: DEBUG mode build with Graphics mode and Zig support.
-
-$ cmake -DCMAKE_TOOLCHAIN_FILE=./tools/toolchain-i686-elf-pc.cmake \
-        -DCMAKE_PREFIX_PATH=~/.local/opt/i686-cross                \
-        -DMOS_BUILD_MODE=DEBUG -DMOS_GRAPHICS_ENABLED='Yes'        \
-        -DMOS_ENABLE_ZIG_SUPPORT='Yes'                             \
-        -DMOS_INIT_PROGRAM="TRI.FLT"                               \
         -B build-os
 ```
 
